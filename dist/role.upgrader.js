@@ -1,5 +1,7 @@
 var roleUpgrader = {
-
+    body: [WORK,CARRY,MOVE],
+    role: 'upgrader',
+    max: 1,
     /** @param {Creep} creep **/
     run: function(creep) {
         if(creep.memory.dumping && creep.carry.energy == 0) {

@@ -1,4 +1,7 @@
 var roleHarvester = {
+    body: [WORK,CARRY,MOVE],
+    role: 'harvester',
+    max: 5,
     /** @param {Creep} creep **/
     run: function(creep) {
         if(creep.memory.dumping && creep.carry.energy == 0) {

@@ -4,9 +4,11 @@
 //http://support.screeps.com/hc/en-us/articles/205990342-StructureSpawn#renewCreep
 //Game.spawns['Spawn1'].room.createConstructionSite( 23, 22, STRUCTURE_TOWER );
 
-var roleHarvester = require('role.harvester');
-var roleUpgrader = require('role.upgrader');
-var roleBuilder = require('role.builder');
+var roles = {
+    harvester: require('role.harvester'),
+    upgrader: require('role.upgrader'),
+    builder: require ('role.builder')
+};
 
 module.exports.loop = function () {
 
@@ -31,40 +33,19 @@ module.exports.loop = function () {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
-
-    var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
-    console.log('Harvesters: ' + harvesters.length);
-    var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
-    console.log('Upgraders: ' + upgraders.length);
-    var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
-    console.log('Builders: ' + builders.length);
-
     var building = false;
-    if(!building && harvesters.length < 5) {
-        var newName = Game.spawns['Bastion'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'harvester'});
-        if(_.isString(newName)) {
-            console.log('Spawning new harvester: ' + newName);
-            building = true;
-        } else {
-            console.log('Unable to spawn harvester:' + result);
-        }
-    }
-    if(!building && upgraders.length < 1) {
-        var newName = Game.spawns['Bastion'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'upgrader'});
-        if(_.isString(newName)) {
-            console.log('Spawning new upgrader: ' + newName);
-            building = true;
-        } else {
-            console.log('Unable to spawn upgrader:' + result);
-        }
-    }
-    if(!building && builders.length < 5) {
-        var newName = Game.spawns['Bastion'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder'});
-        if(_.isString(newName)) {
-            console.log('Spawning new builder: ' + newName);
-            building = true;
-        } else {
-            console.log('Unable to spawn builder:' + result);
+    for(var index in roles) {
+        var role = roles[index];
+        var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
+        console.log(role.role + ': ' + x.length + ' (max:' + role.max + ')');
+        if(!building && x.length < role.max) {
+            var newName = Game.spawns['Bastion'].createCreep(role.body, undefined, {role: role.role});
+            if(_.isString(newName)) {
+                console.log('Spawning new ' + role.role + ': ' + newName);
+                building = true;
+            } else {
+                console.log('Unable to spawn ' + role.role + ': ' + newName);
+            }
         }
     }
 
@@ -74,14 +55,18 @@ module.exports.loop = function () {
 
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
-        }
-        if(creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
-        if(creep.memory.role == 'builder') {
-            roleBuilder.run(creep);
+        switch(creep.memory.role) {
+            case roles.harvester.role:
+                roles.harvester.run(creep);
+                break;
+            case roles.upgrader.role:
+                roles.upgrader.run(creep);
+                break;
+            case roles.builder.role:
+                roles.builder.run(creep);
+                break;
+            default:
+                console.log('Role' + creep.memory.role + ' not found!');
         }
     }
-}
+};

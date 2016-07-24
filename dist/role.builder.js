@@ -1,5 +1,7 @@
 var roleBuilder = {
-
+    body: [WORK,CARRY,MOVE],
+    role: 'builder',
+    max: 5,
     /** @param {Creep} creep **/
     run: function(creep) {
 
