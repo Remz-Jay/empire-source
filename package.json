@@ -16,6 +16,9 @@
   "keywords": [
     "screeps"
   ],
+  "directories": {
+    "bin": "dist"
+  },
   "author": "Remco Overdijk",
   "license": "UNLICENSED"
 }
