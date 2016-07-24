@@ -1,5 +1,17 @@
 var roleHarvester = {
-    body: [WORK, CARRY, MOVE],
+    body: [WORK,CARRY,CARRY,MOVE,MOVE], // 100 + 50 + 50 + 50 + 50 = 300
+    /**
+     *
+     * @param capacity
+     * @returns {Array}
+     */
+    getBody: function(capacity) {
+        var body = this.body;
+        if (capacity >= 400) {
+            body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
+        }
+        return body;
+    },
     role: 'harvester',
     max: 5,
     /** @param {Creep} creep **/
@@ -16,7 +28,7 @@ var roleHarvester = {
         }
         if (creep.memory.dumping) {
             if (creep.memory.target == false) {
-                var targets = creep.room.find(FIND_STRUCTURES, {
+                var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                     filter: (structure) => {
                         return (
                             structure.structureType == STRUCTURE_EXTENSION ||
@@ -25,8 +37,17 @@ var roleHarvester = {
                             ) && structure.energy < structure.energyCapacity;
                     }
                 });
-                if (targets.length > 0) {
-                    creep.memory.target = targets[0].id;
+                //No owned structure was found. Try to fill containers.
+                if (target == null) {
+                    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                        filter: (structure) => {
+                            return  structure.structureType == STRUCTURE_CONTAINER &&
+                                    _.sum(structure.store) < structure.storeCapacity;
+                        }
+                    });
+                }
+                if (target != null) {
+                    creep.memory.target = target.id;
                 } else {
                     creep.memory.target = creep.room.controller.id;
                 }
@@ -39,6 +60,7 @@ var roleHarvester = {
                     case STRUCTURE_EXTENSION:
                     case STRUCTURE_SPAWN:
                     case STRUCTURE_TOWER:
+                    case STRUCTURE_CONTAINER:
                         var status = creep.transfer(target, RESOURCE_ENERGY);
                         switch (status) {
                             case ERR_NOT_IN_RANGE:
@@ -61,7 +83,9 @@ var roleHarvester = {
                 }
             }
         } else {
-            var source = creep.pos.findClosestByPath(FIND_SOURCES);
+            var source = creep.pos.findClosestByPath(FIND_SOURCES, {
+                filter: (source) => (source.energy > this.energyCapacity) || source.ticksToRegeneration < 30
+            });
             if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
             }

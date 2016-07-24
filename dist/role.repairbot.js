@@ -1,5 +1,12 @@
 var roleRepairbot = {
     body: [WORK,CARRY,CARRY,MOVE,MOVE],
+    getBody: function(capacity) {
+        var body = this.body;
+        if (capacity >= 400) {
+            body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
+        }
+        return body;
+    },
     role: 'repair',
     max: 2,
     /** @param {Creep} creep **/
@@ -21,23 +28,24 @@ var roleRepairbot = {
                 //See if any owned buildings are damaged.
                 var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                     filter: (structure) => {
-                        return (structure.hits < structure.hitsMax);
+                        return (structure.hits < (structure.hitsMax*0.8));
                     }
                 });
                 // No? Try to repair a neutral structure instead.
                 if (target == null) {
                     target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                         filter: (structure) => {
-                            return (structure.hits < structure.hitsMax) &&
+                            return (structure.hits < structure.hitsMax*0.7) &&
                                 (   structure.structureType == STRUCTURE_ROAD ||
                                     structure.structureType == STRUCTURE_CONTAINER
                                 )
                         }
                     });
                 }
-                console.log(target);
                 if (target != null) {
                     creep.memory.target = target.id;
+                } else {
+                    creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                 }
             }
             var target = Game.getObjectById(creep.memory.target);

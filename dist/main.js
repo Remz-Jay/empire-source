@@ -34,24 +34,26 @@ module.exports.loop = function () {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
-    var building = false;
-    for(var index in roles) {
-        var role = roles[index];
-        var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
-        console.log(role.role + ': ' + x.length + ' (max:' + role.max + ')');
-        if(!building && x.length < role.max) {
-            var newName = Game.spawns['Bastion'].createCreep(role.body, undefined, {role: role.role});
-            if(_.isString(newName)) {
-                console.log('Spawning new ' + role.role + ': ' + newName);
-                building = true;
-            } else {
-                console.log('Unable to spawn ' + role.role + ': ' + newName);
-            }
-        }
-    }
 
     for(var name in Game.rooms) {
-        console.log('Room "'+name+'" has '+Game.rooms[name].energyAvailable+' energy');
+        var room = Game.rooms[name];
+        console.log('Room "' + room.name + '" has ' + room.energyAvailable + ' energy');
+        var building = false;
+        for(var index in roles) {
+            var role = roles[index];
+            var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
+            console.log(role.role + ': ' + x.length + ' (max:' + role.max + ')');
+            if(!building && x.length < role.max) {
+                var spawn = room.find(FIND_MY_SPAWNS)[0];
+                var newName = spawn.createCreep(role.getBody(room.energyCapacityAvailable), undefined, {role: role.role});
+                if(_.isString(newName)) {
+                    console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
+                    building = true;
+                } else {
+                    console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
+                }
+            }
+        }
     }
 
     for(var name in Game.creeps) {
@@ -63,4 +65,7 @@ module.exports.loop = function () {
             }
         }
     }
+    console.log('End of tick ' + Game.time +
+        '(Stats: ' + Game.gcl.level + '/' + Game.gcl.progress + ' : '
+        + Math.ceil(Game.cpu.getUsed())+'/'+Game.cpu.limit+'('+Game.cpu.tickLimit+'/'+Game.cpu.bucket+'))');
 };

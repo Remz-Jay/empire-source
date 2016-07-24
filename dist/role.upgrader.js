@@ -1,5 +1,12 @@
 var roleUpgrader = {
-    body: [WORK,CARRY,MOVE],
+    body: [WORK,CARRY,CARRY,MOVE,MOVE],
+    getBody: function(capacity) {
+        var body = this.body;
+        if (capacity >= 400) {
+            body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
+        }
+        return body;
+    },
     role: 'upgrader',
     max: 1,
     /** @param {Creep} creep **/
