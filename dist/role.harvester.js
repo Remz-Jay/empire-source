@@ -35,8 +35,18 @@ var roleHarvester = {
             } else {
                 switch(target.structureType) {
                     case 'spawn':
-                        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(target);
+                        var status = creep.transfer(target, RESOURCE_ENERGY);
+                        switch(status) {
+                            case ERR_NOT_IN_RANGE:
+                                creep.moveTo(target);
+                                break;
+                            case ERR_FULL:
+                                creep.memory.dumping = false;
+                                break;
+                            case OK:
+                                break;
+                            default:
+                                console.log('Status ' + status + ' not defined for harvester.dump.spawn');
                         }
                         break;
                     case 'controller':

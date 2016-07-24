@@ -6,6 +6,7 @@
 
 var roles = {
     harvester: require('role.harvester'),
+    repairbot: require('role.repairbot'),
     upgrader: require('role.upgrader'),
     builder: require ('role.builder')
 };
@@ -55,18 +56,11 @@ module.exports.loop = function () {
 
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        switch(creep.memory.role) {
-            case roles.harvester.role:
-                roles.harvester.run(creep);
-                break;
-            case roles.upgrader.role:
-                roles.upgrader.run(creep);
-                break;
-            case roles.builder.role:
-                roles.builder.run(creep);
-                break;
-            default:
-                console.log('Role' + creep.memory.role + ' not found!');
+        for(var index in roles) {
+            var role = roles[index];
+            if(creep.memory.role == role.role) {
+                role.run(creep);
+            }
         }
     }
 };
