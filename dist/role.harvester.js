@@ -1,28 +1,30 @@
 var roleHarvester = {
-    body: [WORK,CARRY,MOVE],
+    body: [WORK, CARRY, MOVE],
     role: 'harvester',
     max: 5,
     /** @param {Creep} creep **/
-    run: function(creep) {
-        if(creep.memory.dumping && creep.carry.energy == 0) {
+    run: function (creep) {
+        if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
-            creep.memory.target  = false;
+            creep.memory.target = false;
             creep.say('harvesting');
         }
-        if(!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
+        if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
             creep.memory.dumping = true;
             creep.memory.target = false;
             creep.say('Dumping Energy');
         }
-        if(creep.memory.dumping) {
-            if(creep.memory.target == false) {
+        if (creep.memory.dumping) {
+            if (creep.memory.target == false) {
                 var targets = creep.room.find(FIND_STRUCTURES, {
-                            filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_EXTENSION ||
-                        structure.structureType == STRUCTURE_SPAWN ||
-                        structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
-            }
-            });
+                    filter: (structure) => {
+                        return (
+                            structure.structureType == STRUCTURE_EXTENSION ||
+                            structure.structureType == STRUCTURE_SPAWN ||
+                            structure.structureType == STRUCTURE_TOWER
+                            ) && structure.energy < structure.energyCapacity;
+                    }
+                });
                 if (targets.length > 0) {
                     creep.memory.target = targets[0].id;
                 } else {
@@ -33,10 +35,12 @@ var roleHarvester = {
             if (target == null) {
                 creep.memory.target = false;
             } else {
-                switch(target.structureType) {
-                    case 'spawn':
+                switch (target.structureType) {
+                    case STRUCTURE_EXTENSION:
+                    case STRUCTURE_SPAWN:
+                    case STRUCTURE_TOWER:
                         var status = creep.transfer(target, RESOURCE_ENERGY);
-                        switch(status) {
+                        switch (status) {
                             case ERR_NOT_IN_RANGE:
                                 creep.moveTo(target);
                                 break;
@@ -49,7 +53,7 @@ var roleHarvester = {
                                 console.log('Status ' + status + ' not defined for harvester.dump.spawn');
                         }
                         break;
-                    case 'controller':
+                    case STRUCTURE_CONTROLLER:
                         if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(target);
                         }
@@ -58,7 +62,7 @@ var roleHarvester = {
             }
         } else {
             var source = creep.pos.findClosestByPath(FIND_SOURCES);
-            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+            if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
             }
         }
