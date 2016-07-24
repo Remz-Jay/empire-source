@@ -36,14 +36,36 @@ module.exports.loop = function () {
     console.log('Harvesters: ' + harvesters.length);
     var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
     console.log('Upgraders: ' + upgraders.length);
+    var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
+    console.log('Builders: ' + builders.length);
 
-    if(harvesters.length < 2) {
+    var building = false;
+    if(!building && harvesters.length < 5) {
         var newName = Game.spawns['Bastion'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'harvester'});
-        console.log('Spawning new harvester: ' + newName);
+        if(_.isString(newName)) {
+            console.log('Spawning new harvester: ' + newName);
+            building = true;
+        } else {
+            console.log('Unable to spawn harvester:' + result);
+        }
     }
-    if(upgraders.length < 1) {
+    if(!building && upgraders.length < 1) {
         var newName = Game.spawns['Bastion'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'upgrader'});
-        console.log('Spawning new upgrader: ' + newName);
+        if(_.isString(newName)) {
+            console.log('Spawning new upgrader: ' + newName);
+            building = true;
+        } else {
+            console.log('Unable to spawn upgrader:' + result);
+        }
+    }
+    if(!building && builders.length < 5) {
+        var newName = Game.spawns['Bastion'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder'});
+        if(_.isString(newName)) {
+            console.log('Spawning new builder: ' + newName);
+            building = true;
+        } else {
+            console.log('Unable to spawn builder:' + result);
+        }
     }
 
     for(var name in Game.rooms) {
