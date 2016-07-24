@@ -5,7 +5,6 @@ module.exports = function(grunt) {
     var assets = parser.link('./configuration.ini');
     var data = assets.read().getContent();
     var credentials = data.section.credentials;
-    console.log(credentials);
     grunt.initConfig({
         screeps: {
             options: {
