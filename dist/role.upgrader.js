@@ -8,7 +8,7 @@ var roleUpgrader = {
         return body;
     },
     role: 'upgrader',
-    max: 1,
+    max: function(){ return 1; },
     /** @param {Creep} creep **/
     run: function(creep) {
         if(creep.memory.dumping && creep.carry.energy == 0) {

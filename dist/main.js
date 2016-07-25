@@ -7,8 +7,8 @@
 var roles = {
     harvester: require('role.harvester'),
     repairbot: require('role.repairbot'),
-    upgrader: require('role.upgrader'),
-    builder: require ('role.builder')
+    builder: require ('role.builder'),
+    upgrader: require('role.upgrader')
 };
 
 module.exports.loop = function () {
@@ -42,15 +42,21 @@ module.exports.loop = function () {
         for(var index in roles) {
             var role = roles[index];
             var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
-            console.log(role.role + ': ' + x.length + ' (max:' + role.max + ')');
-            if(!building && x.length < role.max) {
+            console.log(role.role + ': ' + x.length + ' (max:' + role.max() + ')');
+            if(!building && x.length < role.max()) {
                 var spawn = room.find(FIND_MY_SPAWNS)[0];
-                var newName = spawn.createCreep(role.getBody(room.energyCapacityAvailable), undefined, {role: role.role});
-                if(_.isString(newName)) {
-                    console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
-                    building = true;
+                var body = role.getBody(room.energyCapacityAvailable);
+                if(spawn.canCreateCreep(body) == OK) {
+                    var newName = spawn.createCreep(body, undefined, {role: role.role});
+                    if (_.isString(newName)) {
+                        console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
+                        building = true;
+                    } else {
+                        console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
+                    }
                 } else {
-                    console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
+                    console.log('Not enough energy to create ' + role.role + ' at spawn ' + spawn.name + spawn.canCreateCreep(body));
+                    building = true; //skip all other attempts;
                 }
             }
         }

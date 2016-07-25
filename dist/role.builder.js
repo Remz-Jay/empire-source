@@ -8,7 +8,16 @@ var roleBuilder = {
         return body;
     },
     role: 'builder',
-    max: 5,
+    max: function() {
+        var sites = Object.keys(Game.constructionSites).length;
+        if(sites > 0) {
+            if(sites > 10) {
+                return 5;
+            } else {
+                return Math.ceil(sites/2);
+            }
+        } else return 0;
+    },
     /** @param {Creep} creep **/
     run: function(creep) {
 
