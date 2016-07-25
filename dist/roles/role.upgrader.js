@@ -1,55 +1,31 @@
-var roleBuilder = {
-    body: [WORK,CARRY,MOVE],
-    getBody: function(capacity) {
+var Creep = require('class.creep');
+function RoleUpgrader() {
+    this.body = [WORK,CARRY,CARRY,MOVE,MOVE];
+    this.getBody = function(capacity) {
         var body = this.body;
         if (capacity >= 400) {
             body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
         }
         return body;
-    },
-    role: 'builder',
-    max: function(capacity) {
-        var sites = Object.keys(Game.constructionSites).length;
-        if(sites > 0) {
-            if(sites > 8) {
-                return 4;
-            } else {
-                return Math.ceil(sites/2);
-            }
-        } else return 0;
-    },
+    };
+    this.role = 'upgrader';
+    this.max = function(capacity){ return 1; };
     /** @param {Creep} creep **/
-    run: function(creep) {
-
-        if(creep.memory.building && creep.carry.energy == 0) {
-            creep.memory.building = false;
-            creep.memory.target = false;
+    this.run = function(creep) {
+        if(creep.memory.dumping && creep.carry.energy == 0) {
+            creep.memory.dumping = false;
             creep.memory.source = false;
-            creep.say('harvesting');
+            creep.say('Harvesting');
         }
-        if(!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.building = true;
-            creep.memory.target = false;
+        if(!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
+            creep.memory.dumping = true;
             creep.memory.source = false;
-            creep.say('building');
+            creep.say('Upgrading');
         }
-
-        if(creep.memory.building) {
-            if(creep.memory.target == false) {
-                var target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
-                if (target != null) {
-                    creep.memory.target = target.id;
-                } else {
-                    creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
-                }
-            }
-            var target = Game.getObjectById(creep.memory.target);
-            if(target != null) {
-                if(creep.build(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
-                }
-            } else {
-                creep.memory.target = false;
+        if(creep.memory.dumping) {
+            var target = creep.room.controller;
+            if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
             }
         } else {
             if(creep.memory.source == false) {
@@ -103,5 +79,7 @@ var roleBuilder = {
         }
     }
 };
-
-module.exports = roleBuilder;
+RoleUpgrader.prototype = _.create(Creep.prototype,{
+    'constructor': RoleUpgrader
+});
+module.exports = RoleUpgrader;

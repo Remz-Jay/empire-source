@@ -8,7 +8,8 @@ var roles = {
     harvester: require('role.harvester'),
     repairbot: require('role.repairbot'),
     upgrader: require('role.upgrader'),
-    builder: require ('role.builder')
+    builder: require ('role.builder'),
+    blub: require('role.blub')
 };
 
 module.exports.loop = function () {
@@ -42,7 +43,7 @@ module.exports.loop = function () {
         console.log('Room "' + room.name + '" has ' + room.energyAvailable + ' energy');
         var building = false;
         for(var index in roles) {
-            var role = roles[index];
+            var role = new roles[index];
             var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
             console.log(role.role + ': ' + x.length + ' (max:' + role.max(room.energyCapacityAvailable) + ')');
             if(!building && x.length < role.max(room.energyCapacityAvailable)) {
@@ -67,7 +68,7 @@ module.exports.loop = function () {
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         for(var index in roles) {
-            var role = roles[index];
+            var role = new roles[index];
             if(creep.memory.role == role.role) {
                 role.run(creep);
             }

@@ -1,20 +1,22 @@
-var roleRepairbot = {
-    body: [WORK,CARRY,CARRY,MOVE,MOVE],
-    getBody: function(capacity) {
+var Creep = require('class.creep');
+function RoleRepairbot() {
+    Creep.call(this);
+    this.body = [WORK,CARRY,CARRY,MOVE,MOVE];
+    this.getBody = function(capacity) {
         var body = this.body;
         if (capacity >= 400) {
             body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
         }
         return body;
-    },
-    role: 'repair',
-    wallStrength: 15000,
-    rampartMultiplier: 0.1,
-    myStructureMultiplier: 0.8,
-    publicStructureMultiplier: 0.7,
-    max: function(capacity){ return 2; },
+    };
+    this.role = 'repair';
+    this.wallStrength = 30000;
+    this.rampartMultiplier = 0.3;
+    this.myStructureMultiplier = 0.8;
+    this.publicStructureMultiplier= 0.7;
+    this.max = function(capacity){ return 2; };
     /** @param {Creep} creep **/
-    run: function(creep) {
+    this.run = function(creep) {
 
         if(creep.memory.repairing && creep.carry.energy == 0) {
             creep.memory.repairing = false;
@@ -160,5 +162,7 @@ var roleRepairbot = {
         }
     }
 };
-
-module.exports = roleRepairbot;
+RoleRepairbot.prototype = _.create(Creep.prototype,{
+    'constructor': RoleRepairbot
+});
+module.exports = RoleRepairbot;

@@ -1,11 +1,12 @@
-var roleHarvester = {
-    body: [WORK,CARRY,CARRY,MOVE,MOVE], // 100 + 50 + 50 + 50 + 50 = 300
+var Creep = require('class.creep');
+function RoleHarvester() {
+    this.body = [WORK,CARRY,CARRY,MOVE,MOVE]; // 100 + 50 + 50 + 50 + 50 = 300
     /**
      *
      * @param capacity
      * @returns {Array}
      */
-    getBody: function(capacity) {
+    this.getBody = function(capacity) {
         var body = this.body;
         if (capacity >= 400 && capacity < 550) {
             body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
@@ -13,9 +14,9 @@ var roleHarvester = {
             body = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //550
         }
         return body;
-    },
-    role: 'harvester',
-    max: function(capacity){
+    };
+    this.role = 'harvester',
+    this.max = function(capacity){
         var max = 5;
         if (capacity >= 400 && capacity < 550) {
             max = 6;
@@ -23,9 +24,9 @@ var roleHarvester = {
             max = 8;
         }
         return max;
-    },
+    };
     /** @param {Creep} creep **/
-    run: function (creep) {
+    this.run = function (creep) {
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;
@@ -102,5 +103,7 @@ var roleHarvester = {
         }
     }
 };
-
-module.exports = roleHarvester;
+RoleHarvester.prototype = _.create(Creep.prototype,{
+    'constructor': RoleHarvester
+});
+module.exports = RoleHarvester;
