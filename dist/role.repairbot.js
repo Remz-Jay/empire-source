@@ -8,7 +8,11 @@ var roleRepairbot = {
         return body;
     },
     role: 'repair',
-    max: function(){ return 2; },
+    wallStrength: 15000,
+    rampartMultiplier: 0.1,
+    myStructureMultiplier: 0.8,
+    publicStructureMultiplier: 0.7,
+    max: function(capacity){ return 2; },
     /** @param {Creep} creep **/
     run: function(creep) {
 
@@ -30,19 +34,45 @@ var roleRepairbot = {
                 //See if any owned buildings are damaged.
                 var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                     filter: (structure) => {
-                        return (structure.hits < (structure.hitsMax*0.8));
+                        return (
+                            structure.hits < (structure.hitsMax*this.myStructureMultiplier) &&
+                                structure.structureType != STRUCTURE_RAMPART
+                        );
                     }
                 });
                 // No? Try to repair a neutral structure instead.
                 if (target == null) {
                     target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                         filter: (structure) => {
-                            return (structure.hits < structure.hitsMax*0.7) &&
+                            return (
+                                structure.hits < (structure.hitsMax*this.publicStructureMultiplier) &&
                                 (   structure.structureType == STRUCTURE_ROAD ||
                                     structure.structureType == STRUCTURE_CONTAINER
                                 )
+                            )
                         }
                     });
+                }
+                //Still nothing? Fortify Ramparts and Walls.
+                if (target == null) {
+                    target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                        filter: (structure) => {
+                            return (
+                                structure.hits < (structure.hitsMax*this.rampartMultiplier) &&
+                                structure.structureType == STRUCTURE_RAMPART
+                            );
+                        }
+                    });
+                    if (target == null) {
+                        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (
+                                    //structure.hits < (structure.hitsMax*0.001) &&
+                                    structure.hits < this.wallStrength &&
+                                    structure.structureType == STRUCTURE_WALL                                );
+                            }
+                        });
+                    }
                 }
                 if (target != null) {
                     creep.memory.target = target.id;
@@ -82,7 +112,7 @@ var roleRepairbot = {
             if(creep.memory.source == false) {
                 //Prefer energy from containers
                 var source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                    filter: (structure) => structure.structureType = STRUCTURE_CONTAINER &&
+                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
                         structure.store[RESOURCE_ENERGY] > 100
                 });
                 //Go to source otherwise
@@ -91,7 +121,7 @@ var roleRepairbot = {
                         filter: (source) => (source.energy > 100) || source.ticksToRegeneration < 30
                     });
                 }
-                creep.memory.source = source.id;
+                if (source != null) creep.memory.source = source.id;
             }
             if(creep.memory.source != false) {
                 var source = Game.getObjectById(creep.memory.source);

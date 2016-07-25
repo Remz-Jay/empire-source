@@ -15,7 +15,15 @@ var roleHarvester = {
         return body;
     },
     role: 'harvester',
-    max: function(){ return 5; },
+    max: function(capacity){
+        var max = 5;
+        if (capacity >= 400 && capacity < 550) {
+            max = 6;
+        } else if (capacity >= 550) {
+            max = 8;
+        }
+        return max;
+    },
     /** @param {Creep} creep **/
     run: function (creep) {
         if (creep.memory.dumping && creep.carry.energy == 0) {
@@ -69,7 +77,7 @@ var roleHarvester = {
                                 creep.moveTo(target);
                                 break;
                             case ERR_FULL:
-                                creep.memory.dumping = false;
+                                creep.memory.target = false;
                                 break;
                             case OK:
                                 break;
@@ -86,7 +94,7 @@ var roleHarvester = {
             }
         } else {
             var source = creep.pos.findClosestByPath(FIND_SOURCES, {
-                filter: (source) => (source.energy > 100) || source.ticksToRegeneration < 30
+                filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 30
             });
             if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);

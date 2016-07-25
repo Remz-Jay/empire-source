@@ -7,16 +7,18 @@
 var roles = {
     harvester: require('role.harvester'),
     repairbot: require('role.repairbot'),
-    builder: require ('role.builder'),
-    upgrader: require('role.upgrader')
+    upgrader: require('role.upgrader'),
+    builder: require ('role.builder')
 };
 
 module.exports.loop = function () {
 
-    var tower = Game.getObjectById('42a5c224991644d3c69d69e5');
+    var tower = Game.getObjectById('579607f19de450ae22d2ed0b');
     if(tower) {
         var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax
+                filter: (structure) => structure.hits < (structure.hitsMax*0.8) &&
+                    structure.structureType != STRUCTURE_RAMPART &&
+                    structure.structureType != STRUCTURE_WALL
     });
         if(closestDamagedStructure) {
             tower.repair(closestDamagedStructure);
@@ -42,8 +44,8 @@ module.exports.loop = function () {
         for(var index in roles) {
             var role = roles[index];
             var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
-            console.log(role.role + ': ' + x.length + ' (max:' + role.max() + ')');
-            if(!building && x.length < role.max()) {
+            console.log(role.role + ': ' + x.length + ' (max:' + role.max(room.energyCapacityAvailable) + ')');
+            if(!building && x.length < role.max(room.energyCapacityAvailable)) {
                 var spawn = room.find(FIND_MY_SPAWNS)[0];
                 var body = role.getBody(room.energyCapacityAvailable);
                 if(spawn.canCreateCreep(body) == OK) {
