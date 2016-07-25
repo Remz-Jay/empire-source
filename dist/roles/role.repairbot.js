@@ -1,20 +1,28 @@
 var Creep = require('class.creep');
+var Wall = require('class.wall');
+
 function RoleRepairbot() {
     Creep.call(this);
     this.body = [WORK,CARRY,CARRY,MOVE,MOVE];
+    /**
+     *
+     * @param capacity
+     * @returns {Array}
+     */
     this.getBody = function(capacity) {
         var body = this.body;
-        if (capacity >= 400) {
+        if (capacity >= 400 && capacity < 550) {
             body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
+        } else if (capacity >= 550) {
+            body = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //550
         }
         return body;
     };
     this.role = 'repair';
-    this.wallStrength = 30000;
-    this.rampartMultiplier = 0.3;
     this.myStructureMultiplier = 0.8;
     this.publicStructureMultiplier= 0.7;
-    this.max = function(capacity){ return 2; };
+
+    this.max = function(capacity){ return 3; };
     /** @param {Creep} creep **/
     this.run = function(creep) {
 
@@ -60,12 +68,18 @@ function RoleRepairbot() {
                     target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                         filter: (structure) => {
                             return (
-                                structure.hits < (structure.hitsMax*this.rampartMultiplier) &&
+                                (
+                                    structure.hits < Memory.config.Rampart.strength ||
+                                    structure.hits < structure.hitsMax*0.2
+                                ) &&
                                 structure.structureType == STRUCTURE_RAMPART
                             );
                         }
                     });
                     if (target == null) {
+                        var wall = new Wall(creep.room);
+                        target = wall.getWeakestWall();
+                        /**
                         target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (
@@ -74,6 +88,7 @@ function RoleRepairbot() {
                                     structure.structureType == STRUCTURE_WALL                                );
                             }
                         });
+                        **/
                     }
                 }
                 if (target != null) {
@@ -140,7 +155,7 @@ function RoleRepairbot() {
                             creep.moveTo(source);
                             break;
                         case OK: break;
-                        default: console.log('Unhandled ERR in harvester.source.container:'+status);
+                        default: console.log('Unhandled ERR in repairbot.source.container:'+status);
                     }
                 } else {
                     var status = creep.harvest(source);
@@ -155,7 +170,7 @@ function RoleRepairbot() {
                             creep.moveTo(source);
                             break;
                         case OK: break;
-                        default: console.log('Unhandled ERR in harvester.source.harvest:'+status);
+                        default: console.log('Unhandled ERR in repairbot.source.harvest:'+status);
                     }
                 }
             }

@@ -3,6 +3,7 @@
 //Game.creeps['Harvester1'].suicide()
 //http://support.screeps.com/hc/en-us/articles/205990342-StructureSpawn#renewCreep
 //Game.spawns['Spawn1'].room.createConstructionSite( 23, 22, STRUCTURE_TOWER );
+var _ = require('lodash');
 
 var roles = {
     harvester: require('role.harvester'),
@@ -12,8 +13,15 @@ var roles = {
     blub: require('role.blub')
 };
 
-module.exports.loop = function () {
+var classes = require('classLoader');
+var utils = require('utilLoader');
 
+module.exports.loop = function () {
+    if(undefined == Memory.config.Rampart) {
+        Memory.config.Rampart = {
+            strength: 0
+        }
+    }
     var tower = Game.getObjectById('579607f19de450ae22d2ed0b');
     if(tower) {
         var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -41,6 +49,10 @@ module.exports.loop = function () {
     for(var name in Game.rooms) {
         var room = Game.rooms[name];
         console.log('Room "' + room.name + '" has ' + room.energyAvailable + ' energy');
+        var wall = new classes.Wall(room);
+        wall.adjustStrength();
+        var ramparts = new utils.Ramparts(room);
+        ramparts.adjustStrength();
         var building = false;
         for(var index in roles) {
             var role = new roles[index];
@@ -76,5 +88,5 @@ module.exports.loop = function () {
     }
     console.log('End of tick ' + Game.time +
         '(Stats: ' + Game.gcl.level + '/' + Game.gcl.progress + ' : '
-        + Math.ceil(Game.cpu.getUsed())+'/'+Game.cpu.limit+'('+Game.cpu.tickLimit+'/'+Game.cpu.bucket+'))');
+        + _.ceil(Game.cpu.getUsed())+'/'+Game.cpu.limit+'('+Game.cpu.tickLimit+'/'+Game.cpu.bucket+'))');
 };

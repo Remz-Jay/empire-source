@@ -1,4 +1,6 @@
 var Creep = require('class.creep');
+var _ = require('lodash');
+
 function RoleBuilder() {
     Creep.call(this);
     this.body = [WORK,CARRY,MOVE];
@@ -16,7 +18,7 @@ function RoleBuilder() {
             if(sites > 8) {
                 return 4;
             } else {
-                return Math.ceil(sites/2);
+                return _.ceil(sites/2);
             }
         } else return 0;
     };
@@ -83,7 +85,7 @@ function RoleBuilder() {
                             creep.moveTo(source);
                             break;
                         case OK: break;
-                        default: console.log('Unhandled ERR in harvester.source.container:'+status);
+                        default: console.log('Unhandled ERR in builder.source.container:'+status);
                     }
                 } else {
                     var status = creep.harvest(source);
@@ -98,7 +100,7 @@ function RoleBuilder() {
                             creep.moveTo(source);
                             break;
                         case OK: break;
-                        default: console.log('Unhandled ERR in harvester.source.harvest:'+status);
+                        default: console.log('Unhandled ERR in builder.source.harvest:'+status);
                     }
                 }
             }

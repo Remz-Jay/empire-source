@@ -1,15 +1,22 @@
 var Creep = require('class.creep');
 function RoleUpgrader() {
     this.body = [WORK,CARRY,CARRY,MOVE,MOVE];
+    /**
+     *
+     * @param capacity
+     * @returns {Array}
+     */
     this.getBody = function(capacity) {
         var body = this.body;
-        if (capacity >= 400) {
+        if (capacity >= 400 && capacity < 550) {
             body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
+        } else if (capacity >= 550) {
+            body = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //550
         }
         return body;
     };
     this.role = 'upgrader';
-    this.max = function(capacity){ return 1; };
+    this.max = function(capacity){ return 3; };
     /** @param {Creep} creep **/
     this.run = function(creep) {
         if(creep.memory.dumping && creep.carry.energy == 0) {
@@ -57,7 +64,7 @@ function RoleUpgrader() {
                             creep.moveTo(source);
                             break;
                         case OK: break;
-                        default: console.log('Unhandled ERR in harvester.source.container:'+status);
+                        default: console.log('Unhandled ERR in upgrader.source.container:'+status);
                     }
                 } else {
                     var status = creep.harvest(source);
@@ -72,7 +79,7 @@ function RoleUpgrader() {
                             creep.moveTo(source);
                             break;
                         case OK: break;
-                        default: console.log('Unhandled ERR in harvester.source.harvest:'+status);
+                        default: console.log('Unhandled ERR in upgrader.source.harvest:'+status);
                     }
                 }
             }
