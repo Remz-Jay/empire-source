@@ -1,28 +1,19 @@
-var Creep = require('class.creep');
+var Worker = require('class.worker');
+
 function RoleHarvester() {
-    this.body = [WORK,CARRY,CARRY,MOVE,MOVE]; // 100 + 50 + 50 + 50 + 50 = 300
-    /**
-     *
-     * @param capacity
-     * @returns {Array}
-     */
-    this.getBody = function(capacity) {
-        var body = this.body;
-        if (capacity >= 400 && capacity < 550) {
-            body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
-        } else if (capacity >= 550) {
-            body = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //550
-        }
-        return body;
-    };
-    this.role = 'harvester',
-    this.max = function(capacity){
-        var max = 5;
-        if (capacity >= 400 && capacity < 550) {
+    Worker.call(this);
+    this.role = 'harvester';
+
+    this.max = function (capacity) {
+        /**
+         var max = 5;
+         if (capacity >= 400 && capacity < 550) {
             max = 6;
         } else if (capacity >= 550) {
             max = 8;
         }
+         **/
+        var max = 2;
         return max;
     };
     /** @param {Creep} creep **/
@@ -30,30 +21,33 @@ function RoleHarvester() {
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;
-            creep.say('harvesting');
+            creep.memory.source = false;
+            creep.say('H:HARV');
         }
         if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
             creep.memory.dumping = true;
             creep.memory.target = false;
-            creep.say('Dumping Energy');
+            creep.memory.source = false;
+            creep.say('H:DIST');
         }
         if (creep.memory.dumping) {
             if (creep.memory.target == false) {
-                var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                //Containers are nearby, fill them first.
+                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (structure) => {
-                        return (
-                            structure.structureType == STRUCTURE_EXTENSION ||
-                            structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_TOWER
-                            ) && structure.energy < structure.energyCapacity;
+                        return structure.structureType == STRUCTURE_CONTAINER &&
+                            _.sum(structure.store) < structure.storeCapacity;
                     }
                 });
-                //No owned structure was found. Try to fill containers.
+                //If all containers are full, move directly to an owned structure.
                 if (target == null) {
-                    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                         filter: (structure) => {
-                            return  structure.structureType == STRUCTURE_CONTAINER &&
-                                    _.sum(structure.store) < structure.storeCapacity;
+                            return (
+                                    structure.structureType == STRUCTURE_EXTENSION ||
+                                    structure.structureType == STRUCTURE_SPAWN ||
+                                    structure.structureType == STRUCTURE_TOWER
+                                ) && structure.energy < structure.energyCapacity;
                         }
                     });
                 }
@@ -94,16 +88,50 @@ function RoleHarvester() {
                 }
             }
         } else {
-            var source = creep.pos.findClosestByPath(FIND_SOURCES, {
-                filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 30
-            });
-            if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source);
+            if (creep.memory.source == false) {
+                var source = creep.pos.findClosestByPath(FIND_SOURCES, {
+                    filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 60
+                });
+                if (source != null) creep.memory.source = source.id;
+            }
+            if (creep.memory.source != false && creep.memory.source != null) {
+                var source = Game.getObjectById(creep.memory.source);
+                var status = creep.harvest(source);
+                switch (status) {
+                    case ERR_NOT_ENOUGH_RESOURCES:
+                    case ERR_INVALID_TARGET:
+                        if(source.ticksToRegeneration < 60) {
+                            creep.moveTo(source);
+                            break;
+                        }
+                    case ERR_NOT_OWNER:
+                    case ERR_FULL:
+                        //Dump first before harvesting again.
+                        if (creep.carry.energy != 0) {
+                            creep.memory.dumping = true;
+                            creep.memory.target = false;
+                            creep.memory.source = false;
+                            creep.say('H:DIST');
+                        } else {
+                            creep.memory.source = false;
+                            creep.say('H:NEWSRC');
+                        }
+                        break;
+                    case ERR_NOT_IN_RANGE:
+                        creep.moveTo(source);
+                        break;
+                    case OK:
+                        break;
+                    default:
+                        console.log('Unhandled ERR in builder.source.harvest:' + status);
+                }
+            } else {
+                creep.memory.source = false;
             }
         }
     }
 };
-RoleHarvester.prototype = _.create(Creep.prototype,{
+RoleHarvester.prototype = _.create(Worker.prototype, {
     'constructor': RoleHarvester
 });
 module.exports = RoleHarvester;

@@ -1,17 +1,10 @@
-var Creep = require('class.creep');
+var Worker = require('class.worker');
 var _ = require('lodash');
 
 function RoleBuilder() {
-    Creep.call(this);
-    this.body = [WORK,CARRY,MOVE];
-    this.getBody = function(capacity) {
-        var body = this.body;
-        if (capacity >= 400) {
-            body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
-        }
-        return body;
-    };
+    Worker.call(this);
     this.role = 'builder';
+
     this.max = function(capacity) {
         var sites = Object.keys(Game.constructionSites).length;
         if(sites > 0) {
@@ -29,13 +22,13 @@ function RoleBuilder() {
             creep.memory.building = false;
             creep.memory.target = false;
             creep.memory.source = false;
-            creep.say('harvesting');
+            creep.say('B:COL');
         }
         if(!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
             creep.memory.building = true;
             creep.memory.target = false;
             creep.memory.source = false;
-            creep.say('building');
+            creep.say('B:BUILD');
         }
 
         if(creep.memory.building) {
@@ -107,7 +100,7 @@ function RoleBuilder() {
         }
     }
 };
-RoleBuilder.prototype = _.create(Creep.prototype,{
+RoleBuilder.prototype = _.create(Worker.prototype,{
     'constructor': RoleBuilder
 });
 module.exports = RoleBuilder;

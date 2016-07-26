@@ -1,33 +1,20 @@
-var Creep = require('class.creep');
+var Worker = require('class.worker');
 function RoleUpgrader() {
-    this.body = [WORK,CARRY,CARRY,MOVE,MOVE];
-    /**
-     *
-     * @param capacity
-     * @returns {Array}
-     */
-    this.getBody = function(capacity) {
-        var body = this.body;
-        if (capacity >= 400 && capacity < 550) {
-            body = [WORK,WORK,CARRY,CARRY,MOVE,MOVE]; //400
-        } else if (capacity >= 550) {
-            body = [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //550
-        }
-        return body;
-    };
+    Worker.call(this);
     this.role = 'upgrader';
     this.max = function(capacity){ return 3; };
+
     /** @param {Creep} creep **/
     this.run = function(creep) {
         if(creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.source = false;
-            creep.say('Harvesting');
+            creep.say('U:COL');
         }
         if(!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
             creep.memory.dumping = true;
             creep.memory.source = false;
-            creep.say('Upgrading');
+            creep.say('U:UPGR');
         }
         if(creep.memory.dumping) {
             var target = creep.room.controller;
@@ -86,7 +73,7 @@ function RoleUpgrader() {
         }
     }
 };
-RoleUpgrader.prototype = _.create(Creep.prototype,{
+RoleUpgrader.prototype = _.create(Worker.prototype,{
     'constructor': RoleUpgrader
 });
 module.exports = RoleUpgrader;

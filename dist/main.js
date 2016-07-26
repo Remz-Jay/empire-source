@@ -7,10 +7,10 @@ var _ = require('lodash');
 
 var roles = {
     harvester: require('role.harvester'),
+    mule: require('role.mule'),
     repairbot: require('role.repairbot'),
     upgrader: require('role.upgrader'),
-    builder: require ('role.builder'),
-    blub: require('role.blub')
+    builder: require ('role.builder')
 };
 
 var classes = require('classLoader');
@@ -48,20 +48,34 @@ module.exports.loop = function () {
 
     for(var name in Game.rooms) {
         var room = Game.rooms[name];
-        console.log('Room "' + room.name + '" has ' + room.energyAvailable + ' energy');
+
         var wall = new classes.Wall(room);
         wall.adjustStrength();
+
         var ramparts = new utils.Ramparts(room);
         ramparts.adjustStrength();
+
+        console.log('Room "' + room.name + '" has ' + room.energyAvailable
+            + '/' + room.energyCapacityAvailable + ' energy');
+
         var building = false;
         for(var index in roles) {
             var role = new roles[index];
             var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
-            console.log(role.role + ': ' + x.length + ' (max:' + role.max(room.energyCapacityAvailable) + ')');
+
+            console.log(
+                _.padLeft(role.role,9) + ':\t' + x.length
+                + ' (max:' + role.max(room.energyCapacityAvailable)
+                + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable)),4)
+                + ') ['     + role.getBody(room.energyCapacityAvailable)
+                + ']'
+            );
+
             if(!building && x.length < role.max(room.energyCapacityAvailable)) {
                 var spawn = room.find(FIND_MY_SPAWNS)[0];
                 var body = role.getBody(room.energyCapacityAvailable);
-                if(spawn.canCreateCreep(body) == OK) {
+                var spawnState = spawn.canCreateCreep(body);
+                if(spawnState == OK) {
                     var newName = spawn.createCreep(body, undefined, {role: role.role});
                     if (_.isString(newName)) {
                         console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
@@ -70,8 +84,16 @@ module.exports.loop = function () {
                         console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
                     }
                 } else {
-                    console.log('Not enough energy to create ' + role.role + ' at spawn ' + spawn.name + spawn.canCreateCreep(body));
                     building = true; //skip all other attempts;
+                    switch(spawnState) {
+                        case ERR_NOT_ENOUGH_ENERGY:
+                            console.log('Not enough energy to create ' + role.role + ' at spawn ' + spawn.name);
+                            break;
+                        case ERR_BUSY:
+                            break;
+                        default:
+                            console.log('Unhandled Spawn State while Spawning:'+spawnState);
+                    }
                 }
             }
         }
@@ -82,11 +104,14 @@ module.exports.loop = function () {
         for(var index in roles) {
             var role = new roles[index];
             if(creep.memory.role == role.role) {
-                role.run(creep);
+                if(!creep.spawning) role.run(creep);
             }
         }
     }
+    var perc = _.floor(Game.gcl.progress/(Game.gcl.progressTotal/100));
     console.log('End of tick ' + Game.time +
-        '(Stats: ' + Game.gcl.level + '/' + Game.gcl.progress + ' : '
-        + _.ceil(Game.cpu.getUsed())+'/'+Game.cpu.limit+'('+Game.cpu.tickLimit+'/'+Game.cpu.bucket+'))');
+        '.\t(GCL: ' + Game.gcl.level + ' @ ' + perc + '%\tCPU: '
+        + _.ceil(Game.cpu.getUsed())+'/'+Game.cpu.limit
+        + '\tRES:'+Game.cpu.tickLimit+'/'+Game.cpu.bucket+')');
+    console.log();
 };
