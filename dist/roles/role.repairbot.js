@@ -7,7 +7,13 @@ function RoleRepairbot() {
     this.myStructureMultiplier = 0.8;
     this.publicStructureMultiplier= 0.7;
 
-    this.max = function(capacity){ return 2; };
+    this.max = function(containerPercentage){
+        if(containerPercentage >= 75) {
+            return 2;
+        } else {
+            return 1;
+        }
+    };
     /** @param {Creep} creep **/
     this.run = function(creep) {
 
@@ -48,32 +54,25 @@ function RoleRepairbot() {
                         }
                     });
                 }
-                //Still nothing? Fortify Ramparts and Walls.
-                if (target == null) {
-                    target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                        filter: (structure) => {
-                            return (
-                                (
-                                    structure.hits < Memory.config.Rampart.strength ||
-                                    structure.hits < structure.hitsMax*0.2
-                                ) &&
-                                structure.structureType == STRUCTURE_RAMPART
-                            );
-                        }
-                    });
+                //Still nothing? Fortify Ramparts and Walls if we have spare energy.
+                //if(creep.room.energyAvailable / (creep.room.energyCapacityAvailable/100)>50) {
+                if(creep.room.energyAvailable > (creep.room.energyCapacityAvailable*0.8)) {
                     if (target == null) {
-                        var wall = new Wall(creep.room);
-                        target = wall.getWeakestWall();
-                        /**
-                        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                        target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                             filter: (structure) => {
                                 return (
-                                    //structure.hits < (structure.hitsMax*0.001) &&
-                                    structure.hits < this.wallStrength &&
-                                    structure.structureType == STRUCTURE_WALL                                );
+                                    (
+                                        structure.hits < Memory.config.Rampart.strength ||
+                                        structure.hits < structure.hitsMax*0.2
+                                    ) &&
+                                    structure.structureType == STRUCTURE_RAMPART
+                                );
                             }
                         });
-                        **/
+                        if (target == null) {
+                            var wall = new Wall(creep.room);
+                            target = wall.getWeakestWall();
+                        }
                     }
                 }
                 if (target != null) {

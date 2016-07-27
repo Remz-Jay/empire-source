@@ -11,7 +11,8 @@ var roles = {
     repairbot: require('role.repairbot'),
     upgrader: require('role.upgrader'),
     builder: require('role.builder'),
-    scout: require('role.scout')
+    scout: require('role.scout'),
+    remoteHarvester: require('role.remoteharvester')
 };
 
 var classes = require('classLoader');
@@ -26,7 +27,7 @@ module.exports.loop = function () {
     Memory.flags = Game.flags;
     Memory.rooms = Game.rooms;
     Memory.spawns = Game.spawns;
-    
+
     var tower = Game.getObjectById('579607f19de450ae22d2ed0b');
     if (tower) {
         var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -60,8 +61,12 @@ module.exports.loop = function () {
         var ramparts = new utils.Ramparts(room);
         ramparts.adjustStrength();
 
+        var containers = new utils.Containers(room);
+
         console.log('Room "' + room.name + '" has ' + room.energyAvailable
-            + '/' + room.energyCapacityAvailable + ' energy');
+            + '/' + room.energyCapacityAvailable + ' energy and '
+            + containers.energyInContainers + '/' + containers.containerCapacityAvailable
+            + ' (' +containers.energyPercentage + '%) in containers.');
 
         var building = false;
         var spawn = room.find(FIND_MY_SPAWNS)[0]; //TODO: What if more spawns?
@@ -74,13 +79,13 @@ module.exports.loop = function () {
 
                     console.log(
                         _.padLeft(role.role, 9) + ':\t' + x.length
-                        + ' (max:' + role.max(room.energyCapacityAvailable)
+                        + ' (max:' + role.max(containers.energyPercentage)
                         + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable)), 4)
                         + ') [' + role.getBody(room.energyCapacityAvailable)
                         + ']'
                     );
 
-                    if (!building && x.length < role.max(room.energyCapacityAvailable)) {
+                    if (!building && x.length < role.max(containers.energyPercentage)) {
                         var body = role.getBody(room.energyCapacityAvailable);
                         var spawnState = spawn.canCreateCreep(body);
                         if (spawnState == OK) {
