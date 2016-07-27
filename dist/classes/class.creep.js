@@ -50,8 +50,9 @@ function ClassCreep() {
         if(this.creep.memory.source == false) {
             //Prefer energy from containers
             var source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
-                structure.store[RESOURCE_ENERGY] > 100
+                filter: (structure) => (structure.structureType == STRUCTURE_CONTAINER
+                || structure.structureType == STRUCTURE_STORAGE)
+                && structure.store[RESOURCE_ENERGY] > 100
             });
             //Go to source otherwise
             if (source == null) {

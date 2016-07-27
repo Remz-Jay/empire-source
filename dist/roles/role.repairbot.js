@@ -4,8 +4,8 @@ var Wall = require('class.wall');
 function RoleRepairbot() {
     Worker.call(this);
     this.role = 'repair';
-    this.myStructureMultiplier = 0.8;
-    this.publicStructureMultiplier= 0.7;
+    this.myStructureMultiplier = 0.9;
+    this.publicStructureMultiplier= 0.81;
 
     this.max = function(containerPercentage){
         if(containerPercentage >= 75) {
@@ -48,7 +48,8 @@ function RoleRepairbot() {
                             return (
                                 structure.hits < (structure.hitsMax*this.publicStructureMultiplier) &&
                                 (   structure.structureType == STRUCTURE_ROAD ||
-                                    structure.structureType == STRUCTURE_CONTAINER
+                                    structure.structureType == STRUCTURE_CONTAINER ||
+                                    structure.structureType == STRUCTURE_STORAGE
                                 )
                             )
                         }

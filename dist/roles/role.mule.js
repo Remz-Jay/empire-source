@@ -17,62 +17,139 @@ function RoleMule() {
         }
         return body.concat([WORK]);
     };
+    this.scanForTargets = function(creep) {
+        var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+            filter: (structure) => {
+                return (
+                        structure.structureType == STRUCTURE_EXTENSION ||
+                        structure.structureType == STRUCTURE_SPAWN ||
+                        structure.structureType == STRUCTURE_TOWER
+                    ) && structure.energy < structure.energyCapacity;
+            }
+        });
+        return target;
+    };
+    this.dumpRoutine = function(target, creep) {
+        switch (target.structureType) {
+            case STRUCTURE_EXTENSION:
+            case STRUCTURE_SPAWN:
+            case STRUCTURE_TOWER:
+            case STRUCTURE_CONTAINER:
+            case STRUCTURE_STORAGE:
+                var status = creep.transfer(target, RESOURCE_ENERGY);
+                switch (status) {
+                    case ERR_NOT_IN_RANGE:
+                        creep.moveTo(target);
+                        break;
+                    case ERR_FULL:
+                    case ERR_NOT_ENOUGH_ENERGY:
+                        creep.memory.target = false;
+                        break;
+                    case OK:
+                        break;
+                    default:
+                        console.log('Status ' + status + ' not defined for harvester.dump.spawn');
+                }
+                break;
+            case STRUCTURE_CONTROLLER:
+                if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target);
+                }
+                break;
+        }
+    };
+    this.dumpAtStorage = function(creep) {
+        if (creep.memory.target == false) {
+            target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.structureType == STRUCTURE_STORAGE &&
+                        _.sum(structure.store) < structure.storeCapacity;
+                }
+            });
+            if (target != null) {
+                creep.memory.target = target.id;
+            } else {
+                creep.memory.target = false;
+                //last resort; just return energy to the nearest container.
+                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return structure.structureType == STRUCTURE_CONTAINER &&
+                            _.sum(structure.store) < structure.storeCapacity;
+                    }
+                });
+                if (target != null) {
+                    creep.memory.target = target.id;
+                } else {
+                    creep.memory.target = false;
+                    creep.say('IDLE!');
+                }
+            }
+        }
+        var target = Game.getObjectById(creep.memory.target);
+        if (target == null) {
+            creep.memory.target = false;
+        } else {
+           this.dumpRoutine(target, creep);
+        }
+    };
     this.run = function (creep) {
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;
             creep.memory.source = false;
+            creep.memory.idle = false;
             creep.say('M:COL');
         }
-        if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
+        if (!creep.memory.dumping && !creep.memory.idle &&
+            creep.carry.energy == creep.carryCapacity) {
             creep.memory.dumping = true;
             creep.memory.target = false;
             creep.memory.source = false;
+            creep.memory.idle = false;
             creep.say('M:DIST');
         }
         if (creep.memory.dumping) {
-            var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                filter: (structure) => {
-                    return (
-                            structure.structureType == STRUCTURE_EXTENSION ||
-                            structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_TOWER
-                        ) && structure.energy < structure.energyCapacity;
-                }
-            });
+            var target = this.scanForTargets(creep);
             if (target != null) {
                 creep.memory.target = target.id;
-            } // TODO: what if we don't have a target?
+            } else {
+                //nothing to mule. do secondary tasks instead.
+                creep.memory.idle = true;
+                creep.memory.dumping = false;
+                creep.memory.target = false;
+                creep.memory.source = false;
+            }
             var target = Game.getObjectById(creep.memory.target);
             if (target == null) {
                 creep.memory.target = false;
             } else {
-                switch (target.structureType) {
-                    case STRUCTURE_EXTENSION:
-                    case STRUCTURE_SPAWN:
-                    case STRUCTURE_TOWER:
-                    case STRUCTURE_CONTAINER:
-                        var status = creep.transfer(target, RESOURCE_ENERGY);
-                        switch (status) {
-                            case ERR_NOT_IN_RANGE:
-                                creep.moveTo(target);
-                                break;
-                            case ERR_FULL:
-                                creep.memory.target = false;
-                                break;
-                            case OK:
-                                break;
-                            default:
-                                console.log('Status ' + status + ' not defined for harvester.dump.spawn');
-                        }
-                        break;
-                    case STRUCTURE_CONTROLLER:
-                        if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
+                this.dumpRoutine(target, creep);
+            }
+        } else if(creep.memory.idle) {
+            //return to duty when able
+            var target = this.scanForTargets(creep);
+            if(target != null) {
+                creep.memory.target = target.id;
+                creep.memory.idle = false;
+                creep.memory.dumping = true;
+            } else {
+                //scan for dropped energy if we have room
+                if(creep.carry.energy  < creep.carryCapacity) {
+                    var target = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+                    if(target) {
+                        if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(target);
                         }
-                        break;
+                    } else {
+                        //No dropped energy found, proceed to offload at Storage.
+                        this.dumpAtStorage(creep);
+                    }
+                } else {
+                    //We're full. Go dump at a Storage.
+                    this.dumpAtStorage(creep);
                 }
             }
+
         } else {
             if(creep.memory.source == false) {
                 //Get energy from containers
