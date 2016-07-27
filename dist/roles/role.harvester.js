@@ -89,9 +89,13 @@ function RoleHarvester() {
             }
         } else {
             if (creep.memory.source == false) {
-                var source = creep.pos.findClosestByPath(FIND_SOURCES, {
-                    filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 60
-                });
+                if(creep.memory.preferedSource) {
+                    source = Game.getObjectById(creep.memory.preferedSource);
+                } else {
+                    var source = creep.pos.findClosestByPath(FIND_SOURCES, {
+                        filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 60
+                    });
+                }
                 if (source != null) creep.memory.source = source.id;
             }
             if (creep.memory.source != false && creep.memory.source != null) {
@@ -100,7 +104,7 @@ function RoleHarvester() {
                 switch (status) {
                     case ERR_NOT_ENOUGH_RESOURCES:
                     case ERR_INVALID_TARGET:
-                        if(source.ticksToRegeneration < 60) {
+                        if(source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
                             creep.moveTo(source);
                             break;
                         }

@@ -19,15 +19,6 @@ var classes = require('classLoader');
 var utils = require('utilLoader');
 
 module.exports.loop = function () {
-    if (undefined == Memory.config.Rampart) {
-        Memory.config.Rampart = {
-            strength: 0
-        }
-    }
-    Memory.flags = Game.flags;
-    Memory.rooms = Game.rooms;
-    Memory.spawns = Game.spawns;
-
     var tower = Game.getObjectById('579607f19de450ae22d2ed0b');
     if (tower) {
         var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -54,7 +45,6 @@ module.exports.loop = function () {
 
     for (var name in Game.rooms) {
         var room = Game.rooms[name];
-
         var wall = new classes.Wall(room);
         wall.adjustStrength();
 
@@ -62,6 +52,10 @@ module.exports.loop = function () {
         ramparts.adjustStrength();
 
         var containers = new utils.Containers(room);
+
+        var sources = new utils.Sources();
+        sources.setRoom(name);
+        sources.updateHarvesterPreference();
 
         console.log('Room "' + room.name + '" has ' + room.energyAvailable
             + '/' + room.energyCapacityAvailable + ' energy and '
@@ -126,6 +120,7 @@ module.exports.loop = function () {
             }
         }
     }
+
     var perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
     console.log('End of tick ' + Game.time +
         '.\t(GCL: ' + Game.gcl.level + ' @ ' + perc + '%\tCPU: '
