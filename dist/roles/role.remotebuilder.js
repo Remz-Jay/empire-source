@@ -9,7 +9,13 @@ function RoleRemoteBuilder() {
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.creep = false;
     this.max = function (c) {
-        return 1;
+        var sites = Object.keys(Game.constructionSites).length;
+        if(sites > 0) {
+            return 1;
+
+        } else {
+            return 0;
+        }
     };
     this.getBody = function (capacity) {
         var numParts = _.floor((capacity - 100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
