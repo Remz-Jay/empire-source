@@ -11,8 +11,8 @@ var roles = {
     repairbot: require('role.repairbot'),
     upgrader: require('role.upgrader'),
     builder: require('role.builder'),
-    scout: require('role.scout'),
-    remoteHarvester: require('role.remoteharvester')
+    //scout: require('role.scout'),
+    //remoteHarvester: require('role.remoteharvester')
 };
 
 var classes = require('classLoader');
@@ -66,7 +66,10 @@ module.exports.loop = function () {
         console.log('Room "' + room.name + '" has ' + room.energyAvailable
             + '/' + room.energyCapacityAvailable + ' energy and '
             + containers.energyInContainers + '/' + containers.containerCapacityAvailable
-            + ' (' +containers.energyPercentage + '%) in containers.');
+            + ' (' +containers.energyPercentage + '%) in containers.'
+            + ' (RCL:'+room.controller.level+' @ '
+            + _.floor(room.controller.progress/(room.controller.progressTotal/100)) + '%)'
+        );
 
         var building = false;
         var spawn = room.find(FIND_MY_SPAWNS)[0]; //TODO: What if more spawns?
