@@ -39,7 +39,6 @@ function UtilSources() {
             if(!preferedHarvester || Memory.creeps[preferedHarvester] == undefined //Assigned harvester has died
             ) {
                 var ph = this.findAvailableHarvester(s);
-                console.log(ph);
                 if(ph != undefined && ph != false) {
                     var preferedHarvester = ph.name;
                     console.log('found ' + preferedHarvester + ' for ' + s.id);

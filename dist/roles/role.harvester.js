@@ -13,7 +13,7 @@ function RoleHarvester() {
             max = 8;
         }
          **/
-        var max = 2;
+        var max = 3;
         return max;
     };
     /** @param {Creep} creep **/

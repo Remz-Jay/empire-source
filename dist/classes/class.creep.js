@@ -25,20 +25,24 @@ function ClassCreep() {
      * Returns false if we're not on an EXIT_.
      * @returns {boolean|RoomPosition}
      */
-    this.nextStepIntoRoom = function() {
+    this.nextStepIntoRoom = function(creep) {
         var x = this.creep.pos.x;
         var y = this.creep.pos.y;
         if (this.creep.pos.x == 0) {
-            x =1;
+            x =48;
+            creep.move(RIGHT);
         }
         if (this.creep.pos.x == 49) {
-            x = 48;
+            x = 1;
+            creep.move(LEFT);
         }
         if (this.creep.pos.y == 0) {
-            y =1;
+            y =48;
+            creep.move(BOTTOM);
         }
         if (this.creep.pos.y == 49) {
-            y = 48;
+            y = 1;
+            creep.move(TOP);
         }
         if(this.creep.pos.x == x && this.creep.pos.y == y) {
             return false;
@@ -50,9 +54,10 @@ function ClassCreep() {
         if(this.creep.memory.source == false) {
             //Prefer energy from containers
             var source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (structure) => (structure.structureType == STRUCTURE_CONTAINER
-                || structure.structureType == STRUCTURE_STORAGE)
-                && structure.store[RESOURCE_ENERGY] > 100
+                filter: (structure) => (
+                    structure.structureType == STRUCTURE_CONTAINER ||
+                    structure.structureType == STRUCTURE_STORAGE
+                ) && structure.store[RESOURCE_ENERGY] > 100
             });
             //Go to source otherwise
             if (source == null) {

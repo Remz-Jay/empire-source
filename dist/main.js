@@ -13,6 +13,8 @@ var roles = {
     builder: require('role.builder'),
     //scout: require('role.scout'),
     //remoteHarvester: require('role.remoteharvester')
+    claim: require('role.claim'),
+    remoteBuilder: require('role.remotebuilder')
 };
 
 var classes = require('classLoader');
