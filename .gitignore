@@ -26,7 +26,13 @@ nbproject/
 
 ##Project specific ignores
 configuration.ini
+config.json
+/legacy
 
 ## IDEA ignores
 .idea/workspace.xml
 .idea/tasks.xml
+
+##TypeScript
+/dist
+/typings
