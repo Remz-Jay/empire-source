@@ -44,6 +44,8 @@ function RoleMule() {
                     case ERR_FULL:
                     case ERR_NOT_ENOUGH_ENERGY:
                         creep.memory.target = false;
+                        //We're empty, drop from idle to pick up new stuff to haul.
+                        creep.memory.idle = false;
                         break;
                     case OK:
                         break;
