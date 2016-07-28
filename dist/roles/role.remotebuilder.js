@@ -12,7 +12,6 @@ function RoleRemoteBuilder() {
         var sites = Object.keys(Game.constructionSites).length;
         if(sites > 0) {
             return 1;
-
         } else {
             return 0;
         }
@@ -25,13 +24,6 @@ function RoleRemoteBuilder() {
         }
         return body.concat([WORK]);
     };
-    this.deserializePathFinderPath = function (p) {
-        var path = [];
-        _.each(p, function (x) {
-            path.push(new RoomPosition(x.x, x.y, x.roomName));
-        }, this);
-        return path;
-    };
     this.findHomePath = function () {
         //find a suitable container
         var homeRoom = Game.rooms[this.homeFlag.pos.roomName];
@@ -41,51 +33,16 @@ function RoleRemoteBuilder() {
         });
         console.log(containers);
         if (containers.length > 0) {
-            var path = PathFinder.search(this.creep.pos, _.map(containers, function (source) {
-                // We can't actually walk on sources-- set `range` to 1 so we path
-                // next to it.
-                return {pos: source.pos, range: 1};
-            }), {
-                // We need to set the defaults costs higher so that we
-                // can set the road cost lower in `roomCallback`
-                plainCost: 2,
-                swampCost: 10,
-
-                roomCallback: function (roomName) {
-
-                    let room = Game.rooms[roomName];
-                    // In this example `room` will always exist, but since PathFinder
-                    // supports searches which span multiple rooms you should be careful!
-                    if (!room) return;
-                    let costs = new PathFinder.CostMatrix;
-
-                    room.find(FIND_STRUCTURES).forEach(function (structure) {
-                        if (structure.structureType === STRUCTURE_ROAD) {
-                            // Favor roads over plain tiles
-                            costs.set(structure.pos.x, structure.pos.y, 1);
-                        } else if (structure.structureType !== STRUCTURE_CONTAINER &&
-                            (structure.structureType !== STRUCTURE_RAMPART || !structure.my)) {
-                            // Can't walk through non-walkable buildings
-                            costs.set(structure.pos.x, structure.pos.y, 0xff);
-                        }
-                    });
-
-                    // Avoid creeps in the room
-                    room.find(FIND_CREEPS).forEach(function (creep) {
-                        costs.set(creep.pos.x, creep.pos.y, 0xff);
-                    });
-
-                    return costs;
-                },
-            });
-            if (path.path.length < 1) {
+            var map = this.createPathFinderMap(containers, 1);
+            var path = this.findPathFinderPath(map);
+            if (path == false || path.length < 1) {
                 delete this.creep.memory.homePath;
                 delete this.creep.memory.homePathContainer;
             } else {
-                this.creep.memory.homePath = path.path;
+                this.creep.memory.homePath = path;
                 //figure out which container we pathed to
                 _.each(containers, function (c) {
-                    if (_.last(path.path).isNearTo(c, 1)) {
+                    if (_.last(path).isNearTo(c, 1)) {
                         this.creep.memory.homePathContainer = c.id;
                     }
                 }, this);
@@ -117,6 +74,7 @@ function RoleRemoteBuilder() {
                     }
                 } else {
                     //with full energy, move to the next room.
+                    //FIXME: Use a PathFinder path to the flag here instead of bolting for the exit with many many CPU cycles.
                     this.creep.memory.runBack = false;
                     var exitDir = Game.map.findExit(this.creep.room.name, this.targetFlag.pos.roomName);
                     var Exit = this.creep.pos.findClosestByPath(exitDir);
@@ -124,28 +82,61 @@ function RoleRemoteBuilder() {
                 }
             } else {
                 if (!this.creep.memory.runBack) {
-                    //once we get there, move to the flag before anything else.
-                    if (!this.creep.pos.isNearTo(this.targetFlag)) {
-                        this.creep.moveTo(this.targetFlag);
-                    } else {
-                        //once we're at the flag, check if there's a container here.
-                        var found = this.targetFlag.pos.lookFor(LOOK_STRUCTURES);
-                        if (found.length && found[0].structureType == STRUCTURE_CONTAINER) {
-                            //we have a container in place! Start harvesting.
-                            creep.say('READY!');
+                    if(!this.creep.memory.containerDone) {
+                        //once we get there, move to the flag before anything else.
+                        if (!this.creep.pos.isNearTo(this.targetFlag)) {
+                            this.creep.moveTo(this.targetFlag);
                         } else {
-                            //Boo, no container. Are we constructing one?
-                            var found = this.targetFlag.pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                            //once we're at the flag, check if there's a container here.
+                            var found = this.targetFlag.pos.lookFor(LOOK_STRUCTURES);
                             if (found.length && found[0].structureType == STRUCTURE_CONTAINER) {
-                                //We're already building one. Let's try and finish it.
-                                if (this.creep.build(found[0]) == ERR_NOT_ENOUGH_RESOURCES) {
-                                    //We've ran out of energy. Need to head back for more. Sucks.
-                                    this.creep.memory.runBack = true;
-                                }
+                                //we have a container in place! Start finishing other jobs.
+                                this.creep.memory.containerDone = true;
                             } else {
-                                //No construction present. Let's start it ourselves.
-                                this.targetFlag.pos.createConstructionSite(STRUCTURE_CONTAINER);
+                                //Boo, no container. Are we constructing one?
+                                var found = this.targetFlag.pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                                if (found.length && found[0].structureType == STRUCTURE_CONTAINER) {
+                                    //We're already building one. Let's try and finish it.
+                                    if (this.creep.build(found[0]) == ERR_NOT_ENOUGH_RESOURCES) {
+                                        //We've ran out of energy. Need to head back for more. Sucks.
+                                        this.creep.memory.runBack = true;
+                                    }
+                                } else {
+                                    //No construction present. Let's start it ourselves.
+                                    this.targetFlag.pos.createConstructionSite(STRUCTURE_CONTAINER);
+                                }
                             }
+                        }
+                    } else {
+                        if(creep.memory.target == false) {
+                            var target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+                            if (target != null) {
+                                creep.memory.target = target.id;
+                            } else {
+                                //nothing to build. return energy.
+                                creep.memory.building = false;
+                                creep.memory.idle = true;
+                                creep.memory.target = false;
+                                creep.memory.source = false;
+                                creep.say('B:IDLE');
+                                //creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                            }
+                        }
+                        var target = Game.getObjectById(creep.memory.target);
+                        if(target != null) {
+                            var log = creep.build(target);
+                            switch(log) {
+                                case OK:
+                                    break;
+                                case ERR_NOT_IN_RANGE:
+                                    creep.moveTo(target);
+                                    break;
+                                case ERR_NOT_ENOUGH_RESOURCES:
+                                    this.harvestFromContainersAndSources();
+                                    break;
+                            }
+                        } else {
+                            creep.memory.target = false;
                         }
                     }
                 } else {

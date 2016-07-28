@@ -89,7 +89,7 @@ function RoleMule() {
         if (target == null) {
             creep.memory.target = false;
         } else {
-           this.dumpRoutine(target, creep);
+            this.dumpRoutine(target, creep);
         }
     };
     this.run = function (creep) {

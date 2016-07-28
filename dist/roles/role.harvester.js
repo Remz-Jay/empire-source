@@ -13,11 +13,11 @@ function RoleHarvester() {
             max = 8;
         }
          **/
-        var max = 3;
+        var max = 2;
         return max;
     };
     /** @param {Creep} creep **/
-    this.run = function (creep) {
+    this.harvesterLogic = function(creep) {
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;
@@ -133,6 +133,9 @@ function RoleHarvester() {
                 creep.memory.source = false;
             }
         }
+    }
+    this.run = function (creep) {
+        this.harvesterLogic(creep);
     }
 };
 RoleHarvester.prototype = _.create(Worker.prototype, {

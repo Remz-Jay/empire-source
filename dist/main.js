@@ -4,6 +4,9 @@
 //http://support.screeps.com/hc/en-us/articles/205990342-StructureSpawn#renewCreep
 //Game.spawns['Spawn1'].room.createConstructionSite( 23, 22, STRUCTURE_TOWER );
 var _ = require('lodash');
+var ScreepsStats = require('screepsstats');
+
+global.Stats = new ScreepsStats();
 
 var roles = {
     harvester: require('role.harvester'),
@@ -11,10 +14,11 @@ var roles = {
     repairbot: require('role.repairbot'),
     upgrader: require('role.upgrader'),
     builder: require('role.builder'),
-    //scout: require('role.scout'),
-    //remoteHarvester: require('role.remoteharvester')
+    scout: require('role.scout'),
+    remoteHarvester: require('role.remoteharvester'),
     claim: require('role.claim'),
-    remoteBuilder: require('role.remotebuilder')
+    remoteMule: require('role.remotemule'),
+    //remoteBuilder: require('role.remotebuilder')
 };
 
 var classes = require('classLoader');
@@ -63,7 +67,7 @@ module.exports.loop = function () {
             + '/' + room.energyCapacityAvailable + ' energy and '
             + containers.energyInContainers + '/' + containers.containerCapacityAvailable
             + ' (' +containers.energyPercentage + '%) in containers.'
-            + ' (RCL:'+room.controller.level+' @ '
+            + ' (RCL='+room.controller.level+' @ '
             + _.floor(room.controller.progress/(room.controller.progressTotal/100)) + '%)'
         );
 
@@ -77,8 +81,8 @@ module.exports.loop = function () {
                     var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
 
                     console.log(
-                        _.padLeft(role.role, 9) + ':\t' + x.length
-                        + ' (max:' + role.max(containers.energyPercentage)
+                        _.padLeft(role.role, 9) + '=\t' + x.length
+                        + ' (max_' + role.max(containers.energyPercentage)
                         + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable)), 4)
                         + ') [' + role.getBody(room.energyCapacityAvailable)
                         + ']'
@@ -125,8 +129,9 @@ module.exports.loop = function () {
 
     var perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
     console.log('End of tick ' + Game.time +
-        '.\t(GCL: ' + Game.gcl.level + ' @ ' + perc + '%\tCPU: '
+        '.\t(GCL= ' + Game.gcl.level + ' @ ' + perc + '%\tCPU: '
         + _.ceil(Game.cpu.getUsed()) + '/' + Game.cpu.limit
-        + '\tRES:' + Game.cpu.tickLimit + '/' + Game.cpu.bucket + ')');
+        + '\tRES=' + Game.cpu.tickLimit + '/' + Game.cpu.bucket + ')');
     console.log();
+    Stats.runBuiltinStats();
 };

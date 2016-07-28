@@ -4,59 +4,92 @@ function RoleRemoteHarvester() {
     this.role = 'remoteHarvester';
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
-    this.max = function(c) {return 0;}
+    this.max = function(c) {return 1;}
+
     this.run = function(creep) {
         this.creep = creep;
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
-                //first make sure we fill up on energy before embarking on an adventure.
-                if(this.creep.carry.energy != this.creep.carryCapacity) {
-                    //dirty fix to get out of map exit.
-                    if(this.nextStepIntoRoom()!=false) {
-                        this.creep.moveTo(this.nextStepIntoRoom());
+                //pathfinder to targetFlag.
+                if(!this.creep.memory.targetPath) {
+                    var path = this.findPathFinderPath(this.targetFlag);
+                    if(path != false) {
+                        this.creep.memory.targetPath = path;
+                        var log = this.creep.moveByPath(path);
                     } else {
-                        this.harvestFromContainersAndSources();
-                        this.creep.memory.runBack = true;
+                        creep.say('HALP!');
                     }
                 } else {
-                    //with full energy, move to the next room.
-                    this.creep.memory.runBack = false;
-                    var exitDir = Game.map.findExit(this.creep.room.name, this.targetFlag.pos.roomName);
-                    var Exit = this.creep.pos.findClosestByPath(exitDir);
-                    this.creep.moveTo(Exit);
-                }
-            } else {
-                if(!this.creep.memory.runBack) {
-                    //once we get there, move to the flag before anything else.
-                    if(!this.creep.pos.isNearTo(this.targetFlag)) {
-                        this.creep.moveTo(this.targetFlag);
-                    } else {
-                        //once we're at the flag, check if there's a container here.
-                        var found = this.targetFlag.pos.lookFor(LOOK_STRUCTURES);
-                        if(found.length && found[0].structureType == STRUCTURE_CONTAINER) {
-                            //we have a container in place! Start harvesting.
-                            //TODO: Implement harvesting.
-                            Harvester.prototype.run.call(this);
+                    var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+                    var log = this.creep.moveByPath(path);
+                    if (log == ERR_NOT_FOUND) {
+                        var path = this.findPathFinderPath(this.targetFlag);
+                        if(path != false) {
+                            this.creep.memory.targetPath = path;
+                            var log = this.creep.moveByPath(path);
                         } else {
-                            //Boo, no container. Are we constructing one?
-                            var found = this.targetFlag.pos.lookFor(LOOK_CONSTRUCTION_SITES);
-                            if(found.length && found[0].structureType == STRUCTURE_CONTAINER) {
-                                //We're already building one. Let's try and finish it.
-                                if(this.creep.build(found[0]) == ERR_NOT_ENOUGH_RESOURCES) {
-                                    //We've ran out of energy. Need to head back for more. Sucks.
-                                    this.creep.memory.runBack = true;
-                                }
-                            } else {
-                                //No construction present. Let's start it ourselves.
-                                this.targetFlag.pos.createConstructionSite(STRUCTURE_CONTAINER);
-                            }
+                            creep.say('HALP!');
                         }
                     }
+                }
+            } else {
+                if (!this.creep.pos.isNearTo(this.targetFlag)) {
+                    var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+                    var log = this.creep.moveByPath(path);
+                    if (log == ERR_NOT_FOUND) {
+                        var path = this.findPathFinderPath(this.targetFlag);
+                        if(path != false) {
+                            this.creep.memory.targetPath = path;
+                            var log = this.creep.moveByPath(path);
+                        } else {
+                            creep.say('HALP!');
+                        }
+                    }
+                    console.log('moving to flag');
                 } else {
-                    //Run back to mommy for more energy.
-                    var exitDir = Game.map.findExit(this.creep.room.name, this.homeFlag.pos.roomName);
-                    var Exit = this.creep.pos.findClosestByPath(exitDir);
-                    this.creep.moveTo(Exit);
+                    //see if we need to repair our container
+                    if(this.creep.carry.energy == this.creep.carryCapacity
+                        || (this.creep.memory.dumping && this.creep.carry.energy > 0)) {
+                        this.creep.memory.dumping = true;
+                        let target = creep.pos.findInRange(FIND_STRUCTURES, 1, {
+                            filter: (structure) => {
+                                return (
+                                    structure.hits < (structure.hitsMax*0.9) &&
+                                    (
+                                        structure.structureType == STRUCTURE_CONTAINER
+                                    )
+                                )
+                            }
+                        });
+                        if(target != null && target.length > 0) {
+                            target = target[0];
+                            var status = creep.repair(target);
+                            switch(status) {
+                                case OK:
+                                    break;
+                                case ERR_BUSY:
+                                case ERR_INVALID_TARGET:
+                                case ERR_NOT_OWNER:
+                                    creep.memory.target = false;
+                                    break;
+                                case ERR_NOT_ENOUGH_RESOURCES:
+                                    creep.memory.target = false;
+                                    creep.memory.repairing = false;
+                                    break;
+                                case ERR_NOT_IN_RANGE:
+                                    creep.moveTo(target);
+                                    break;
+                                case ERR_NO_BODYPART:
+                                default:
+                                    console.log('repairBot.repair.status: this should not happen');
+                            }
+                        } else {
+                            this.harvesterLogic(this.creep);
+                        }
+                    } else {
+                        console.log('normal logic');
+                        this.harvesterLogic(this.creep);
+                    }
                 }
             }
         }

@@ -11,6 +11,7 @@ function RoleClaim() {
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
                 //with full energy, move to the next room.
+                //FIXME: Use PathFinder here.
                 this.creep.memory.runBack = false;
                 var exitDir = Game.map.findExit(this.creep.room.name, this.targetFlag.pos.roomName);
                 var Exit = this.creep.pos.findClosestByPath(exitDir);
