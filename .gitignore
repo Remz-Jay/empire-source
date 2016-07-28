@@ -36,3 +36,4 @@ config.json
 ##TypeScript
 /dist
 /typings
+/src/**/*.js
