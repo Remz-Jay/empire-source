@@ -1,30 +1,33 @@
 export interface CreepConfiguration {
-    body: string[];
-    name: string;
-    properties: CreepProperties;
+	body:string[];
+	name:string;
+	properties:CreepProperties;
 }
 export interface CreepProperties {
-    role: string;
-    renew_station_id?: string;
-    target_energy_dropoff_id?: string;
-    target_source_id?: string;
+	role:string;
+	renew_station_id?:string;
+	target_energy_dropoff_id?:string;
+	target_energy_source_id?:string;
+	target_source_id?:string;
+	target_construction_site_id?:string;
 }
 
 export interface ICreepGovernor {
-    role: string;
+	role:string;
 
-    getCreepConfig(): CreepConfiguration;
-    getCreepLimit(): number;
+	getCreepConfig():CreepConfiguration;
+	getCreepLimit():number;
 }
 
 export default class CreepGovernor implements ICreepGovernor {
 
-    public role = "Creep";
+	public role = "Creep";
 
-    public getCreepConfig(): CreepConfiguration {
-        return {body: [], name: "", properties: {role: null}};
-    }
-    public getCreepLimit(): number {
-        return 0;
-    }
+	public getCreepConfig():CreepConfiguration {
+		return {body: [], name: "", properties: {role: null}};
+	}
+
+	public getCreepLimit():number {
+		return 0;
+	}
 }

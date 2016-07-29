@@ -1,10 +1,8 @@
 import {ICreepGovernor, CreepConfiguration, default as CreepGovernor, CreepProperties} from "../creepGovernor";
-import * as SourceManager from "../../sources/sourceManager";
 import * as SpawnManager from "../../spawns/spawnManager";
-import * as Config from "../../../config/config";
 
-export default class HarvesterGovernor extends CreepGovernor implements ICreepGovernor {
-	public role = "Harvester";
+export default class BuilderGovernor extends CreepGovernor implements ICreepGovernor {
+	public role = "Builder";
 
 	public getCreepConfig():CreepConfiguration {
 		let bodyParts:string[] = [MOVE, MOVE, CARRY, WORK];
@@ -12,13 +10,14 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 		let properties:CreepProperties = {
 			renew_station_id: SpawnManager.getFirstSpawn().id,
 			role: this.role,
-			target_energy_dropoff_id: SpawnManager.getFirstSpawn().id,
-			target_source_id: SourceManager.getFirstSource().id,
+			target_construction_site_id: Object.keys(Game.constructionSites)[0],
+			target_energy_source_id: SpawnManager.getFirstSpawn().id,
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
 
 	public getCreepLimit():number {
-		return Config.MAX_HARVESTERS_PER_SOURCE;
+		let limit = _.ceil(Object.keys(Game.constructionSites).length / 3);
+		return limit;
 	}
 }

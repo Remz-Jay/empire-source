@@ -4,7 +4,6 @@
  * http://support.screeps.com/hc/en-us/articles/204825672-New-main-loop-architecture
  */
 
-import * as Config from "./config/config";
 import * as MemoryManager from "./shared/memoryManager";
 import * as RoomManager from "./components/rooms/roomManager";
 import * as SpawnManager from "./components/spawns/spawnManager";
@@ -24,22 +23,9 @@ SourceManager.loadSources();
 // http://support.screeps.com/hc/en-us/articles/204825672-New-main-loop-architecture
 
 export function loop() {
-  // This is executed every tick
+	// This is executed every tick
 
-  MemoryManager.loadMemory();
-  CreepManager.loadCreeps();
-
-  /**
-  if (!CreepManager.isHarvesterLimitFull()) {
-    CreepManager.createHarvester();
-
-    if (Config.VERBOSE) {
-      console.log("Need more harvesters!");
-    }
-  }
-   **/
-
-  // CreepManager.harvestersGoToWork();
-  CreepManager.goToWork();
-  CreepManager.governCreeps();
+	MemoryManager.loadMemory();
+	CreepManager.loadCreeps();
+	CreepManager.governCreeps();
 }

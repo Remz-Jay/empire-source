@@ -7,7 +7,7 @@
     "noImplicitAny": true,
     "experimentalDecorators": true
   },
-  "compileOnSave": false,
+  "compileOnSave": true,
   "exclude": [
     "dist",
     "node_modules",
@@ -28,6 +28,7 @@
     "src/components/creeps/creepAction.ts",
     "src/components/creeps/creepGovernor.ts",
     "src/components/creeps/creepManager.ts",
+    "src/components/creeps/governors/builder.ts",
     "src/components/creeps/governors/harvester.ts",
     "src/components/creeps/roles/builder.ts",
     "src/components/creeps/roles/harvester.ts",
