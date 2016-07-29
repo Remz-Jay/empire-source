@@ -5,7 +5,8 @@
     "removeComments": true,
     "noResolve": false,
     "noImplicitAny": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "allowJs": true
   },
   "compileOnSave": true,
   "exclude": [
@@ -19,7 +20,8 @@
   ],
   "filesGlob": [
     "typings/**/*.d.ts",
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/lib/*.js"
   ],
   "files": [
     "typings/globals/lodash/index.d.ts",
@@ -39,6 +41,7 @@
     "src/components/spawns/spawnManager.ts",
     "src/config/config.ts",
     "src/main.ts",
-    "src/shared/memoryManager.ts"
+    "src/shared/memoryManager.ts",
+    "src/lib/screeps-profiler.js"
   ]
 }
