@@ -1,8 +1,8 @@
 import {ICreepGovernor, CreepConfiguration, default as CreepGovernor, CreepProperties} from "../creepGovernor";
 import * as SpawnManager from "../../spawns/spawnManager";
-
-export default class BuilderGovernor extends CreepGovernor implements ICreepGovernor {
-	public role = "Builder";
+import * as RoomManager from "../../rooms/roomManager";
+export default class UpgraderGovernor extends CreepGovernor implements ICreepGovernor {
+	public role = "Upgrader";
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
@@ -10,14 +10,14 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 		let properties: CreepProperties = {
 			renew_station_id: SpawnManager.getFirstSpawn().id,
 			role: this.role,
-			target_construction_site_id: Object.keys(Game.constructionSites)[0],
+			target_controller_id: RoomManager.getFirstRoom().controller.id,
 			target_energy_source_id: SpawnManager.getFirstSpawn().id,
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
 
 	public getCreepLimit(): number {
-		let limit = _.ceil(Object.keys(Game.constructionSites).length / 3);
+		let limit = 1;
 		return limit;
 	}
 }

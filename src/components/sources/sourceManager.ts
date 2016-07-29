@@ -1,8 +1,8 @@
 import * as Config from "./../../config/config";
 import * as RoomManager from "./../rooms/roomManager";
 
-export let sources:Source[];
-export let sourceCount:number;
+export let sources: Source[];
+export let sourceCount: number;
 
 export function loadSources() {
 	sources = RoomManager.getFirstRoom().find<Source>(FIND_SOURCES_ACTIVE);
@@ -13,6 +13,6 @@ export function loadSources() {
 	}
 }
 
-export function getFirstSource():Source {
+export function getFirstSource(): Source {
 	return sources[0];
 }

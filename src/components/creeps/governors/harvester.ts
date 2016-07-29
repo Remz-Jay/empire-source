@@ -6,10 +6,10 @@ import * as Config from "../../../config/config";
 export default class HarvesterGovernor extends CreepGovernor implements ICreepGovernor {
 	public role = "Harvester";
 
-	public getCreepConfig():CreepConfiguration {
-		let bodyParts:string[] = [MOVE, MOVE, CARRY, WORK];
-		let name:string = null;
-		let properties:CreepProperties = {
+	public getCreepConfig(): CreepConfiguration {
+		let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
+		let name: string = null;
+		let properties: CreepProperties = {
 			renew_station_id: SpawnManager.getFirstSpawn().id,
 			role: this.role,
 			target_energy_dropoff_id: SpawnManager.getFirstSpawn().id,
@@ -18,7 +18,7 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 		return {body: bodyParts, name: name, properties: properties};
 	}
 
-	public getCreepLimit():number {
+	public getCreepLimit(): number {
 		return Config.MAX_HARVESTERS_PER_SOURCE;
 	}
 }

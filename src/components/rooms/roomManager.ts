@@ -1,7 +1,7 @@
 import * as Config from "./../../config/config";
 
-export let rooms:{ [roomName:string]:Room };
-export let roomNames:string[] = [];
+export let rooms: { [roomName: string]: Room };
+export let roomNames: string[] = [];
 
 export function loadRooms() {
 	rooms = Game.rooms;
@@ -14,7 +14,7 @@ export function loadRooms() {
 	}
 }
 
-export function getFirstRoom():Room {
+export function getFirstRoom(): Room {
 	return rooms[roomNames[0]];
 }
 

@@ -2,11 +2,17 @@
  * Enable this if you want a lot of text to be logged to console.
  * @type {boolean}
  */
-export const VERBOSE:boolean = true;
+export const VERBOSE: boolean = true;
+
+/**
+ * For extra chatty output.
+ * @type {boolean}
+ */
+export const DEBUG: boolean = false;
 /**
  * @type {number}
  */
-export const MAX_HARVESTERS_PER_SOURCE:number = 4;
+export const MAX_HARVESTERS_PER_SOURCE: number = 4;
 
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
@@ -14,4 +20,4 @@ export const MAX_HARVESTERS_PER_SOURCE:number = 4;
  * So it doesn't cover all Screeps.
  * @type {number}
  */
-export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL:number = 700;
+export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
