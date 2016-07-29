@@ -1,3 +1,5 @@
+import * as Config from "../../config/config";
+
 export interface CreepConfiguration {
 	body: string[];
 	name: string;
@@ -14,15 +16,14 @@ export interface CreepProperties {
 }
 
 export interface ICreepGovernor {
-	role: string;
 
 	getCreepConfig(): CreepConfiguration;
 	getCreepLimit(): number;
 }
 
 export default class CreepGovernor implements ICreepGovernor {
-
-	public role = "Creep";
+	public static PRIORITY: number = Config.PRIORITY_CREEP;
+	public static ROLE: string = "Creep";
 
 	public getCreepConfig(): CreepConfiguration {
 		return {body: [], name: "", properties: {role: null}};

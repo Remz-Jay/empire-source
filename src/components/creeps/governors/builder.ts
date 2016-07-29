@@ -1,15 +1,18 @@
 import {ICreepGovernor, CreepConfiguration, default as CreepGovernor, CreepProperties} from "../creepGovernor";
 import * as SpawnManager from "../../spawns/spawnManager";
+import * as Config from "../../../config/config";
 
 export default class BuilderGovernor extends CreepGovernor implements ICreepGovernor {
-	public role = "Builder";
+
+	public static PRIORITY: number = Config.PRIORITY_BUILDER;
+	public static ROLE: string = "Builder";
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
 		let name: string = null;
 		let properties: CreepProperties = {
 			renew_station_id: SpawnManager.getFirstSpawn().id,
-			role: this.role,
+			role: BuilderGovernor.ROLE,
 			target_construction_site_id: Object.keys(Game.constructionSites)[0],
 			target_energy_source_id: SpawnManager.getFirstSpawn().id,
 		};

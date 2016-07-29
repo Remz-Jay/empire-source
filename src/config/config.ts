@@ -21,3 +21,8 @@ export const MAX_HARVESTERS_PER_SOURCE: number = 4;
  * @type {number}
  */
 export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
+
+export const PRIORITY_CREEP: number = -1;
+export const PRIORITY_BUILDER: number = 30;
+export const PRIORITY_HARVESTER: number = 10;
+export const PRIORITY_UPGRADER: number = 20;
