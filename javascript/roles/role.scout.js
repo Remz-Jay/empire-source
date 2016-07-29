@@ -9,7 +9,7 @@ function RoleScout() {
         //HEAL,MOVE //250 +50
     ];
     this.toughPart = [TOUGH,MOVE]; //10+50
-    this.targetFlag = Game.flags.Kut;
+    this.targetFlag = Game.flags.Vagine;
     //this.targetRoom = 'W7N42';
     this.getBody = function (capacity) {
 
@@ -48,7 +48,7 @@ function RoleScout() {
 
         }
     }
-    this.max = function(c) { return 0;};
+    this.max = function(c) { return 2;};
     /** @param {Creep} creep **/
     this.run = function(creep) {
         this.creep = creep;
