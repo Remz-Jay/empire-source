@@ -1,11 +1,18 @@
 import * as Config from "./../../config/config";
-import * as SourceManager from "./../sources/sourceManager";
 import * as SpawnManager from "./../spawns/spawnManager";
-import Harvester from "./harvester";
+import CreepAction from "./creepAction";
+import CreepGovernor from "./creepGovernor";
+import Harvester from "./roles/harvester";
+import Builder from "./roles/builder";
+import HarvesterGovernor from "./governors/harvester";
+import {CreepConfiguration} from "./creepGovernor";
 
 export let creeps: { [creepName: string]: Creep };
 export let creepNames: string[] = [];
 export let creepCount: number;
+
+let roles: Array<any> = [Harvester, Builder];
+let governors: Array<any> = [HarvesterGovernor];
 
 export function loadCreeps(): void {
   creeps = Game.creeps;
@@ -17,27 +24,44 @@ export function loadCreeps(): void {
     console.log(creepCount + " creeps found in the playground.");
   }
 }
-
-export function createHarvester(): number | string {
-  let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
-  let name: string = null;
-  let properties: { [key: string]: any } = {
-    renew_station_id: SpawnManager.getFirstSpawn().id,
-    role: "harvester",
-    target_energy_dropoff_id: SpawnManager.getFirstSpawn().id,
-    target_source_id: SourceManager.getFirstSource().id,
-  };
-
-  let status: number | string = SpawnManager.getFirstSpawn().canCreateCreep(bodyParts, name);
+export function createCreep(config: CreepConfiguration): string|number {
+  let status: number | string = SpawnManager.getFirstSpawn().canCreateCreep(config.body, config.name);
   if (status === OK) {
-    status = SpawnManager.getFirstSpawn().createCreep(bodyParts, name, properties);
+    status = SpawnManager.getFirstSpawn().createCreep(config.body, config.name, config.properties);
 
     if (Config.VERBOSE) {
-      console.log("Started creating new Harvester");
+      if (_.isNumber(status)) {
+        console.log(`Unable to create ${config.properties["role"]} Creep (${status})`);
+      } else {
+        console.log(`Started creating new ${config.properties["role"]} Creep ${status}`);
+      }
     }
   }
-
   return status;
+}
+
+export function goToWork(): void {
+  for (let name in creeps) {
+    let creep: Creep = creeps[name];
+    for (let index in roles) {
+      let role: CreepAction = new roles[index]();
+      role.setCreep(creep);
+      role.action();
+    }
+  }
+}
+export function governCreeps(): void {
+  for (let index in governors) {
+    let governor: CreepGovernor = new governors[index]();
+    let numCreeps: number = _.filter(Game.creeps, (creep) => creep.memory.role === governor.role).length;
+    if (Config.VERBOSE) {
+      console.log(`${governor.role}: ${numCreeps}/${governor.getCreepLimit()}`);
+    }
+    if (numCreeps < governor.getCreepLimit()) {
+      let config: CreepConfiguration = governor.getCreepConfig();
+      this.createCreep(config);
+    }
+  }
 }
 
 export function harvestersGoToWork(): void {

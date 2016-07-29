@@ -1,4 +1,4 @@
-import CreepAction, { ICreepAction } from "./creepAction";
+import CreepAction, { ICreepAction } from "../creepAction";
 
 export interface IHarvester {
 

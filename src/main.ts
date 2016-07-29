@@ -29,6 +29,7 @@ export function loop() {
   MemoryManager.loadMemory();
   CreepManager.loadCreeps();
 
+  /**
   if (!CreepManager.isHarvesterLimitFull()) {
     CreepManager.createHarvester();
 
@@ -36,6 +37,9 @@ export function loop() {
       console.log("Need more harvesters!");
     }
   }
+   **/
 
-  CreepManager.harvestersGoToWork();
+  // CreepManager.harvestersGoToWork();
+  CreepManager.goToWork();
+  CreepManager.governCreeps();
 }
