@@ -25,22 +25,7 @@ var classes = require('classLoader');
 var utils = require('utilLoader');
 
 module.exports.loop = function () {
-    var tower = Game.getObjectById('579607f19de450ae22d2ed0b');
-    if (tower) {
-        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
-            structure.structureType != STRUCTURE_RAMPART &&
-            structure.structureType != STRUCTURE_WALL
-        });
-        if (closestDamagedStructure) {
-            tower.repair(closestDamagedStructure);
-        }
-
-        var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        if (closestHostile) {
-            tower.attack(closestHostile);
-        }
-    }
+    PathFinder.use(true);
 
     for (var name in Memory.creeps) {
         if (!Game.creeps[name]) {
@@ -70,7 +55,35 @@ module.exports.loop = function () {
             + ' (RCL='+room.controller.level+' @ '
             + _.floor(room.controller.progress/(room.controller.progressTotal/100)) + '%)'
         );
+        var towers = room.find(FIND_MY_STRUCTURES, {
+            filter: (s) => {
+                return s.structureType == STRUCTURE_TOWER
+            }
+        });
+        _.each(towers, function(tower){
+            var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
+                structure.structureType != STRUCTURE_RAMPART &&
+                structure.structureType != STRUCTURE_WALL
+            });
+            if (closestDamagedStructure) {
+                tower.repair(closestDamagedStructure);
+            }
 
+            var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
+                filter: (c) => {
+                    return c.hits < c.hitsMax;
+                }
+            });
+            if (closestDamagedCreep) {
+                tower.heal(closestDamagedCreep);
+            }
+
+            var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+            if (closestHostile) {
+                tower.attack(closestHostile);
+            }
+        }, this);
         var building = false;
         var spawn = room.find(FIND_MY_SPAWNS)[0]; //TODO: What if more spawns?
         if (undefined == spawn) {
