@@ -55,18 +55,19 @@ export function governCreeps(): void {
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
 		let governor: CreepGovernor = new prioritizedGovernors[index]();
-		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep) => creep.memory.role === prioritizedGovernors[index].ROLE);
+		let creepRole: string = prioritizedGovernors[index].ROLE;
+		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep) => creep.memory.role === creepRole);
 		let numCreeps: number = creepsInRole.length;
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
-				let role: CreepAction = <CreepAction> new roles[<any> prioritizedGovernors[index].ROLE]();
+				let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
 				role.setCreep(<Creep> creep);
 				role.action();
 			}
 		}, this);
 
 		if (Config.VERBOSE) {
-			console.log(`${prioritizedGovernors[index].ROLE}: ${numCreeps}/${governor.getCreepLimit()}`);
+			console.log(`${creepRole}: ${numCreeps}/${governor.getCreepLimit()}`);
 		}
 		if (numCreeps < governor.getCreepLimit()) {
 			let config: CreepConfiguration = governor.getCreepConfig();

@@ -10,7 +10,6 @@ import * as SpawnManager from "./components/spawns/spawnManager";
 import * as SourceManager from "./components/sources/sourceManager";
 import * as CreepManager from "./components/creeps/creepManager";
 
-
 Profiler.enable();
 
 // This code is executed only when Screeps system reloads your script.
@@ -27,6 +26,7 @@ SourceManager.loadSources();
 export function loop() {
 	// This is executed every tick
 	Profiler.wrap(function() {
+		PathFinder.use(true);
 		MemoryManager.loadMemory();
 		CreepManager.loadCreeps();
 		CreepManager.governCreeps();
