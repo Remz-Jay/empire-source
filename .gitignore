@@ -37,5 +37,4 @@ config.json
 /typings
 /src/**/*.js
 /src
-/javascript/src
-/javascript/flat
+/dist
