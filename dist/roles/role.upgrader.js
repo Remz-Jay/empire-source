@@ -2,15 +2,11 @@ var Worker = require('class.worker');
 function RoleUpgrader() {
     Worker.call(this);
     this.role = 'upgrader';
-    this.max = function(containerPercentage){
-        if(containerPercentage >= 90) {
-            return 3;
-        } else if(containerPercentage >= 50) {
-            return 2;
-        } else {
-            return 1;
-        }
+    this.max = function(energyInContainers){
+        let num = _.floor(energyInContainers/10000);
+        return (num > 0) ? num : 1;
     };
+
 
     /** @param {Creep} creep **/
     this.run = function(creep) {

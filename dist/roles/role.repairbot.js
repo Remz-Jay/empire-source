@@ -7,33 +7,30 @@ function RoleRepairbot() {
     this.myStructureMultiplier = 0.9;
     this.publicStructureMultiplier= 0.81;
 
-    this.max = function(containerPercentage){
-        if(containerPercentage >= 75) {
-            return 2;
-        } else {
-            return 1;
-        }
+    this.max = function(energyInContainers){
+        let num = _.floor(energyInContainers/15000);
+        return (num > 0) ? num : 1;
     };
     /** @param {Creep} creep **/
     this.run = function(creep) {
-
-        if(creep.memory.repairing && creep.carry.energy == 0) {
-            creep.memory.repairing = false;
-            creep.memory.target = false;
-            creep.memory.source = false;
-            creep.say('R:COL');
+        this.creep = creep;
+        if(this.creep.memory.repairing && this.creep.carry.energy == 0) {
+            this.creep.memory.repairing = false;
+            this.creep.memory.target = false;
+            this.creep.memory.source = false;
+            this.creep.say('R:COL');
         }
-        if(!creep.memory.repairing && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.repairing = true;
-            creep.memory.target = false;
-            creep.memory.source = false;
-            creep.say('R:REP');
+        if(!this.creep.memory.repairing && this.creep.carry.energy == this.creep.carryCapacity) {
+            this.creep.memory.repairing = true;
+            this.creep.memory.target = false;
+            this.creep.memory.source = false;
+            this.creep.say('R:REP');
         }
 
-        if(creep.memory.repairing) {
-            if(creep.memory.target == false) {
+        if(this.creep.memory.repairing) {
+            if(this.creep.memory.target == false) {
                 //See if any owned buildings are damaged.
-                var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                var target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                     filter: (structure) => {
                         return (
                             structure.hits < (structure.hitsMax*this.myStructureMultiplier) &&
@@ -43,7 +40,7 @@ function RoleRepairbot() {
                 });
                 // No? Try to repair a neutral structure instead.
                 if (target == null) {
-                    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    target = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
                         filter: (structure) => {
                             return (
                                 structure.hits < (structure.hitsMax*this.publicStructureMultiplier) &&
@@ -57,9 +54,9 @@ function RoleRepairbot() {
                 }
                 //Still nothing? Fortify Ramparts and Walls if we have spare energy.
                 //if(creep.room.energyAvailable / (creep.room.energyCapacityAvailable/100)>50) {
-                if(creep.room.energyAvailable > (creep.room.energyCapacityAvailable*0.8)) {
+                if(this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable*0.8)) {
                     if (target == null) {
-                        target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                        target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                             filter: (structure) => {
                                 return (
                                     (
@@ -77,17 +74,17 @@ function RoleRepairbot() {
                     }
                 }
                 if (target != null) {
-                    creep.memory.target = target.id;
+                    this.creep.memory.target = target.id;
                 } else {
-                    creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                    this.creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                 }
             }
-            var target = Game.getObjectById(creep.memory.target);
+            var target = Game.getObjectById(this.creep.memory.target);
             if(target != null) {
                 if(target.hits == target.hitsMax) {
-                    creep.memory.target = false;
+                    this.creep.memory.target = false;
                 }
-                var status = creep.repair(target);
+                var status = this.creep.repair(target);
                 switch(status) {
                     case OK:
                         break;
@@ -108,57 +105,10 @@ function RoleRepairbot() {
                         console.log('repairBot.repair.status: this should not happen');
                 }
             } else {
-                creep.memory.target = false;
+                this.creep.memory.target = false;
             }
         } else {
-            if(creep.memory.source == false) {
-                //Prefer energy from containers
-                var source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
-                        structure.store[RESOURCE_ENERGY] > 100
-                });
-                //Go to source otherwise
-                if (source == null) {
-                    source = creep.pos.findClosestByPath(FIND_SOURCES, {
-                        filter: (source) => (source.energy > 100) || source.ticksToRegeneration < 30
-                    });
-                }
-                if (source != null) creep.memory.source = source.id;
-            }
-            if(creep.memory.source != false) {
-                var source = Game.getObjectById(creep.memory.source);
-                if(source instanceof Structure) { //Sources aren't structures
-                    var status = creep.withdraw(source, RESOURCE_ENERGY);
-                    switch (status) {
-                        case ERR_NOT_ENOUGH_RESOURCES:
-                        case ERR_INVALID_TARGET:
-                        case ERR_NOT_OWNER:
-                        case ERR_FULL:
-                            creep.memory.source = false;
-                            break;
-                        case ERR_NOT_IN_RANGE:
-                            creep.moveTo(source);
-                            break;
-                        case OK: break;
-                        default: console.log('Unhandled ERR in repairbot.source.container:'+status);
-                    }
-                } else {
-                    var status = creep.harvest(source);
-                    switch (status) {
-                        case ERR_NOT_ENOUGH_RESOURCES:
-                        case ERR_INVALID_TARGET:
-                        case ERR_NOT_OWNER:
-                        case ERR_FULL:
-                            creep.memory.source = false;
-                            break;
-                        case ERR_NOT_IN_RANGE:
-                            creep.moveTo(source);
-                            break;
-                        case OK: break;
-                        default: console.log('Unhandled ERR in repairbot.source.harvest:'+status);
-                    }
-                }
-            }
+            this.harvestFromContainersAndSources();
         }
     }
 };

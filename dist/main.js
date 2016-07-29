@@ -82,13 +82,13 @@ module.exports.loop = function () {
 
                     console.log(
                         _.padLeft(role.role, 9) + '=\t' + x.length
-                        + ' (max_' + role.max(containers.energyPercentage)
+                        + ' (max_' + role.max(containers.energyInContainers)
                         + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable)), 4)
                         + ') [' + role.getBody(room.energyCapacityAvailable)
                         + ']'
                     );
 
-                    if (!building && x.length < role.max(containers.energyPercentage)) {
+                    if (!building && x.length < role.max(containers.energyInContainers)) {
                         var body = role.getBody(room.energyCapacityAvailable);
                         var spawnState = spawn.canCreateCreep(body);
                         if (spawnState == OK) {
