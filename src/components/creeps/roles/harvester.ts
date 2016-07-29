@@ -10,9 +10,11 @@ export interface IHarvester {
 	moveToHarvest(): void;
 	tryEnergyDropOff(): number;
 	moveToDropEnergy(): void;
+	assignNewDropOff(): boolean;
 
 	action(): boolean;
 }
+type EnergyStructure = Extension | Spawn | Tower;
 
 export default class Harvester extends CreepAction implements IHarvester, ICreepAction {
 	public targetSource: Source;
@@ -25,6 +27,26 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		this.targetEnergyDropOff = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_dropoff_id);
 	}
 
+	public assignNewDropOff(): boolean {
+		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+			filter: (structure: EnergyStructure) => {
+				return (
+						structure.structureType === STRUCTURE_EXTENSION ||
+						structure.structureType === STRUCTURE_SPAWN ||
+						structure.structureType === STRUCTURE_TOWER
+						// structure.structureType === STRUCTURE_CONTAINER ||
+						// structure.structureType === STRUCTURE_STORAGE
+					) && structure.energy < structure.energyCapacity;
+			},
+		});
+		if (target != null) {
+			this.targetEnergyDropOff = target;
+			this.creep.memory.target_energy_dropoff_id = target.id;
+			return true;
+		} else {
+			return false;
+		}
+	}
 	public isBagFull(): boolean {
 		return (this.creep.carry.energy === this.creep.carryCapacity);
 	}
@@ -44,6 +66,19 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public moveToDropEnergy(): void {
+		let status = this.tryEnergyDropOff();
+		switch (status) {
+			case OK:
+				break;
+			case ERR_NOT_IN_RANGE:
+				this.moveTo(this.targetEnergyDropOff);
+				break;
+			case ERR_FULL:
+				this.assignNewDropOff();
+				break;
+			default:
+				console.log(`harvester energyDropOff error ${status}`);
+		}
 		if (this.tryEnergyDropOff() === ERR_NOT_IN_RANGE) {
 			this.moveTo(this.targetEnergyDropOff);
 		}

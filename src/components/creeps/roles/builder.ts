@@ -10,6 +10,7 @@ export interface IBuilder {
 	tryCollectEnergy(): number;
 	moveToCollectEnergy(): void;
 	moveToConstructionSite(): void;
+	assignNewTarget(): boolean;
 
 	action(): boolean;
 }

@@ -70,6 +70,8 @@ export function governCreeps(): void {
 		if (numCreeps < governor.getCreepLimit()) {
 			let config: CreepConfiguration = governor.getCreepConfig();
 			this.createCreep(config);
+		} else if (numCreeps > governor.getCreepLimit()) {
+			// TODO: Deconstruct excess creep.
 		}
 	}
 }
