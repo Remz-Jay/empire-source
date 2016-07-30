@@ -48,7 +48,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 
 	public moveToCollectEnergy(): void {
 		if (this.tryCollectEnergy() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.targetEnergySource);
+			this.moveTo(this.targetEnergySource.pos);
 		}
 	}
 
@@ -60,7 +60,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		let status: number = this.tryBuilding();
 		switch (status) {
 			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetConstructionSite);
+				this.moveTo(this.targetConstructionSite.pos);
 				break;
 			case ERR_INVALID_TARGET:
 				this.assignNewTarget();

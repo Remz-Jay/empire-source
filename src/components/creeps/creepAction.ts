@@ -1,5 +1,6 @@
 import * as Config from "./../../config/config";
 import List = _.List;
+import * as RoomManager from "../rooms/roomManager";
 
 type PathFinderGoal = { pos: RoomPosition, range: number }[];
 type PathFinderPath = { path: RoomPosition[], ops: number };
@@ -28,6 +29,20 @@ export interface ICreepAction {
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 }
 
+let roomCallback = function (roomName: string): CostMatrix {
+	let room = Game.rooms[roomName];
+	if (!room) {
+		return;
+	}
+	let costs = RoomManager.getCostMatrixForRoom(roomName);
+	// Avoid creeps in the room
+	room.find(FIND_CREEPS).forEach(function (creep: Creep) {
+		costs.set(creep.pos.x, creep.pos.y, 0xff);
+	});
+	//TODO: this per-tick map of where the creeps are can be cached too..
+	return costs;
+};
+
 export default class CreepAction implements ICreepAction {
 	public creep: Creep;
 	public renewStation: Spawn;
@@ -39,8 +54,19 @@ export default class CreepAction implements ICreepAction {
 		this.renewStation = Game.getObjectById<Spawn>(this.creep.memory.renew_station_id);
 	}
 
-	public moveTo(target: RoomPosition | { pos: RoomPosition }) {
-		return this.creep.moveTo(target);
+	public moveTo(target: RoomPosition | { pos: RoomPosition, range: number }) {
+		let path = PathFinder.search(this.creep.pos, target, {
+			plainCost: 2,
+			swampCost: 10,
+			roomCallback: roomCallback,
+		});
+		try {
+			let pos = path.path[0];
+			let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
+			return status;
+		} catch (e) {
+			console.log(JSON.stringify(e), "moveTo");
+		}
 	}
 
 	public needsRenew(): boolean {
@@ -53,7 +79,7 @@ export default class CreepAction implements ICreepAction {
 
 	public moveToRenew(): void {
 		if (this.tryRenew() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.renewStation);
+			this.moveTo(this.renewStation.pos);
 		}
 	}
 
@@ -80,34 +106,7 @@ export default class CreepAction implements ICreepAction {
 			plainCost: 2,
 			swampCost: 10,
 
-			roomCallback: function (roomName) {
-
-				let room = Game.rooms[roomName];
-				// In this example `room` will always exist, but since PathFinder
-				// supports searches which span multiple rooms you should be careful!
-				if (!room) {
-					return;
-				}
-				let costs = new PathFinder.CostMatrix();
-
-				room.find(FIND_STRUCTURES).forEach(function (structure: Structure) {
-					if (structure.structureType === STRUCTURE_ROAD) {
-						// Favor roads over plain tiles
-						costs.set(structure.pos.x, structure.pos.y, 1);
-					} else if (structure.structureType !== STRUCTURE_CONTAINER &&
-						(structure.structureType !== STRUCTURE_RAMPART)) {
-						// Can't walk through non-walkable buildings
-						costs.set(structure.pos.x, structure.pos.y, 0xff);
-					}
-				});
-
-				// Avoid creeps in the room
-				room.find(FIND_CREEPS).forEach(function (creep: Creep) {
-					costs.set(creep.pos.x, creep.pos.y, 0xff);
-				});
-
-				return costs;
-			},
+			roomCallback: roomCallback,
 		});
 		if (path.path.length < 1) {
 			// We're near the target.

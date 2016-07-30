@@ -1,4 +1,5 @@
 import CreepAction, {ICreepAction} from "../creepAction";
+import * as SourceManager from "../../sources/sourceManager";
 
 export interface IHarvester {
 
@@ -11,6 +12,7 @@ export interface IHarvester {
 	tryEnergyDropOff(): number;
 	moveToDropEnergy(): void;
 	assignNewDropOff(): boolean;
+	assignNewSource(): boolean;
 
 	action(): boolean;
 }
@@ -25,6 +27,22 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 
 		this.targetSource = Game.getObjectById<Source>(this.creep.memory.target_source_id);
 		this.targetEnergyDropOff = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_dropoff_id);
+	}
+	public assignNewSource(): boolean {
+		let target: Source = <Source> this.creep.pos.findClosestByPath(FIND_SOURCES, {
+			filter: (source: Source) => {
+				return (
+					_.includes(SourceManager.sources, source)
+				);
+			},
+		});
+		if (target) {
+			this.targetSource = target;
+			this.creep.memory.target_source_id = target.id;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public assignNewDropOff(): boolean {
@@ -57,7 +75,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 
 	public moveToHarvest(): void {
 		if (this.tryHarvest() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.targetSource);
+			this.moveTo(this.targetSource.pos);
 		}
 	}
 
@@ -71,7 +89,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 			case OK:
 				break;
 			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetEnergyDropOff);
+				this.moveTo(this.targetEnergyDropOff.pos);
 				break;
 			case ERR_FULL:
 				this.assignNewDropOff();
@@ -80,7 +98,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 				console.log(`harvester energyDropOff error ${status}`);
 		}
 		if (this.tryEnergyDropOff() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.targetEnergyDropOff);
+			this.moveTo(this.targetEnergyDropOff.pos);
 		}
 	}
 

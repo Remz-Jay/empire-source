@@ -36,7 +36,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 
 	public moveToCollectEnergy(): void {
 		if (this.tryCollectEnergy() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.targetEnergySource);
+			this.moveTo(this.targetEnergySource.pos);
 		}
 	}
 
@@ -48,7 +48,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 		let status: number = this.tryUpgrading();
 		switch (status) {
 			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetController);
+				this.moveTo(this.targetController.pos);
 				break;
 			case OK:
 				break;
