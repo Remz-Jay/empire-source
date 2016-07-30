@@ -1,4 +1,5 @@
 var UtilCreep = require('util.creep');
+var _ = require('lodash');
 
 function ClassCreep() {
     this.maxCreeps = 1;
@@ -32,13 +33,13 @@ function ClassCreep() {
             targets = creep.pos.findInRange(FIND_STRUCTURES,1, {
                 filter: (s) => {
                     return s.structureType == STRUCTURE_CONTAINER
-                        && s.store.energy > 0;
+                        && s.store[RESOURCE_ENERGY] > 0;
                 }
             });
             if(targets.length > 0) {
                 _.each(targets, function(t) {
                     if(_.sum(creep.carry)<creep.carryCapacity) {
-                        creep.withdraw(t);
+                        creep.withdraw(t, RESOURCE_ENERGY);
                     }
                 }, this);
             }
@@ -131,6 +132,36 @@ function ClassCreep() {
             return path.path;
         }
     };
+    this.shouldIStayOrShouldIGo = function (creep) {
+        if(!this.creep.memory.fleePath) {
+            let hostiles = creep.room.find(FIND_HOSTILE_CREEPS);
+            if(hostiles > 0) {
+                creep.say('FTHISIMOUT');
+                creep.memory.flee = true;
+                var path = this.findPathFinderPath(this.homeFlag);
+                if(path != false) {
+                    this.creep.memory.fleePath = path;
+                    var log = this.creep.moveByPath(path);
+                } else {
+                    creep.say('HALP!');
+                }
+            }
+        } else {
+            if (this.creep.pos.isNearTo(this.homeFlag)) {
+                //We've made it home. See if the coast is clear again.
+                let hostiles = this.targetFlag.room.find(FIND_HOSTILE_CREEPS);
+                if(hostiles == 0) {
+                    delete this.memory.flee;
+                    delete this.memory.fleePath;
+                }
+            } else {
+                var path = this.deserializePathFinderPath(this.creep.memory.fleePath);
+                var log = this.creep.moveByPath(path);
+            }
+
+        }
+
+    }
     this.harvestFromContainersAndSources = function() {
         if(this.creep.memory.source == false) {
             //Prefer energy from containers

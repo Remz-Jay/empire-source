@@ -4,17 +4,16 @@ var _ = require('lodash');
 function RoleBuilder() {
     Worker.call(this);
     this.role = 'builder';
-
-    this.max = function(capacity) {
-        var sites = Object.keys(Game.constructionSites).length;
-        if(sites > 0) {
+    this.homeFlag = Game.flags.FireBase1;
+    this.max = function (c) {
+        var sites = _.filter(Game.constructionSites, function(cs) {
+            return cs.pos.roomName == this.homeFlag.pos.roomName;
+        }, this);
+        if(sites.length > 0) {
             return 1;
-            if(sites > 8) {
-                return 4;
-            } else {
-                return _.ceil(sites/2);
-            }
-        } else return 0;
+        } else {
+            return 0;
+        }
     };
     /** @param {Creep} creep **/
     this.run = function(creep) {

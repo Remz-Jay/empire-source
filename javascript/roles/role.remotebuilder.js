@@ -9,10 +9,10 @@ function RoleRemoteBuilder() {
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.creep = false;
     this.max = function (c) {
-        var sites = _.filter(Game.constructionSites, function(cs) {
+        var sites = _.filter(Game.constructionSites, function (cs) {
             return cs.pos.roomName == this.targetFlag.pos.roomName;
         }, this);
-        if(sites.length > 0) {
+        if (sites.length > 0) {
             return 1;
         } else {
             return 0;
@@ -50,9 +50,9 @@ function RoleRemoteBuilder() {
             }
         }
     };
-    this.findTargetPath = function(goal) {
+    this.findTargetPath = function (goal) {
         var path = this.findPathFinderPath(goal);
-        if(path != false) {
+        if (path != false) {
             this.creep.memory.targetPath = path;
         } else {
             creep.say('HALP!');
@@ -61,6 +61,8 @@ function RoleRemoteBuilder() {
     };
     this.run = function (creep) {
         this.creep = creep;
+        this.shouldIStayOrShouldIGo(creep);
+        this.pickupResourcesInRange(creep);
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
                 //first make sure we fill up on energy before embarking on an adventure.
@@ -85,8 +87,8 @@ function RoleRemoteBuilder() {
                 } else {
                     this.creep.memory.runBack = false;
                     //with full energy, move to the next room.
-                    if(!this.creep.memory.targetPath) {
-                       let path = this.findTargetPath(this.targetFlag);
+                    if (!this.creep.memory.targetPath) {
+                        let path = this.findTargetPath(this.targetFlag);
                         var log = this.creep.moveByPath(path);
                         if (log == ERR_NOT_FOUND) {
                             this.findTargetPath(this.targetFlag);
@@ -101,7 +103,7 @@ function RoleRemoteBuilder() {
                 }
             } else {
                 if (!this.creep.memory.runBack) {
-                    if(!this.creep.memory.containerDone) {
+                    if (!this.creep.memory.containerDone) {
                         //once we get there, move to the flag before anything else.
                         if (!this.creep.pos.isNearTo(this.targetFlag)) {
                             this.creep.moveTo(this.targetFlag);
@@ -127,7 +129,7 @@ function RoleRemoteBuilder() {
                             }
                         }
                     } else {
-                        if(creep.memory.target == false) {
+                        if (creep.memory.target == false) {
                             var target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
                             if (target != null) {
                                 creep.memory.target = target.id;
@@ -142,9 +144,9 @@ function RoleRemoteBuilder() {
                             }
                         }
                         var target = Game.getObjectById(creep.memory.target);
-                        if(target != null) {
+                        if (target != null) {
                             var log = creep.build(target);
-                            switch(log) {
+                            switch (log) {
                                 case OK:
                                     break;
                                 case ERR_NOT_IN_RANGE:

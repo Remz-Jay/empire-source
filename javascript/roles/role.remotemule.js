@@ -3,11 +3,13 @@ var Mule = require('role.mule');
 function RoleRemoteMule() {
     Mule.call(this);
     this.role = 'remoteMule';
-    this.maxCreeps = 0;
+    this.maxCreeps = 2;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
     this.run = function (creep) {
         this.creep = creep;
+        this.shouldIStayOrShouldIGo(creep);
+        this.pickupResourcesInRange(creep);
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;

@@ -6,12 +6,13 @@ function RoleHarvester() {
     this.role = 'harvester';
     this.getBody = function (capacity, energy, numCreeps) {
         let numParts;
-        if(numCreeps>0) {
+        if (numCreeps > 0) {
             numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         } else {
             numParts = _.floor((energy) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         }
-        if(numParts < 1) numParts =1;
+        if (numParts < 1) numParts = 1;
+        if (numParts > 4) numParts = 4;
         var body = [];
         for (var i = 0; i < numParts; i++) {
             body = body.concat(this.bodyPart);
@@ -32,7 +33,7 @@ function RoleHarvester() {
         return max;
     };
     /** @param {Creep} creep **/
-    this.harvesterLogic = function(creep) {
+    this.harvesterLogic = function (creep) {
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;
@@ -104,7 +105,7 @@ function RoleHarvester() {
             }
         } else {
             if (creep.memory.source == false) {
-                if(creep.memory.preferedSource) {
+                if (creep.memory.preferedSource) {
                     source = Game.getObjectById(creep.memory.preferedSource);
                 } else {
                     var source = creep.pos.findClosestByPath(FIND_SOURCES, {
@@ -119,7 +120,7 @@ function RoleHarvester() {
                 switch (status) {
                     case ERR_NOT_ENOUGH_RESOURCES:
                     case ERR_INVALID_TARGET:
-                        if(source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
+                        if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
                             creep.moveTo(source);
                             break;
                         }

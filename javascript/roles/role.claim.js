@@ -10,14 +10,31 @@ function RoleClaim() {
         this.creep = creep;
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
-                //with full energy, move to the next room.
-                //FIXME: Use PathFinder here.
-                this.creep.memory.runBack = false;
-                var exitDir = Game.map.findExit(this.creep.room.name, this.targetFlag.pos.roomName);
-                var Exit = this.creep.pos.findClosestByPath(exitDir);
-                this.creep.moveTo(Exit);
+                //pathfinder to targetFlag.
+                if(!this.creep.memory.targetPath) {
+                    var path = this.findPathFinderPath(this.targetFlag);
+                    if(path != false) {
+                        this.creep.memory.targetPath = path;
+                        var log = this.creep.moveByPath(path);
+                    } else {
+                        creep.say('HALP!');
+                    }
+                } else {
+                    var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+                    var log = this.creep.moveByPath(path);
+                    if (log == ERR_NOT_FOUND) {
+                        var path = this.findPathFinderPath(this.targetFlag);
+                        if(path != false) {
+                            this.creep.memory.targetPath = path;
+                            var log = this.creep.moveByPath(path);
+                        } else {
+                            creep.say('HALP!');
+                        }
+                    }
+                }
             } else {
                 if(!this.creep.memory.runBack) {
+                    delete this.creep.memory.targetPath;
                     //once we get there, move to the controller.
                     if(!this.creep.pos.isNearTo(creep.room.controller)) {
                         this.creep.moveTo(creep.room.controller);
@@ -26,10 +43,18 @@ function RoleClaim() {
                         this.creep.reserveController(creep.room.controller);
                     }
                 } else {
-                    //Run back to mommy for more energy.
-                    var exitDir = Game.map.findExit(this.creep.room.name, this.homeFlag.pos.roomName);
-                    var Exit = this.creep.pos.findClosestByPath(exitDir);
-                    this.creep.moveTo(Exit);
+                    if(!this.creep.memory.targetPath) {
+                        var path = this.findPathFinderPath(this.homeFlag);
+                        if(path != false) {
+                            this.creep.memory.targetPath = path;
+                            var log = this.creep.moveByPath(path);
+                        } else {
+                            creep.say('HALP!');
+                        }
+                    } else {
+                        var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+                        var log = this.creep.moveByPath(path);
+                    }
                 }
             }
         }
