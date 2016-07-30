@@ -33,7 +33,6 @@ function RoleRemoteBuilder() {
             filter: (s) => (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE)
             && s.store[RESOURCE_ENERGY] > this.creep.carryCapacity
         });
-        console.log(containers);
         if (containers.length > 0) {
             var map = this.createPathFinderMap(containers, 1);
             var path = this.findPathFinderPath(map);
@@ -51,6 +50,15 @@ function RoleRemoteBuilder() {
             }
         }
     };
+    this.findTargetPath = function(goal) {
+        var path = this.findPathFinderPath(goal);
+        if(path != false) {
+            this.creep.memory.targetPath = path;
+        } else {
+            creep.say('HALP!');
+        }
+        return path;
+    };
     this.run = function (creep) {
         this.creep = creep;
         if (undefined != this.targetFlag) {
@@ -61,26 +69,35 @@ function RoleRemoteBuilder() {
                         this.harvestFromContainersAndSources();
                         this.creep.memory.runBack = true;
                     } else {
-                        var c = Game.getObjectById(this.creep.memory.homePathContainer);
-                        if (!this.creep.pos.isNearTo(c)) {
-                            var path = this.deserializePathFinderPath(this.creep.memory.homePath);
+                        var path = this.deserializePathFinderPath(this.creep.memory.homePath);
+                        var log = this.creep.moveByPath(path);
+                        if (log == ERR_NOT_FOUND) {
+                            this.findHomePath();
                             var log = this.creep.moveByPath(path);
-                            if (log == ERR_NOT_FOUND) {
-                                this.findHomePath();
-                            }
-                        } else {
+                        }
+                        var c = Game.getObjectById(this.creep.memory.homePathContainer);
+                        if (this.creep.pos.isNearTo(c)) {
                             delete this.creep.memory.homePath;
                             delete this.creep.memory.homePathContainer;
                             this.harvestFromContainersAndSources();
                         }
                     }
                 } else {
-                    //with full energy, move to the next room.
-                    //FIXME: Use a PathFinder path to the flag here instead of bolting for the exit with many many CPU cycles.
                     this.creep.memory.runBack = false;
-                    var exitDir = Game.map.findExit(this.creep.room.name, this.targetFlag.pos.roomName);
-                    var Exit = this.creep.pos.findClosestByPath(exitDir);
-                    this.creep.moveTo(Exit);
+                    //with full energy, move to the next room.
+                    if(!this.creep.memory.targetPath) {
+                       let path = this.findTargetPath(this.targetFlag);
+                        var log = this.creep.moveByPath(path);
+                        if (log == ERR_NOT_FOUND) {
+                            this.findTargetPath(this.targetFlag);
+                        }
+                    } else {
+                        var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+                        var log = this.creep.moveByPath(path);
+                        if (log == ERR_NOT_FOUND) {
+                            this.findTargetPath(this.targetFlag);
+                        }
+                    }
                 }
             } else {
                 if (!this.creep.memory.runBack) {
