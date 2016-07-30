@@ -9,24 +9,39 @@ function RoleMule() {
     this.max = function(capacity) {
         return this.maxCreeps;
     };
-    this.getBody = function (capacity) {
-        var numParts = _.floor((capacity-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+    this.getBody = function (capacity, energy, numCreeps) {
+        let numParts;
+        if(numCreeps>0) {
+            numParts = _.floor((capacity-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+        } else {
+            numParts = _.floor((energy-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+        }
+        if(numParts < 1) numParts =1;
         var body = [];
         for (var i = 0; i < numParts; i++) {
             body = body.concat(this.bodyPart);
         }
         return body.concat([WORK]);
+
     };
     this.scanForTargets = function(creep) {
         var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
             filter: (structure) => {
                 return (
                         structure.structureType == STRUCTURE_EXTENSION ||
-                        structure.structureType == STRUCTURE_SPAWN ||
-                        structure.structureType == STRUCTURE_TOWER
+                        structure.structureType == STRUCTURE_SPAWN
                     ) && structure.energy < structure.energyCapacity;
             }
         });
+        if(target == null) {
+            var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return (
+                            structure.structureType == STRUCTURE_TOWER
+                        ) && structure.energy < structure.energyCapacity;
+                }
+            });
+        }
         return target;
     };
     this.dumpRoutine = function(target, creep) {

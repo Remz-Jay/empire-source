@@ -96,13 +96,13 @@ module.exports.loop = function () {
                     console.log(
                         _.padLeft(role.role, 9) + '=\t' + x.length
                         + ' (max_' + role.max(containers.energyInContainers)
-                        + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable)), 4)
-                        + ') [' + role.getBody(room.energyCapacityAvailable)
+                        + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)), 4)
+                        + ') [' + role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)
                         + ']'
                     );
 
                     if (!building && x.length < role.max(containers.energyInContainers)) {
-                        var body = role.getBody(room.energyCapacityAvailable);
+                        var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length);
                         var spawnState = spawn.canCreateCreep(body);
                         if (spawnState == OK) {
                             var newName = spawn.createCreep(body, undefined, {role: role.role});
@@ -113,7 +113,14 @@ module.exports.loop = function () {
                                 console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
                             }
                         } else {
-                            building = true; //skip all other attempts;
+                            building = true;
+                            switch (role.role) {
+                                case "harvester":
+                                    if (x.length < 2) building = false;
+                                    break;
+                                default:
+                                    building = true;
+                            }
                             switch (spawnState) {
                                 case ERR_NOT_ENOUGH_ENERGY:
                                     console.log('Not enough energy to create ' + role.role + ' at spawn ' + spawn.name);

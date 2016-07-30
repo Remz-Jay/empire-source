@@ -59,34 +59,51 @@ function RoleScout() {
             var targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
             if(targets.length > 1) {
                 this.creep.rangedMassAttack();
-            } else if (targets.length == 1) {
-                var closestHostile = targets[0];
-
-                if (creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
-                    this.creep.moveTo(closestHostile);
-                }
             } else {
-                var targets = this.creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 3);
-                if(targets.length > 1) {
-                    this.creep.rangedMassAttack();
-                } else if(targets.length == 1) {
-                    var closestHostile = targets[0];
-                    if (this.creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
+                var closestHostile = this.creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS);
+                if (closestHostile) {
+                    if (creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
                         this.creep.moveTo(closestHostile);
                     }
                 } else {
-                    if (totalAnihalation) {
-                        var closestHostile = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                            filter: (s) => s.structureType == STRUCTURE_CONTAINER
-                                || s.structureType == STRUCTURE_STORAGE
-                                || s.structureType == STRUCTURE_ROAD
+                    var targets = this.creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 3);
+                    if(targets.length > 1) {
+                        this.creep.rangedMassAttack();
+                    } else {
+                        var closestHostile = this.creep.pos.findClosestByPath(FIND_HOSTILE_STRUCTURES, {
+                            filter: (s) => s.structureType == STRUCTURE_EXTENSION
+                            || s.structureType == STRUCTURE_SPAWN
+                            || s.structureType == STRUCTURE_TOWER
                         });
                         if (closestHostile) {
+
                             if (this.creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
                                 this.creep.moveTo(closestHostile);
                             }
                         } else {
-                            this.creep.say('CHILLIN');
+                            if (totalAnihalation) {
+                                var closestHostile = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                    filter: (s) => s.structureType == STRUCTURE_CONTAINER
+                                    || s.structureType == STRUCTURE_ROAD
+                                });
+                                if (closestHostile) {
+                                    /**
+                                     var targets = this.creep.pos.findInRange(FIND_STRUCTURES, 3, {
+                                        filter: (s) => s.structureType == STRUCTURE_CONTAINER
+                                        || s.structureType == STRUCTURE_ROAD
+                                    });
+                                     if(targets.length > 1) {
+                                        this.creep.rangedMassAttack();
+                                    } else {
+                                    **/
+                                    if (this.creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
+                                        this.creep.moveTo(closestHostile);
+                                    }
+                                    //}
+                                } else {
+                                    this.creep.say('CHILLIN');
+                                }
+                            }
                         }
                     }
                 }

@@ -11,7 +11,7 @@ function ClassCreep() {
      * @param {int} capacity
      * @returns {Array}
      */
-    this.getBody = function (capacity) {
+    this.getBody = function (capacity, energy, numCreeps) {
         var numParts = _.floor(capacity / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         var body = [];
         for (var i = 0; i < numParts; i++) {
