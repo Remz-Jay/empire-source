@@ -21,7 +21,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getCreepLimit(): number {
-		let limit = 1;
+		let limit = 2;
 		return limit;
 	}
 }

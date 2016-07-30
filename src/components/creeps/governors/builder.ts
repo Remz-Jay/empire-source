@@ -20,7 +20,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 	}
 
 	public getCreepLimit(): number {
-		let limit = _.ceil(Object.keys(Game.constructionSites).length / 3);
+		let limit = _.ceil(Object.keys(Game.constructionSites).length / 4);
 		return limit;
 	}
 }
