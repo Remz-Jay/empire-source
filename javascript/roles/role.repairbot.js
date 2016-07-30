@@ -4,6 +4,7 @@ var Wall = require('class.wall');
 function RoleRepairbot() {
     Worker.call(this);
     this.role = 'repair';
+    this.bodyPart = [CARRY, CARRY, WORK, MOVE, MOVE];
     this.myStructureMultiplier = 0.9;
     this.publicStructureMultiplier= 0.81;
 

@@ -9,7 +9,7 @@ function RoleScout() {
         //HEAL,MOVE //250 +50
     ];
     this.toughPart = [TOUGH,MOVE]; //10+50
-    this.targetFlag = Game.flags.Vagine;
+    this.targetFlag = Game.flags.CC1;
     //this.targetRoom = 'W7N42';
     this.getBody = function (capacity) {
 

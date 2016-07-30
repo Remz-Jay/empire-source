@@ -138,7 +138,7 @@ module.exports.loop = function () {
                     }
                 }
             }
-        } else if (room.controller.level == 0) {
+        } else if (room.controller.level == 0 && room.controller.reservation) {
             //this is an unowned/reserved room
             console.log('Room "' + room.name + '" has '
                 + containers.energyInContainers + '/' + containers.containerCapacityAvailable

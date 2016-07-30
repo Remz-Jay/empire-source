@@ -16,7 +16,8 @@ function RoleMule() {
         } else {
             numParts = _.floor((energy-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         }
-        if(numParts < 1) numParts =1;
+        if(numParts < 1) numParts = 1;
+        if(numParts > 15) numParts = 15;
         var body = [];
         for (var i = 0; i < numParts; i++) {
             body = body.concat(this.bodyPart);
