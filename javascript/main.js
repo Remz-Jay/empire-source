@@ -47,93 +47,108 @@ module.exports.loop = function () {
         var sources = new utils.Sources();
         sources.setRoom(name);
         sources.updateHarvesterPreference();
+        if(room.controller.level > 0 && room.controller.my) {
+            //this is one of our controlled rooms
+            console.log('Room "' + room.name + '" has ' + room.energyAvailable
+                + '/' + room.energyCapacityAvailable + ' energy and '
+                + containers.energyInContainers + '/' + containers.containerCapacityAvailable
+                + ' (' +containers.energyPercentage + '%) in containers.'
+                + ' (RCL='+room.controller.level+' @ '
+                + _.floor(room.controller.progress/(room.controller.progressTotal/100)) + '%)'
+            );
 
-        console.log('Room "' + room.name + '" has ' + room.energyAvailable
-            + '/' + room.energyCapacityAvailable + ' energy and '
-            + containers.energyInContainers + '/' + containers.containerCapacityAvailable
-            + ' (' +containers.energyPercentage + '%) in containers.'
-            + ' (RCL='+room.controller.level+' @ '
-            + _.floor(room.controller.progress/(room.controller.progressTotal/100)) + '%)'
-        );
-        var towers = room.find(FIND_MY_STRUCTURES, {
-            filter: (s) => {
-                return s.structureType == STRUCTURE_TOWER
-            }
-        });
-        _.each(towers, function(tower){
-            var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-            if (closestHostile) {
-                tower.attack(closestHostile);
-            } else {
-                var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
-                    structure.structureType != STRUCTURE_RAMPART &&
-                    structure.structureType != STRUCTURE_WALL
-                });
-                if (closestDamagedStructure) {
-                    tower.repair(closestDamagedStructure);
+            var towers = room.find(FIND_MY_STRUCTURES, {
+                filter: (s) => {
+                    return s.structureType == STRUCTURE_TOWER
                 }
-
-                var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-                    filter: (c) => {
-                        return c.hits < c.hitsMax;
+            });
+            _.each(towers, function(tower){
+                var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+                if (closestHostile) {
+                    tower.attack(closestHostile);
+                } else {
+                    var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
+                        structure.structureType != STRUCTURE_RAMPART &&
+                        structure.structureType != STRUCTURE_WALL
+                    });
+                    if (closestDamagedStructure) {
+                        tower.repair(closestDamagedStructure);
                     }
-                });
-                if (closestDamagedCreep) {
-                    tower.heal(closestDamagedCreep);
+
+                    var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
+                        filter: (c) => {
+                            return c.hits < c.hitsMax;
+                        }
+                    });
+                    if (closestDamagedCreep) {
+                        tower.heal(closestDamagedCreep);
+                    }
                 }
-            }
-        }, this);
-        var building = false;
-        var spawn = room.find(FIND_MY_SPAWNS)[0]; //TODO: What if more spawns?
-        if (undefined == spawn) {
-        } else {
-            for (var index in roles) {
-                var role = new roles[index];
-                if (undefined != role.role) {
-                    var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
+            }, this);
 
-                    console.log(
-                        _.padLeft(role.role, 9) + '=\t' + x.length
-                        + ' (max_' + role.max(containers.energyInContainers)
-                        + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)), 4)
-                        + ') [' + role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)
-                        + ']'
-                    );
+            var building = false;
+            var spawn = room.find(FIND_MY_SPAWNS)[0]; //TODO: What if more spawns?
+            if (undefined == spawn) {
+            } else {
+                for (var index in roles) {
+                    var role = new roles[index];
+                    if (undefined != role.role) {
+                        var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
 
-                    if (!building && x.length < role.max(containers.energyInContainers)) {
-                        var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length);
-                        var spawnState = spawn.canCreateCreep(body);
-                        if (spawnState == OK) {
-                            var newName = spawn.createCreep(body, undefined, {role: role.role});
-                            if (_.isString(newName)) {
-                                console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
-                                building = true;
-                            } else {
-                                console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
-                            }
-                        } else {
-                            building = true;
-                            switch (role.role) {
-                                case "harvester":
-                                    if (x.length < 2) building = false;
-                                    break;
-                                default:
+                        console.log(
+                            _.padLeft(role.role, 9) + '=\t' + x.length
+                            + ' (max_' + role.max(containers.energyInContainers)
+                            + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)), 4)
+                            + ') [' + role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)
+                            + ']'
+                        );
+
+                        if (!building && x.length < role.max(containers.energyInContainers)) {
+                            var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length);
+                            var spawnState = spawn.canCreateCreep(body);
+                            if (spawnState == OK) {
+                                var newName = spawn.createCreep(body, undefined, {role: role.role});
+                                if (_.isString(newName)) {
+                                    console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
                                     building = true;
-                            }
-                            switch (spawnState) {
-                                case ERR_NOT_ENOUGH_ENERGY:
-                                    console.log('Not enough energy to create ' + role.role + ' at spawn ' + spawn.name);
-                                    break;
-                                case ERR_BUSY:
-                                    break;
-                                default:
-                                    console.log('Unhandled Spawn State while Spawning:' + spawnState);
+                                } else {
+                                    console.log('Unable to spawn ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
+                                }
+                            } else {
+                                building = true;
+                                switch (role.role) {
+                                    case "harvester":
+                                        if (x.length < 2) building = false;
+                                        break;
+                                    default:
+                                        building = true;
+                                }
+                                switch (spawnState) {
+                                    case ERR_NOT_ENOUGH_ENERGY:
+                                        console.log('Not enough energy to create ' + role.role + ' at spawn ' + spawn.name);
+                                        break;
+                                    case ERR_BUSY:
+                                        break;
+                                    default:
+                                        console.log('Unhandled Spawn State while Spawning:' + spawnState);
+                                }
                             }
                         }
                     }
                 }
             }
+        } else if (room.controller.level == 0) {
+            //this is an unowned/reserved room
+            console.log('Room "' + room.name + '" has '
+                + containers.energyInContainers + '/' + containers.containerCapacityAvailable
+                + ' (' +containers.energyPercentage + '%) in containers.'
+                + ' (RCL='+room.controller.level+' @ '
+                + room.controller.reservation.ticksToEnd
+                + ' (' + room.controller.reservation.username + '))'
+            );
+        } else {
+            // just ignore hostile rooms.
         }
     }
 

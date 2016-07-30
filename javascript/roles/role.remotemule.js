@@ -66,7 +66,13 @@ function RoleRemoteMule() {
                         filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
                         structure.store[RESOURCE_ENERGY] > 100
                     });
-                    if (source != null) creep.memory.source = source.id;
+                    if (source != null) {
+                        creep.memory.source = source.id;
+                    } else {
+                        //just go home. no more sources
+                        this.creep.memory.dumping = true;
+                        this.creep.memory.source = false;
+                    }
                 }
                 if (creep.memory.source != false) {
                     var source = Game.getObjectById(creep.memory.source);
@@ -74,6 +80,9 @@ function RoleRemoteMule() {
                         var status = creep.withdraw(source, RESOURCE_ENERGY);
                         switch (status) {
                             case ERR_NOT_ENOUGH_RESOURCES:
+                                // just go home.
+                                this.creep.memory.dumping = true;
+                                this.creep.memory.source = false;
                             case ERR_INVALID_TARGET:
                             case ERR_NOT_OWNER:
                             case ERR_FULL:
