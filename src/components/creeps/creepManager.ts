@@ -36,9 +36,10 @@ export function loadCreeps(): void {
 	}
 }
 export function createCreep(config: CreepConfiguration): string|number {
-	let status: number | string = SpawnManager.getFirstSpawn().canCreateCreep(config.body, config.name);
+	let spawn = SpawnManager.getFirstSpawn();
+	let status: number | string = spawn.canCreateCreep(config.body, config.name);
 	if (status === OK) {
-		status = SpawnManager.getFirstSpawn().createCreep(config.body, config.name, config.properties);
+		status = spawn.createCreep(config.body, config.name, config.properties);
 
 		if (Config.VERBOSE) {
 			if (_.isNumber(status)) {
@@ -52,6 +53,7 @@ export function createCreep(config: CreepConfiguration): string|number {
 }
 
 export function governCreeps(): void {
+	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
 		let governor: CreepGovernor = new prioritizedGovernors[index]();
@@ -69,9 +71,11 @@ export function governCreeps(): void {
 		if (Config.VERBOSE) {
 			console.log(`${creepRole}: ${numCreeps}/${governor.getCreepLimit()}`);
 		}
-		if (numCreeps < governor.getCreepLimit()) {
+		if (numCreeps < governor.getCreepLimit() && !isSpawning) {
 			let config: CreepConfiguration = governor.getCreepConfig();
-			this.createCreep(config);
+			if (!_.isNumber(this.createCreep(config))) {
+				isSpawning = true;
+			}
 		} else if (numCreeps > governor.getCreepLimit()) {
 			// TODO: Deconstruct excess creep.
 		}

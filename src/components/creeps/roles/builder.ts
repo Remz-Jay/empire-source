@@ -73,6 +73,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	}
 
 	public action(): boolean {
+		super.action();
 		if (this.needsRenew()) {
 			this.moveToRenew();
 		} else if (this.isBagEmpty()) {

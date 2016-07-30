@@ -19,10 +19,11 @@ export interface ICreepAction {
 	needsRenew(): boolean;
 	tryRenew(): number;
 	moveToRenew(): void;
+	pickupResourcesInRange(): void;
 
 	action(): boolean;
 
-	createPathFinderMap(goals: List<RoomObject>, range: number ): PathFinderGoal;
+	createPathFinderMap(goals: List<RoomObject>, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 }
@@ -55,6 +56,7 @@ export default class CreepAction implements ICreepAction {
 			this.moveTo(this.renewStation);
 		}
 	}
+
 	public createPathFinderMap(goals: List<RoomObject>, range: number = 1): PathFinderGoal {
 		return _.map(goals, function (source: RoomObject) {
 			// We can't actually walk on sources-- set `range` to 1 so we path
@@ -115,7 +117,34 @@ export default class CreepAction implements ICreepAction {
 		}
 	};
 
+	public pickupResourcesInRange(): void {
+		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+			let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
+			if (targets.length > 0) {
+				_.each(targets, function (t) {
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						this.creep.pickup(t);
+					}
+				}, this);
+			}
+			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
+				filter: (s: StructureContainer) => {
+					return s.structureType === STRUCTURE_CONTAINER
+						&& s.store[RESOURCE_ENERGY] > 0;
+				},
+			});
+			if (targets.length > 0) {
+				_.each(targets, function (t) {
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						this.creep.withdraw(t);
+					}
+				}, this);
+			}
+		}
+	};
+
 	public action(): boolean {
+		this.pickupResourcesInRange();
 		return true;
 	}
 }
