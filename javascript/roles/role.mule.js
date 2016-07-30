@@ -25,22 +25,30 @@ function RoleMule() {
 
     };
     this.scanForTargets = function(creep) {
-        var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+        var target = creep.pos.findClosestByPath(FIND_MY_SPAWNS, {
             filter: (structure) => {
-                return (
-                        structure.structureType == STRUCTURE_EXTENSION ||
-                        structure.structureType == STRUCTURE_SPAWN
-                    ) && structure.energy < structure.energyCapacity;
+                return structure.energy < (structure.energyCapacity);
             }
         });
-        if(target == null) {
+        if (target == null) {
             var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
                     return (
+                            structure.structureType == STRUCTURE_EXTENSION ||
                             structure.structureType == STRUCTURE_TOWER
-                        ) && structure.energy < structure.energyCapacity;
+                        ) && structure.energy < (structure.energyCapacity/2);
                 }
             });
+            if(target == null) {
+                var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                    filter: (structure) => {
+                        return (
+                                structure.structureType == STRUCTURE_EXTENSION ||
+                                structure.structureType == STRUCTURE_TOWER
+                            ) && structure.energy < structure.energyCapacity;
+                    }
+                });
+            }
         }
         return target;
     };
@@ -110,6 +118,7 @@ function RoleMule() {
         }
     };
     this.run = function (creep) {
+        this.pickupResourcesInRange(creep);
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;

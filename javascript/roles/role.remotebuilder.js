@@ -9,8 +9,10 @@ function RoleRemoteBuilder() {
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.creep = false;
     this.max = function (c) {
-        var sites = Object.keys(Game.constructionSites).length;
-        if(sites > 0) {
+        var sites = _.filter(Game.constructionSites, function(cs) {
+            return cs.pos.roomName == this.targetFlag.pos.roomName;
+        }, this);
+        if(sites.length > 0) {
             return 1;
         } else {
             return 0;

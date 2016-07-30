@@ -3,7 +3,7 @@ var Mule = require('role.mule');
 function RoleRemoteMule() {
     Mule.call(this);
     this.role = 'remoteMule';
-    this.maxCreeps = 2;
+    this.maxCreeps = 0;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
     this.run = function (creep) {

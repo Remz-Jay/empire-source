@@ -14,6 +14,7 @@ function RoleRepairbot() {
     /** @param {Creep} creep **/
     this.run = function(creep) {
         this.creep = creep;
+        this.pickupResourcesInRange(creep);
         if(this.creep.memory.repairing && this.creep.carry.energy == 0) {
             this.creep.memory.repairing = false;
             this.creep.memory.target = false;

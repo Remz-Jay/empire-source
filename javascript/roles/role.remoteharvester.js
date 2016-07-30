@@ -4,7 +4,7 @@ function RoleRemoteHarvester() {
     this.role = 'remoteHarvester';
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
-    this.max = function(c) {return 1;}
+    this.max = function(c) {return 0;}
 
     this.run = function(creep) {
         this.creep = creep;

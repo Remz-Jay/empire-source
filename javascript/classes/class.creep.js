@@ -19,6 +19,31 @@ function ClassCreep() {
         }
         return body;
     };
+    this.pickupResourcesInRange = function(creep) {
+        if(_.sum(creep.carry)<creep.carryCapacity) {
+            let targets = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
+            if(targets.length>0) {
+                _.each(targets, function(t) {
+                    if(_.sum(creep.carry)<creep.carryCapacity) {
+                        creep.pickup(t);
+                    }
+                }, this);
+            }
+            targets = creep.pos.findInRange(FIND_STRUCTURES,1, {
+                filter: (s) => {
+                    return s.structureType == STRUCTURE_CONTAINER
+                        && s.store.energy > 0;
+                }
+            });
+            if(targets.length > 0) {
+                _.each(targets, function(t) {
+                    if(_.sum(creep.carry)<creep.carryCapacity) {
+                        creep.withdraw(t);
+                    }
+                }, this);
+            }
+        }
+    };
     /**
      * If we're on an EXIT_, make sure we do one step into the room before continuing
      * To avoid room switching.

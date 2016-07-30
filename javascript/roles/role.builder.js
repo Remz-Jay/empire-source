@@ -18,7 +18,7 @@ function RoleBuilder() {
     };
     /** @param {Creep} creep **/
     this.run = function(creep) {
-
+        this.pickupResourcesInRange(creep);
         if(creep.memory.building && creep.carry.energy == 0) {
             creep.memory.building = false;
             creep.memory.target = false;

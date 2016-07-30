@@ -18,7 +18,7 @@ var roles = {
     remoteHarvester: require('role.remoteharvester'),
     claim: require('role.claim'),
     remoteMule: require('role.remotemule'),
-    //remoteBuilder: require('role.remotebuilder')
+    remoteBuilder: require('role.remotebuilder')
 };
 
 var classes = require('classLoader');
@@ -61,27 +61,27 @@ module.exports.loop = function () {
             }
         });
         _.each(towers, function(tower){
-            var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
-                structure.structureType != STRUCTURE_RAMPART &&
-                structure.structureType != STRUCTURE_WALL
-            });
-            if (closestDamagedStructure) {
-                tower.repair(closestDamagedStructure);
-            }
-
-            var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-                filter: (c) => {
-                    return c.hits < c.hitsMax;
-                }
-            });
-            if (closestDamagedCreep) {
-                tower.heal(closestDamagedCreep);
-            }
-
             var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
             if (closestHostile) {
                 tower.attack(closestHostile);
+            } else {
+                var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
+                    structure.structureType != STRUCTURE_RAMPART &&
+                    structure.structureType != STRUCTURE_WALL
+                });
+                if (closestDamagedStructure) {
+                    tower.repair(closestDamagedStructure);
+                }
+
+                var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
+                    filter: (c) => {
+                        return c.hits < c.hitsMax;
+                    }
+                });
+                if (closestDamagedCreep) {
+                    tower.heal(closestDamagedCreep);
+                }
             }
         }, this);
         var building = false;
