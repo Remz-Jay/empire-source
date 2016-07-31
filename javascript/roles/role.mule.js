@@ -3,10 +3,11 @@ var UtilCreep = require('util.creep');
 
 function RoleMule() {
     Creep.call(this);
+    this.minRCL = 3;
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.role = 'mule';
     this.maxCreeps = 2;
-    this.max = function(capacity) {
+    this.max = function(energyInContainers, rcl) {
         return this.maxCreeps;
     };
     this.getBody = function (capacity, energy, numCreeps) {

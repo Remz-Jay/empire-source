@@ -5,7 +5,7 @@ function RoleBuilder() {
     Worker.call(this);
     this.role = 'builder';
     this.homeFlag = Game.flags.FireBase1;
-    this.max = function (c) {
+    this.max = function (energyInContainers, rcl) {
         var sites = _.filter(Game.constructionSites, function(cs) {
             return cs.pos.roomName == this.homeFlag.pos.roomName;
         }, this);

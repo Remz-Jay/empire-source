@@ -3,6 +3,7 @@ var _ = require('lodash');
 
 function ClassCreep() {
     this.maxCreeps = 1;
+    this.minRCL = 1;
     this.creep = false;
     this.max = function(capacity) {
         return this.maxCreeps;
@@ -34,15 +35,23 @@ function ClassCreep() {
                     break;
                 case OK:
                     console.log(creep.name + ' ('+creep.memory.role+') renewed at ' + renewStation.name + '. now at ' + creep.ticksToLive);
-                    if (this.creep.ticksToLive > 1250) {
+                    if (creep.ticksToLive > 1000) {
                         console.log('Done renewing.');
                         creep.memory.hasRenewed = true;
                     }
                     break;
+                case ERR_FULL:
+                    creep.memory.hasRenewed = true;
+                    break;
                 case ERR_BUSY:
+                case ERR_NOT_ENOUGH_ENERGY:
+                    console.log(creep.name + ' ('+creep.memory.role+') is waiting for renew at ' + renewStation.name + '.');
+                    if(creep.carry.energy > 0) {
+                        creep.transfer(renewStation, RESOURCE_ENERGY);
+                    }
                     break;
                 default:
-                    console.log('RemoteBuilder Renew Error' + JSON.stringify(status));
+                    console.log('Uncatched Creep Renew Error' + JSON.stringify(status));
             }
             return false;
         } else {

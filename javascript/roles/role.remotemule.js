@@ -4,6 +4,7 @@ var UtilCreep = require('util.creep');
 function RoleRemoteMule() {
     Mule.call(this);
     this.role = 'remoteMule';
+    this.minRCL = 5;
     this.maxCreeps = 1;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
@@ -53,7 +54,7 @@ function RoleRemoteMule() {
                 }
             } else {
                 this.creep.memory.targetPath = false;
-                this.dumpAtStorage(creep);
+                if(this.renewCreep(this.creep)) this.dumpAtStorage(creep);
             }
         } else {
             //source is in other room. go there first.

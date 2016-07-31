@@ -2,10 +2,11 @@ var Creep = require('class.creep');
 function RoleClaim() {
     Creep.call(this);
     this.role = 'claim';
+    this.minRCL = 5;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
     this.bodyPart = [CLAIM, MOVE]; //600+50 = 650;
-    this.max = function(c) {return 1;}
+    this.max = function(energyInContainers, rcl) {return 1;}
     this.run = function(creep) {
         this.creep = creep;
         if (undefined != this.targetFlag) {

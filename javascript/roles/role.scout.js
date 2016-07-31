@@ -3,6 +3,7 @@ var UtilCreep = require('util.creep');
 function RoleScout() {
     Creep.call(this);
     this.role = "scout";
+    this.minRCL = 6;
     this.bodyPart = [
         //ATTACK,MOVE, // 80+50
         RANGED_ATTACK,MOVE, // 150+50
@@ -11,7 +12,7 @@ function RoleScout() {
     this.toughPart = [TOUGH,MOVE]; //10+50
     this.targetFlag = Game.flags.Vagine;
     //this.targetRoom = 'W7N42';
-    this.max = function(c) { return 0;};
+    this.max = function(energyInContainers, rcl) { return 0;};
     this.getBody = function (capacity) {
 
         var numParts = _.floor((capacity-400) / UtilCreep.calculateRequiredEnergy(this.bodyPart));

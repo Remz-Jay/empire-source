@@ -4,9 +4,10 @@ var UtilCreep = require('util.creep');
 function RoleRemoteHarvester() {
     Harvester.call(this);
     this.role = 'remoteHarvester';
+    this.minRCL = 5;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
-    this.max = function (c) {
+    this.max = function (energyInContainers, rcl) {
         return 1;
     };
     this.getBody = function (capacity, energy, numCreeps) {

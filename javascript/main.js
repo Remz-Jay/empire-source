@@ -69,8 +69,16 @@ module.exports.loop = function () {
                 } else {
                     var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
-                        structure.structureType != STRUCTURE_RAMPART &&
-                        structure.structureType != STRUCTURE_WALL
+                        (
+                            (structure.structureType != STRUCTURE_RAMPART
+                            && structure.structureType != STRUCTURE_WALL)
+                            || (structure.structureType == STRUCTURE_RAMPART
+                                && structure.my
+                                && structure.hits < 2000000)
+                            || (structure.structureType == STRUCTURE_WALL
+                                && structure.hits < 100000
+                            )
+                        )
                     });
                     if (closestDamagedStructure) {
                         tower.repair(closestDamagedStructure);
@@ -93,7 +101,9 @@ module.exports.loop = function () {
             } else {
                 for (var index in roles) {
                     var role = new roles[index];
-                    if (undefined != role.role) {
+                    if (undefined != role.role
+                        && (undefined == role.minRCL || room.controller.level >= role.minRCL)
+                    ) {
                         // also process homeless creeps in Bastion
                         if (spawn.name == 'Bastion') {
                             var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
@@ -115,14 +125,14 @@ module.exports.loop = function () {
 
                         console.log(
                             _.padLeft(role.role, 9) + '=\t' + x.length
-                            + ' (max_' + role.max(containers.energyInContainers)
-                            + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)), 4)
+                            + ' (max_' + role.max(containers.energyInContainers, room.controller.level)
+                            + ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length, room.controller.level)), 4)
                             + ') [' + role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length)
                             + ']'
                         );
 
-                        if (!building && x.length < role.max(containers.energyInContainers)) {
-                            var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length);
+                        if (!building && x.length < role.max(containers.energyInContainers, room.controller.level)) {
+                            var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length, room.controller.level);
                             var spawnState = spawn.canCreateCreep(body);
                             if (spawnState == OK) {
                                 var newName = spawn.createCreep(body, undefined, {

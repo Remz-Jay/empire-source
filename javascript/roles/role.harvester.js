@@ -20,7 +20,7 @@ function RoleHarvester() {
         return body;
 
     };
-    this.max = function (capacity) {
+    this.max = function (energyInContainers, rcl) {
         /**
          var max = 5;
          if (capacity >= 400 && capacity < 550) {

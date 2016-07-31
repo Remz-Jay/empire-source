@@ -4,11 +4,12 @@ var Wall = require('class.wall');
 function RoleRepairbot() {
     Worker.call(this);
     this.role = 'repair';
+    this.minRCL = 3;
     this.bodyPart = [CARRY, CARRY, WORK, MOVE, MOVE];
     this.myStructureMultiplier = 0.9;
     this.publicStructureMultiplier= 0.81;
 
-    this.max = function(energyInContainers){
+    this.max = function(energyInContainers, rcl){
         let num = _.floor(energyInContainers/30000);
         return (num > 0) ? num : 0;
     };

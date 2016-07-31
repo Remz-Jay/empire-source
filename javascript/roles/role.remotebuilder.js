@@ -4,12 +4,13 @@ var _ = require('lodash');
 function RoleRemoteBuilder() {
     Creep.call(this);
     this.role = 'remoteBuilder';
+    this.minRCL = 5;
     this.targetFlag = Game.flags.Vagine;
     this.homeFlag = Game.flags.FireBase1;
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.creep = false;
     this.buildType = STRUCTURE_SPAWN;
-    this.max = function (c) {
+    this.max = function (energyInContainers, rcl) {
         var sites = _.filter(Game.constructionSites, function (cs) {
             return cs.pos.roomName == this.targetFlag.pos.roomName;
         }, this);
@@ -88,7 +89,19 @@ function RoleRemoteBuilder() {
                                 delete this.creep.memory.targetPath;
                             }
                             break;
+                        case ERR_NOT_ENOUGH_ENERGY:
                         case ERR_BUSY:
+                            console.log(creep.name + ' ('+creep.memory.role+') is waiting for renew at ' + renewStation.name + '.');
+                            if(creep.carry.energy > 0) {
+                                creep.transfer(renewStation, RESOURCE_ENERGY);
+                            }
+                            break;
+                        case ERR_FULL:
+                            this.creep.memory.hasRenewed = true;
+                            delete this.creep.memory.touchedController;
+                            delete this.creep.memory.homePath;
+                            delete this.creep.memory.runBack;
+                            delete this.creep.memory.targetPath;
                             break;
                         default:
                             console.log('RemoteBuilder Renew Error' + JSON.stringify(status));

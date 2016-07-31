@@ -2,7 +2,7 @@ var Worker = require('class.worker');
 function RoleUpgrader() {
     Worker.call(this);
     this.role = 'upgrader';
-    this.max = function(energyInContainers){
+    this.max = function(energyInContainers, rcl){
         let num = _.floor(energyInContainers/20000);
         return (num > 0) ? num : 1;
     };
