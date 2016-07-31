@@ -17,10 +17,10 @@ function ClassWall(room) {
         return _.min(this.walls, function(o){return o.hits;})
     };
     this.adjustStrength = function() {
-        var current = Memory.config.Wall.strength;
+        var current = Memory.config.Wall[this.room.name].strength;
         var avg = this.getAverageStrength();
         if(avg>current) {
-            Memory.config.Wall.strength = avg;
+            Memory.config.Wall[this.room.name].strength = avg;
             console.log('Adjusting Wall Strength for room '+ this.room.name + ' to '+avg);
         }
     }
@@ -29,6 +29,9 @@ ClassWall.prototype.getWalls = function() {
     var walls = this.room.find(FIND_STRUCTURES, {
         filter: (s)=> s.structureType == STRUCTURE_WALL
     });
+    if(Memory.config.Wall == undefined) Memory.config.Wall = {};
+    if(Memory.config.Wall[this.room.name] == undefined) Memory.config.Wall[this.room.name] = {};
+    if(Memory.config.Wall[this.room.name].strength == undefined) Memory.config.Wall[this.room.name].strength = 0;
     return walls;
 };
 module.exports = ClassWall;

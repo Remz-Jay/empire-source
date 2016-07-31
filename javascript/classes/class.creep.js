@@ -139,7 +139,8 @@ function ClassCreep() {
     };
 
     this.moveTo = function (target) {
-
+        this.creep.moveTo(target);
+        return;
         try {
             let path = PathFinder.search(this.creep.pos, {pos: target.pos, range: 1}, {
                 plainCost: 2,
