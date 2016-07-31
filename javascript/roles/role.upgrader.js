@@ -2,8 +2,9 @@ var Worker = require('class.worker');
 function RoleUpgrader() {
     Worker.call(this);
     this.role = 'upgrader';
-    this.max = function(energyInContainers, rcl){
+    this.max = function(energyInContainers, room){
         let num = _.floor(energyInContainers/20000);
+        if (room.controller.level < 3) num = 1;
         return (num > 0) ? num : 1;
     };
     this.upgraderLogic = function(creep) {

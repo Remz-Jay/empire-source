@@ -3,14 +3,15 @@ var UtilCreep = require('util.creep');
 
 function RoleMule() {
     Creep.call(this);
-    this.minRCL = 3;
+    this.minRCL = 2;
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.role = 'mule';
     this.maxCreeps = 2;
-    this.max = function(energyInContainers, rcl) {
+    this.max = function(energyInContainers, room) {
+        if (room.controller.level < 3) return 1;
         return this.maxCreeps;
     };
-    this.getBody = function (capacity, energy, numCreeps) {
+    this.getBody = function (capacity, energy, numCreeps, rcl) {
         let numParts;
         if(numCreeps>0) {
             numParts = _.floor((capacity-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
@@ -75,7 +76,7 @@ function RoleMule() {
                     case OK:
                         break;
                     default:
-                        console.log('Status ' + status + ' not defined for harvester.dump.spawn');
+                        console.log('Status ' + status + ' not defined for mule.dump');
                 }
                 break;
             case STRUCTURE_CONTROLLER:

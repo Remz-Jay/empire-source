@@ -13,7 +13,7 @@ function ClassCreep() {
      * @param {int} capacity
      * @returns {Array}
      */
-    this.getBody = function (capacity, energy, numCreeps) {
+    this.getBody = function (capacity, energy, numCreeps, rcl) {
         var numParts = _.floor(capacity / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         var body = [];
         for (var i = 0; i < numParts; i++) {
@@ -21,27 +21,64 @@ function ClassCreep() {
         }
         return body;
     };
-    this.renewCreep = function(creep) {
+    this.renewCreep = function(creep, max = 1000) {
         if(creep.ticksToLive < 250) {
             creep.memory.hasRenewed = false;
         }
         if(creep.memory.hasRenewed != undefined && !creep.memory.hasRenewed) {
-            let renewStation = (undefined == creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[creep.memory.homeSpawn];
+            var spawns = creep.room.find(FIND_MY_SPAWNS);
+            let renewStation;
+            if(spawns.length > 0) {
+                //if(spawns.length > 0 && creep.room.controller.level > 1 && UtilCreep.calculateRequiredEnergy(_.pluck(creep.body, 'type')) < creep.room.energyCapacityAvailable){
+                renewStation = spawns[0];
+                //} else {
+                //    renewStation = (undefined == creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[creep.memory.homeSpawn];
+                //}
+            } else {
+                renewStation = (undefined == creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[creep.memory.homeSpawn];
+            }
             let status = renewStation.renewCreep(creep);
             switch (status) {
                 case ERR_NOT_IN_RANGE:
                     console.log(creep.name + ' ('+creep.memory.role+') is moving to ' + renewStation.name + ' for renew.');
-                    creep.moveTo(renewStation.pos);
+                    if (!creep.memory.renewPath) {
+                        var path = this.findPathFinderPath({pos: renewStation.pos, range: 1});
+                        if (path == false || path.length < 1) {
+                            delete creep.memory.renewPath;
+                        } else {
+                            creep.memory.renewPath = path;
+                        }
+                    }
+                    var path = this.deserializePathFinderPath(this.creep.memory.renewPath);
+                    var log = creep.moveByPath(path);
+                    if(creep.memory.previousPosition) {
+                        var prev = creep.memory.previousPosition;
+                        if(prev.x == creep.pos.x && prev.y == creep.pos.y) {
+                            console.log(creep.name + 'hasnt moved this turn.');
+                        }
+                        creep.memory.previousPosition = {x: creep.pos.x, y: creep.pos.y, roomName: creep.pos.roomName};
+                    }
+                    if (log == ERR_NOT_FOUND) {
+                        var path = this.findPathFinderPath({pos: renewStation.pos, range: 1});
+                        if (path == false || path.length < 1) {
+                            delete creep.memory.renewPath;
+                        } else {
+                            creep.memory.renewPath = path;
+                        }
+                    }
+                    //creep.moveTo(renewStation.pos);
                     break;
                 case OK:
                     console.log(creep.name + ' ('+creep.memory.role+') renewed at ' + renewStation.name + '. now at ' + creep.ticksToLive);
-                    if (creep.ticksToLive > 1000) {
+                    if (creep.ticksToLive > max) {
                         console.log('Done renewing.');
                         creep.memory.hasRenewed = true;
+                        delete creep.memory.renewPath;
                     }
                     break;
                 case ERR_FULL:
                     creep.memory.hasRenewed = true;
+                    delete creep.memory.renewPath;
                     break;
                 case ERR_BUSY:
                 case ERR_NOT_ENOUGH_ENERGY:
@@ -212,9 +249,16 @@ function ClassCreep() {
             });
             //Go to source otherwise
             if (source == null) {
-                source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
-                    filter: (source) => (source.energy > 100) || source.ticksToRegeneration < 30
-                });
+                source = this.creep.pos.findClosestByPath(FIND_MY_SPAWNS, function(s) {
+                    return structure.energy > 0 && structure.room.name == this.creep.room.name
+                    }, this
+                );
+                if (source == null) {
+                    source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
+                        filter: (source) => (source.energy > 100) || source.ticksToRegeneration < 30
+                    });
+                }
+
             }
             if (source != null) this.creep.memory.source = source.id;
         }

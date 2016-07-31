@@ -7,10 +7,10 @@ function RoleRemoteHarvester() {
     this.minRCL = 5;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
-    this.max = function (energyInContainers, rcl) {
+    this.max = function (energyInContainers, room) {
         return 1;
     };
-    this.getBody = function (capacity, energy, numCreeps) {
+    this.getBody = function (capacity, energy, numCreeps, rcl) {
         let numParts;
         numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         if (numParts < 1) numParts = 1;
@@ -206,7 +206,6 @@ function RoleRemoteHarvester() {
                             this.remoteHarvesterLogic(this.creep);
                         }
                     } else {
-                        console.log('normal logic');
                         this.remoteHarvesterLogic(this.creep);
                     }
                 }

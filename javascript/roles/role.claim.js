@@ -6,7 +6,7 @@ function RoleClaim() {
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
     this.bodyPart = [CLAIM, MOVE]; //600+50 = 650;
-    this.max = function(energyInContainers, rcl) {return 1;}
+    this.max = function(energyInContainers, room) {return 1;}
     this.run = function(creep) {
         this.creep = creep;
         if (undefined != this.targetFlag) {

@@ -4,8 +4,9 @@ var UtilCreep = require('util.creep');
 function RoleHarvester() {
     Worker.call(this);
     this.role = 'harvester';
-    this.getBody = function (capacity, energy, numCreeps) {
+    this.getBody = function (capacity, energy, numCreeps, rcl) {
         let numParts;
+
         if (numCreeps > 0) {
             numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         } else {
@@ -20,7 +21,7 @@ function RoleHarvester() {
         return body;
 
     };
-    this.max = function (energyInContainers, rcl) {
+    this.max = function (energyInContainers, room) {
         /**
          var max = 5;
          if (capacity >= 400 && capacity < 550) {
@@ -30,6 +31,7 @@ function RoleHarvester() {
         }
          **/
         var max = 2;
+        if (room.controller.level < 3) max = 5;
         return max;
     };
     /** @param {Creep} creep **/
@@ -151,6 +153,7 @@ function RoleHarvester() {
         }
     }
     this.run = function (creep) {
+        this.creep = creep;
         if(this.renewCreep(creep)) {
             this.harvesterLogic(creep);
         }

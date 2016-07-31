@@ -4,10 +4,10 @@ var _ = require('lodash');
 function RoleBuilder() {
     Worker.call(this);
     this.role = 'builder';
-    this.homeFlag = Game.flags.FireBase1;
-    this.max = function (energyInContainers, rcl) {
+
+    this.max = function (energyInContainers, room) {
         var sites = _.filter(Game.constructionSites, function(cs) {
-            return cs.pos.roomName == this.homeFlag.pos.roomName;
+            return cs.pos.roomName == room.name;
         }, this);
         if(sites.length > 0) {
             return 1;
@@ -114,7 +114,7 @@ function RoleBuilder() {
                                     case OK:
                                         break;
                                     default:
-                                        console.log('Status ' + status + ' not defined for harvester.dump.spawn');
+                                        console.log('Status ' + status + ' not defined for builder.dump');
                                 }
                                 break;
                             case STRUCTURE_CONTROLLER:

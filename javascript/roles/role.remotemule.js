@@ -8,7 +8,7 @@ function RoleRemoteMule() {
     this.maxCreeps = 1;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
-    this.getBody = function (capacity, energy, numCreeps) {
+    this.getBody = function (capacity, energy, numCreeps, rcl) {
         let numParts;
         numParts = _.floor((capacity-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         if(numParts < 1) numParts = 1;
@@ -65,6 +65,7 @@ function RoleRemoteMule() {
                     if(path != false) {
                         this.creep.memory.targetPath = path;
                         var log = this.creep.moveByPath(path);
+                        this.creep.memory.lastPosition = this.creep.pos;
                     } else {
                         creep.say('HALP!');
                     }

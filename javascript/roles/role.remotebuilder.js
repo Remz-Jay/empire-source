@@ -10,17 +10,17 @@ function RoleRemoteBuilder() {
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.creep = false;
     this.buildType = STRUCTURE_SPAWN;
-    this.max = function (energyInContainers, rcl) {
+    this.max = function (energyInContainers, room) {
         var sites = _.filter(Game.constructionSites, function (cs) {
             return cs.pos.roomName == this.targetFlag.pos.roomName;
         }, this);
         if (sites.length > 0) {
-            return 3;
+            return 2;
         } else {
             return 0;
         }
     };
-    this.getBody = function (capacity) {
+    this.getBody = function (capacity, energy, numCreeps, rcl) {
         var numParts = _.floor((capacity - 150) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         var body = [];
         for (var i = 0; i < numParts; i++) {
@@ -195,6 +195,14 @@ function RoleRemoteBuilder() {
                                 creep.memory.idle = true;
                                 creep.memory.target = false;
                                 creep.memory.source = false;
+                                var spawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+                                if(creep.pos.isNearTo(spawn)) {
+                                    if(creep.carry.energy > 0) {
+                                        creep.transfer(spawn, RESOURCE_ENERGY);
+                                    } else {
+                                        spawn.recycleCreep(creep);
+                                    }
+                                }
                                 creep.say('B:IDLE');
                                 //creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                             }
