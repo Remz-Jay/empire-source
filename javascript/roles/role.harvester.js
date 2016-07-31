@@ -151,7 +151,9 @@ function RoleHarvester() {
         }
     }
     this.run = function (creep) {
-        this.harvesterLogic(creep);
+        if(this.renewCreep(creep)) {
+            this.harvesterLogic(creep);
+        }
     }
 };
 RoleHarvester.prototype = _.create(Worker.prototype, {

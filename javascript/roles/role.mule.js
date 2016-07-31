@@ -118,7 +118,7 @@ function RoleMule() {
             this.dumpRoutine(target, creep);
         }
     };
-    this.run = function (creep) {
+    this.muleLogic = function(creep) {
         this.pickupResourcesInRange(creep);
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
@@ -208,6 +208,13 @@ function RoleMule() {
                 }
             }
         }
+    };
+    this.run = function (creep) {
+        this.creep = creep;
+        if(this.renewCreep(creep)) {
+            this.muleLogic(creep);
+        }
+
     }
 };
 RoleMule.prototype = _.create(Creep.prototype, {

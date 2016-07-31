@@ -20,6 +20,36 @@ function ClassCreep() {
         }
         return body;
     };
+    this.renewCreep = function(creep) {
+        if(creep.ticksToLive < 250) {
+            creep.memory.hasRenewed = false;
+        }
+        if(creep.memory.hasRenewed != undefined && !creep.memory.hasRenewed) {
+            let renewStation = (undefined == creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[creep.memory.homeSpawn];
+            let status = renewStation.renewCreep(creep);
+            switch (status) {
+                case ERR_NOT_IN_RANGE:
+                    console.log(creep.name + ' ('+creep.memory.role+') is moving to ' + renewStation.name + ' for renew.');
+                    creep.moveTo(renewStation.pos);
+                    break;
+                case OK:
+                    console.log(creep.name + ' ('+creep.memory.role+') renewed at ' + renewStation.name + '. now at ' + creep.ticksToLive);
+                    if (this.creep.ticksToLive > 1250) {
+                        console.log('Done renewing.');
+                        creep.memory.hasRenewed = true;
+                    }
+                    break;
+                case ERR_BUSY:
+                    break;
+                default:
+                    console.log('RemoteBuilder Renew Error' + JSON.stringify(status));
+            }
+            return false;
+        } else {
+            return true;
+        }
+
+    }
     this.pickupResourcesInRange = function(creep) {
         if(_.sum(creep.carry)<creep.carryCapacity) {
             let targets = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);

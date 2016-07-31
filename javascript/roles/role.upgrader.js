@@ -6,11 +6,7 @@ function RoleUpgrader() {
         let num = _.floor(energyInContainers/20000);
         return (num > 0) ? num : 1;
     };
-
-
-    /** @param {Creep} creep **/
-    this.run = function(creep) {
-        this.creep = creep;
+    this.upgraderLogic = function(creep) {
         if(this.creep.memory.dumping && this.creep.carry.energy == 0) {
             this.creep.memory.dumping = false;
             this.creep.memory.source = false;
@@ -27,7 +23,15 @@ function RoleUpgrader() {
                 this.creep.moveTo(target);
             }
         } else {
-           this.harvestFromContainersAndSources();
+            this.harvestFromContainersAndSources();
+        }
+    };
+
+    /** @param {Creep} creep **/
+    this.run = function(creep) {
+        this.creep = creep;
+        if(this.renewCreep(creep)) {
+            this.upgraderLogic(creep);
         }
     }
 };

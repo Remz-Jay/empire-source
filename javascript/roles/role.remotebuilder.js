@@ -66,29 +66,32 @@ function RoleRemoteBuilder() {
         this.pickupResourcesInRange(creep);
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
-                if(this.creep.room.name == this.homeFlag.pos.roomName) {
-                    if (!this.creep.memory.hasRenewed) {
-                        let renewStation = Game.spawns['Bastion'];
-                        let status = renewStation.renewCreep(this.creep);
-                        switch (status) {
-                            case ERR_NOT_IN_RANGE:
-                                console.log('Moving to ' + renewStation.name);
-                                this.creep.moveTo(renewStation.pos);
-                                break;
-                            case OK:
-                                console.log('Renewed at ' + renewStation.name + '. now at ' + this.creep.ticksToLive);
-                                if(this.creep.ticksToLive > 1000) {
-                                    console.log('Done renewing.');
-                                    this.creep.memory.hasRenewed = true;
-                                    delete this.creep.memory.touchedController;
-                                    delete this.creep.memory.homePath;
-                                    delete this.creep.memory.runBack;
-                                    delete this.creep.memory.targetPath;
-                                }
-                                break;
-                            default:
-                                console.log('RemoteBuilder Renew Error' + JSON.stringify(status));
-                        }
+                if (
+                    this.creep.room.name == this.homeFlag.pos.roomName
+                    && !this.creep.memory.hasRenewed
+                ) {
+                    let renewStation = Game.spawns['Bastion'];
+                    let status = renewStation.renewCreep(this.creep);
+                    switch (status) {
+                        case ERR_NOT_IN_RANGE:
+                            console.log('Moving to ' + renewStation.name);
+                            this.creep.moveTo(renewStation.pos);
+                            break;
+                        case OK:
+                            console.log('Renewed at ' + renewStation.name + '. now at ' + this.creep.ticksToLive);
+                            if (this.creep.ticksToLive > 1000) {
+                                console.log('Done renewing.');
+                                this.creep.memory.hasRenewed = true;
+                                delete this.creep.memory.touchedController;
+                                delete this.creep.memory.homePath;
+                                delete this.creep.memory.runBack;
+                                delete this.creep.memory.targetPath;
+                            }
+                            break;
+                        case ERR_BUSY:
+                            break;
+                        default:
+                            console.log('RemoteBuilder Renew Error' + JSON.stringify(status));
                     }
                 } else {
                     //first make sure we fill up on energy before embarking on an adventure.
@@ -133,11 +136,11 @@ function RoleRemoteBuilder() {
                 if (!this.creep.memory.runBack) {
                     if (!this.creep.memory.containerDone) {
                         //No spawn yet, so we need to keep the controller from expiring.
-                        if(!this.creep.memory.touchedController && this.buildType == STRUCTURE_SPAWN) {
-                            if(this.creep.pos.getRangeTo(this.creep.room.controller) > 3) {
+                        if (!this.creep.memory.touchedController && this.buildType == STRUCTURE_SPAWN) {
+                            if (this.creep.pos.getRangeTo(this.creep.room.controller) > 3) {
                                 this.creep.moveTo(this.creep.room.controller);
                             } else {
-                                if(this.creep.upgradeController(this.creep.room.controller) == OK) {
+                                if (this.creep.upgradeController(this.creep.room.controller) == OK) {
                                     this.creep.memory.touchedController = true;
                                     delete this.creep.memory.hasRenewed;
                                 }
