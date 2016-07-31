@@ -9,6 +9,14 @@ function RoleClaim() {
     this.run = function(creep) {
         this.creep = creep;
         if (undefined != this.targetFlag) {
+            if(undefined != Game.flags.Schmoop.room) {
+                let res = Game.flags.Schmoop.room.controller.reservation;
+                if (this.creep.memory.switchedFlags || (res && res.username == "Remco" && res.ticksToEnd > 5000)) {
+                    //switch to the other room.
+                    this.targetFlag = Game.flags.Vagine;
+                    this.creep.memory.switchedFlags = true;
+                }
+            }
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
                 //pathfinder to targetFlag.
                 if(!this.creep.memory.targetPath) {
@@ -40,7 +48,12 @@ function RoleClaim() {
                         this.creep.moveTo(creep.room.controller);
                     } else {
                         //once we're at the controller, claim it.
-                        this.creep.reserveController(creep.room.controller);
+                        let res = this.creep.room.controller.reservation;
+                        if (this.targetFlag == Game.flags.Vagine) {
+                            this.creep.claimController(this.creep.room.controller);
+                        } else {
+                            this.creep.reserveController(creep.room.controller);
+                        }
                     }
                 } else {
                     if(!this.creep.memory.targetPath) {

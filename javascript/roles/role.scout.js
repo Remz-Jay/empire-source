@@ -9,16 +9,17 @@ function RoleScout() {
         //HEAL,MOVE //250 +50
     ];
     this.toughPart = [TOUGH,MOVE]; //10+50
-    this.targetFlag = Game.flags.CC1;
+    this.targetFlag = Game.flags.Vagine;
     //this.targetRoom = 'W7N42';
+    this.max = function(c) { return 0;};
     this.getBody = function (capacity) {
 
-        var numParts = _.floor(capacity / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+        var numParts = _.floor((capacity-400) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         var body = [];
         for (var i = 0; i < numParts; i++) {
             body = body.concat(this.bodyPart);
         }
-        var remainingCap = _.floor(capacity - UtilCreep.calculateRequiredEnergy(body));
+        var remainingCap = _.floor((capacity-400) - UtilCreep.calculateRequiredEnergy(body));
         var toughParts = _.floor(remainingCap / UtilCreep.calculateRequiredEnergy([TOUGH,MOVE]));
         for (var i = 0; i < toughParts; i++) {
             body = body.concat(this.toughPart);
@@ -48,12 +49,11 @@ function RoleScout() {
 
         }
     }
-    this.max = function(c) { return 0;};
     /** @param {Creep} creep **/
     this.run = function(creep) {
         this.creep = creep;
         var emergency = false;
-        var totalAnihalation = true;
+        var totalAnihalation = false;
         //TODO: The hostile logic bugs out when on a room Edge.
         if(this.creep.memory.hasReachedFlag || emergency) {
             var targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);

@@ -9,8 +9,8 @@ function RoleRepairbot() {
     this.publicStructureMultiplier= 0.81;
 
     this.max = function(energyInContainers){
-        let num = _.floor(energyInContainers/15000);
-        return (num > 0) ? num : 1;
+        let num = _.floor(energyInContainers/30000);
+        return (num > 0) ? num : 0;
     };
     /** @param {Creep} creep **/
     this.run = function(creep) {

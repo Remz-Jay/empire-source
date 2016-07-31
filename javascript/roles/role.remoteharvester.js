@@ -1,4 +1,6 @@
 var Harvester = require('role.harvester');
+var UtilCreep = require('util.creep');
+
 function RoleRemoteHarvester() {
     Harvester.call(this);
     this.role = 'remoteHarvester';
@@ -6,6 +8,18 @@ function RoleRemoteHarvester() {
     this.homeFlag = Game.flags.FireBase1;
     this.max = function (c) {
         return 1;
+    };
+    this.getBody = function (capacity, energy, numCreeps) {
+        let numParts;
+        numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+        if (numParts < 1) numParts = 1;
+        if (numParts > 4) numParts = 5;
+        var body = [];
+        for (var i = 0; i < numParts; i++) {
+            body = body.concat(this.bodyPart);
+        }
+        return body;
+
     };
     this.remoteHarvesterLogic = function (creep) {
         if (creep.memory.dumping && creep.carry.energy == 0) {

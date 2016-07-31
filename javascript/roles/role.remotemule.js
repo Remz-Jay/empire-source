@@ -1,11 +1,24 @@
 var Mule = require('role.mule');
+var UtilCreep = require('util.creep');
 
 function RoleRemoteMule() {
     Mule.call(this);
     this.role = 'remoteMule';
-    this.maxCreeps = 2;
+    this.maxCreeps = 1;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
+    this.getBody = function (capacity, energy, numCreeps) {
+        let numParts;
+        numParts = _.floor((capacity-100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+        if(numParts < 1) numParts = 1;
+        if(numParts > 15) numParts = 15;
+        var body = [];
+        for (var i = 0; i < numParts; i++) {
+            body = body.concat(this.bodyPart);
+        }
+        return body.concat([WORK]);
+
+    };
     this.run = function (creep) {
         this.creep = creep;
         this.shouldIStayOrShouldIGo(creep);
@@ -62,11 +75,14 @@ function RoleRemoteMule() {
                 this.creep.memory.targetPath =false;
                 if (creep.memory.source == false) {
                     //Get energy from containers
-                    var source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    var sources = creep.room.find(FIND_STRUCTURES, {
                         filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
                         structure.store[RESOURCE_ENERGY] > 100
-                    });
-                    if (source != null) {
+                    })
+                    if (sources.length > 0) {
+                        var source = _.sortBy(sources, function(s) {
+                            return s.store[RESOURCE_ENERGY];
+                        }).reverse()[0];
                         creep.memory.source = source.id;
                     } else {
                         //just go home. no more sources

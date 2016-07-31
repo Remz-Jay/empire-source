@@ -4,27 +4,28 @@ var _ = require('lodash');
 function RoleRemoteBuilder() {
     Creep.call(this);
     this.role = 'remoteBuilder';
-    this.targetFlag = Game.flags.Schmoop;
+    this.targetFlag = Game.flags.Vagine;
     this.homeFlag = Game.flags.FireBase1;
     this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
     this.creep = false;
+    this.buildType = STRUCTURE_SPAWN;
     this.max = function (c) {
         var sites = _.filter(Game.constructionSites, function (cs) {
             return cs.pos.roomName == this.targetFlag.pos.roomName;
         }, this);
         if (sites.length > 0) {
-            return 1;
+            return 3;
         } else {
             return 0;
         }
     };
     this.getBody = function (capacity) {
-        var numParts = _.floor((capacity - 100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+        var numParts = _.floor((capacity - 150) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
         var body = [];
         for (var i = 0; i < numParts; i++) {
             body = body.concat(this.bodyPart);
         }
-        return body.concat([WORK]);
+        return body.concat([WORK, MOVE]);
     };
     this.findHomePath = function () {
         //find a suitable container
@@ -65,66 +66,105 @@ function RoleRemoteBuilder() {
         this.pickupResourcesInRange(creep);
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {
-                //first make sure we fill up on energy before embarking on an adventure.
-                if (this.creep.carry.energy != this.creep.carryCapacity) {
-                    if (!this.creep.memory.homePath) {
-                        this.harvestFromContainersAndSources();
-                        this.creep.memory.runBack = true;
-                    } else {
-                        var path = this.deserializePathFinderPath(this.creep.memory.homePath);
-                        var log = this.creep.moveByPath(path);
-                        if (log == ERR_NOT_FOUND) {
-                            this.findHomePath();
-                            var log = this.creep.moveByPath(path);
-                        }
-                        var c = Game.getObjectById(this.creep.memory.homePathContainer);
-                        if (this.creep.pos.isNearTo(c)) {
-                            delete this.creep.memory.homePath;
-                            delete this.creep.memory.homePathContainer;
-                            this.harvestFromContainersAndSources();
+                if(this.creep.room.name == this.homeFlag.pos.roomName) {
+                    if (!this.creep.memory.hasRenewed) {
+                        let renewStation = Game.spawns['Bastion'];
+                        let status = renewStation.renewCreep(this.creep);
+                        switch (status) {
+                            case ERR_NOT_IN_RANGE:
+                                console.log('Moving to ' + renewStation.name);
+                                this.creep.moveTo(renewStation.pos);
+                                break;
+                            case OK:
+                                console.log('Renewed at ' + renewStation.name + '. now at ' + this.creep.ticksToLive);
+                                if(this.creep.ticksToLive > 1000) {
+                                    console.log('Done renewing.');
+                                    this.creep.memory.hasRenewed = true;
+                                    delete this.creep.memory.touchedController;
+                                    delete this.creep.memory.homePath;
+                                    delete this.creep.memory.runBack;
+                                    delete this.creep.memory.targetPath;
+                                }
+                                break;
+                            default:
+                                console.log('RemoteBuilder Renew Error' + JSON.stringify(status));
                         }
                     }
                 } else {
-                    this.creep.memory.runBack = false;
-                    //with full energy, move to the next room.
-                    if (!this.creep.memory.targetPath) {
-                        let path = this.findTargetPath(this.targetFlag);
-                        var log = this.creep.moveByPath(path);
-                        if (log == ERR_NOT_FOUND) {
-                            this.findTargetPath(this.targetFlag);
+                    //first make sure we fill up on energy before embarking on an adventure.
+                    if (this.creep.carry.energy != this.creep.carryCapacity) {
+
+                        if (!this.creep.memory.homePath) {
+                            this.harvestFromContainersAndSources();
+                            this.creep.memory.runBack = true;
+                        } else {
+                            var path = this.deserializePathFinderPath(this.creep.memory.homePath);
+                            var log = this.creep.moveByPath(path);
+                            if (log == ERR_NOT_FOUND) {
+                                this.findHomePath();
+                                var log = this.creep.moveByPath(path);
+                            }
+                            var c = Game.getObjectById(this.creep.memory.homePathContainer);
+                            if (this.creep.pos.isNearTo(c)) {
+                                delete this.creep.memory.homePath;
+                                delete this.creep.memory.homePathContainer;
+                                this.harvestFromContainersAndSources();
+                            }
                         }
                     } else {
-                        var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-                        var log = this.creep.moveByPath(path);
-                        if (log == ERR_NOT_FOUND) {
-                            this.findTargetPath(this.targetFlag);
+                        this.creep.memory.runBack = false;
+                        //with full energy, move to the next room.
+                        if (!this.creep.memory.targetPath) {
+                            let path = this.findTargetPath(this.targetFlag);
+                            var log = this.creep.moveByPath(path);
+                            if (log == ERR_NOT_FOUND) {
+                                this.findTargetPath(this.targetFlag);
+                            }
+                        } else {
+                            var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+                            var log = this.creep.moveByPath(path);
+                            if (log == ERR_NOT_FOUND) {
+                                this.findTargetPath(this.targetFlag);
+                            }
                         }
                     }
                 }
             } else {
                 if (!this.creep.memory.runBack) {
                     if (!this.creep.memory.containerDone) {
-                        //once we get there, move to the flag before anything else.
-                        if (!this.creep.pos.isNearTo(this.targetFlag)) {
-                            this.creep.moveTo(this.targetFlag);
-                        } else {
-                            //once we're at the flag, check if there's a container here.
-                            var found = this.targetFlag.pos.lookFor(LOOK_STRUCTURES);
-                            if (found.length && found[0].structureType == STRUCTURE_CONTAINER) {
-                                //we have a container in place! Start finishing other jobs.
-                                this.creep.memory.containerDone = true;
+                        //No spawn yet, so we need to keep the controller from expiring.
+                        if(!this.creep.memory.touchedController && this.buildType == STRUCTURE_SPAWN) {
+                            if(this.creep.pos.getRangeTo(this.creep.room.controller) > 3) {
+                                this.creep.moveTo(this.creep.room.controller);
                             } else {
-                                //Boo, no container. Are we constructing one?
-                                var found = this.targetFlag.pos.lookFor(LOOK_CONSTRUCTION_SITES);
-                                if (found.length && found[0].structureType == STRUCTURE_CONTAINER) {
-                                    //We're already building one. Let's try and finish it.
-                                    if (this.creep.build(found[0]) == ERR_NOT_ENOUGH_RESOURCES) {
-                                        //We've ran out of energy. Need to head back for more. Sucks.
-                                        this.creep.memory.runBack = true;
-                                    }
+                                if(this.creep.upgradeController(this.creep.room.controller) == OK) {
+                                    this.creep.memory.touchedController = true;
+                                    delete this.creep.memory.hasRenewed;
+                                }
+                            }
+                        } else {
+                            //once we get there, move to the flag before anything else.
+                            if (!this.creep.pos.isNearTo(this.targetFlag)) {
+                                this.creep.moveTo(this.targetFlag);
+                            } else {
+                                //once we're at the flag, check if there's a container here.
+                                var found = this.targetFlag.pos.lookFor(LOOK_STRUCTURES);
+                                if (found.length && found[0].structureType == this.buildType) {
+                                    //we have a container in place! Start finishing other jobs.
+                                    this.creep.memory.containerDone = true;
                                 } else {
-                                    //No construction present. Let's start it ourselves.
-                                    this.targetFlag.pos.createConstructionSite(STRUCTURE_CONTAINER);
+                                    //Boo, no container. Are we constructing one?
+                                    var found = this.targetFlag.pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                                    if (found.length && found[0].structureType == this.buildType) {
+                                        //We're already building one. Let's try and finish it.
+                                        if (this.creep.build(found[0]) == ERR_NOT_ENOUGH_RESOURCES) {
+                                            //We've ran out of energy. Need to head back for more. Sucks.
+                                            this.creep.memory.runBack = true;
+                                        }
+                                    } else {
+                                        //No construction present. Let's start it ourselves.
+                                        this.targetFlag.pos.createConstructionSite(this.buildType);
+                                    }
                                 }
                             }
                         }

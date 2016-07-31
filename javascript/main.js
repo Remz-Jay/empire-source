@@ -94,7 +94,24 @@ module.exports.loop = function () {
                 for (var index in roles) {
                     var role = new roles[index];
                     if (undefined != role.role) {
-                        var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role);
+                        // also process homeless creeps in Bastion
+                        if (spawn.name == 'Bastion') {
+                            var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
+                                && ( creep.memory.homeRoom == undefined
+                                    || creep.memory.homeRoom == room.name
+                                ) && ( creep.memory.homeSpawn == undefined
+                                    || creep.memory.homeSpawn == spawn.name
+                                )
+                            );
+                        } else {
+                            var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
+                                && ( creep.memory.homeRoom != undefined
+                                    && creep.memory.homeRoom == room.name
+                                ) && ( creep.memory.homeSpawn != undefined
+                                    && creep.memory.homeSpawn == spawn.name
+                                )
+                            );
+                        }
 
                         console.log(
                             _.padLeft(role.role, 9) + '=\t' + x.length
@@ -108,7 +125,11 @@ module.exports.loop = function () {
                             var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length);
                             var spawnState = spawn.canCreateCreep(body);
                             if (spawnState == OK) {
-                                var newName = spawn.createCreep(body, undefined, {role: role.role});
+                                var newName = spawn.createCreep(body, undefined, {
+                                    role: role.role,
+                                    homeRoom: room.name,
+                                    homeSpawn: spawn.name
+                                });
                                 if (_.isString(newName)) {
                                     console.log('Spawning new ' + role.role + ': ' + newName + ' at spawn ' + spawn.name);
                                     building = true;
