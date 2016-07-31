@@ -55,7 +55,7 @@ function RoleScout() {
         var emergency = false
         var totalAnihalation = false;
         //if(this.creep.room.find(FIND_MY_SPAWNS).length > 0) {
-        //if(!this.renewCreep(this.creep)) return;
+        if(!this.renewCreep(this.creep)) return;
         //}
         //TODO: The hostile logic bugs out when on a room Edge.
         if(this.creep.memory.hasReachedFlag || emergency) {

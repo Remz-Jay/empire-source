@@ -10,7 +10,13 @@ function RoleRepairbot() {
     this.publicStructureMultiplier= 0.81;
 
     this.max = function(energyInContainers, room){
-        let num = _.floor(energyInContainers/30000);
+        let num;
+        if(room.controller.level < 4) {
+            num = 1;
+        } else {
+            num = _.floor(energyInContainers/30000);
+        }
+
         return (num > 0) ? num : 0;
     };
     /** @param {Creep} creep **/
