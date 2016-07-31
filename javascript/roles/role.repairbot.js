@@ -85,7 +85,7 @@ function RoleRepairbot() {
                 if (target != null) {
                     this.creep.memory.target = target.id;
                 } else {
-                    this.creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                    this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                 }
             }
             var target = Game.getObjectById(this.creep.memory.target);
@@ -107,7 +107,7 @@ function RoleRepairbot() {
                         creep.memory.repairing = false;
                         break;
                     case ERR_NOT_IN_RANGE:
-                        creep.moveTo(target);
+                        this.moveTo(target);
                         break;
                     case ERR_NO_BODYPART:
                     default:

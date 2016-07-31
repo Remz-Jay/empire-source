@@ -1,5 +1,8 @@
 var UtilCreep = require('util.creep');
 var _ = require('lodash');
+var UtilRoom = require('util.room');
+
+let roomManager = new UtilRoom();
 
 function ClassCreep() {
     this.maxCreeps = 1;
@@ -119,6 +122,38 @@ function ClassCreep() {
                     }
                 }, this);
             }
+        }
+    };
+    let roomCallback = function (roomName) {
+        try {
+            let room = Game.rooms[roomName];
+            if (!room) {
+                return;
+            }
+            return roomManager.getCreepMatrixForRoom(roomName);
+        } catch (e) {
+            console.log(JSON.stringify(e), "Class.Creep.roomCallback", roomName);
+            return new PathFinder.CostMatrix();
+        }
+
+    };
+
+    this.moveTo = function (target) {
+
+        try {
+            let path = PathFinder.search(this.creep.pos, {pos: target.pos, range: 1}, {
+                plainCost: 2,
+                swampCost: 10,
+                roomCallback: roomCallback,
+            });
+
+            let pos = path.path[0];
+            let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
+            return status;
+        } catch (e) {
+            console.log(JSON.stringify(e), "Class.Creep.moveTo");
+            //fall back to regular move.
+            this.creep.moveTo(target);
         }
     };
     /**

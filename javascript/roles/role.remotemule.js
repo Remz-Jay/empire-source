@@ -107,7 +107,7 @@ function RoleRemoteMule() {
                                 creep.memory.source = false;
                                 break;
                             case ERR_NOT_IN_RANGE:
-                                creep.moveTo(source);
+                                this.moveTo(source);
                                 break;
                             case OK:
                                 break;

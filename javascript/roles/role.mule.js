@@ -65,7 +65,7 @@ function RoleMule() {
                 var status = creep.transfer(target, RESOURCE_ENERGY);
                 switch (status) {
                     case ERR_NOT_IN_RANGE:
-                        creep.moveTo(target);
+                        this.moveTo(target);
                         break;
                     case ERR_FULL:
                     case ERR_NOT_ENOUGH_ENERGY:
@@ -81,7 +81,7 @@ function RoleMule() {
                 break;
             case STRUCTURE_CONTROLLER:
                 if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    this.moveTo(target);
                 }
                 break;
         }
@@ -167,7 +167,7 @@ function RoleMule() {
                     var target = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
                     if(target) {
                         if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(target);
+                            this.moveTo(target);
                         }
                     } else {
                         //No dropped energy found, proceed to offload at Storage.
@@ -200,7 +200,7 @@ function RoleMule() {
                             creep.memory.source = false;
                             break;
                         case ERR_NOT_IN_RANGE:
-                            creep.moveTo(source);
+                            this.moveTo(source);
                             break;
                         case OK: break;
                         default: console.log('Unhandled ERR in builder.source.container:'+status);

@@ -46,7 +46,7 @@ function RoleClaim() {
                     delete this.creep.memory.targetPath;
                     //once we get there, move to the controller.
                     if(!this.creep.pos.isNearTo(creep.room.controller)) {
-                        this.creep.moveTo(creep.room.controller);
+                        this.moveTo(creep.room.controller);
                     } else {
                         //once we're at the controller, claim it.
                         let res = this.creep.room.controller.reservation;

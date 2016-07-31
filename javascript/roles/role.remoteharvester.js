@@ -59,7 +59,7 @@ function RoleRemoteHarvester() {
                         var status = creep.transfer(target, RESOURCE_ENERGY);
                         switch (status) {
                             case ERR_NOT_IN_RANGE:
-                                creep.moveTo(target);
+                                this.moveTo(target);
                                 break;
                             case ERR_FULL:
                                 creep.memory.target = false;
@@ -72,7 +72,7 @@ function RoleRemoteHarvester() {
                         break;
                     case STRUCTURE_CONTROLLER:
                         if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(target);
+                            this.moveTo(target);
                         }
                         break;
                 }
@@ -95,7 +95,7 @@ function RoleRemoteHarvester() {
                     case ERR_NOT_ENOUGH_RESOURCES:
                     case ERR_INVALID_TARGET:
                         if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
-                            creep.moveTo(source);
+                            this.moveTo(source);
                             break;
                         }
                     case ERR_NOT_OWNER:
@@ -112,7 +112,7 @@ function RoleRemoteHarvester() {
                         }
                         break;
                     case ERR_NOT_IN_RANGE:
-                        creep.moveTo(source);
+                        this.moveTo(source);
                         break;
                     case OK:
                         break;
@@ -196,7 +196,7 @@ function RoleRemoteHarvester() {
                                     creep.memory.repairing = false;
                                     break;
                                 case ERR_NOT_IN_RANGE:
-                                    creep.moveTo(target);
+                                    this.moveTo(target);
                                     break;
                                 case ERR_NO_BODYPART:
                                 default:

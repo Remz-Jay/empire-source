@@ -17,6 +17,7 @@ function RoleBuilder() {
     };
     /** @param {Creep} creep **/
     this.run = function(creep) {
+        this.creep = creep;
         this.pickupResourcesInRange(creep);
         if(creep.memory.building && creep.carry.energy == 0) {
             creep.memory.building = false;
@@ -48,13 +49,13 @@ function RoleBuilder() {
                     creep.memory.target = false;
                     creep.memory.source = false;
                     creep.say('B:IDLE');
-                    //creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                    //this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                 }
             }
             var target = Game.getObjectById(creep.memory.target);
             if(target != null) {
                 if(creep.build(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    this.moveTo(target);
                 }
             } else {
                 creep.memory.target = false;
@@ -106,7 +107,7 @@ function RoleBuilder() {
                                 var status = creep.transfer(target, RESOURCE_ENERGY);
                                 switch (status) {
                                     case ERR_NOT_IN_RANGE:
-                                        creep.moveTo(target);
+                                        this.moveTo(target);
                                         break;
                                     case ERR_FULL:
                                         creep.memory.target = false;
@@ -119,13 +120,13 @@ function RoleBuilder() {
                                 break;
                             case STRUCTURE_CONTROLLER:
                                 if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(target);
+                                    this.moveTo(target);
                                 }
                                 break;
                         }
                     }
                 } else {
-                    creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                    this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                 }
             }
         } else {
@@ -155,7 +156,7 @@ function RoleBuilder() {
                             creep.memory.source = false;
                             break;
                         case ERR_NOT_IN_RANGE:
-                            creep.moveTo(source);
+                            this.moveTo(source);
                             break;
                         case OK: break;
                         default: console.log('Unhandled ERR in builder.source.container:'+status);
@@ -170,7 +171,7 @@ function RoleBuilder() {
                             creep.memory.source = false;
                             break;
                         case ERR_NOT_IN_RANGE:
-                            creep.moveTo(source);
+                            this.moveTo(source);
                             break;
                         case OK: break;
                         default: console.log('Unhandled ERR in builder.source.harvest:'+status);

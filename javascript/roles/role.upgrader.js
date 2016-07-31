@@ -21,7 +21,7 @@ function RoleUpgrader() {
         if(this.creep.memory.dumping) {
             var target = this.creep.room.controller;
             if (this.creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
-                this.creep.moveTo(target);
+                this.moveTo(target);
             }
         } else {
             this.harvestFromContainersAndSources();

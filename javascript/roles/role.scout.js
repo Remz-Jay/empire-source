@@ -81,7 +81,7 @@ function RoleScout() {
                         if (closestHostile) {
 
                             if (this.creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
-                                this.creep.moveTo(closestHostile);
+                                this.moveTo(closestHostile);
                             }
                         } else {
                             if (totalAnihalation) {
@@ -100,7 +100,7 @@ function RoleScout() {
                                     } else {
                                     **/
                                     if (this.creep.rangedAttack(closestHostile) == ERR_NOT_IN_RANGE) {
-                                        this.creep.moveTo(closestHostile);
+                                        this.moveTo(closestHostile);
                                     }
                                     //}
                                 } else {

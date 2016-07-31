@@ -87,7 +87,7 @@ function RoleHarvester() {
                         var status = creep.transfer(target, RESOURCE_ENERGY);
                         switch (status) {
                             case ERR_NOT_IN_RANGE:
-                                creep.moveTo(target);
+                                this.moveTo(target);
                                 break;
                             case ERR_FULL:
                                 creep.memory.target = false;
@@ -100,7 +100,7 @@ function RoleHarvester() {
                         break;
                     case STRUCTURE_CONTROLLER:
                         if (creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(target);
+                            this.moveTo(target);
                         }
                         break;
                 }
@@ -123,7 +123,7 @@ function RoleHarvester() {
                     case ERR_NOT_ENOUGH_RESOURCES:
                     case ERR_INVALID_TARGET:
                         if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
-                            creep.moveTo(source);
+                            this.creep.moveTo(source);
                             break;
                         }
                     case ERR_NOT_OWNER:
@@ -140,7 +140,7 @@ function RoleHarvester() {
                         }
                         break;
                     case ERR_NOT_IN_RANGE:
-                        creep.moveTo(source);
+                        this.moveTo(source);
                         break;
                     case OK:
                         break;

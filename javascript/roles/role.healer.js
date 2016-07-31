@@ -70,7 +70,7 @@ function RoleHealer() {
                 var status = this.creep.heal(targets[0]);
                 switch(status) {
                     case ERR_NOT_IN_RANGE:
-                        this.creep.moveTo(targets[0]);
+                        this.moveTo(targets[0]);
                         break;
                     default:
                         console.log('Healer error: '+ JSON.stringify(status));

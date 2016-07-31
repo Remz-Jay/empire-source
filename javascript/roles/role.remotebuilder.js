@@ -76,7 +76,7 @@ function RoleRemoteBuilder() {
                     switch (status) {
                         case ERR_NOT_IN_RANGE:
                             console.log('Moving to ' + renewStation.name);
-                            this.creep.moveTo(renewStation.pos);
+                            this.moveTo(renewStation.pos);
                             break;
                         case OK:
                             console.log('Renewed at ' + renewStation.name + '. now at ' + this.creep.ticksToLive);
@@ -151,7 +151,7 @@ function RoleRemoteBuilder() {
                         //No spawn yet, so we need to keep the controller from expiring.
                         if (!this.creep.memory.touchedController && this.buildType == STRUCTURE_SPAWN) {
                             if (this.creep.pos.getRangeTo(this.creep.room.controller) > 3) {
-                                this.creep.moveTo(this.creep.room.controller);
+                                this.moveTo(this.creep.room.controller);
                             } else {
                                 if (this.creep.upgradeController(this.creep.room.controller) == OK) {
                                     this.creep.memory.touchedController = true;
@@ -161,7 +161,7 @@ function RoleRemoteBuilder() {
                         } else {
                             //once we get there, move to the flag before anything else.
                             if (!this.creep.pos.isNearTo(this.targetFlag)) {
-                                this.creep.moveTo(this.targetFlag);
+                                this.moveTo(this.targetFlag);
                             } else {
                                 //once we're at the flag, check if there's a container here.
                                 var found = this.targetFlag.pos.lookFor(LOOK_STRUCTURES);
@@ -204,7 +204,7 @@ function RoleRemoteBuilder() {
                                     }
                                 }
                                 creep.say('B:IDLE');
-                                //creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                                //this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                             }
                         }
                         var target = Game.getObjectById(creep.memory.target);
@@ -214,7 +214,7 @@ function RoleRemoteBuilder() {
                                 case OK:
                                     break;
                                 case ERR_NOT_IN_RANGE:
-                                    creep.moveTo(target);
+                                    this.moveTo(target);
                                     break;
                                 case ERR_NOT_ENOUGH_RESOURCES:
                                     this.harvestFromContainersAndSources();
