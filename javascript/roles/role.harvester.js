@@ -22,16 +22,9 @@ function RoleHarvester() {
 
     };
     this.max = function (energyInContainers, room) {
-        /**
-         var max = 5;
-         if (capacity >= 400 && capacity < 550) {
-            max = 6;
-        } else if (capacity >= 550) {
-            max = 8;
-        }
-         **/
-        var max = 2;
-        if (room.controller.level < 3) max = 6;
+        let max = 2;
+        if(room.energyCapacityAvailable < 1200)  max = 4;
+        if(room.energyCapacityAvailable < 600)   max = 6;
         return max;
     };
     /** @param {Creep} creep **/

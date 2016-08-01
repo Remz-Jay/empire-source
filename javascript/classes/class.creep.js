@@ -24,6 +24,31 @@ function ClassCreep() {
         }
         return body;
     };
+    this.expireCreep = function(creep) {
+        //see if an upgrade for this creep is available
+        if(undefined != creep.memory.homeRoom && undefined != creep.memory.homeSpawn) {
+            try {
+                let room = Game.rooms[creep.memory.homeRoom];
+                let spawn = Game.spawns[creep.memory.homeSpawn];
+                var x = _.filter(Game.creeps, (c) => c.memory.role == creep.memory.role
+                    && ( c.memory.homeRoom != undefined
+                        && c.memory.homeRoom == room.name
+                    ) && ( c.memory.homeSpawn != undefined
+                        && c.memory.homeSpawn == spawn.name
+                    )
+                );
+                var body = this.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length, room.controller.level);
+                if( UtilCreep.calculateRequiredEnergy(body) > UtilCreep.calculateRequiredEnergy(_.pluck(creep.body, 'type'))) {
+                    console.log('Expiring creep '+creep.name+' ('+creep.memory.role+') in room '+room.name+' for an upgrade.');
+                    return true;
+                }
+            } catch (e) {
+                console.log(JSON.stringify(e), 'Creep.renewCreep.ExpireCreep');
+            }
+
+        }
+        return false;
+    };
     this.renewCreep = function(creep, max = 1000) {
         if(creep.ticksToLive < 250) {
             creep.memory.hasRenewed = false;
@@ -40,10 +65,18 @@ function ClassCreep() {
             } else {
                 renewStation = (undefined == creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[creep.memory.homeSpawn];
             }
-            let status = renewStation.renewCreep(creep);
+            let status;
+            let phrase;
+            if(this.expireCreep(creep)) {
+                status = renewStation.recycleCreep(creep);
+                phrase = 'demolition.'
+            } else {
+                status = renewStation.renewCreep(creep);
+                phrase = 'renew.'
+            }
             switch (status) {
                 case ERR_NOT_IN_RANGE:
-                    console.log(creep.name + ' ('+creep.memory.role+') is moving to ' + renewStation.name + ' for renew.');
+                    console.log(creep.name + ' ('+creep.memory.role+') is moving to ' + renewStation.name + ' for ' + phrase);
                     if (!creep.memory.renewPath) {
                         var path = this.findPathFinderPath({pos: renewStation.pos, range: 1});
                         if (path == false || path.length < 1) {
