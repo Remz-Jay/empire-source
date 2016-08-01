@@ -34,7 +34,7 @@ UtilRamparts.prototype.getRamparts = function() {
     });
     if(Memory.config.Rampart == undefined) Memory.config.Rampart = {};
     if(Memory.config.Rampart[this.room.name] == undefined) Memory.config.Rampart[this.room.name] = {};
-    if(Memory.config.Rampart[this.room.name].strength == undefined) Memory.config.Rampart[this.room.name].strength = 0;
+    if(Memory.config.Rampart[this.room.name].strength == undefined) Memory.config.Rampart[this.room.name].strength = 10000;
     return r;
 };
 module.exports = UtilRamparts;

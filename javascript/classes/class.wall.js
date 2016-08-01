@@ -31,7 +31,7 @@ ClassWall.prototype.getWalls = function() {
     });
     if(Memory.config.Wall == undefined) Memory.config.Wall = {};
     if(Memory.config.Wall[this.room.name] == undefined) Memory.config.Wall[this.room.name] = {};
-    if(Memory.config.Wall[this.room.name].strength == undefined) Memory.config.Wall[this.room.name].strength = 0;
+    if(Memory.config.Wall[this.room.name].strength == undefined) Memory.config.Wall[this.room.name].strength = 10000;
     return walls;
 };
 module.exports = ClassWall;

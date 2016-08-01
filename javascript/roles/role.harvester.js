@@ -31,7 +31,7 @@ function RoleHarvester() {
         }
          **/
         var max = 2;
-        if (room.controller.level < 3) max = 5;
+        if (room.controller.level < 3) max = 6;
         return max;
     };
     /** @param {Creep} creep **/

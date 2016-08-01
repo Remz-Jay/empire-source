@@ -12,7 +12,7 @@ function RoleRepairbot() {
     this.max = function(energyInContainers, room){
         let num;
         if(room.controller.level < 4) {
-            num = 1;
+            num = 2;
         } else {
             num = _.floor(energyInContainers/30000);
         }

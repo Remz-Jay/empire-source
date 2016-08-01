@@ -57,6 +57,20 @@ function RoleHealer() {
         if(!this.renewCreep(this.creep)) return;
         //TODO: The hostile logic bugs out when on a room Edge.
         if(this.creep.memory.hasReachedFlag || emergency) {
+            var target = creep.pos.findClosestByRange(FIND_MY_CREEPS, {
+                filter: function(object) {
+                    return object.hits < object.hitsMax;
+                }
+            });
+            if(target) {
+                creep.moveTo(target);
+                if(creep.pos.isNearTo(target)) {
+                    creep.heal(target);
+                }
+                else {
+                    creep.rangedHeal(target);
+                }
+            /**
             var targets = this.creep.room.find(FIND_MY_CREEPS, {
                 filter: function(c) {
                     return c.hits < c.hitsMax // && c.name != this.creep.name
@@ -67,6 +81,7 @@ function RoleHealer() {
             }).reverse();
             // console.log(JSON.stringify(targets));
             if(targets.length > 0) {
+
                 var status = this.creep.heal(targets[0]);
                 switch(status) {
                     case ERR_NOT_IN_RANGE:
@@ -74,7 +89,7 @@ function RoleHealer() {
                         break;
                     default:
                         console.log('Healer error: '+ JSON.stringify(status));
-                }
+                }**/
             } else {
                 if (!this.creep.pos.isNearTo(this.targetFlag)) {
                     this.moveToFlag();

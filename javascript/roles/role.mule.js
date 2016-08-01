@@ -30,7 +30,7 @@ function RoleMule() {
     this.scanForTargets = function(creep) {
         var target = creep.pos.findClosestByPath(FIND_MY_SPAWNS, {
             filter: (structure) => {
-                return structure.energy < (structure.energyCapacity);
+                return structure.energy < (structure.energyCapacity/2);
             }
         });
         if (target == null) {
