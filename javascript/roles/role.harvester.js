@@ -140,6 +140,15 @@ function RoleHarvester() {
                     default:
                         console.log('Unhandled ERR in builder.source.harvest:' + status);
                 }
+                var targets = creep.pos.findInRange(FIND_STRUCTURES, 1, {
+                    filter: function(s) {
+                        return s.structureType == STRUCTURE_CONTAINER &&
+                                _.sum(s.store) < s.storeCapacity
+                    }
+                });
+                if(targets.length>0) {
+                    creep.transfer(targets[0], RESOURCE_ENERGY);
+                }
             } else {
                 creep.memory.source = false;
             }

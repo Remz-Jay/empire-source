@@ -15,10 +15,7 @@ function RoleBuilder() {
             return 0;
         }
     };
-    /** @param {Creep} creep **/
-    this.run = function(creep) {
-        this.creep = creep;
-        this.pickupResourcesInRange(creep);
+    this.builderLogic = function(creep) {
         if(creep.memory.building && creep.carry.energy == 0) {
             creep.memory.building = false;
             creep.memory.target = false;
@@ -68,7 +65,8 @@ function RoleBuilder() {
                 creep.memory.idle = false;
                 creep.memory.building = true;
             } else {
-                if(creep.carry.energy > 0) {
+                /**
+                 if(creep.carry.energy > 0) {
                     if (creep.memory.target == false) {
                         //Containers are nearby, fill them first.
                         target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
@@ -77,6 +75,7 @@ function RoleBuilder() {
                                     _.sum(structure.store) < structure.storeCapacity;
                             }
                         });
+
                         //If all containers are full, move directly to an owned structure.
                         if (target == null) {
                             var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
@@ -126,9 +125,25 @@ function RoleBuilder() {
                         }
                     }
                 } else {
-                    this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                **/
+                //nothing to build. return energy.
+                creep.memory.building = false;
+                creep.memory.idle = true;
+                creep.memory.target = false;
+                creep.memory.source = false;
+                var spawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+                if(creep.pos.isNearTo(spawn)) {
+                    if(creep.carry.energy > 0) {
+                        creep.transfer(spawn, RESOURCE_ENERGY);
+                    } else {
+                        spawn.recycleCreep(creep);
+                    }
+                } else {
+                    creep.moveTo(spawn);
                 }
+                creep.say('B:IDLE!');
             }
+            //}
         } else {
             if(creep.memory.source == false) {
                 //Prefer energy from containers
@@ -178,6 +193,14 @@ function RoleBuilder() {
                     }
                 }
             }
+        }
+    };
+    /** @param {Creep} creep **/
+    this.run = function(creep) {
+        this.creep = creep;
+        if(this.renewCreep(creep)) {
+            this.pickupResourcesInRange(creep);
+            this.builderLogic(creep);
         }
     }
 };

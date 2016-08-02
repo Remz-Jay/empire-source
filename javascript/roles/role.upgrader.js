@@ -7,7 +7,7 @@ function RoleUpgrader() {
         if (room.controller.level > 4) {
             num = _.floor(energyInContainers/20000);
         } else {
-            num = 2;
+            num = 4;
         }
         return (num > 0) ? num : 1;
     };
@@ -24,9 +24,17 @@ function RoleUpgrader() {
         }
         if(this.creep.memory.dumping) {
             var target = this.creep.room.controller;
+            if(this.creep.pos.getRangeTo(target) >2) {
+                this.moveTo(target);
+                this.creep.upgradeController(target);
+            } else {
+                this.creep.upgradeController(target);
+            }
+            /**
             if (this.creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
                 this.moveTo(target);
             }
+             **/
         } else {
             this.harvestFromContainersAndSources();
         }
@@ -36,6 +44,7 @@ function RoleUpgrader() {
     this.run = function(creep) {
         this.creep = creep;
         if(this.renewCreep(creep)) {
+            this.pickupResourcesInRange(creep);
             this.upgraderLogic(creep);
         }
     }

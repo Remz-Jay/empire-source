@@ -12,17 +12,14 @@ function RoleRepairbot() {
     this.max = function(energyInContainers, room){
         let num;
         if(room.controller.level < 4) {
-            num = 2;
+            num = 1;
         } else {
             num = _.floor(energyInContainers/30000);
         }
 
         return (num > 0) ? num : 0;
     };
-    /** @param {Creep} creep **/
-    this.run = function(creep) {
-        this.creep = creep;
-        this.pickupResourcesInRange(creep);
+    this.repairLogic = function(creep) {
         if(this.creep.memory.repairing && this.creep.carry.energy == 0) {
             this.creep.memory.repairing = false;
             this.creep.memory.target = false;
@@ -43,7 +40,7 @@ function RoleRepairbot() {
                     filter: (structure) => {
                         return (
                             structure.hits < (structure.hitsMax*this.myStructureMultiplier) &&
-                                structure.structureType != STRUCTURE_RAMPART
+                            structure.structureType != STRUCTURE_RAMPART
                         );
                     }
                 });
@@ -85,7 +82,14 @@ function RoleRepairbot() {
                 if (target != null) {
                     this.creep.memory.target = target.id;
                 } else {
-                    this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+                    var spawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+                    if(creep.pos.isNearTo(spawn)) {
+                        if(creep.carry.energy > 0) {
+                            creep.transfer(spawn, RESOURCE_ENERGY);
+                        }
+                    } else {
+                        creep.moveTo(spawn);
+                    }
                 }
             }
             var target = Game.getObjectById(this.creep.memory.target);
@@ -118,6 +122,14 @@ function RoleRepairbot() {
             }
         } else {
             this.harvestFromContainersAndSources();
+        }
+    };
+    /** @param {Creep} creep **/
+    this.run = function(creep) {
+        this.creep = creep;
+        if(this.renewCreep(creep)) {
+            this.pickupResourcesInRange(creep);
+            this.repairLogic(creep);
         }
     }
 };

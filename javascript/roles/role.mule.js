@@ -38,8 +38,9 @@ function RoleMule() {
                 filter: (structure) => {
                     return (
                             structure.structureType == STRUCTURE_EXTENSION ||
-                            structure.structureType == STRUCTURE_TOWER
-                        ) && structure.energy < (structure.energyCapacity/2);
+                            structure.structureType == STRUCTURE_TOWER ||
+                            structure.structureType == STRUCTURE_SPAWN
+                        ) && structure.energy < (structure.energyCapacity);
                 }
             });
             if(target == null) {
@@ -121,7 +122,6 @@ function RoleMule() {
         }
     };
     this.muleLogic = function(creep) {
-        this.pickupResourcesInRange(creep);
         if (creep.memory.dumping && creep.carry.energy == 0) {
             creep.memory.dumping = false;
             creep.memory.target = false;
@@ -214,6 +214,7 @@ function RoleMule() {
     this.run = function (creep) {
         this.creep = creep;
         if(this.renewCreep(creep)) {
+            this.pickupResourcesInRange(creep);
             this.muleLogic(creep);
         }
 

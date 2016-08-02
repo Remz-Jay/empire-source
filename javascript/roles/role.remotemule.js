@@ -5,7 +5,7 @@ function RoleRemoteMule() {
     Mule.call(this);
     this.role = 'remoteMule';
     this.minRCL = 5;
-    this.maxCreeps = 1;
+    this.maxCreeps = 2;
     this.targetFlag = Game.flags.Schmoop;
     this.homeFlag = Game.flags.FireBase1;
     this.getBody = function (capacity, energy, numCreeps, rcl) {

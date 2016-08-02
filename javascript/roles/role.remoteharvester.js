@@ -126,6 +126,7 @@ function RoleRemoteHarvester() {
     };
     this.run = function (creep) {
         this.creep = creep;
+        if(!this.renewCreep(this.creep)) return;
         this.shouldIStayOrShouldIGo(creep);
         if (undefined != this.targetFlag) {
             if (this.creep.room.name != this.targetFlag.pos.roomName) {

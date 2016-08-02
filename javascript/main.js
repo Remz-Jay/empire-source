@@ -3,22 +3,8 @@
 //Game.creeps['Harvester1'].suicide()
 //http://support.screeps.com/hc/en-us/articles/205990342-StructureSpawn#renewCreep
 //Game.spawns['Spawn1'].room.createConstructionSite( 23, 22, STRUCTURE_TOWER );
-var _ = require('lodash');
-_.mixin({
-    'sortKeysBy': function (obj, comparator) {
-        var keys = _.sortBy(_.keys(obj), function (key) {
-            return comparator ? comparator(obj[key], key) : key;
-        });
-
-        return _.object(keys, _.map(keys, function (key) {
-            return obj[key];
-        }));
-    }
-});
-
-var ScreepsStats = require('screepsstats');
-
-global.Stats = new ScreepsStats();
+var StatsManager = require('statsmanager');
+global.StatsMan = new StatsManager();
 
 var roles = {
     harvester: require('role.harvester'),
@@ -46,8 +32,13 @@ module.exports.loop = function () {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
-
+    let CpuInit = Game.cpu.getUsed();
+    let CpuRoomInit = 0;
+    let CpuReservedRooms = 0;
+    let CpuTowers = 0;
+    let CpuRoles = 0;
     for (var name in Game.rooms) {
+        let CpuBeforeRoomInit = Game.cpu.getUsed();
         var room = Game.rooms[name];
         var wall = new classes.Wall(room);
         wall.adjustStrength();
@@ -69,7 +60,8 @@ module.exports.loop = function () {
                 + ' (RCL='+room.controller.level+' @ '
                 + _.floor(room.controller.progress/(room.controller.progressTotal/100)) + '%)'
             );
-
+            CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
+            let CpuBeforeTowers = Game.cpu.getUsed();
             var towers = room.find(FIND_MY_STRUCTURES, {
                 filter: (s) => {
                     return s.structureType == STRUCTURE_TOWER
@@ -79,7 +71,7 @@ module.exports.loop = function () {
                 var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
                 if (closestHostile) {
                     tower.attack(closestHostile);
-                } else {
+                } else if (tower.energy > (tower.energyCapacity/2)) {
                     var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => structure.hits < (structure.hitsMax * 0.8) &&
                         (
@@ -107,7 +99,8 @@ module.exports.loop = function () {
                     }
                 }
             }, this);
-
+            CpuTowers += (Game.cpu.getUsed() - CpuBeforeTowers);
+            let CpuBeforeRoles = Game.cpu.getUsed();
             var building = false;
             var spawn = room.find(FIND_MY_SPAWNS)[0]; //TODO: What if more spawns?
             if (undefined == spawn) {
@@ -150,10 +143,21 @@ module.exports.loop = function () {
                                 case TOUGH:
                                     return 1;
                                     break;
+                                case CARRY:
+                                    return 2;
+                                    break;
                                 case MOVE:
                                     return 5;
                                     break;
+                                case CLAIM:
+                                    return 80;
+                                    break;
+                                case HEAL:
+                                    return 90;
+                                    break;
                                 case ATTACK:
+                                    return 95;
+                                    break;
                                 case RANGED_ATTACK:
                                     return 100;
                                     break;
@@ -206,6 +210,7 @@ module.exports.loop = function () {
                     }
                 }
             }
+            CpuRoles += (Game.cpu.getUsed() - CpuBeforeRoles);
         } else if (room.controller.level == 0 && room.controller.reservation) {
             //this is an unowned/reserved room
             console.log('Room "' + room.name + '" has '
@@ -215,11 +220,12 @@ module.exports.loop = function () {
                 + room.controller.reservation.ticksToEnd
                 + ' (' + room.controller.reservation.username + '))'
             );
+            CpuReservedRooms += (Game.cpu.getUsed() - CpuBeforeRoomInit);
         } else {
             // just ignore hostile rooms.
         }
     }
-
+    let CpuBeforeCreeps = Game.cpu.getUsed();
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         for (var index in roles) {
@@ -229,12 +235,24 @@ module.exports.loop = function () {
             }
         }
     }
-
+    let CpuCreeps = Game.cpu.getUsed() - CpuBeforeCreeps;
+    let cpuBeforeStats = Game.cpu.getUsed();
     var perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
     console.log('End of tick ' + Game.time +
         '.\t(GCL= ' + Game.gcl.level + ' @ ' + perc + '%\tCPU: '
         + _.ceil(Game.cpu.getUsed()) + '/' + Game.cpu.limit
         + '\tRES=' + Game.cpu.tickLimit + '/' + Game.cpu.bucket + ')');
     console.log();
-    Stats.runBuiltinStats();
+
+    StatsMan.runBuiltinStats();
+
+    StatsMan.addStat('cpu.init', CpuInit);
+    StatsMan.addStat('cpu.towers', CpuTowers);
+    StatsMan.addStat('cpu.creeps', CpuCreeps);
+    StatsMan.addStat('cpu.reservedrooms', CpuReservedRooms);
+    StatsMan.addStat('cpu.roles', CpuRoles);
+    StatsMan.addStat('cpu.roominit', CpuRoomInit);
+
+    StatsMan.addStat('cpu.stats', Game.cpu.getUsed() - cpuBeforeStats);
+    StatsMan.addStat('cpu.getUsed', Game.cpu.getUsed());
 };

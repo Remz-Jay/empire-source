@@ -1,6 +1,7 @@
 var UtilCreep = require('util.creep');
 var _ = require('lodash');
 var UtilRoom = require('util.room');
+var UtilContainers = require('util.containers');
 
 let roomManager = new UtilRoom();
 
@@ -8,7 +9,7 @@ function ClassCreep() {
     this.maxCreeps = 1;
     this.minRCL = 1;
     this.creep = false;
-    this.max = function(capacity) {
+    this.max = function(capacity, room) {
         return this.maxCreeps;
     };
     /**
@@ -30,6 +31,7 @@ function ClassCreep() {
             try {
                 let room = Game.rooms[creep.memory.homeRoom];
                 let spawn = Game.spawns[creep.memory.homeSpawn];
+                var containers = new UtilContainers(room);
                 var x = _.filter(Game.creeps, (c) => c.memory.role == creep.memory.role
                     && ( c.memory.homeRoom != undefined
                         && c.memory.homeRoom == room.name
@@ -37,6 +39,11 @@ function ClassCreep() {
                         && c.memory.homeSpawn == spawn.name
                     )
                 );
+
+                if(x.length > this.max(containers.energyInContainers, room)) {
+                    console.log('Expiring creep '+creep.name+' ('+creep.memory.role+') in room '+room.name+' because we\'re over cap.');
+                    return true;
+                }
                 var body = this.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length, room.controller.level);
                 if( UtilCreep.calculateRequiredEnergy(body) > UtilCreep.calculateRequiredEnergy(_.pluck(creep.body, 'type'))) {
                     console.log('Expiring creep '+creep.name+' ('+creep.memory.role+') in room '+room.name+' for an upgrade.');
@@ -44,6 +51,7 @@ function ClassCreep() {
                 }
             } catch (e) {
                 console.log(JSON.stringify(e), 'Creep.renewCreep.ExpireCreep');
+                return false;
             }
 
         }

@@ -202,8 +202,10 @@ function RoleRemoteBuilder() {
                                     } else {
                                         spawn.recycleCreep(creep);
                                     }
+                                } else {
+                                    creep.moveTo(spawn);
                                 }
-                                creep.say('B:IDLE');
+                                creep.say('B:IDLE!');
                                 //this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
                             }
                         }
