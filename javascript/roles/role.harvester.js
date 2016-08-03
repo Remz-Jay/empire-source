@@ -117,11 +117,21 @@ function RoleHarvester() {
 					case ERR_NOT_ENOUGH_RESOURCES:
 					case ERR_INVALID_TARGET:
 						if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferredSource) {
-							this.creep.moveTo(source);
+						if(this.creep.pos.getRangeTo(source)>1) {
+							if (!this.creep.memory.targetPath) {
+								if (!this.findNewPath(this.createPathFinderMap([source], 1))) {
+									this.creep.say('HALP!');
+								}
+							} else {
+								var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+								this.moveByPath(path, this.createPathFinderMap([source], 1));
+							}
+						}
 							break;
 						}
 					case ERR_NOT_OWNER:
 					case ERR_FULL:
+						delete this.creep.memory.targetPath;
 						//Dump first before harvesting again.
 						if (creep.carry.energy != 0) {
 							creep.memory.dumping = true;
@@ -134,9 +144,17 @@ function RoleHarvester() {
 						}
 						break;
 					case ERR_NOT_IN_RANGE:
-						this.moveTo(source);
+						if (!this.creep.memory.targetPath) {
+							if (!this.findNewPath(this.createPathFinderMap([source], 1))) {
+								this.creep.say('HALP!');
+							}
+						} else {
+							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+							this.moveByPath(path, this.createPathFinderMap([source], 1));
+						}
 						break;
 					case OK:
+						delete this.creep.memory.targetPath;
 						break;
 					default:
 						console.log('Unhandled ERR in builder.source.harvest:' + status);

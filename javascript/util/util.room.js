@@ -7,6 +7,12 @@ function UtilRoom() {
 	this.rooms = Game.rooms;
 	this.creepMatricesStoredForTick = null;
 	this.loadRooms();
+	this.roomConfig = {
+		W7N44: [
+			{x:27, y:30, w:50}
+		],
+		W6N42: []
+	};
 
 	this.getFirstRoom = function () {
 		return this.rooms[this.roomNames[0]];
@@ -87,6 +93,7 @@ function UtilRoom() {
 						costs.set(structure.pos.x, structure.pos.y, 0xff);
 					}
 				});
+				_.each(this.roomConfig[roomName], obj => costs.set(obj.x, obj.y, obj.w));
 				console.log("returning new matrix");
 				this.setCostMatrix(room, costs);
 				return costs;

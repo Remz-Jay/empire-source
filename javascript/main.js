@@ -8,12 +8,14 @@ var StatsManager = require('statsmanager');
 global.StatsMan = new StatsManager();
 
 require('prototype.room');
+require('prototype.link');
 
 var roles = {
 	harvester: require('role.harvester'),
 	mule: require('role.mule'),
 	repairbot: require('role.repairbot'),
 	upgrader: require('role.upgrader'),
+	linker: require('role.linker'),
 	builder: require('role.builder'),
 	scout: require('role.scout'),
 	healer: require('role.healer'),
@@ -53,6 +55,13 @@ module.exports.loop = function () {
 		var containers = new utils.Containers(room);
 
 		var sources = new utils.Sources();
+
+		if(!!room.storage) {
+			let links = _.filter(room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK);
+			_.each(links, function(l) {
+				l.run();
+			}, this);
+		}
 		sources.setRoom(name);
 		sources.updateHarvesterPreference();
 		if (room.controller.level > 0 && room.controller.my) {
@@ -119,6 +128,11 @@ module.exports.loop = function () {
 
 				for (var index in roles) {
 					var role = new roles[index];
+					if(!!room.storage && role.role == 'linker') {
+						var link = _.filter(room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(room.storage));
+						if (link.length < 1) continue;
+					}
+
 					if (undefined != role.role
 						&& (undefined == role.minRCL || room.controller.level >= role.minRCL)
 					) {

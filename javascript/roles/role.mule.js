@@ -56,6 +56,7 @@ function RoleMule() {
 			case STRUCTURE_TOWER:
 			case STRUCTURE_CONTAINER:
 			case STRUCTURE_STORAGE:
+			case STRUCTURE_LINK:
 				let status = this.creep.transfer(target, RESOURCE_ENERGY);
 				switch (status) {
 					case ERR_NOT_IN_RANGE:
@@ -90,7 +91,14 @@ function RoleMule() {
 	};
 	this.dumpAtStorage = function () {
 		if (!this.creep.memory.target) {
-			if (!!this.creep.room.storage) {
+			//find a nearby link first
+			let target = this.creep.pos.findInRange(FIND_STRUCTURES, 10, {
+				filter: s => s.structureType == STRUCTURE_LINK
+				&& s.energy < s.energyCapacity
+			});
+			if(!!target && target.length > 0) {
+				this.creep.memory.target = target[0].id;
+			} else if (!!this.creep.room.storage) {
 				this.creep.memory.target = this.creep.room.storage.id;
 			} else {
 				//last resort; just return energy to the nearest container.

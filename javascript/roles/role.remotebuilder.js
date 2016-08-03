@@ -5,6 +5,7 @@ function RoleRemoteBuilder() {
 	Creep.call(this);
 	this.role = 'remoteBuilder';
 	this.minRCL = 5;
+	this.maxCreeps = 0;
 	this.isRemote = true;
 	this.targetFlag = Game.flags.Vagine;
 	this.homeFlag = Game.flags.FireBase1;
@@ -17,7 +18,7 @@ function RoleRemoteBuilder() {
 				return cs.pos.roomName == this.targetFlag.pos.roomName;
 			}, this);
 			if (sites.length > 0) {
-				return 2;
+				return this.maxCreeps;
 			} else {
 				return 0;
 			}
