@@ -5,10 +5,12 @@ function RoleRemoteHarvester() {
 	Harvester.call(this);
 	this.role = 'remoteHarvester';
 	this.minRCL = 5;
+	this.maxCreeps = 1;
+	this.isRemote = true;
 	this.targetFlag = Game.flags.Schmoop;
 	this.homeFlag = Game.flags.FireBase1;
 	this.max = function (energyInContainers, room) {
-		return 1;
+		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		let numParts;
@@ -23,20 +25,20 @@ function RoleRemoteHarvester() {
 
 	};
 	this.remoteHarvesterLogic = function (creep) {
-		if (creep.memory.dumping && creep.carry.energy == 0) {
-			creep.memory.dumping = false;
-			creep.memory.target = false;
-			creep.memory.source = false;
-			creep.say('H:HARV');
+		if (!!creep.memory.dumping && creep.carry.energy == 0) {
+			delete this.creep.memory.dumping;
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
+			this.creep.say('H:HARV');
 		}
 		if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
 			creep.memory.dumping = true;
-			creep.memory.target = false;
-			creep.memory.source = false;
-			creep.say('H:DIST');
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
+			this.creep.say('H:DIST');
 		}
-		if (creep.memory.dumping) {
-			if (creep.memory.target == false) {
+		if (!!creep.memory.dumping) {
+			if (!creep.memory.target) {
 				//Containers are nearby, fill them first.
 				target = creep.pos.findInRange(FIND_STRUCTURES, 10, {
 					filter: (structure) => {
@@ -45,11 +47,11 @@ function RoleRemoteHarvester() {
 					}
 				});
 
-				target.length < 1 ? creep.say('idle!') : creep.memory.target = target[0].id;
+				target.length < 1 ? this.creep.say('idle!') : creep.memory.target = target[0].id;
 			}
 			var target = Game.getObjectById(creep.memory.target);
-			if (target == null) {
-				creep.memory.target = false;
+			if (!target) {
+				delete this.creep.memory.target;
 			} else {
 				switch (target.structureType) {
 					case STRUCTURE_EXTENSION:
@@ -62,7 +64,7 @@ function RoleRemoteHarvester() {
 								this.moveTo(target);
 								break;
 							case ERR_FULL:
-								creep.memory.target = false;
+								delete this.creep.memory.target;
 								break;
 							case OK:
 								break;
@@ -78,23 +80,24 @@ function RoleRemoteHarvester() {
 				}
 			}
 		} else {
-			if (creep.memory.source == false) {
-				if (creep.memory.preferedSource) {
-					source = Game.getObjectById(creep.memory.preferedSource);
+			if (!creep.memory.source) {
+				let source;
+				if (creep.memory.preferredSource) {
+					source = Game.getObjectById(creep.memory.preferredSource);
 				} else {
-					var source = creep.pos.findInRange(FIND_SOURCES, 10, {
+					source = creep.pos.findInRange(FIND_SOURCES, 10, {
 						filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 60
 					});
 				}
-				if (source.length > 0) creep.memory.source = source[0].id;
+				if (source.length > 0) this.creep.memory.source = source[0].id;
 			}
-			if (creep.memory.source != false && creep.memory.source != null) {
+			if (!!creep.memory.source) {
 				var source = Game.getObjectById(creep.memory.source);
 				var status = creep.harvest(source);
 				switch (status) {
 					case ERR_NOT_ENOUGH_RESOURCES:
 					case ERR_INVALID_TARGET:
-						if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
+						if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferredSource) {
 							this.moveTo(source);
 							break;
 						}
@@ -103,12 +106,12 @@ function RoleRemoteHarvester() {
 						//Dump first before harvesting again.
 						if (creep.carry.energy != 0) {
 							creep.memory.dumping = true;
-							creep.memory.target = false;
-							creep.memory.source = false;
-							creep.say('H:DIST');
+							delete this.creep.memory.target;
+							delete this.creep.memory.source;
+							this.creep.say('H:DIST');
 						} else {
-							creep.memory.source = false;
-							creep.say('H:NEWSRC');
+							delete this.creep.memory.source;
+							this.creep.say('H:NEWSRC');
 						}
 						break;
 					case ERR_NOT_IN_RANGE:
@@ -120,7 +123,7 @@ function RoleRemoteHarvester() {
 						console.log('Unhandled ERR in builder.source.harvest:' + status);
 				}
 			} else {
-				creep.memory.source = false;
+				delete this.creep.memory.source;
 			}
 		}
 	};
@@ -133,7 +136,7 @@ function RoleRemoteHarvester() {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
 					if (!this.findNewPath(this.targetFlag)) {
-						creep.say('HALP!');
+						this.creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
@@ -158,7 +161,7 @@ function RoleRemoteHarvester() {
 								)
 							}
 						});
-						if (target != null && target.length > 0) {
+						if (!!target && target.length > 0) {
 							target = target[0];
 							var status = creep.repair(target);
 							switch (status) {
@@ -167,11 +170,11 @@ function RoleRemoteHarvester() {
 								case ERR_BUSY:
 								case ERR_INVALID_TARGET:
 								case ERR_NOT_OWNER:
-									creep.memory.target = false;
+									delete this.creep.memory.target;
 									break;
 								case ERR_NOT_ENOUGH_RESOURCES:
-									creep.memory.target = false;
-									creep.memory.repairing = false;
+									delete this.creep.memory.target;
+									delete this.creep.memory.repairing;
 									break;
 								case ERR_NOT_IN_RANGE:
 									this.moveTo(target);

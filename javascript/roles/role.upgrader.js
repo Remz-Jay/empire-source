@@ -13,13 +13,13 @@ function RoleUpgrader() {
 	};
 	this.upgraderLogic = function () {
 		if (this.creep.memory.dumping && this.creep.carry.energy == 0) {
-			this.creep.memory.dumping = false;
-			this.creep.memory.source = false;
+			delete this.creep.memory.dumping;
+			delete this.creep.memory.source;
 			this.creep.say('U:COL');
 		}
 		if (!this.creep.memory.dumping && this.creep.carry.energy == this.creep.carryCapacity) {
 			this.creep.memory.dumping = true;
-			this.creep.memory.source = false;
+			delete this.creep.memory.source;
 			this.creep.say('U:UPGR');
 		}
 		if (this.creep.memory.dumping) {

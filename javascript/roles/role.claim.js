@@ -3,6 +3,7 @@ function RoleClaim() {
 	Creep.call(this);
 	this.role = 'claim';
 	this.minRCL = 5;
+	this.maxCreeps = 1;
 	this.targetFlag = Game.flags.Schmoop;
 	this.homeFlag = Game.flags.FireBase1;
 	this.bodyPart = [CLAIM, MOVE]; //600+50 = 650;
@@ -11,7 +12,7 @@ function RoleClaim() {
 			_.get(_.find(Game.creeps, (s) => true), 'owner.username')
 		) || false;
 	this.max = function (energyInContainers, room) {
-		return 1;
+		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
 	};
 	this.run = function (creep) {
 		this.creep = creep;
@@ -28,7 +29,7 @@ function RoleClaim() {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
 					if (!this.findNewPath(this.targetFlag)) {
-						creep.say('HALP!');
+						this.creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
@@ -51,7 +52,7 @@ function RoleClaim() {
 				} else {
 					if (!this.creep.memory.targetPath) {
 						if (!this.findNewPath(this.homeFlag)) {
-							creep.say('HALP!');
+							this.creep.say('HALP!');
 						}
 					} else {
 						var path = this.deserializePathFinderPath(this.creep.memory.targetPath);

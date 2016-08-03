@@ -30,19 +30,19 @@ function RoleHarvester() {
 	/** @param {Creep} creep **/
 	this.harvesterLogic = function (creep) {
 		if (creep.memory.dumping && creep.carry.energy == 0) {
-			creep.memory.dumping = false;
-			creep.memory.target = false;
-			creep.memory.source = false;
-			creep.say('H:HARV');
+			delete this.creep.memory.dumping;
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
+			this.creep.say('H:HARV');
 		}
 		if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
 			creep.memory.dumping = true;
-			creep.memory.target = false;
-			creep.memory.source = false;
-			creep.say('H:DIST');
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
+			this.creep.say('H:DIST');
 		}
 		if (creep.memory.dumping) {
-			if (creep.memory.target == false) {
+			if (!creep.memory.target) {
 				//Containers are nearby, fill them first.
 				target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 					filter: (structure) => {
@@ -51,7 +51,7 @@ function RoleHarvester() {
 					}
 				});
 				//If all containers are full, move directly to an owned structure.
-				if (target == null) {
+				if (!target) {
 					var target = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
 						filter: (structure) => {
 							return (
@@ -62,15 +62,15 @@ function RoleHarvester() {
 						}
 					});
 				}
-				if (target != null) {
+				if (!!target) {
 					creep.memory.target = target.id;
 				} else {
 					creep.memory.target = creep.room.controller.id;
 				}
 			}
 			var target = Game.getObjectById(creep.memory.target);
-			if (target == null) {
-				creep.memory.target = false;
+			if (!target) {
+				delete this.creep.memory.target;
 			} else {
 				switch (target.structureType) {
 					case STRUCTURE_EXTENSION:
@@ -83,7 +83,7 @@ function RoleHarvester() {
 								this.moveTo(target);
 								break;
 							case ERR_FULL:
-								creep.memory.target = false;
+								delete this.creep.memory.target;
 								break;
 							case OK:
 								break;
@@ -99,23 +99,24 @@ function RoleHarvester() {
 				}
 			}
 		} else {
-			if (creep.memory.source == false) {
-				if (creep.memory.preferedSource) {
-					source = Game.getObjectById(creep.memory.preferedSource);
+			if (!creep.memory.source) {
+				let source;
+				if (!!creep.memory.preferredSource) {
+					source = Game.getObjectById(creep.memory.preferredSource);
 				} else {
-					var source = creep.pos.findClosestByPath(FIND_SOURCES, {
-						filter: (source) => (source.energy >= 100) || source.ticksToRegeneration < 60
+					source = creep.pos.findClosestByPath(FIND_SOURCES, {
+						filter: source => (source.energy >= 100) || source.ticksToRegeneration < 60
 					});
 				}
-				if (source != null) creep.memory.source = source.id;
+				if (!!source) creep.memory.source = source.id;
 			}
-			if (creep.memory.source != false && creep.memory.source != null) {
-				var source = Game.getObjectById(creep.memory.source);
-				var status = creep.harvest(source);
+			if (!!creep.memory.source) {
+				let source = Game.getObjectById(creep.memory.source);
+				let status = creep.harvest(source);
 				switch (status) {
 					case ERR_NOT_ENOUGH_RESOURCES:
 					case ERR_INVALID_TARGET:
-						if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferedSource) {
+						if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferredSource) {
 							this.creep.moveTo(source);
 							break;
 						}
@@ -124,12 +125,12 @@ function RoleHarvester() {
 						//Dump first before harvesting again.
 						if (creep.carry.energy != 0) {
 							creep.memory.dumping = true;
-							creep.memory.target = false;
-							creep.memory.source = false;
-							creep.say('H:DIST');
+							delete this.creep.memory.target;
+							delete this.creep.memory.source;
+							this.creep.say('H:DIST');
 						} else {
-							creep.memory.source = false;
-							creep.say('H:NEWSRC');
+							delete this.creep.memory.source;
+							this.creep.say('H:NEWSRC');
 						}
 						break;
 					case ERR_NOT_IN_RANGE:
@@ -150,7 +151,7 @@ function RoleHarvester() {
 					creep.transfer(targets[0], RESOURCE_ENERGY);
 				}
 			} else {
-				creep.memory.source = false;
+				delete this.creep.memory.source;
 			}
 		}
 	};

@@ -28,13 +28,18 @@ function UtilSources() {
 	this.findAvailableHarvester = function (s) {
 		var harvesters = _.filter(Game.creeps, creep => creep.memory.role == 'harvester');
 		return _.find(harvesters, function (h) {
-			return (!h.memory.preferredSource || h.memory.preferredSource == false) && s.room.name == h.room.name;
+			return (!h.memory.preferredSource) && s.room.name == h.room.name;
 		});
 	};
 
 	this.updateHarvesterPreference = function () {
 		_.each(this.getSources(), function (s) {
-			if (!!s.memory.preferredHarvester && Memory.creeps[s.memory.preferredHarvester] == undefined //Assigned harvester has died
+			if (!s.memory.preferredHarvester
+				|| (
+					!Game.creeps[s.memory.preferredHarvester] //Assigned harvester has died
+					|| !Game.creeps[s.memory.preferredHarvester].memory.preferredSource // Harvester doesn't know about this source.
+					//|| Game.creeps[s.memory.preferredHarvester].memory.preferredSource != s.id // Harvester doesn't know about this source.
+				)
 			) {
 				var ph = this.findAvailableHarvester(s);
 				if (!!ph) {

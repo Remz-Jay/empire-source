@@ -59,15 +59,23 @@ function RoleMule() {
 				let status = this.creep.transfer(target, RESOURCE_ENERGY);
 				switch (status) {
 					case ERR_NOT_IN_RANGE:
-						this.moveTo(target);
+						if (!this.creep.memory.targetPath) {
+							if (!this.findNewPath(target)) {
+								this.creep.say('HALP!');
+							}
+						} else {
+							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+							this.moveByPath(path, target);
+						}
 						break;
 					case ERR_FULL:
 					case ERR_NOT_ENOUGH_ENERGY:
-						this.creep.memory.target = false;
+						delete this.creep.memory.target;
 						//We're empty, drop from idle to pick up new stuff to haul.
-						this.creep.memory.idle = false;
+						delete this.creep.memory.idle;
 						break;
 					case OK:
+						delete this.creep.memory.targetPath;
 						break;
 					default:
 						console.log('Status ' + status + ' not defined for mule.dump');
@@ -93,64 +101,66 @@ function RoleMule() {
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
-					this.creep.memory.target = false;
+					delete this.creep.memory.target;
 					this.creep.say('IDLE!');
 				}
 			}
 		}
 		let target = Game.getObjectById(this.creep.memory.target);
 		if (!target) {
-			this.creep.memory.target = false;
+			delete this.creep.memory.target;
 		} else {
 			this.dumpRoutine(target);
 		}
 	};
 	this.muleLogic = function () {
-		if (this.creep.memory.dumping && this.creep.carry.energy == 0) {
-			this.creep.memory.dumping = false;
-			this.creep.memory.target = false;
-			this.creep.memory.source = false;
-			this.creep.memory.idle = false;
+		if (!!this.creep.memory.dumping && this.creep.carry.energy == 0) {
+			delete this.creep.memory.dumping;
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
+			delete this.creep.memory.idle;
 			this.creep.say('M:COL');
 		}
 		if (!this.creep.memory.dumping && !this.creep.memory.idle &&
 			this.creep.carry.energy == this.creep.carryCapacity) {
 			this.creep.memory.dumping = true;
-			this.creep.memory.target = false;
-			this.creep.memory.source = false;
-			this.creep.memory.idle = false;
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
+			delete this.creep.memory.idle;
 			this.creep.say('M:DIST');
 		}
-		if (this.creep.memory.dumping) {
-			let target = this.scanForTargets();
-			if (!!target) {
-				this.creep.memory.target = target.id;
-			} else {
-				//nothing to mule. do secondary tasks instead.
-				this.creep.memory.idle = true;
-				this.creep.memory.dumping = false;
-				this.creep.memory.target = false;
-				this.creep.memory.source = false;
+		if (!!this.creep.memory.dumping) {
+			if (!this.creep.memory.target) {
+				let target = this.scanForTargets();
+				if (!!target) {
+					this.creep.memory.target = target.id;
+				} else {
+					//nothing to mule. do secondary tasks instead.
+					this.creep.memory.idle = true;
+					delete this.creep.memory.dumping;
+					delete this.creep.memory.target;
+					delete this.creep.memory.source;
+				}
 			}
-
-			target = Game.getObjectById(this.creep.memory.target);
+			let target = Game.getObjectById(this.creep.memory.target);
 			if (!target) {
-				this.creep.memory.target = false;
+				delete this.creep.memory.target;
 			} else {
+
 				this.dumpRoutine(target);
 			}
-		} else if (this.creep.memory.idle) {
+		} else if (!!this.creep.memory.idle) {
 			//return to duty when able
 			let target = this.scanForTargets();
 			if (!!target) {
 				this.creep.memory.target = target.id;
-				this.creep.memory.idle = false;
+				delete this.creep.memory.idle;
 				this.creep.memory.dumping = true;
 			} else {
 				//scan for dropped energy if we have room
 				if (this.creep.carry.energy < this.creep.carryCapacity) {
 					let target = this.creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
-					if (target) {
+					if (!!target) {
 						if (this.creep.pickup(target) == ERR_NOT_IN_RANGE) {
 							this.moveTo(target);
 						}
@@ -197,7 +207,7 @@ function RoleMule() {
 							console.log('Unhandled ERR in builder.source.container:' + status);
 					}
 				} else {
-					this.creep.memory.source = false;
+					delete this.creep.memory.source;
 				}
 			}
 		}

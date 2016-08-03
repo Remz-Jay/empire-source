@@ -21,20 +21,20 @@ function RoleRepairbot() {
 	};
 	this.repairLogic = function (creep) {
 		if (this.creep.memory.repairing && this.creep.carry.energy == 0) {
-			this.creep.memory.repairing = false;
-			this.creep.memory.target = false;
-			this.creep.memory.source = false;
+			delete this.creep.memory.repairing;
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
 			this.creep.say('R:COL');
 		}
 		if (!this.creep.memory.repairing && this.creep.carry.energy == this.creep.carryCapacity) {
 			this.creep.memory.repairing = true;
-			this.creep.memory.target = false;
-			this.creep.memory.source = false;
+			delete this.creep.memory.target;
+			delete this.creep.memory.source;
 			this.creep.say('R:REP');
 		}
 
-		if (this.creep.memory.repairing) {
-			if (this.creep.memory.target == false) {
+		if (!!this.creep.memory.repairing) {
+			if (!this.creep.memory.target) {
 				//See if any owned buildings are damaged.
 				var target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
 					filter: (structure) => {
@@ -45,7 +45,7 @@ function RoleRepairbot() {
 					}
 				});
 				// No? Try to repair a neutral structure instead.
-				if (target == null) {
+				if (!target) {
 					target = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
 						filter: (structure) => {
 							return (
@@ -61,7 +61,7 @@ function RoleRepairbot() {
 				//Still nothing? Fortify Ramparts and Walls if we have spare energy.
 				//if(creep.room.energyAvailable / (creep.room.energyCapacityAvailable/100)>50) {
 				if (this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
-					if (target == null) {
+					if (!target) {
 						target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
 							filter: (structure) => {
 								return (
@@ -73,13 +73,13 @@ function RoleRepairbot() {
 								);
 							}
 						});
-						if (target == null) {
+						if (!target) {
 							var wall = new Wall(creep.room);
 							target = wall.getWeakestWall();
 						}
 					}
 				}
-				if (target != null) {
+				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
 					var spawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
@@ -93,9 +93,9 @@ function RoleRepairbot() {
 				}
 			}
 			var target = Game.getObjectById(this.creep.memory.target);
-			if (target != null) {
+			if (!!target) {
 				if (target.hits == target.hitsMax) {
-					this.creep.memory.target = false;
+					delete this.creep.memory.target;
 				}
 				var status = this.creep.repair(target);
 				switch (status) {
@@ -104,11 +104,11 @@ function RoleRepairbot() {
 					case ERR_BUSY:
 					case ERR_INVALID_TARGET:
 					case ERR_NOT_OWNER:
-						creep.memory.target = false;
+						delete this.creep.memory.target;
 						break;
 					case ERR_NOT_ENOUGH_RESOURCES:
-						creep.memory.target = false;
-						creep.memory.repairing = false;
+						delete this.creep.memory.target;
+						delete this.creep.memory.repairing;
 						break;
 					case ERR_NOT_IN_RANGE:
 						this.moveTo(target);
@@ -118,7 +118,7 @@ function RoleRepairbot() {
 						console.log('repairBot.repair.status: this should not happen');
 				}
 			} else {
-				this.creep.memory.target = false;
+				delete this.creep.memory.target;
 			}
 		} else {
 			this.harvestFromContainersAndSources();

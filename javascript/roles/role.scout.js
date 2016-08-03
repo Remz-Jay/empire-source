@@ -4,6 +4,8 @@ function RoleScout() {
 	Creep.call(this);
 	this.role = "scout";
 	this.minRCL = 5;
+	this.maxCreeps = 2;
+	this.isRemote = true;
 	this.bodyPart = [
 		//ATTACK,MOVE, // 80+50
 		RANGED_ATTACK, MOVE, // 150+50
@@ -13,7 +15,7 @@ function RoleScout() {
 	this.targetFlag = Game.flags.Pauper;
 	//this.targetRoom = 'W7N42';
 	this.max = function (energyInContainers, room) {
-		return 2;
+		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		var numParts = _.floor((capacity - 400) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
@@ -31,7 +33,7 @@ function RoleScout() {
 	this.moveToFlag = function () {
 		if (!this.creep.memory.targetPath) {
 			if (!this.findNewPath(this.targetFlag)) {
-				creep.say('HALP!');
+				this.creep.say('HALP!');
 			}
 		} else {
 			var path = this.deserializePathFinderPath(this.creep.memory.targetPath);

@@ -14,7 +14,10 @@ function ClassCreep() {
 	};
 	/**
 	 *
-	 * @param {int} capacity
+	 * @param {int} capacity - The Spawn's current maximum Capacity
+	 * @param {int} [energy] - The Spawn's current available Energy
+	 * @param {int} [numCreeps] - The current number of creeps that exist with this role
+	 * @param {int} [rcl] - The Room's RCL
 	 * @returns {Array}
 	 */
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
@@ -313,7 +316,7 @@ function ClassCreep() {
 				this.creep.say('FTHISIMOUT');
 				this.creep.memory.flee = true;
 				if (!this.findNewPath(this.homeFlag, 'fleePath')) {
-					creep.say('HALP!');
+					this.creep.say('HALP!');
 				}
 			}
 		} else {
@@ -321,8 +324,8 @@ function ClassCreep() {
 				//We've made it home. See if the coast is clear again.
 				let hostiles = this.targetFlag.room.find(FIND_HOSTILE_CREEPS);
 				if (hostiles.length == 0) {
-					delete this.memory.flee;
-					delete this.memory.fleePath;
+					delete this.creep.memory.flee;
+					delete this.creep.memory.fleePath;
 				}
 			} else {
 				var path = this.deserializePathFinderPath(this.creep.memory.fleePath);
@@ -331,7 +334,7 @@ function ClassCreep() {
 		}
 	};
 	this.harvestFromContainersAndSources = function () {
-		if (this.creep.memory.source == false) {
+		if (!this.creep.memory.source) {
 			//Prefer energy from containers
 			let source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
 				filter: structure => (structure.structureType == STRUCTURE_CONTAINER
@@ -352,7 +355,7 @@ function ClassCreep() {
 			}
 			if (!!source) this.creep.memory.source = source.id;
 		}
-		if (this.creep.memory.source != false) {
+		if (!!this.creep.memory.source) {
 			var source = Game.getObjectById(this.creep.memory.source);
 			if (source instanceof Structure) { //Sources aren't structures
 				var status = this.creep.withdraw(source, RESOURCE_ENERGY);
@@ -361,7 +364,7 @@ function ClassCreep() {
 					case ERR_INVALID_TARGET:
 					case ERR_NOT_OWNER:
 					case ERR_FULL:
-						this.creep.memory.source = false;
+						delete this.creep.memory.source;
 						break;
 					case ERR_NOT_IN_RANGE:
 						this.creep.moveTo(source);
@@ -378,7 +381,7 @@ function ClassCreep() {
 					case ERR_INVALID_TARGET:
 					case ERR_NOT_OWNER:
 					case ERR_FULL:
-						this.creep.memory.source = false;
+						delete this.creep.memory.source;
 						break;
 					case ERR_NOT_IN_RANGE:
 						this.creep.moveTo(source);

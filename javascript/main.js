@@ -3,8 +3,11 @@
 //Game.creeps['Harvester1'].suicide()
 //http://support.screeps.com/hc/en-us/articles/205990342-StructureSpawn#renewCreep
 //Game.spawns['Spawn1'].room.createConstructionSite( 23, 22, STRUCTURE_TOWER );
+var _ = require('lodash');
 var StatsManager = require('statsmanager');
 global.StatsMan = new StatsManager();
+
+require('prototype.room');
 
 var roles = {
 	harvester: require('role.harvester'),
@@ -40,6 +43,7 @@ module.exports.loop = function () {
 	for (var name in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		var room = Game.rooms[name];
+		console.log(room.getReservedRoom());
 		var wall = new classes.Wall(room);
 		wall.adjustStrength();
 
@@ -118,9 +122,10 @@ module.exports.loop = function () {
 					if (undefined != role.role
 						&& (undefined == role.minRCL || room.controller.level >= role.minRCL)
 					) {
+						let x;
 						// also process homeless creeps in Bastion
 						if (spawn.name == 'Bastion') {
-							var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
+							x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
 								&& ( creep.memory.homeRoom == undefined
 									|| creep.memory.homeRoom == room.name
 								) && ( creep.memory.homeSpawn == undefined
@@ -128,7 +133,7 @@ module.exports.loop = function () {
 								)
 							);
 						} else {
-							var x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
+							x = _.filter(Game.creeps, (creep) => creep.memory.role == role.role
 								&& ( creep.memory.homeRoom != undefined
 									&& creep.memory.homeRoom == room.name
 								) && ( creep.memory.homeSpawn != undefined
@@ -179,6 +184,7 @@ module.exports.loop = function () {
 								var newName = spawn.createCreep(body, undefined, {
 									role: role.role,
 									homeRoom: room.name,
+									targetRoom: (!!room.getReservedRoom() && !!role.isRemote) ? room.getReservedRoom().name : undefined,
 									homeSpawn: spawn.name
 								});
 								if (_.isString(newName)) {

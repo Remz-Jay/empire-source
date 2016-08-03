@@ -24,11 +24,11 @@ function UtilRoom() {
 		this.costMatrices[room.name] = costMatrix;
 	};
 	this.getCreepMatrix = function (room) {
-		if (this.creepMatricesStoredForTick != null && this.creepMatricesStoredForTick == Game.time) {
+		if (!!this.creepMatricesStoredForTick && this.creepMatricesStoredForTick == Game.time) {
 			return (this.creepMatrices.hasOwnProperty(room.name)) ? this.creepMatrices[room.name] : undefined;
 		} else {
 			// new tick, new chances
-			if (this.creepMatricesStoredForTick != null) {
+			if (!!this.creepMatricesStoredForTick) {
 				this.expireCreepMatrices();
 			}
 			this.creepMatricesStoredForTick = Game.time;

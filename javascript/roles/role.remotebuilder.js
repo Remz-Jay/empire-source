@@ -5,20 +5,26 @@ function RoleRemoteBuilder() {
 	Creep.call(this);
 	this.role = 'remoteBuilder';
 	this.minRCL = 5;
+	this.isRemote = true;
 	this.targetFlag = Game.flags.Vagine;
 	this.homeFlag = Game.flags.FireBase1;
 	this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
 	this.creep = undefined;
 	this.buildType = STRUCTURE_SPAWN;
 	this.max = function (energyInContainers, room) {
-		var sites = _.filter(Game.constructionSites, function (cs) {
-			return cs.pos.roomName == this.targetFlag.pos.roomName;
-		}, this);
-		if (sites.length > 0) {
-			return 2;
+		if (!!room.getReservedRoom()) {
+			var sites = _.filter(Game.constructionSites, function (cs) {
+				return cs.pos.roomName == this.targetFlag.pos.roomName;
+			}, this);
+			if (sites.length > 0) {
+				return 2;
+			} else {
+				return 0;
+			}
 		} else {
 			return 0;
 		}
+
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		var numParts = _.floor((capacity - 150) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
@@ -38,7 +44,7 @@ function RoleRemoteBuilder() {
 		if (containers.length > 0) {
 			var map = this.createPathFinderMap(containers, 1);
 			var path = this.findPathFinderPath(map);
-			if (path == false || path.length < 1) {
+			if (!path || path.length < 1) {
 				delete this.creep.memory.homePath;
 				delete this.creep.memory.homePathContainer;
 			} else {
@@ -52,20 +58,11 @@ function RoleRemoteBuilder() {
 			}
 		}
 	};
-	this.findTargetPath = function (goal) {
-		var path = this.findPathFinderPath(goal);
-		if (path != false) {
-			this.creep.memory.targetPath = path;
-		} else {
-			creep.say('HALP!');
-		}
-		return path;
-	};
 	this.run = function (creep) {
 		this.creep = creep;
 		this.shouldIStayOrShouldIGo();
 		this.pickupResourcesInRange();
-		if (undefined != this.targetFlag) {
+		if (!!this.targetFlag) {
 			if (this.creep.room.name != this.targetFlag.pos.roomName) {
 				if (
 					this.creep.room.name == this.homeFlag.pos.roomName
@@ -128,11 +125,11 @@ function RoleRemoteBuilder() {
 							}
 						}
 					} else {
-						this.creep.memory.runBack = false;
+						delete this.creep.memory.runBack;
 						//with full energy, move to the next room.
 						if (!this.creep.memory.targetPath) {
 							if (!this.findNewPath(this.targetFlag)) {
-								creep.say('HALP!');
+								this.creep.say('HALP!');
 							}
 						} else {
 							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
@@ -180,16 +177,16 @@ function RoleRemoteBuilder() {
 							}
 						}
 					} else {
-						if (creep.memory.target == false) {
+						if (!creep.memory.target) {
 							var target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
-							if (target != null) {
+							if (!!target) {
 								creep.memory.target = target.id;
 							} else {
 								//nothing to build. return energy.
-								creep.memory.building = false;
+								delete this.creep.memory.building;
 								creep.memory.idle = true;
-								creep.memory.target = false;
-								creep.memory.source = false;
+								delete this.creep.memory.target;
+								delete this.creep.memory.source;
 								var spawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
 								if (creep.pos.isNearTo(spawn)) {
 									if (creep.carry.energy > 0) {
@@ -200,12 +197,12 @@ function RoleRemoteBuilder() {
 								} else {
 									creep.moveTo(spawn);
 								}
-								creep.say('B:IDLE!');
+								this.creep.say('B:IDLE!');
 								//this.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
 							}
 						}
 						var target = Game.getObjectById(creep.memory.target);
-						if (target != null) {
+						if (!!target) {
 							var log = creep.build(target);
 							switch (log) {
 								case OK:
@@ -218,7 +215,7 @@ function RoleRemoteBuilder() {
 									break;
 							}
 						} else {
-							creep.memory.target = false;
+							delete this.creep.memory.target;
 						}
 					}
 				} else {
