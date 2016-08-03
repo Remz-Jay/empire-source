@@ -153,14 +153,14 @@ function RoleHarvester() {
 				creep.memory.source = false;
 			}
 		}
-	}
+	};
 	this.run = function (creep) {
 		this.creep = creep;
 		if (this.renewCreep()) {
 			this.harvesterLogic(creep);
 		}
 	}
-};
+}
 RoleHarvester.prototype = _.create(Worker.prototype, {
 	'constructor': RoleHarvester
 });

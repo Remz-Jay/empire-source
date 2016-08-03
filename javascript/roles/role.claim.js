@@ -8,7 +8,7 @@ function RoleClaim() {
 	this.bodyPart = [CLAIM, MOVE]; //600+50 = 650;
 	this.max = function (energyInContainers, room) {
 		return 1;
-	}
+	};
 	this.run = function (creep) {
 		this.creep = creep;
 		if (undefined != this.targetFlag) {

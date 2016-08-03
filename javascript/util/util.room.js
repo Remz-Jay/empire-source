@@ -32,7 +32,7 @@ function UtilRoom() {
 				this.expireCreepMatrices();
 			}
 			this.creepMatricesStoredForTick = Game.time;
-			return;
+
 		}
 	};
 	this.setCreepMatrix = function (room, costMatrix) {

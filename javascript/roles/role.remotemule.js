@@ -80,7 +80,7 @@ function RoleRemoteMule() {
 					var sources = creep.room.find(FIND_STRUCTURES, {
 						filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
 						structure.store[RESOURCE_ENERGY] > 100
-					})
+					});
 					if (sources.length > 0) {
 						var source = _.sortBy(sources, function (s) {
 							return s.store[RESOURCE_ENERGY];
@@ -121,7 +121,7 @@ function RoleRemoteMule() {
 			}
 		}
 	}
-};
+}
 RoleRemoteMule.prototype = _.create(Mule.prototype, {
 	'constructor': RoleRemoteMule
 });

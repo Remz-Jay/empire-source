@@ -5,7 +5,7 @@ var StatsManager = function () {
 	this.username = _.get(
 			_.find(Game.structures, (s) => true), 'owner.username',
 			_.get(_.find(Game.creeps, (s) => true), 'owner.username')
-		) || false
+		) || false;
 	this.clean();
 };
 
@@ -68,27 +68,21 @@ StatsManager.prototype.runBuiltinStats = function () {
 		var controller = room.controller;
 
 		// Is hostile room? Continue
-		if (!controller.my) {
-			if (!!controller.owner) { // Owner is set but is not this user.
-				if (controller.owner.username != this.username) {
-					return;
-				}
-			} else if (controller.reservation && controller.reservation.username == this.username) {
-				//Reserved room
-				if (!stats.rooms[room.name]) {
-					stats.rooms[room.name] = {}
-				}
-				_.merge(stats.rooms[room.name], {
-					myRoom: 0,
-					level: controller.level,
-					reservation: _.get(controller, 'reservation.ticksToEnd'),
-					energy: 0,
-					energyCapacity: 0,
-					mineralAmount: 0,
-					mineralType: '',
-				});
-				this.roomExpensive(stats, room);
+		if (!controller.my && !!controller.reservation && controller.reservation.username == this.username) {
+			//Reserved room
+			if (!stats.rooms[room.name]) {
+				stats.rooms[room.name] = {}
 			}
+			_.merge(stats.rooms[room.name], {
+				myRoom: 0,
+				level: controller.level,
+				reservation: _.get(controller, 'reservation.ticksToEnd'),
+				energy: 0,
+				energyCapacity: 0,
+				mineralAmount: 0,
+				mineralType: '',
+			});
+			this.roomExpensive(stats, room);
 		} else {
 			// this is my room. Put it in rooms.
 			if (!stats.rooms[room.name]) {
@@ -266,7 +260,7 @@ StatsManager.prototype.removeTick = function (tick) {
 	} else {
 		return 'ScreepStats: tick ' + tick + ' was not present to remove'
 	}
-}
+};
 
 StatsManager.prototype.getStats = function (json) {
 	if (json) {

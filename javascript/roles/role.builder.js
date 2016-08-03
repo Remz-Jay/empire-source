@@ -206,7 +206,7 @@ function RoleBuilder() {
 			this.builderLogic(creep);
 		}
 	}
-};
+}
 RoleBuilder.prototype = _.create(Worker.prototype, {
 	'constructor': RoleBuilder
 });

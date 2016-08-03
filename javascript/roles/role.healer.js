@@ -50,7 +50,7 @@ function RoleHealer() {
 			}
 
 		}
-	}
+	};
 	/** @param {Creep} creep **/
 	this.run = function (creep) {
 		this.creep = creep;

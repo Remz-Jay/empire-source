@@ -208,7 +208,7 @@ function RoleMule() {
 		this.pickupResourcesInRange(creep);
 		this.muleLogic();
 	}
-};
+}
 RoleMule.prototype = _.create(Creep.prototype, {
 	'constructor': RoleMule
 });

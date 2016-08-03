@@ -50,11 +50,11 @@ function RoleScout() {
 			}
 
 		}
-	}
+	};
 	/** @param {Creep} creep **/
 	this.run = function (creep) {
 		this.creep = creep;
-		var emergency = false
+		var emergency = false;
 		var totalAnihalation = false;
 		//if(this.creep.room.find(FIND_MY_SPAWNS).length > 0) {
 		if (!this.renewCreep()) return;

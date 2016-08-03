@@ -132,7 +132,7 @@ function RoleRepairbot() {
 			this.repairLogic(creep);
 		}
 	}
-};
+}
 RoleRepairbot.prototype = _.create(Worker.prototype, {
 	'constructor': RoleRepairbot
 });

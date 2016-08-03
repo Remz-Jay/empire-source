@@ -48,7 +48,7 @@ function RoleUpgrader() {
 			this.upgraderLogic(creep);
 		}
 	}
-};
+}
 RoleUpgrader.prototype = _.create(Worker.prototype, {
 	'constructor': RoleUpgrader
 });

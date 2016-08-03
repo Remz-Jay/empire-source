@@ -213,7 +213,7 @@ function RoleRemoteHarvester() {
 			}
 		}
 	}
-};
+}
 RoleRemoteHarvester.prototype = _.create(Harvester.prototype, {
 	'constructor': RoleRemoteHarvester
 });
