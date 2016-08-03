@@ -63,8 +63,8 @@ function RoleRemoteBuilder() {
 	};
 	this.run = function (creep) {
 		this.creep = creep;
-		this.shouldIStayOrShouldIGo(creep);
-		this.pickupResourcesInRange(creep);
+		this.shouldIStayOrShouldIGo();
+		this.pickupResourcesInRange();
 		if (undefined != this.targetFlag) {
 			if (this.creep.room.name != this.targetFlag.pos.roomName) {
 				if (
@@ -131,17 +131,12 @@ function RoleRemoteBuilder() {
 						this.creep.memory.runBack = false;
 						//with full energy, move to the next room.
 						if (!this.creep.memory.targetPath) {
-							let path = this.findTargetPath(this.targetFlag);
-							var log = this.creep.moveByPath(path);
-							if (log == ERR_NOT_FOUND) {
-								this.findTargetPath(this.targetFlag);
+							if (!this.findNewPath(this.targetFlag)) {
+								creep.say('HALP!');
 							}
 						} else {
 							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							var log = this.creep.moveByPath(path);
-							if (log == ERR_NOT_FOUND) {
-								this.findTargetPath(this.targetFlag);
-							}
+							this.moveByPath(path, this.targetFlag);
 						}
 					}
 				}

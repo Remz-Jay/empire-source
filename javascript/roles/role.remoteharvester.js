@@ -126,46 +126,23 @@ function RoleRemoteHarvester() {
 	};
 	this.run = function (creep) {
 		this.creep = creep;
-		if (!this.renewCreep()) return;
-		this.shouldIStayOrShouldIGo(creep);
+		if (!this.renewCreep(1500)) return;
+		this.shouldIStayOrShouldIGo();
 		if (undefined != this.targetFlag) {
 			if (this.creep.room.name != this.targetFlag.pos.roomName) {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
-					var path = this.findPathFinderPath(this.targetFlag);
-					if (path != false) {
-						this.creep.memory.targetPath = path;
-						this.creep.moveByPath(path);
-					} else {
+					if (!this.findNewPath(this.targetFlag)) {
 						creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					var log = this.creep.moveByPath(path);
-					if (log == ERR_NOT_FOUND) {
-						var path = this.findPathFinderPath(this.targetFlag);
-						if (path != false) {
-							this.creep.memory.targetPath = path;
-							this.creep.moveByPath(path);
-						} else {
-							creep.say('HALP!');
-						}
-					}
+					this.moveByPath(path, this.targetFlag);
 				}
 			} else {
 				if (!this.creep.pos.isNearTo(this.targetFlag)) {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					var log = this.creep.moveByPath(path);
-					if (log == ERR_NOT_FOUND) {
-						var path = this.findPathFinderPath(this.targetFlag);
-						if (path != false) {
-							this.creep.memory.targetPath = path;
-							this.creep.moveByPath(path);
-						} else {
-							creep.say('HALP!');
-						}
-					}
-					console.log('moving to flag');
+					this.moveByPath(path, this.targetFlag);
 				} else {
 					//see if we need to repair our container
 					if (this.creep.carry.energy == this.creep.carryCapacity

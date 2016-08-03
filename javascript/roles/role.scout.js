@@ -30,25 +30,12 @@ function RoleScout() {
 	};
 	this.moveToFlag = function () {
 		if (!this.creep.memory.targetPath) {
-			var path = this.findPathFinderPath(this.targetFlag);
-			if (path != false) {
-				this.creep.memory.targetPath = path;
-				var log = this.creep.moveByPath(path);
-				if (log == ERR_NOT_FOUND) {
-					this.creep.memory.targetPath = false;
-					this.moveToFlag();
-				}
-			} else {
-				this.creep.say('HALP!');
+			if (!this.findNewPath(this.targetFlag)) {
+				creep.say('HALP!');
 			}
 		} else {
 			var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-			var log = this.creep.moveByPath(path);
-			if (log == ERR_NOT_FOUND) {
-				this.creep.memory.targetPath = false;
-				this.moveToFlag();
-			}
-
+			this.moveByPath(path, this.targetFlag);
 		}
 	};
 	/** @param {Creep} creep **/

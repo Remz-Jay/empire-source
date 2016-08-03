@@ -202,7 +202,7 @@ function RoleBuilder() {
 	this.run = function (creep) {
 		this.creep = creep;
 		if (this.renewCreep()) {
-			this.pickupResourcesInRange(creep);
+			this.pickupResourcesInRange();
 			this.builderLogic(creep);
 		}
 	}

@@ -22,18 +22,18 @@ function RoleRemoteMule() {
 	};
 	this.run = function (creep) {
 		this.creep = creep;
-		this.shouldIStayOrShouldIGo(creep);
-		this.pickupResourcesInRange(creep);
+		this.shouldIStayOrShouldIGo();
+		this.pickupResourcesInRange();
 		if (creep.memory.dumping && creep.carry.energy == 0) {
-			creep.memory.dumping = false;
-			creep.memory.target = false;
-			creep.memory.source = false;
+			delete creep.memory.dumping;
+			delete creep.memory.target;
+			delete creep.memory.source;
 			creep.say('RM:COL');
 		}
 		if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
 			creep.memory.dumping = true;
-			creep.memory.target = false;
-			creep.memory.source = false;
+			delete creep.memory.target;
+			delete creep.memory.source;
 			creep.say('RM:DIST');
 		}
 		if (creep.memory.dumping) {
@@ -41,16 +41,12 @@ function RoleRemoteMule() {
 			if (this.creep.room.name != this.homeFlag.pos.roomName) {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
-					var path = this.findPathFinderPath(this.homeFlag);
-					if (path != false) {
-						this.creep.memory.targetPath = path;
-						this.creep.moveByPath(path);
-					} else {
+					if (!this.findNewPath(this.homeFlag)) {
 						creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					this.creep.moveByPath(path);
+					this.moveByPath(path, this.homeFlag);
 				}
 			} else {
 				this.creep.memory.targetPath = false;
@@ -61,21 +57,15 @@ function RoleRemoteMule() {
 			if (this.creep.room.name != this.targetFlag.pos.roomName) {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
-					var path = this.findPathFinderPath(this.targetFlag);
-					if (path != false) {
-						this.creep.memory.targetPath = path;
-						this.creep.moveByPath(path);
-						this.creep.memory.lastPosition = this.creep.pos;
-					} else {
+					if (!this.findNewPath(this.targetFlag)) {
 						creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					this.creep.moveByPath(path);
+					this.moveByPath(path, this.targetFlag);
 				}
 			} else {
-				this.creep.memory.targetPath = false;
-				if (creep.memory.source == false) {
+				if (!creep.memory.source) {
 					//Get energy from containers
 					var sources = creep.room.find(FIND_STRUCTURES, {
 						filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
@@ -85,14 +75,27 @@ function RoleRemoteMule() {
 						var source = _.sortBy(sources, function (s) {
 							return s.store[RESOURCE_ENERGY];
 						}).reverse()[0];
+						delete this.creep.memory.targetPath;
 						creep.memory.source = source.id;
 					} else {
-						//just go home. no more sources
-						this.creep.memory.dumping = true;
-						this.creep.memory.source = false;
+						//move to the flag instead and wait there.
+						if (this.creep.pos.getRangeTo(this.targetFlag) > 1) {
+							if (!this.creep.memory.targetPath) {
+								if (!this.findNewPath(this.targetFlag)) {
+									creep.say('HALP!');
+								}
+							} else {
+								delete this.creep.memory.source;
+								var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+								this.moveByPath(path, this.targetFlag);
+							}
+						} else {
+							delete this.creep.memory.targetPath;
+							this.creep.say('IDLE!');
+						}
 					}
 				}
-				if (creep.memory.source != false) {
+				if (!!creep.memory.source) {
 					var source = Game.getObjectById(creep.memory.source);
 					if (source instanceof Structure) { //Sources aren't structures
 						var status = creep.withdraw(source, RESOURCE_ENERGY);

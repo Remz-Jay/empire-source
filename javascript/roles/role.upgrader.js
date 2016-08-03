@@ -5,7 +5,7 @@ function RoleUpgrader() {
 	this.max = function (energyInContainers, room) {
 		let num;
 		if (room.controller.level > 4) {
-			num = _.floor(energyInContainers / 20000);
+			num = _.floor(energyInContainers / 10000);
 		} else {
 			num = 4;
 		}
@@ -43,10 +43,9 @@ function RoleUpgrader() {
 	/** @param {Creep} creep **/
 	this.run = function (creep) {
 		this.creep = creep;
-		if (this.renewCreep()) {
-			this.pickupResourcesInRange(creep);
-			this.upgraderLogic();
-		}
+		if (!this.renewCreep()) return;
+		this.pickupResourcesInRange();
+		this.upgraderLogic();
 	}
 }
 RoleUpgrader.prototype = _.create(Worker.prototype, {

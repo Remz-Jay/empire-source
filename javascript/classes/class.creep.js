@@ -25,6 +25,46 @@ function ClassCreep() {
 		}
 		return body;
 	};
+
+	this.findNewPath = function (target, memoryName = 'targetPath', move = true) {
+		let path = this.findPathFinderPath(target);
+		if (!!path) {
+			this.creep.memory[memoryName] = path;
+			if (move) return this.moveByPath(path);
+		} else {
+			return false;
+		}
+	};
+	this.moveByPath = function (path, target, memoryName = 'targetPath') {
+		if (!!this.creep.memory.lastPosition) {
+			let lp = this.creep.memory.lastPosition;
+			if (lp.x == this.creep.pos.x && lp.y == this.creep.pos.y && lp.roomName == this.creep.pos.roomName) {
+				console.log(this.creep.name + ' (' + this.creep.memory.role + ') is stuck at '
+					+ JSON.stringify(lp) + '. Recalculating route.');
+				delete this.creep.memory.lastPosition;
+				this.findNewPath(target, memoryName);
+			}
+		}
+		this.creep.memory.lastPosition = this.creep.pos;
+		let status = this.creep.moveByPath(path);
+		switch (status) {
+			case ERR_NOT_FOUND:
+				delete this.creep.memory[memoryName];
+				if (!!target) return this.findNewPath(target, memoryName);
+				break;
+			case ERR_TIRED:
+				//console.log('Creep ' + this.creep.name + ' (' + this.creep.memory.role + ') is too tired to move. Add more MOVE parts?');
+				// Delete the lastPosition, because the creep hasn't moved due to it being tired. No need to recalculate route now.
+				delete this.creep.memory.lastPosition;
+				return true;
+				break;
+			case OK:
+				return true;
+				break;
+			default:
+				console.log('Uncaught moveBy status ' + JSON.stringify(status) + ' in Class.Creep.moveByPath.');
+		}
+	};
 	this.expireCreep = function () {
 		//see if an upgrade for this creep is available
 		if (!!this.creep.memory.homeRoom && !!this.creep.memory.homeSpawn) {
@@ -88,35 +128,11 @@ function ClassCreep() {
 				case ERR_NOT_IN_RANGE:
 					console.log(this.creep.name + ' (' + this.creep.memory.role + ') is moving to ' + renewStation.name + ' for ' + phrase);
 					if (!this.creep.memory.renewPath) {
-						var path = this.findPathFinderPath({pos: renewStation.pos, range: 1});
-						if (path == false || path.length < 1) {
-							delete this.creep.memory.renewPath;
-						} else {
-							this.creep.memory.renewPath = path;
-						}
+						this.findNewPath({pos: renewStation.pos, range: 1}, 'renewPath');
+					} else {
+						var path = this.deserializePathFinderPath(this.creep.memory.renewPath);
+						this.moveByPath(path, {pos: renewStation.pos, range: 1}, 'renewPath');
 					}
-					var path = this.deserializePathFinderPath(this.creep.memory.renewPath);
-					var log = this.creep.moveByPath(path);
-					if (this.creep.memory.previousPosition) {
-						var prev = this.creep.memory.previousPosition;
-						if (prev.x == this.creep.pos.x && prev.y == this.creep.pos.y) {
-							console.log(this.creep.name + 'hasn\'t moved this turn.');
-						}
-						this.creep.memory.previousPosition = {
-							x: this.creep.pos.x,
-							y: this.creep.pos.y,
-							roomName: this.creep.pos.roomName
-						};
-					}
-					if (log == ERR_NOT_FOUND) {
-						var path = this.findPathFinderPath({pos: renewStation.pos, range: 1});
-						if (path == false || path.length < 1) {
-							delete this.creep.memory.renewPath;
-						} else {
-							this.creep.memory.renewPath = path;
-						}
-					}
-					//this.creep.moveTo(renewStation.pos);
 					break;
 				case OK:
 					console.log(this.creep.name + ' (' + this.creep.memory.role + ') renewed at ' + renewStation.name + '. now at ' + this.creep.ticksToLive);
@@ -146,17 +162,17 @@ function ClassCreep() {
 		}
 
 	};
-	this.pickupResourcesInRange = function (creep = this.creep) {
-		if (_.sum(creep.carry) < creep.carryCapacity) {
-			let targets = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
+	this.pickupResourcesInRange = function () {
+		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+			let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
-					if (_.sum(creep.carry) < creep.carryCapacity) {
-						creep.pickup(t);
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						this.creep.pickup(t);
 					}
 				}, this);
 			}
-			targets = creep.pos.findInRange(FIND_STRUCTURES, 1, {
+			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
 				filter: (s) => {
 					return s.structureType == STRUCTURE_CONTAINER
 						&& s.store[RESOURCE_ENERGY] > 0;
@@ -164,8 +180,8 @@ function ClassCreep() {
 			});
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
-					if (_.sum(creep.carry) < creep.carryCapacity) {
-						creep.withdraw(t, RESOURCE_ENERGY);
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						this.creep.withdraw(t, RESOURCE_ENERGY);
 					}
 				}, this);
 			}
@@ -290,17 +306,13 @@ function ClassCreep() {
 			return path.path;
 		}
 	};
-	this.shouldIStayOrShouldIGo = function (creep = this.creep) {
+	this.shouldIStayOrShouldIGo = function () {
 		if (!this.creep.memory.fleePath) {
-			let hostiles = creep.room.find(FIND_HOSTILE_CREEPS);
-			if (hostiles > 0) {
-				creep.say('FTHISIMOUT');
-				creep.memory.flee = true;
-				var path = this.findPathFinderPath(this.homeFlag);
-				if (path != false) {
-					this.creep.memory.fleePath = path;
-					this.creep.moveByPath(path);
-				} else {
+			let hostiles = this.creep.room.find(FIND_HOSTILE_CREEPS);
+			if (hostiles.length > 0) {
+				this.creep.say('FTHISIMOUT');
+				this.creep.memory.flee = true;
+				if (!this.findNewPath(this.homeFlag, 'fleePath')) {
 					creep.say('HALP!');
 				}
 			}
@@ -308,17 +320,15 @@ function ClassCreep() {
 			if (this.creep.pos.isNearTo(this.homeFlag)) {
 				//We've made it home. See if the coast is clear again.
 				let hostiles = this.targetFlag.room.find(FIND_HOSTILE_CREEPS);
-				if (hostiles == 0) {
+				if (hostiles.length == 0) {
 					delete this.memory.flee;
 					delete this.memory.fleePath;
 				}
 			} else {
 				var path = this.deserializePathFinderPath(this.creep.memory.fleePath);
-				this.creep.moveByPath(path);
+				this.moveByPath(path, this.homeFlag, 'fleePath');
 			}
-
 		}
-
 	};
 	this.harvestFromContainersAndSources = function () {
 		if (this.creep.memory.source == false) {

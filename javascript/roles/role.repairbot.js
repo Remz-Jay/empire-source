@@ -128,7 +128,7 @@ function RoleRepairbot() {
 	this.run = function (creep) {
 		this.creep = creep;
 		if (this.renewCreep()) {
-			this.pickupResourcesInRange(creep);
+			this.pickupResourcesInRange();
 			this.repairLogic(creep);
 		}
 	}

@@ -27,25 +27,12 @@ function RoleClaim() {
 			if (this.creep.room.name != this.targetFlag.pos.roomName) {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
-					var path = this.findPathFinderPath(this.targetFlag);
-					if (path != false) {
-						this.creep.memory.targetPath = path;
-						this.creep.moveByPath(path);
-					} else {
+					if (!this.findNewPath(this.targetFlag)) {
 						creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					var log = this.creep.moveByPath(path);
-					if (log == ERR_NOT_FOUND) {
-						var path = this.findPathFinderPath(this.targetFlag);
-						if (path != false) {
-							this.creep.memory.targetPath = path;
-							this.creep.moveByPath(path);
-						} else {
-							creep.say('HALP!');
-						}
-					}
+					this.moveByPath(path, this.targetFlag);
 				}
 			} else {
 				if (!this.creep.memory.runBack) {
@@ -63,16 +50,12 @@ function RoleClaim() {
 					}
 				} else {
 					if (!this.creep.memory.targetPath) {
-						var path = this.findPathFinderPath(this.homeFlag);
-						if (path != false) {
-							this.creep.memory.targetPath = path;
-							this.creep.moveByPath(path);
-						} else {
+						if (!this.findNewPath(this.homeFlag)) {
 							creep.say('HALP!');
 						}
 					} else {
 						var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-						this.creep.moveByPath(path);
+						this.moveByPath(path, this.homeFlag);
 					}
 				}
 			}

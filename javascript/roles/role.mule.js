@@ -205,7 +205,7 @@ function RoleMule() {
 	this.run = function (creep) {
 		this.creep = creep;
 		if (!this.renewCreep()) return;
-		this.pickupResourcesInRange(creep);
+		this.pickupResourcesInRange();
 		this.muleLogic();
 	}
 }
