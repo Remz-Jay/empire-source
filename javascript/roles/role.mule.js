@@ -91,14 +91,18 @@ function RoleMule() {
 	};
 	this.dumpAtStorage = function () {
 		if (!this.creep.memory.target) {
-			//find a nearby link first
-			let target = this.creep.pos.findInRange(FIND_STRUCTURES, 10, {
-				filter: s => s.structureType == STRUCTURE_LINK
-				&& s.energy < s.energyCapacity
-			});
-			if(!!target && target.length > 0) {
-				this.creep.memory.target = target[0].id;
-			} else if (!!this.creep.room.storage) {
+			//find a nearby link first, if storage isn't close
+			if(!!this.creep.room.storage && this.creep.pos.getRangeTo(this.creep.room.storage) > 9) {
+				let target = this.creep.pos.findInRange(FIND_STRUCTURES, 10, {
+					filter: s => s.structureType == STRUCTURE_LINK
+					&& s.energy < s.energyCapacity
+				});
+				if(!!target && target.length > 0) {
+					this.creep.memory.target = target[0].id;
+				} else {
+					this.creep.memory.target = this.creep.room.storage.id;
+				}
+			} else if(!!this.creep.room.storage) {
 				this.creep.memory.target = this.creep.room.storage.id;
 			} else {
 				//last resort; just return energy to the nearest container.

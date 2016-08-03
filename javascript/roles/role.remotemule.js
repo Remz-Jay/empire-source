@@ -42,7 +42,7 @@ function RoleRemoteMule() {
 		}
 		if (!!creep.memory.dumping) {
 			//dump target is in home room. go there first.
-			if (this.creep.room.name != this.homeFlag.pos.roomName) {
+			if (this.creep.room.name != this.creep.memory.homeRoom) {
 				//pathfinder to targetFlag.
 				if (!this.creep.memory.targetPath) {
 					if (!this.findNewPath(this.homeFlag)) {
@@ -53,8 +53,8 @@ function RoleRemoteMule() {
 					this.moveByPath(path, this.homeFlag);
 				}
 			} else {
-				this.creep.memory.targetPath = false;
-				if (this.renewCreep()) this.dumpAtStorage(creep);
+				delete this.creep.memory.targetPath;
+				if (this.nextStepIntoRoom() && this.renewCreep()) this.dumpAtStorage(creep);
 			}
 		} else {
 			//source is in other room. go there first.

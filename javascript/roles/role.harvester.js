@@ -119,12 +119,12 @@ function RoleHarvester() {
 						if (source.ticksToRegeneration < 60 || source.id == creep.memory.preferredSource) {
 						if(this.creep.pos.getRangeTo(source)>1) {
 							if (!this.creep.memory.targetPath) {
-								if (!this.findNewPath(this.createPathFinderMap([source], 1))) {
+								if (!this.findNewPath(source)) {
 									this.creep.say('HALP!');
 								}
 							} else {
 								var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-								this.moveByPath(path, this.createPathFinderMap([source], 1));
+								this.moveByPath(path, source);
 							}
 						}
 							break;
@@ -145,12 +145,12 @@ function RoleHarvester() {
 						break;
 					case ERR_NOT_IN_RANGE:
 						if (!this.creep.memory.targetPath) {
-							if (!this.findNewPath(this.createPathFinderMap([source], 1))) {
+							if (!this.findNewPath(source)) {
 								this.creep.say('HALP!');
 							}
 						} else {
 							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.moveByPath(path, this.createPathFinderMap([source], 1));
+							this.moveByPath(path, source);
 						}
 						break;
 					case OK:

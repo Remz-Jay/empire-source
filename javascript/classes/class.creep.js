@@ -30,10 +30,10 @@ function ClassCreep() {
 	};
 
 	this.findNewPath = function (target, memoryName = 'targetPath', move = true) {
-		let path = this.findPathFinderPath(target);
+		let path = this.findPathFinderPath(this.createPathFinderMap(target));
 		if (!!path) {
 			this.creep.memory[memoryName] = path;
-			if (move) return this.moveByPath(path);
+			if (move) return this.moveByPath(path, target, memoryName);
 		} else {
 			return false;
 		}
@@ -106,7 +106,7 @@ function ClassCreep() {
 		if (this.creep.ticksToLive < 250) {
 			this.creep.memory.hasRenewed = false;
 		}
-		if (this.creep.memory.hasRenewed != undefined && !this.creep.memory.hasRenewed) {
+		if (!this.creep.memory.hasRenewed) {
 			var spawns = this.creep.room.find(FIND_MY_SPAWNS);
 			let renewStation;
 			if (spawns.length > 0) {
@@ -116,7 +116,7 @@ function ClassCreep() {
 				//    renewStation = (undefined == this.creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[this.creep.memory.homeSpawn];
 				//}
 			} else {
-				renewStation = (undefined == this.creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[this.creep.memory.homeSpawn];
+				renewStation = (!this.creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[this.creep.memory.homeSpawn];
 			}
 			let status;
 			let phrase;
@@ -131,10 +131,10 @@ function ClassCreep() {
 				case ERR_NOT_IN_RANGE:
 					console.log(this.creep.name + ' (' + this.creep.memory.role + ') is moving to ' + renewStation.name + ' for ' + phrase);
 					if (!this.creep.memory.renewPath) {
-						this.findNewPath({pos: renewStation.pos, range: 1}, 'renewPath');
+						this.findNewPath(renewStation, 'renewPath');
 					} else {
 						var path = this.deserializePathFinderPath(this.creep.memory.renewPath);
-						this.moveByPath(path, {pos: renewStation.pos, range: 1}, 'renewPath');
+						this.moveByPath(path, renewStation, 'renewPath');
 					}
 					break;
 				case OK:
@@ -208,9 +208,10 @@ function ClassCreep() {
 		this.creep.moveTo(target);
 		return;
 		try {
+			//TODO: Change Costs when we are carrying items.
 			let path = PathFinder.search(this.creep.pos, {pos: target.pos, range: 1}, {
 				plainCost: 2,
-				swampCost: 10,
+				swampCost: 5,
 				roomCallback: roomCallback,
 			});
 
@@ -234,26 +235,27 @@ function ClassCreep() {
 		if (this.creep.pos.x == 0) {
 			x = 48;
 			creep.move(RIGHT);
+			return false;
 		}
 		if (this.creep.pos.x == 49) {
 			x = 1;
 			creep.move(LEFT);
+			return false;
 		}
 		if (this.creep.pos.y == 0) {
 			y = 48;
 			creep.move(BOTTOM);
+			return false;
 		}
 		if (this.creep.pos.y == 49) {
 			y = 1;
 			creep.move(TOP);
-		}
-		if (this.creep.pos.x == x && this.creep.pos.y == y) {
 			return false;
-		} else {
-			return new RoomPosition(x, y, this.creep.room.name);
 		}
+		return true;
 	};
 	this.createPathFinderMap = function (goals, range = 1) {
+		if(!_.isArray(goals)) goals = [goals];
 		return _.map(goals, function (source) {
 			// We can't actually walk on sources-- set `range` to 1 so we path
 			// next to it.
@@ -272,7 +274,7 @@ function ClassCreep() {
 		var path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			plainCost: 2,
+			plainCost: 3,
 			swampCost: 10,
 
 			roomCallback: roomCallback,

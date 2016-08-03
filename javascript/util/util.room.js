@@ -9,7 +9,7 @@ function UtilRoom() {
 	this.loadRooms();
 	this.roomConfig = {
 		W7N44: [
-			{x:27, y:30, w:50}
+			{x:27, y:30, w:20} // container next to extension, keep free for mule to deliver energy.
 		],
 		W6N42: []
 	};
@@ -60,7 +60,7 @@ function UtilRoom() {
 				let costMatrix = this.getCostMatrixForRoom(roomName);
 				// Avoid creeps in the room
 				room.find(FIND_CREEPS).forEach(function (creep) {
-					costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
+					costMatrix.set(creep.pos.x, creep.pos.y, 10);
 				});
 				console.log("Returning NEW Creepmatrix for room " + roomName);
 				this.setCreepMatrix(room, costMatrix);
@@ -82,7 +82,6 @@ function UtilRoom() {
 				return costMatrix;
 			} else {
 				let costs = new PathFinder.CostMatrix();
-
 				room.find(FIND_STRUCTURES).forEach(function (structure) {
 					if (structure.structureType === STRUCTURE_ROAD) {
 						// Favor roads over plain tiles
