@@ -55,7 +55,7 @@ function RoleScout() {
 	this.run = function (creep) {
 		this.creep = creep;
 		var emergency = false;
-		var totalAnihalation = false;
+		var totalAnnihilation = false;
 		//if(this.creep.room.find(FIND_MY_SPAWNS).length > 0) {
 		if (!this.renewCreep()) return;
 		//}
@@ -86,7 +86,7 @@ function RoleScout() {
 								this.moveTo(closestHostile);
 							}
 						} else {
-							if (totalAnihalation) {
+							if (totalAnnihilation) {
 								var closestHostile = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
 									filter: (s) => s.structureType == STRUCTURE_CONTAINER
 									|| s.structureType == STRUCTURE_ROAD

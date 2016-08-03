@@ -245,23 +245,6 @@ StatsManager.prototype.roomExpensive = function (stats, room) {
 	stats.rooms[room.name]['creeps'] = room.find(FIND_MY_CREEPS).length
 };
 
-StatsManager.prototype.removeTick = function (tick) {
-
-	if (Array.isArray(tick)) {
-		for (var index in tick) {
-			this.removeTick(tick[index]);
-		}
-		return 'ScreepStats: Processed ' + tick.length + ' ticks';
-	}
-
-	if (!!Memory.stats[tick]) {
-		delete Memory.stats[tick];
-		return 'ScreepStats: Removed tick ' + tick
-	} else {
-		return 'ScreepStats: tick ' + tick + ' was not present to remove'
-	}
-};
-
 StatsManager.prototype.getStats = function (json) {
 	if (json) {
 		return JSON.stringify(Memory.stats);

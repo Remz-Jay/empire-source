@@ -8,7 +8,7 @@ function RoleRemoteBuilder() {
 	this.targetFlag = Game.flags.Vagine;
 	this.homeFlag = Game.flags.FireBase1;
 	this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
-	this.creep = false;
+	this.creep = undefined;
 	this.buildType = STRUCTURE_SPAWN;
 	this.max = function (energyInContainers, room) {
 		var sites = _.filter(Game.constructionSites, function (cs) {
@@ -118,7 +118,7 @@ function RoleRemoteBuilder() {
 							var log = this.creep.moveByPath(path);
 							if (log == ERR_NOT_FOUND) {
 								this.findHomePath();
-								var log = this.creep.moveByPath(path);
+								this.creep.moveByPath(path);
 							}
 							var c = Game.getObjectById(this.creep.memory.homePathContainer);
 							if (this.creep.pos.isNearTo(c)) {

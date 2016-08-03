@@ -7,11 +7,10 @@ function UtilContainers(room) {
 	this.energyPercentage = this.getEnergyPercentage();
 }
 UtilContainers.prototype.getContainers = function () {
-	var c = this.room.find(FIND_STRUCTURES, {
+	return this.room.find(FIND_STRUCTURES, {
 		filter: (s)=> s.structureType == STRUCTURE_CONTAINER
 		|| s.structureType == STRUCTURE_STORAGE
 	});
-	return c;
 };
 UtilContainers.prototype.getContainerCapacityAvailable = function () {
 	var total = 0;

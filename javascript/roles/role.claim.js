@@ -6,6 +6,10 @@ function RoleClaim() {
 	this.targetFlag = Game.flags.Schmoop;
 	this.homeFlag = Game.flags.FireBase1;
 	this.bodyPart = [CLAIM, MOVE]; //600+50 = 650;
+	this.username = _.get(
+			_.find(Game.structures, (s) => true), 'owner.username',
+			_.get(_.find(Game.creeps, (s) => true), 'owner.username')
+		) || false;
 	this.max = function (energyInContainers, room) {
 		return 1;
 	};
@@ -14,7 +18,7 @@ function RoleClaim() {
 		if (undefined != this.targetFlag) {
 			if (undefined != Game.flags.Schmoop.room) {
 				let res = Game.flags.Schmoop.room.controller.reservation;
-				if (this.creep.memory.switchedFlags || (res && res.username == "Remco" && res.ticksToEnd > 5000)) {
+				if (this.creep.memory.switchedFlags || (!!res && res.username == this.username && res.ticksToEnd > 5000)) {
 					//switch to the other room.
 					this.targetFlag = Game.flags.Vagine;
 					this.creep.memory.switchedFlags = true;
@@ -26,7 +30,7 @@ function RoleClaim() {
 					var path = this.findPathFinderPath(this.targetFlag);
 					if (path != false) {
 						this.creep.memory.targetPath = path;
-						var log = this.creep.moveByPath(path);
+						this.creep.moveByPath(path);
 					} else {
 						creep.say('HALP!');
 					}
@@ -37,7 +41,7 @@ function RoleClaim() {
 						var path = this.findPathFinderPath(this.targetFlag);
 						if (path != false) {
 							this.creep.memory.targetPath = path;
-							var log = this.creep.moveByPath(path);
+							this.creep.moveByPath(path);
 						} else {
 							creep.say('HALP!');
 						}
@@ -51,7 +55,6 @@ function RoleClaim() {
 						this.moveTo(creep.room.controller);
 					} else {
 						//once we're at the controller, claim it.
-						let res = this.creep.room.controller.reservation;
 						if (this.targetFlag == Game.flags.Vagine) {
 							this.creep.claimController(this.creep.room.controller);
 						} else {
@@ -63,13 +66,13 @@ function RoleClaim() {
 						var path = this.findPathFinderPath(this.homeFlag);
 						if (path != false) {
 							this.creep.memory.targetPath = path;
-							var log = this.creep.moveByPath(path);
+							this.creep.moveByPath(path);
 						} else {
 							creep.say('HALP!');
 						}
 					} else {
 						var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-						var log = this.creep.moveByPath(path);
+						this.creep.moveByPath(path);
 					}
 				}
 			}

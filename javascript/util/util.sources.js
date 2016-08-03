@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var Harvester = require('role.harvester');
 Source.prototype.memory = undefined;
 
 function UtilSources() {
@@ -27,23 +26,22 @@ function UtilSources() {
 	};
 
 	this.findAvailableHarvester = function (s) {
-		var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
+		var harvesters = _.filter(Game.creeps, creep => creep.memory.role == 'harvester');
 		return _.find(harvesters, function (h) {
-			return (!h.memory.preferedSource || h.memory.preferedSource == false) && s.room.name == h.room.name;
+			return (!h.memory.preferredSource || h.memory.preferredSource == false) && s.room.name == h.room.name;
 		});
 	};
 
 	this.updateHarvesterPreference = function () {
 		_.each(this.getSources(), function (s) {
-			var preferedHarvester = s.memory.preferedHarvester;
-			if (!preferedHarvester || Memory.creeps[preferedHarvester] == undefined //Assigned harvester has died
+			if (!!s.memory.preferredHarvester && Memory.creeps[s.memory.preferredHarvester] == undefined //Assigned harvester has died
 			) {
 				var ph = this.findAvailableHarvester(s);
-				if (ph != undefined && ph != false) {
-					var preferedHarvester = ph.name;
-					console.log('found ' + preferedHarvester + ' for ' + s.id);
-					Game.creeps[preferedHarvester].memory.preferedSource = s.id;
-					s.memory.preferedHarvester = preferedHarvester;
+				if (!!ph) {
+					let preferredHarvester = ph.name;
+					console.log('found ' + preferredHarvester + ' for ' + s.id);
+					Game.creeps[preferredHarvester].memory.preferredSource = s.id;
+					s.memory.preferredHarvester = preferredHarvester;
 				}
 			}
 		}, this);

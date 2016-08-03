@@ -44,13 +44,13 @@ function RoleRemoteMule() {
 					var path = this.findPathFinderPath(this.homeFlag);
 					if (path != false) {
 						this.creep.memory.targetPath = path;
-						var log = this.creep.moveByPath(path);
+						this.creep.moveByPath(path);
 					} else {
 						creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					var log = this.creep.moveByPath(path);
+					this.creep.moveByPath(path);
 				}
 			} else {
 				this.creep.memory.targetPath = false;
@@ -64,14 +64,14 @@ function RoleRemoteMule() {
 					var path = this.findPathFinderPath(this.targetFlag);
 					if (path != false) {
 						this.creep.memory.targetPath = path;
-						var log = this.creep.moveByPath(path);
+						this.creep.moveByPath(path);
 						this.creep.memory.lastPosition = this.creep.pos;
 					} else {
 						creep.say('HALP!');
 					}
 				} else {
 					var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					var log = this.creep.moveByPath(path);
+					this.creep.moveByPath(path);
 				}
 			} else {
 				this.creep.memory.targetPath = false;

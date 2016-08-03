@@ -67,7 +67,7 @@ function ClassCreep() {
 			var spawns = this.creep.room.find(FIND_MY_SPAWNS);
 			let renewStation;
 			if (spawns.length > 0) {
-				//if(spawns.length > 0 && this.creep.room.controller.level > 1 && Utilthis.creep.calculateRequiredEnergy(_.pluck(this.creep.body, 'type')) < this.creep.room.energyCapacityAvailable){
+				//if(spawns.length > 0 && this.creep.room.controller.level > 1 && UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, 'type')) < this.creep.room.energyCapacityAvailable){
 				renewStation = spawns[0];
 				//} else {
 				//    renewStation = (undefined == this.creep.memory.homeSpawn) ? Game.spawns['Bastion'] : Game.spawns[this.creep.memory.homeSpawn];
@@ -100,7 +100,7 @@ function ClassCreep() {
 					if (this.creep.memory.previousPosition) {
 						var prev = this.creep.memory.previousPosition;
 						if (prev.x == this.creep.pos.x && prev.y == this.creep.pos.y) {
-							console.log(this.creep.name + 'hasnt moved this turn.');
+							console.log(this.creep.name + 'hasn\'t moved this turn.');
 						}
 						this.creep.memory.previousPosition = {
 							x: this.creep.pos.x,
@@ -138,7 +138,7 @@ function ClassCreep() {
 					}
 					break;
 				default:
-					console.log('Uncatched Creep Renew Error' + JSON.stringify(status));
+					console.log('Uncaught Creep Renew Error' + JSON.stringify(status));
 			}
 			return false;
 		} else {
@@ -299,7 +299,7 @@ function ClassCreep() {
 				var path = this.findPathFinderPath(this.homeFlag);
 				if (path != false) {
 					this.creep.memory.fleePath = path;
-					var log = this.creep.moveByPath(path);
+					this.creep.moveByPath(path);
 				} else {
 					creep.say('HALP!');
 				}
@@ -314,7 +314,7 @@ function ClassCreep() {
 				}
 			} else {
 				var path = this.deserializePathFinderPath(this.creep.memory.fleePath);
-				var log = this.creep.moveByPath(path);
+				this.creep.moveByPath(path);
 			}
 
 		}

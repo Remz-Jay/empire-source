@@ -135,7 +135,7 @@ function RoleRemoteHarvester() {
 					var path = this.findPathFinderPath(this.targetFlag);
 					if (path != false) {
 						this.creep.memory.targetPath = path;
-						var log = this.creep.moveByPath(path);
+						this.creep.moveByPath(path);
 					} else {
 						creep.say('HALP!');
 					}
@@ -146,7 +146,7 @@ function RoleRemoteHarvester() {
 						var path = this.findPathFinderPath(this.targetFlag);
 						if (path != false) {
 							this.creep.memory.targetPath = path;
-							var log = this.creep.moveByPath(path);
+							this.creep.moveByPath(path);
 						} else {
 							creep.say('HALP!');
 						}
@@ -160,7 +160,7 @@ function RoleRemoteHarvester() {
 						var path = this.findPathFinderPath(this.targetFlag);
 						if (path != false) {
 							this.creep.memory.targetPath = path;
-							var log = this.creep.moveByPath(path);
+							this.creep.moveByPath(path);
 						} else {
 							creep.say('HALP!');
 						}

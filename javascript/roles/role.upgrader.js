@@ -11,7 +11,7 @@ function RoleUpgrader() {
 		}
 		return (num > 0) ? num : 1;
 	};
-	this.upgraderLogic = function (creep) {
+	this.upgraderLogic = function () {
 		if (this.creep.memory.dumping && this.creep.carry.energy == 0) {
 			this.creep.memory.dumping = false;
 			this.creep.memory.source = false;
@@ -45,7 +45,7 @@ function RoleUpgrader() {
 		this.creep = creep;
 		if (this.renewCreep()) {
 			this.pickupResourcesInRange(creep);
-			this.upgraderLogic(creep);
+			this.upgraderLogic();
 		}
 	}
 }
