@@ -6,6 +6,7 @@ function RoleMule() {
 	this.minRCL = 2;
 	this.bodyPart = [CARRY, MOVE]; //50 + 50 + 100 + 100 = 300
 	this.role = 'mule';
+	this.maxParts = 15;
 	this.maxCreeps = 2;
 	this.max = function (energyInContainers, room) {
 		return (room.controller.level < 3) ? 1 : this.maxCreeps;
@@ -17,8 +18,8 @@ function RoleMule() {
 		} else {
 			numParts = _.floor((energy) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
 		}
-		if (numParts < 1) numParts = 1;
-		if (numParts > 15) numParts = 15;
+		if(numParts < 1) numParts = 1;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
 		let body = [];
 		for (let i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
@@ -26,28 +27,32 @@ function RoleMule() {
 		return body;
 
 	};
-	this.scanForTargets = function () {
-		let target = this.creep.pos.findClosestByPath(FIND_MY_SPAWNS, {
-			filter: structure => structure.energy < (structure.energyCapacity / 2)
+	this.scanForTargets = function (blackList = []) {
+		var target = this.creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+			filter: structure => ( blackList.indexOf(structure.id) == -1 &&
+				(
+					(structure.structureType == STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
+				|| ((structure.structureType == STRUCTURE_TOWER || structure.structureType == STRUCTURE_SPAWN) && structure.energy < (structure.energyCapacity * 0.8))
+				)
+			)
 		});
-		if (!target) {
-			target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-				filter: structure => (
-					structure.structureType == STRUCTURE_EXTENSION
-					|| structure.structureType == STRUCTURE_TOWER
-					|| structure.structureType == STRUCTURE_SPAWN
-				) && structure.energy < structure.energyCapacity
+		//return target;
+		if(!!target) {
+			let taken = this.creep.room.find(FIND_MY_CREEPS, {
+				filter: c => c.name != this.creep.name
+					&& c.memory.role == this.creep.memory.role
+					&& (!!c.memory.target && c.memory.target == target.id)
+
 			});
-			if (!target) {
-				target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-					filter: structure => (
-						structure.structureType == STRUCTURE_EXTENSION
-						|| structure.structureType == STRUCTURE_TOWER
-					) && structure.energy < structure.energyCapacity
-				});
+			if(!!taken && taken.length > 0) {
+				blackList.push(target.id);
+				return this.scanForTargets(blackList);
+			} else {
+				return target;
 			}
+		} else {
+			return undefined;
 		}
-		return target;
 	};
 	this.dumpRoutine = function (target) {
 		switch (target.structureType) {
@@ -60,20 +65,24 @@ function RoleMule() {
 				let status = this.creep.transfer(target, RESOURCE_ENERGY);
 				switch (status) {
 					case ERR_NOT_IN_RANGE:
-						if (!this.creep.memory.targetPath) {
+						if(!!this.creep.memory.target && this.creep.memory.target == target.id && !!this.creep.memory.targetPath) {
+							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+							this.moveByPath(path, target);
+						} else {
+							this.creep.memory.target = target.id;
+							delete this.creep.memory.targetPath;
 							if (!this.findNewPath(target)) {
 								this.creep.say('HALP!');
 							}
-						} else {
-							var path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.moveByPath(path, target);
 						}
 						break;
 					case ERR_FULL:
 					case ERR_NOT_ENOUGH_ENERGY:
 						delete this.creep.memory.target;
+						delete this.creep.memory.targetPath;
 						//We're empty, drop from idle to pick up new stuff to haul.
 						delete this.creep.memory.idle;
+						this.muleLogic();
 						break;
 					case OK:
 						delete this.creep.memory.targetPath;

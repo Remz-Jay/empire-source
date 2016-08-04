@@ -17,11 +17,11 @@ var roles = {
 	upgrader: require('role.upgrader'),
 	linker: require('role.linker'),
 	builder: require('role.builder'),
-	scout: require('role.scout'),
-	healer: require('role.healer'),
 	remoteHarvester: require('role.remoteharvester'),
 	claim: require('role.claim'),
 	remoteMule: require('role.remotemule'),
+	scout: require('role.scout'),
+	healer: require('role.healer'),
 	remoteBuilder: require('role.remotebuilder')
 };
 
@@ -45,7 +45,6 @@ module.exports.loop = function () {
 	for (var name in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		var room = Game.rooms[name];
-		console.log(room.getReservedRoom());
 		var wall = new classes.Wall(room);
 		wall.adjustStrength();
 
@@ -119,7 +118,7 @@ module.exports.loop = function () {
 			if (undefined == spawn) {
 			} else {
 				if (spawn.energy > 0) {
-					var targets = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
+					var targets = spawn.pos.findInRange(FIND_MY_CREEPS, 1, {filter: c => c.ticksToLive < 1000});
 					targets = _.sortBy(targets, 'ticksToLive').reverse();
 					if (targets.length > 0) {
 						spawn.renewCreep(targets[0]);
@@ -156,34 +155,8 @@ module.exports.loop = function () {
 							);
 						}
 						var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length, room.controller.level);
+						body = utils.Creep.sortBodyParts(body);
 
-						body = _.sortBy(body, function (part) {
-							switch (part) {
-								case TOUGH:
-									return 1;
-									break;
-								case CARRY:
-									return 2;
-									break;
-								case MOVE:
-									return 5;
-									break;
-								case CLAIM:
-									return 80;
-									break;
-								case HEAL:
-									return 90;
-									break;
-								case ATTACK:
-									return 95;
-									break;
-								case RANGED_ATTACK:
-									return 100;
-									break;
-								default:
-									return 10;
-							}
-						});
 						console.log(
 							_.padLeft(role.role, 9) + '=\t' + x.length
 							+ ' (max_' + role.max(containers.energyInContainers, room)
@@ -198,7 +171,7 @@ module.exports.loop = function () {
 								var newName = spawn.createCreep(body, undefined, {
 									role: role.role,
 									homeRoom: room.name,
-									targetRoom: (!!room.getReservedRoom() && !!role.isRemote) ? room.getReservedRoom().name : undefined,
+									targetRoom: (!!room.getReservedRoomName() && !!role.isRemote) ? room.getReservedRoomName(): undefined,
 									homeSpawn: spawn.name
 								});
 								if (_.isString(newName)) {

@@ -60,7 +60,7 @@ function UtilRoom() {
 				let costMatrix = this.getCostMatrixForRoom(roomName);
 				// Avoid creeps in the room
 				room.find(FIND_CREEPS).forEach(function (creep) {
-					costMatrix.set(creep.pos.x, creep.pos.y, 10);
+					costMatrix.set(creep.pos.x, creep.pos.y, 11);
 				});
 				console.log("Returning NEW Creepmatrix for room " + roomName);
 				this.setCreepMatrix(room, costMatrix);

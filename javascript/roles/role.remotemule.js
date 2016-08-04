@@ -7,40 +7,45 @@ function RoleRemoteMule() {
 	this.minRCL = 5;
 	this.maxCreeps = 2;
 	this.isRemote = true;
+	this.maxParts = 10;
 	this.targetFlag = Game.flags.Schmoop;
 	this.homeFlag = Game.flags.FireBase1;
 	this.max = function (capacity, room) {
-		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
+		return (!!room.getReservedRoomName()) ? this.maxCreeps : 0;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		let numParts;
-		numParts = _.floor((capacity - 100) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
-		if (numParts < 1) numParts = 1;
-		if (numParts > 15) numParts = 15;
-		var body = [];
-		for (var i = 0; i < numParts; i++) {
+		if (numCreeps > 0) {
+			numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+		} else {
+			numParts = _.floor((energy) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+		}
+		if(numParts < 1) numParts = 1;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
+		let body = [];
+		for (let i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
 		}
-		return body.concat([WORK]);
+		return body;
 
 	};
 	this.run = function (creep) {
 		this.creep = creep;
 		this.shouldIStayOrShouldIGo();
 		this.pickupResourcesInRange();
-		if (!!creep.memory.dumping && creep.carry.energy == 0) {
+		if (!!this.creep.memory.dumping && this.creep.carry.energy == 0) {
 			delete this.creep.memory.dumping;
 			delete this.creep.memory.target;
 			delete this.creep.memory.source;
 			this.creep.say('RM:COL');
 		}
-		if (!creep.memory.dumping && creep.carry.energy == creep.carryCapacity) {
+		if (!this.creep.memory.dumping && this.creep.carry.energy == this.creep.carryCapacity) {
 			this.creep.memory.dumping = true;
 			delete this.creep.memory.target;
 			delete this.creep.memory.source;
 			this.creep.say('RM:DIST');
 		}
-		if (!!creep.memory.dumping) {
+		if (!!this.creep.memory.dumping) {
 			//dump target is in home room. go there first.
 			if (this.creep.room.name != this.creep.memory.homeRoom) {
 				//pathfinder to targetFlag.
@@ -53,7 +58,7 @@ function RoleRemoteMule() {
 					this.moveByPath(path, this.homeFlag);
 				}
 			} else {
-				delete this.creep.memory.targetPath;
+				//delete this.creep.memory.targetPath;
 				if (this.nextStepIntoRoom() && this.renewCreep()) this.dumpAtStorage(creep);
 			}
 		} else {
@@ -69,9 +74,9 @@ function RoleRemoteMule() {
 					this.moveByPath(path, this.targetFlag);
 				}
 			} else {
-				if (!creep.memory.source) {
+				if (!this.creep.memory.source) {
 					//Get energy from containers
-					var sources = creep.room.find(FIND_STRUCTURES, {
+					var sources = this.creep.room.find(FIND_STRUCTURES, {
 						filter: (structure) => structure.structureType == STRUCTURE_CONTAINER &&
 						structure.store[RESOURCE_ENERGY] > 100
 					});
@@ -99,10 +104,10 @@ function RoleRemoteMule() {
 						}
 					}
 				}
-				if (!!creep.memory.source) {
-					var source = Game.getObjectById(creep.memory.source);
+				if (!!this.creep.memory.source) {
+					var source = Game.getObjectById(this.creep.memory.source);
 					if (source instanceof Structure) { //Sources aren't structures
-						var status = creep.withdraw(source, RESOURCE_ENERGY);
+						var status = this.creep.withdraw(source, RESOURCE_ENERGY);
 						switch (status) {
 							case ERR_NOT_ENOUGH_RESOURCES:
 								// just go home.

@@ -7,16 +7,17 @@ function RoleRemoteHarvester() {
 	this.minRCL = 5;
 	this.maxCreeps = 1;
 	this.isRemote = true;
+	this.maxParts = 5;
 	this.targetFlag = Game.flags.Schmoop;
 	this.homeFlag = Game.flags.FireBase1;
 	this.max = function (energyInContainers, room) {
-		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
+		return (!!room.getReservedRoomName()) ? this.maxCreeps : 0;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		let numParts;
 		numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
-		if (numParts < 1) numParts = 1;
-		if (numParts > 4) numParts = 5;
+		if(numParts < 1) numParts = 1;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
 		var body = [];
 		for (var i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);

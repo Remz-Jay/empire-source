@@ -4,6 +4,7 @@ var UtilCreep = require('util.creep');
 function RoleHarvester() {
 	Worker.call(this);
 	this.role = 'harvester';
+	this.maxParts = 4;
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		let numParts;
 
@@ -13,7 +14,7 @@ function RoleHarvester() {
 			numParts = _.floor((energy) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
 		}
 		if (numParts < 1) numParts = 1;
-		if (numParts > 4) numParts = 4;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
 		var body = [];
 		for (var i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);

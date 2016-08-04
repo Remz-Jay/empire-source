@@ -4,8 +4,10 @@ function RoleScout() {
 	Creep.call(this);
 	this.role = "scout";
 	this.minRCL = 5;
-	this.maxCreeps = 2;
+	this.maxCreeps = 1;
 	this.isRemote = true;
+	this.maxParts = 5;
+	this.maxToughParts = 4;
 	this.bodyPart = [
 		//ATTACK,MOVE, // 80+50
 		RANGED_ATTACK, MOVE, // 150+50
@@ -15,17 +17,20 @@ function RoleScout() {
 	this.targetFlag = Game.flags.Pauper;
 	//this.targetRoom = 'W7N42';
 	this.max = function (energyInContainers, room) {
-		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
+		return (!!room.getReservedRoomName()) ? this.maxCreeps : 0;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		var numParts = _.floor((capacity - 400) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+		if(numParts < 1) numParts = 1;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
 		var body = [];
-		for (var i = 0; i < numParts; i++) {
+		for (let i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
 		}
 		var remainingCap = _.floor((capacity - 400) - UtilCreep.calculateRequiredEnergy(body));
-		var toughParts = _.floor(remainingCap / UtilCreep.calculateRequiredEnergy([TOUGH, MOVE]));
-		for (var i = 0; i < toughParts; i++) {
+		var toughParts = _.floor(remainingCap / UtilCreep.calculateRequiredEnergy(this.toughPart));
+		if(this.maxToughParts > 1 && toughParts > this.maxToughParts) toughParts = this.maxToughParts;
+		for (let i = 0; i < toughParts; i++) {
 			body = body.concat(this.toughPart);
 		}
 		return body;

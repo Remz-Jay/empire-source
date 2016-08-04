@@ -4,7 +4,7 @@ var _ = require('lodash');
 function RoleBuilder() {
 	Worker.call(this);
 	this.role = 'builder';
-
+	this.maxParts = -1;
 	this.max = function (energyInContainers, room) {
 		var sites = _.filter(Game.constructionSites, function (cs) {
 			return cs.pos.roomName == room.name;

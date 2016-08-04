@@ -5,27 +5,28 @@ function RoleHealer() {
 	this.role = "healer";
 	this.minRCL = 5;
 	this.maxCreeps = 1;
+	this.maxParts = 4;
+	this.maxToughParts = 4;
 	this.isRemote = true;
-	this.bodyPart = [
-		//ATTACK,MOVE, // 80+50
-		HEAL, MOVE, // 150+50
-		//HEAL,MOVE //250 +50
-	];
-	this.toughPart = [TOUGH, MOVE]; //10+50
+	this.bodyPart = [HEAL, MOVE];
+	this.toughPart = [TOUGH, MOVE];
 	this.targetFlag = Game.flags.Pauper;
 
 	this.max = function (energyInContainers, room) {
-		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
+		return (!!room.getReservedRoomName()) ? this.maxCreeps : 0;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		var numParts = _.floor((capacity - 400) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+		if(numParts < 1) numParts = 1;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
 		var body = [];
-		for (var i = 0; i < numParts; i++) {
+		for (let i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
 		}
 		var remainingCap = _.floor((capacity - 400) - UtilCreep.calculateRequiredEnergy(body));
-		var toughParts = _.floor(remainingCap / UtilCreep.calculateRequiredEnergy([TOUGH, MOVE]));
-		for (var i = 0; i < toughParts; i++) {
+		var toughParts = _.floor(remainingCap / UtilCreep.calculateRequiredEnergy(this.toughPart));
+		if(this.maxToughParts > 1 && toughParts > this.maxToughParts) toughParts = this.maxToughParts;
+		for (let i = 0; i < toughParts; i++) {
 			body = body.concat(this.toughPart);
 		}
 		return body;

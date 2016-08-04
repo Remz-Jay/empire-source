@@ -13,7 +13,7 @@ function RoleRemoteBuilder() {
 	this.creep = undefined;
 	this.buildType = STRUCTURE_SPAWN;
 	this.max = function (energyInContainers, room) {
-		if (!!room.getReservedRoom()) {
+		if (!!room.getReservedRoomName()) {
 			var sites = _.filter(Game.constructionSites, function (cs) {
 				return cs.pos.roomName == this.targetFlag.pos.roomName;
 			}, this);
@@ -28,12 +28,12 @@ function RoleRemoteBuilder() {
 
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
-		var numParts = _.floor((capacity - 150) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+		var numParts = _.floor((capacity - 300) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
 		var body = [];
 		for (var i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
 		}
-		return body.concat([WORK, MOVE]);
+		return body.concat([WORK, WORK, MOVE, MOVE]);
 	};
 	this.findHomePath = function () {
 		//find a suitable container

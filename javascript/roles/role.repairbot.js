@@ -5,7 +5,8 @@ function RoleRepairbot() {
 	Worker.call(this);
 	this.role = 'repair';
 	this.minRCL = 2;
-	this.bodyPart = [CARRY, CARRY, WORK, MOVE, MOVE];
+	this.bodyPart = [CARRY, CARRY, WORK, MOVE, MOVE, MOVE];
+	this.maxParts = 4;
 	this.myStructureMultiplier = 0.9;
 	this.publicStructureMultiplier = 0.81;
 

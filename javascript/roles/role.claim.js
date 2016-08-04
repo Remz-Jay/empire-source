@@ -4,6 +4,7 @@ function RoleClaim() {
 	this.role = 'claim';
 	this.minRCL = 5;
 	this.maxCreeps = 1;
+	this.maxParts = 2;
 	this.targetFlag = Game.flags.Schmoop;
 	this.homeFlag = Game.flags.FireBase1;
 	this.bodyPart = [CLAIM, MOVE]; //600+50 = 650;
@@ -12,7 +13,7 @@ function RoleClaim() {
 			_.get(_.find(Game.creeps, (s) => true), 'owner.username')
 		) || false;
 	this.max = function (energyInContainers, room) {
-		return (!!room.getReservedRoom()) ? this.maxCreeps : 0;
+		return (!!room.getReservedRoomName()) ? this.maxCreeps : 0;
 	};
 	this.run = function (creep) {
 		this.creep = creep;

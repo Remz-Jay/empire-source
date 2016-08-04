@@ -42,4 +42,34 @@ UtilCreep.calculateRequiredEnergy = function (body) {
 	return cost;
 };
 
+UtilCreep.sortBodyParts = function(bodyParts) {
+	return _.sortBy(bodyParts, function (part) {
+		switch (part) {
+			case TOUGH:
+				return 1;
+				break;
+			case CARRY:
+				return 2;
+				break;
+			case MOVE:
+				return 5;
+				break;
+			case CLAIM:
+				return 80;
+				break;
+			case HEAL:
+				return 90;
+				break;
+			case ATTACK:
+				return 95;
+				break;
+			case RANGED_ATTACK:
+				return 100;
+				break;
+			default:
+				return 10;
+		}
+	});
+};
+
 module.exports = UtilCreep;

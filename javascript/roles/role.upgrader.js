@@ -2,6 +2,7 @@ var Worker = require('class.worker');
 function RoleUpgrader() {
 	Worker.call(this);
 	this.role = 'upgrader';
+	this.maxParts = 5;
 	this.max = function (energyInContainers, room) {
 		let num;
 		if (room.controller.level > 4) {

@@ -1,13 +1,11 @@
 var UtilCreep = require('util.creep');
 var _ = require('lodash');
-var UtilRoom = require('util.room');
 var UtilContainers = require('util.containers');
-
-let roomManager = new UtilRoom();
 
 function ClassCreep() {
 	this.maxCreeps = 1;
 	this.minRCL = 1;
+	this.maxParts = -1;
 	this.creep = false;
 	this.max = function (capacity, room) {
 		return this.maxCreeps;
@@ -22,6 +20,8 @@ function ClassCreep() {
 	 */
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		var numParts = _.floor(capacity / UtilCreep.calculateRequiredEnergy(this.bodyPart));
+		if(numParts < 1) numParts = 1;
+		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
 		var body = [];
 		for (var i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
@@ -106,7 +106,7 @@ function ClassCreep() {
 		if (this.creep.ticksToLive < 250) {
 			this.creep.memory.hasRenewed = false;
 		}
-		if (!this.creep.memory.hasRenewed) {
+		if (this.creep.memory.hasRenewed != undefined && this.creep.memory.hasRenewed == false) {
 			var spawns = this.creep.room.find(FIND_MY_SPAWNS);
 			let renewStation;
 			if (spawns.length > 0) {
@@ -176,10 +176,8 @@ function ClassCreep() {
 				}, this);
 			}
 			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-				filter: (s) => {
-					return s.structureType == STRUCTURE_CONTAINER
-						&& s.store[RESOURCE_ENERGY] > 0;
-				}
+				filter: s => (s.structureType == STRUCTURE_CONTAINER)
+						&& s.store[RESOURCE_ENERGY] > 0
 			});
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
@@ -196,7 +194,7 @@ function ClassCreep() {
 			if (!room) {
 				return;
 			}
-			return roomManager.getCreepMatrixForRoom(roomName);
+			return room.getCreepMatrix();
 		} catch (e) {
 			console.log(JSON.stringify(e), "Class.Creep.roomCallback", roomName);
 			return new PathFinder.CostMatrix();
@@ -205,20 +203,21 @@ function ClassCreep() {
 	};
 
 	this.moveTo = function (target) {
-		this.creep.moveTo(target);
-		return;
+		//this.creep.moveTo(target);
+		//return;
 		try {
-			//TODO: Change Costs when we are carrying items.
-			let path = PathFinder.search(this.creep.pos, {pos: target.pos, range: 1}, {
-				plainCost: 2,
-				swampCost: 5,
-				roomCallback: roomCallback,
-			});
-
-			let pos = path.path[0];
-			return this.creep.move(this.creep.pos.getDirectionTo(pos));
+			if(target instanceof RoomObject) {
+				target = this.createPathFinderMap(target);
+			}
+			let path = this.findPathFinderPath(target);
+			if(!!path) {
+				let pos = path[0];
+				return this.creep.move(this.creep.pos.getDirectionTo(pos));
+			} else {
+				return ERR_NOT_FOUND;
+			}
 		} catch (e) {
-			console.log(JSON.stringify(e), "Class.Creep.moveTo");
+			console.log(JSON.stringify(target), "Class.Creep.moveTo");
 			//fall back to regular move.
 			this.creep.moveTo(target);
 		}
@@ -271,12 +270,17 @@ function ClassCreep() {
 	};
 
 	this.findPathFinderPath = function (goal) {
+		let plainCost = 3;
+		let swampCost = 6;
+		if(_.sum(this.creep.carry)>(this.creep.carryCapacity/2)) {
+			plainCost = 5;
+			swampCost = 10;
+		}
 		var path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			plainCost: 3,
-			swampCost: 10,
-
+			plainCost: plainCost,
+			swampCost: swampCost,
 			roomCallback: roomCallback,
 		});
 		if (path.path.length < 1) {
