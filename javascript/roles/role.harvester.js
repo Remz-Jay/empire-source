@@ -8,7 +8,7 @@ function RoleHarvester() {
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		let numParts;
 
-		if (numCreeps > 0) {
+		if (numCreeps > 0 && !this.emergency) {
 			numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
 		} else {
 			numParts = _.floor((energy) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
@@ -24,8 +24,13 @@ function RoleHarvester() {
 	};
 	this.max = function (energyInContainers, room) {
 		let max = 2;
+
 		if (room.energyCapacityAvailable < 1200)  max = 4;
 		if (room.energyCapacityAvailable < 600)   max = 6;
+		if ((room.energyInContainers + room.energyAvailable) < (room.energyCapacityAvailable*0.8)) {
+			this.emergency = true;
+			max = 4;
+		}
 		return max;
 	};
 	/** @param {Creep} creep **/

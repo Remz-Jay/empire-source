@@ -9,17 +9,21 @@ function RoleMule() {
 	this.maxParts = 15;
 	this.maxCreeps = 2;
 	this.max = function (energyInContainers, room) {
+		if ((room.energyInContainers + room.energyAvailable)  < (room.energyCapacityAvailable*0.8)) {
+			this.emergency = true;
+			this.maxCreeps = 3;
+		}
 		return (room.controller.level < 3) ? 1 : this.maxCreeps;
 	};
 	this.getBody = function (capacity, energy, numCreeps, rcl) {
 		let numParts;
-		if (numCreeps > 0) {
+		if (numCreeps > 0 && !this.emergency) {
 			numParts = _.floor((capacity) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
 		} else {
 			numParts = _.floor((energy) / UtilCreep.calculateRequiredEnergy(this.bodyPart));
 		}
-		if(numParts < 1) numParts = 1;
-		if(this.maxParts > 1 && numParts > this.maxParts) numParts = this.maxParts;
+		if(numParts < 3) numParts = 3;
+		if(this.maxParts > 3 && numParts > this.maxParts) numParts = this.maxParts;
 		let body = [];
 		for (let i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
@@ -180,12 +184,14 @@ function RoleMule() {
 			} else {
 				//scan for dropped energy if we have room
 				if (this.creep.carry.energy < this.creep.carryCapacity) {
-					let target = this.creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+
+					let target = this.creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, {maxRooms: 1});
 					if (!!target) {
 						if (this.creep.pickup(target) == ERR_NOT_IN_RANGE) {
 							this.moveTo(target);
 						}
 					} else {
+
 						//No dropped energy found, proceed to offload at Storage.
 						this.dumpAtStorage();
 					}
@@ -204,14 +210,14 @@ function RoleMule() {
 				});
 				if (!!source) {
 					this.creep.memory.source = source.id;
-				} else if (!!this.creep.room.storage) {
+				} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
 					this.creep.memory.source = this.creep.room.storage.id;
 				}
 			}
 			if (!!this.creep.memory.source) {
 				let source = Game.getObjectById(this.creep.memory.source);
 				if (source instanceof Structure) { //Sources aren't structures
-					let status = this.creep.withdraw(source, RESOURCE_ENERGY, (this.creep.carryCapacity - _.sum(this.creep.carry)));
+					let status = this.creep.withdraw(source, RESOURCE_ENERGY);
 					switch (status) {
 						case ERR_NOT_ENOUGH_RESOURCES:
 						case ERR_INVALID_TARGET:
@@ -229,6 +235,13 @@ function RoleMule() {
 					}
 				} else {
 					delete this.creep.memory.source;
+				}
+			} else {
+				// no more sources. start dumping
+				if(this.creep.carry.energy > 0) {
+					this.creep.memory.dumping = true;
+				} else {
+					this.creep.say('DRY');
 				}
 			}
 		}

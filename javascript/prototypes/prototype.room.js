@@ -7,6 +7,7 @@ Room.prototype.getReservedRoom = function () {
 };
 
 Room.prototype.getReservedRoomName = function () {
+	return undefined; // FIXME: Remove this emergency measure.
 	if (!!this.memory.reservedRoom) {
 		return this.memory.reservedRoom;
 	} else {
@@ -95,3 +96,32 @@ Room.prototype.getCostMatrix = function () {
 		return new PathFinder.CostMatrix();
 	}
 };
+
+Room.prototype.getContainers = function () {
+	return this.find(FIND_STRUCTURES, {
+		filter: s=> s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE
+	});
+};
+Room.prototype.getContainerCapacityAvailable = function () {
+	var total = 0;
+	_.each(this.containers, function (c) {
+		total += c.storeCapacity;
+	});
+	return total;
+};
+Room.prototype.getEnergyInContainers = function () {
+	var total = 0;
+	_.each(this.containers, function (c) {
+		total += c.store[RESOURCE_ENERGY];
+	});
+	return total;
+};
+Room.prototype.getEnergyPercentage = function () {
+	return _.floor(this.energyInContainers / (this.containerCapacityAvailable / 100));
+};
+Room.prototype.addProperties = function () {
+	this.containers = this.getContainers();
+	this.containerCapacityAvailable = this.getContainerCapacityAvailable();
+	this.energyInContainers = this.getEnergyInContainers();
+	this.energyPercentage = this.getEnergyPercentage();
+}

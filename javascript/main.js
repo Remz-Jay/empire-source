@@ -31,7 +31,7 @@ var utils = require('utilLoader');
 module.exports.loop = function () {
 	PathFinder.use(true);
 
-	for (var name in Memory.creeps) {
+	for (let name in Memory.creeps) {
 		if (!Game.creeps[name]) {
 			delete Memory.creeps[name];
 			console.log('Clearing non-existing creep memory:', name);
@@ -42,16 +42,15 @@ module.exports.loop = function () {
 	let CpuReservedRooms = 0;
 	let CpuTowers = 0;
 	let CpuRoles = 0;
-	for (var name in Game.rooms) {
+	for (let name in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		var room = Game.rooms[name];
+		room.addProperties();
 		var wall = new classes.Wall(room);
 		wall.adjustStrength();
 
 		var ramparts = new utils.Ramparts(room);
 		ramparts.adjustStrength();
-
-		var containers = new utils.Containers(room);
 
 		var sources = new utils.Sources();
 
@@ -67,8 +66,8 @@ module.exports.loop = function () {
 			//this is one of our controlled rooms
 			console.log('Room "' + room.name + '" has ' + room.energyAvailable
 				+ '/' + room.energyCapacityAvailable + ' energy and '
-				+ containers.energyInContainers + '/' + containers.containerCapacityAvailable
-				+ ' (' + containers.energyPercentage + '%) in containers.'
+				+ room.energyInContainers + '/' + room.containerCapacityAvailable
+				+ ' (' + room.energyPercentage + '%) in room.'
 				+ ' (RCL=' + room.controller.level + ' @ '
 				+ _.floor(room.controller.progress / (room.controller.progressTotal / 100)) + '%)'
 			);
@@ -128,10 +127,15 @@ module.exports.loop = function () {
 				for (var index in roles) {
 					var role = new roles[index];
 					if(!!room.storage && role.role == 'linker') {
-						var link = _.filter(room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(room.storage));
-						if (link.length < 1) continue;
-					}
+						let link = _.filter(room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(room.storage));
 
+						if (link.length < 1) {
+							continue;
+						} else {
+							let links = _.filter(room.find(FIND_MY_STRUCTURES), s => s.structureType === STRUCTURE_LINK);
+							if (links.length < 2) continue;
+						}
+					}
 					if (undefined != role.role
 						&& (undefined == role.minRCL || room.controller.level >= role.minRCL)
 					) {
@@ -154,18 +158,19 @@ module.exports.loop = function () {
 								)
 							);
 						}
+						var max = role.max(room.energyInContainers, room);
 						var body = role.getBody(room.energyCapacityAvailable, room.energyAvailable, x.length, room.controller.level);
 						body = utils.Creep.sortBodyParts(body);
 
 						console.log(
 							_.padLeft(role.role, 9) + '=\t' + x.length
-							+ ' (max_' + role.max(containers.energyInContainers, room)
+							+ ' (max_' + max
 							+ ')\t\t(' + _.padLeft(utils.Creep.calculateRequiredEnergy(body), 4)
 							+ ') [' + body
 							+ ']'
 						);
 
-						if (!building && x.length < role.max(containers.energyInContainers, room)) {
+						if (!building && x.length < max) {
 							var spawnState = spawn.canCreateCreep(body);
 							if (spawnState == OK) {
 								var newName = spawn.createCreep(body, undefined, {
@@ -207,8 +212,8 @@ module.exports.loop = function () {
 		} else if (room.controller.level == 0 && room.controller.reservation) {
 			//this is an unowned/reserved room
 			console.log('Room "' + room.name + '" has '
-				+ containers.energyInContainers + '/' + containers.containerCapacityAvailable
-				+ ' (' + containers.energyPercentage + '%) in containers.'
+				+ room.energyInContainers + '/' + room.containerCapacityAvailable
+				+ ' (' + room.energyPercentage + '%) in room.'
 				+ ' (RCL=' + room.controller.level + ' @ '
 				+ room.controller.reservation.ticksToEnd
 				+ ' (' + room.controller.reservation.username + '))'
