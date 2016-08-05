@@ -41,6 +41,8 @@
     "src/components/spawns/spawnManager.ts",
     "src/config/config.ts",
     "src/main.ts",
+    "src/prototypes/link.ts",
+    "src/prototypes/room.ts",
     "src/shared/memoryManager.ts",
     "src/lib/screeps-profiler.js"
   ]

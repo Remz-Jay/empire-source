@@ -25,7 +25,7 @@ SourceManager.loadSources();
 
 export function loop() {
 	// This is executed every tick
-	Profiler.wrap(function() {
+	Profiler.wrap(function () {
 		PathFinder.use(true);
 		MemoryManager.loadMemory();
 		CreepManager.loadCreeps();

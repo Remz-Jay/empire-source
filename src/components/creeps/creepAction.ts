@@ -1,6 +1,6 @@
 import * as Config from "./../../config/config";
-import List = _.List;
 import * as RoomManager from "../rooms/roomManager";
+import List = _.List;
 
 type PathFinderGoal = { pos: RoomPosition, range: number }[];
 type PathFinderPath = { path: RoomPosition[], ops: number };
@@ -39,7 +39,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 	room.find(FIND_CREEPS).forEach(function (creep: Creep) {
 		costs.set(creep.pos.x, creep.pos.y, 0xff);
 	});
-	//TODO: this per-tick map of where the creeps are can be cached too..
+	// TODO: this per-tick map of where the creeps are can be cached too..
 	return costs;
 };
 

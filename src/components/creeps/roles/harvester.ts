@@ -28,6 +28,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		this.targetSource = Game.getObjectById<Source>(this.creep.memory.target_source_id);
 		this.targetEnergyDropOff = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_dropoff_id);
 	}
+
 	public assignNewSource(): boolean {
 		let target: Source = <Source> this.creep.pos.findClosestByPath(FIND_SOURCES, {
 			filter: (source: Source) => {
@@ -65,6 +66,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 			return false;
 		}
 	}
+
 	public isBagFull(): boolean {
 		return (this.creep.carry.energy === this.creep.carryCapacity);
 	}

@@ -20,7 +20,7 @@ export function getFirstSource(): Source {
 }
 
 export function blacklistSources(sourceIds: string[]): boolean {
-	_.each(sourceIds, function(s: string) {
+	_.each(sourceIds, function (s: string) {
 		let removed = _.remove(sources, {
 			id: s,
 		});

@@ -19,7 +19,7 @@ export function getFirstRoom(): Room {
 	return rooms[roomNames[0]];
 }
 
-export function getRoomByName(roomName: string): Room  {
+export function getRoomByName(roomName: string): Room {
 	return (rooms.hasOwnProperty(roomName)) ? rooms[roomName] : undefined;
 }
 
