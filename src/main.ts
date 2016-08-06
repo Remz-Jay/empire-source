@@ -3,14 +3,20 @@
  * BEFORE CHANGING THIS FILE, make sure you read this:
  * http://support.screeps.com/hc/en-us/articles/204825672-New-main-loop-architecture
  */
+import "prototypes/room";
+import "prototypes/link";
+
+import * as StatsManager from "./lib/statsmanager";
 import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
+
 import * as RoomManager from "./components/rooms/roomManager";
 import * as SpawnManager from "./components/spawns/spawnManager";
 import * as SourceManager from "./components/sources/sourceManager";
 import * as CreepManager from "./components/creeps/creepManager";
 
 Profiler.enable();
+let StatsMan = new StatsManager();
 
 // This code is executed only when Screeps system reloads your script.
 // Use this bootstrap wisely. You can cache some of your stuff to save CPU
@@ -30,6 +36,8 @@ export function loop() {
 		MemoryManager.loadMemory();
 		CreepManager.loadCreeps();
 		CreepManager.governCreeps();
+		StatsMan.runBuiltinStats();
+		StatsMan.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});
 
 }
