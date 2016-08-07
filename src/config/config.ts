@@ -25,7 +25,9 @@ export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
 export const PRIORITY_CREEP: number = -1;
 export const PRIORITY_BUILDER: number = 30;
 export const PRIORITY_HARVESTER: number = 10;
+export const PRIORITY_MULE: number = 15;
 export const PRIORITY_UPGRADER: number = 20;
+export const PRIORITY_LINKER: number = 30;
 
 export const BLACKLIST_SOURCES: string[] = [
 	"e14b8a0b914bfec5a61dd8f5",

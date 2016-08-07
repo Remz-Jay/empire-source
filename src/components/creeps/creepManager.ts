@@ -8,6 +8,9 @@ import HarvesterGovernor from "./governors/harvester";
 import BuilderGovernor from "./governors/builder";
 import Upgrader from "./roles/upgrader";
 import UpgraderGovernor from "./governors/upgrader";
+import LinkerGovernor from "./governors/linker";
+import MuleGovernor from "./governors/mule";
+import Mule from "./roles/mule";
 
 export let creeps: { [creepName: string]: Creep };
 export let creepNames: string[] = [];
@@ -17,12 +20,16 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Builder: Builder,
 	Harvester: Harvester,
 	Upgrader: Upgrader,
+	Mule: Mule,
 };
 
+// TODO: Add claim, healer, remote*, repairbot, scout
 let governors: {[key: string]: typeof CreepGovernor } = {
 	BuilderGovernor: BuilderGovernor,
 	HarvesterGovernor: HarvesterGovernor,
 	UpgraderGovernor: UpgraderGovernor,
+	LinkerGovernor: LinkerGovernor,
+	MuleGovernor: MuleGovernor,
 };
 
 export function loadCreeps(): void {

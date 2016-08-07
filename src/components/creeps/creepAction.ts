@@ -194,6 +194,112 @@ export default class CreepAction implements ICreepAction {
 		}
 	};
 
+	public expireCreep(): boolean {
+		// see if an upgrade for this creep is available
+		if (!!this.creep.memory.homeRoom && !!this.creep.memory.homeSpawn) {
+			try {
+				let room = Game.rooms[this.creep.memory.homeRoom];
+				let spawn = Game.spawns[this.creep.memory.homeSpawn];
+				let x = _.filter(Game.creeps, c => c.memory.role === this.creep.memory.role
+					&& ( !!c.memory.homeRoom && c.memory.homeRoom === room.name)
+					&& ( !!c.memory.homeSpawn && c.memory.homeSpawn === spawn.name)
+				);
+
+				if (x.length > this.max(room.energyInContainers, room)) {
+					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
+						+ room.name + " because we\"re over cap.");
+					return true;
+				}
+				let body = this.getBody(room.energyCapacityAvailable, room.energyAvailable,
+					x.length, room.controller.level
+				);
+				if (UtilCreep.calculateRequiredEnergy(body)
+					> UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
+					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
+						+ room.name + " for an upgrade.");
+					return true;
+				}
+			} catch (e) {
+				console.log(JSON.stringify(e), "this.creep.renewCreep.ExpireCreep");
+				return false;
+			}
+
+		}
+		return false;
+	};
+	public renewCreep(max: number = 1000): boolean {
+		if (this.creep.ticksToLive < 250
+			&& (this.creep.room.energyInContainers + this.creep.room.energyAvailable) < this.creep.room.energyCapacityAvailable) {
+			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
+				+ this.creep.room.name + " due to emergency energy level " + this.creep.room.energyInContainers);
+			return true;
+		}
+		if (this.creep.ticksToLive < 250) {
+			this.creep.memory.hasRenewed = false;
+		}
+		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false) {
+			let spawns: Spawn[] = <Spawn[]> this.creep.room.find(FIND_MY_SPAWNS);
+			let renewStation: Spawn;
+			if (spawns.length > 0) {
+				// if(spawns.length > 0 && this.creep.room.controller.level > 1 && UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))
+				// < this.creep.room.energyCapacityAvailable){
+				renewStation = spawns[0];
+				// } else {
+				//    renewStation = (undefined === this.creep.memory.homeSpawn) ? Game.spawns["Bastion"] : Game.spawns[this.creep.memory.homeSpawn];
+				// }
+			} else {
+				renewStation = (!this.creep.memory.homeSpawn) ? Game.spawns["Bastion"] : Game.spawns[this.creep.memory.homeSpawn];
+			}
+			let status: number;
+			let phrase: string;
+			if (this.expireCreep()) {
+				status = renewStation.recycleCreep(this.creep);
+				phrase = "demolition.";
+			} else {
+				status = renewStation.renewCreep(this.creep);
+				phrase = "renew.";
+			}
+			switch (status) {
+				case ERR_NOT_IN_RANGE:
+					console.log(this.creep.name + " (" + this.creep.memory.role + ") is moving to "
+						+ renewStation.name + " for " + phrase);
+					if (!this.creep.memory.renewPath) {
+						this.findNewPath(renewStation, "renewPath");
+					} else {
+						let path = this.deserializePathFinderPath(this.creep.memory.renewPath);
+						this.moveByPath(path, renewStation, "renewPath");
+					}
+					break;
+				case OK:
+					console.log(this.creep.name + " (" + this.creep.memory.role + ") renewed at "
+						+ renewStation.name + ". now at " + this.creep.ticksToLive);
+					if (this.creep.ticksToLive > max) {
+						console.log("Done renewing.");
+						this.creep.memory.hasRenewed = true;
+						delete this.creep.memory.renewPath;
+					}
+					break;
+				case ERR_FULL:
+					this.creep.memory.hasRenewed = true;
+					delete this.creep.memory.renewPath;
+					break;
+				case ERR_BUSY:
+				case ERR_NOT_ENOUGH_ENERGY:
+					console.log(this.creep.name + " (" + this.creep.memory.role + ") is waiting for renew at " + renewStation.name + ".");
+					if (this.creep.carry.energy > 0) {
+						this.creep.transfer(renewStation, RESOURCE_ENERGY);
+					}
+					break;
+				default:
+					console.log("Uncaught Creep Renew Error" + JSON.stringify(status));
+			}
+			return false;
+		} else {
+			return true;
+		}
+
+	};
+
 	public action(): boolean {
 		this.pickupResourcesInRange();
 		return true;
