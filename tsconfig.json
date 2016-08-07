@@ -43,6 +43,7 @@
     "src/main.ts",
     "src/prototypes/link.ts",
     "src/prototypes/room.ts",
+    "src/prototypes/tower.ts",
     "src/shared/memoryManager.ts",
     "src/shared/statsManager.ts",
     "src/lib/screeps-profiler.js"

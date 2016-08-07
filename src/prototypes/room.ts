@@ -1,4 +1,9 @@
+import List = _.List;
 interface Room {
+	containers: List<Structure>;
+	containerCapacityAvailable: number;
+	energyInContainers: number;
+	energyPercentage: number;
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -7,7 +12,7 @@ interface Room {
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
 	getCostMatrix(): CostMatrix;
-	getContainers(): void;
+	getContainers(): List<Structure>;
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
 	getEnergyPercentage(): number;
@@ -111,7 +116,7 @@ Room.prototype.getCostMatrix = function () {
 	}
 };
 
-Room.prototype.getContainers = function () {
+Room.prototype.getContainers = function (): List<Structure> {
 	return this.find(FIND_STRUCTURES, {
 		filter: (s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE,
 	});

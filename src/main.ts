@@ -5,6 +5,7 @@
  */
 import "./prototypes/room";
 import "./prototypes/link";
+import "./prototypes/tower";
 
 import StatsManager from "./shared/statsManager";
 import * as Profiler from "./lib/screeps-profiler";
@@ -34,6 +35,8 @@ export function loop() {
 	Profiler.wrap(function () {
 		PathFinder.use(true);
 		MemoryManager.loadMemory();
+		MemoryManager.cleanMemory();
+		RoomManager.governRooms();
 		CreepManager.loadCreeps();
 		CreepManager.governCreeps();
 		StatsMan.runBuiltinStats();
