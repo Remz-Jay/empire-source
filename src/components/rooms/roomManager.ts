@@ -40,7 +40,7 @@ export function governRooms(): void {
 		let myStructures = room.find(FIND_MY_STRUCTURES);
 		SpawnManager.load(room);
 		SourceManager.load(room);
-
+		SourceManager.updateHarvesterPreference();
 		room.addProperties();
 		// TODO: Walls and Ramparts
 		// console.log(roomName, room.containers, room.containerCapacityAvailable , room.energyInContainers , room.energyPercentage);

@@ -23,6 +23,6 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	}
 
 	public getCreepLimit(): number {
-		return Config.MAX_HARVESTERS_PER_SOURCE;
+		return (SourceManager.sources.length * Config.MAX_HARVESTERS_PER_SOURCE);
 	}
 }

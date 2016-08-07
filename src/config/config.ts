@@ -2,7 +2,7 @@
  * Enable this if you want a lot of text to be logged to console.
  * @type {boolean}
  */
-export const VERBOSE: boolean = true;
+export const VERBOSE: boolean = false;
 
 /**
  * For extra chatty output.
@@ -12,7 +12,7 @@ export const DEBUG: boolean = false;
 /**
  * @type {number}
  */
-export const MAX_HARVESTERS_PER_SOURCE: number = 4;
+export const MAX_HARVESTERS_PER_SOURCE: number = 3;
 
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
@@ -37,5 +37,5 @@ export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
 
 export const BLACKLIST_SOURCES: string[] = [
-	"6f55f5da19e6449320a1190d",
+	"739d5a933bb3ea5771e50d1d",
 ];

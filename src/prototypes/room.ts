@@ -66,7 +66,7 @@ Room.prototype.getCreepMatrix = function () {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
 			this.find(FIND_CREEPS).forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 11);
+				costMatrix.set(creep.pos.x, creep.pos.y, 20);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
 			this.setCreepMatrix(costMatrix);
@@ -104,7 +104,7 @@ Room.prototype.getCostMatrix = function () {
 				}
 			});
 			this.find(FIND_CONSTRUCTION_SITES).forEach(function (site: ConstructionSite) {
-				costs.set(site.pos.x, site.pos.y, 0xff);
+				costs.set(site.pos.x, site.pos.y, 5);
 			});
 			_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
 			// console.log("Returning NEW CostMatrix for room " + this.name);
