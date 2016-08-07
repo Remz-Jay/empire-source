@@ -3,10 +3,10 @@
  * BEFORE CHANGING THIS FILE, make sure you read this:
  * http://support.screeps.com/hc/en-us/articles/204825672-New-main-loop-architecture
  */
-import "prototypes/room";
-import "prototypes/link";
+import "./prototypes/room";
+import "./prototypes/link";
 
-import * as StatsManager from "./lib/statsmanager";
+import StatsManager from "./shared/statsManager";
 import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
 

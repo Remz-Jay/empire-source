@@ -1,5 +1,4 @@
 import * as Config from "./../../config/config";
-import * as RoomManager from "../rooms/roomManager";
 import List = _.List;
 
 type PathFinderGoal = { pos: RoomPosition, range: number }[];
@@ -15,7 +14,7 @@ export interface ICreepAction {
 	/**
 	 * Wrapper for Creep.moveTo() method.
 	 */
-	moveTo(target: RoomPosition | { pos: RoomPosition }): number;
+	moveTo(target: RoomPosition|PathFinderGoal): number;
 
 	needsRenew(): boolean;
 	tryRenew(): number;
@@ -24,23 +23,23 @@ export interface ICreepAction {
 
 	action(): boolean;
 
-	createPathFinderMap(goals: List<RoomObject>, range: number): PathFinderGoal;
+	createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 }
 
 let roomCallback = function (roomName: string): CostMatrix {
-	let room = Game.rooms[roomName];
-	if (!room) {
-		return;
+	try {
+		let room = Game.rooms[roomName];
+		if (!room) {
+			return;
+		}
+		return room.getCreepMatrix();
+	} catch (e) {
+		console.log(JSON.stringify(e), "creepAction.roomCallback", roomName);
+		return new PathFinder.CostMatrix();
 	}
-	let costs = RoomManager.getCostMatrixForRoom(roomName);
-	// Avoid creeps in the room
-	room.find(FIND_CREEPS).forEach(function (creep: Creep) {
-		costs.set(creep.pos.x, creep.pos.y, 0xff);
-	});
-	// TODO: this per-tick map of where the creeps are can be cached too..
-	return costs;
+
 };
 
 export default class CreepAction implements ICreepAction {
@@ -54,18 +53,20 @@ export default class CreepAction implements ICreepAction {
 		this.renewStation = Game.getObjectById<Spawn>(this.creep.memory.renew_station_id);
 	}
 
-	public moveTo(target: RoomPosition | { pos: RoomPosition, range: number }) {
-		let path = PathFinder.search(this.creep.pos, target, {
-			plainCost: 2,
-			swampCost: 10,
-			roomCallback: roomCallback,
-		});
+	public moveTo(target: RoomPosition|PathFinderGoal) {
 		try {
-			let pos = path.path[0];
-			let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
-			return status;
+			let pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
+			let path: RoomPosition[] = this.findPathFinderPath(pfg);
+			if (!!path) {
+				let pos = path[0];
+				return this.creep.move(this.creep.pos.getDirectionTo(pos));
+			} else {
+				return ERR_NOT_FOUND;
+			}
 		} catch (e) {
-			console.log(JSON.stringify(e), "moveTo");
+			console.log(JSON.stringify(target), "creepAction.moveTo");
+			// fall back to regular move.
+			this.creep.moveTo(<RoomPosition> target);
 		}
 	}
 
@@ -83,11 +84,17 @@ export default class CreepAction implements ICreepAction {
 		}
 	}
 
-	public createPathFinderMap(goals: List<RoomObject>, range: number = 1): PathFinderGoal {
-		return _.map(goals, function (source: RoomObject) {
+	public createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number = 1): PathFinderGoal {
+		let goalsList: List<RoomPosition>;
+		if (!_.isArray(goals)) {
+			goalsList = [<RoomPosition> goals];
+		} else {
+			goalsList = goals as List<RoomPosition>;
+		}
+		return _.map(goalsList, function (source: RoomPosition) {
 			// We can't actually walk on sources-- set `range` to 1 so we path
 			// next to it.
-			return {pos: source.pos, range: range};
+			return {pos: source, range: range};
 		});
 	};
 
@@ -99,18 +106,23 @@ export default class CreepAction implements ICreepAction {
 		return path;
 	};
 
-	public findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean {
-		let path: PathFinderPath = PathFinder.search(this.creep.pos, goal, {
+	public findPathFinderPath(goal: PathFinderGoal): RoomPosition[] {
+		let plainCost = 3;
+		let swampCost = 6;
+		if (_.sum(this.creep.carry) > (this.creep.carryCapacity / 2)) {
+			plainCost = 5;
+			swampCost = 10;
+		}
+		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			plainCost: 2,
-			swampCost: 10,
-
+			plainCost: plainCost,
+			swampCost: swampCost,
 			roomCallback: roomCallback,
 		});
 		if (path.path.length < 1) {
 			// We're near the target.
-			return false;
+			return undefined;
 		} else {
 			return path.path;
 		}
