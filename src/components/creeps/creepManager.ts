@@ -1,7 +1,7 @@
 import * as Config from "./../../config/config";
 import * as SpawnManager from "./../spawns/spawnManager";
 import CreepAction from "./creepAction";
-import CreepGovernor, {CreepConfiguration} from "./creepGovernor";
+import CreepGovernor, {CreepConfiguration, CreepGovernorConstructor} from "./creepGovernor";
 import Harvester from "./roles/harvester";
 import Builder from "./roles/builder";
 import HarvesterGovernor from "./governors/harvester";
@@ -59,32 +59,36 @@ export function createCreep(config: CreepConfiguration): string|number {
 	return status;
 }
 
-export function governCreeps(): void {
+export function governCreeps(room: Room): void {
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
-		let governor: CreepGovernor = new prioritizedGovernors[index]();
-		let creepRole: string = prioritizedGovernors[index].ROLE;
-		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep) => creep.memory.role === creepRole);
-		let numCreeps: number = creepsInRole.length;
-		_.each(creepsInRole, function (creep: Creep) {
-			if (!creep.spawning) {
-				let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
-				role.setCreep(<Creep> creep);
-				role.action();
-			}
-		}, this);
+		if (room.controller.level >= prioritizedGovernors[index].MINRCL) {
+			let governor: CreepGovernor = new prioritizedGovernors[index](room);
+			let creepRole: string = prioritizedGovernors[index].ROLE;
+			let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role === creepRole
+			&& creep.memory.homeRoom === room.name);
+			let numCreeps: number = creepsInRole.length;
+			_.each(creepsInRole, function (creep: Creep) {
+				if (!creep.spawning) {
+					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
+					role.setCreep(<Creep> creep);
+					role.setGovernor(governor);
+					role.action();
+				}
+			}, this);
 
-		if (Config.VERBOSE) {
-			console.log(`${creepRole}: ${numCreeps}/${governor.getCreepLimit()}`);
-		}
-		if (numCreeps < governor.getCreepLimit() && !isSpawning) {
-			let config: CreepConfiguration = governor.getCreepConfig();
-			if (!_.isNumber(this.createCreep(config))) {
-				isSpawning = true;
+			if (Config.VERBOSE) {
+				console.log(`${creepRole}: ${numCreeps}/${governor.getCreepLimit()}`);
 			}
-		} else if (numCreeps > governor.getCreepLimit()) {
-			// TODO: Deconstruct excess creep.
+			if (numCreeps < governor.getCreepLimit() && !isSpawning) {
+				let config: CreepConfiguration = governor.getCreepConfig();
+				if (!_.isNumber(this.createCreep(config))) {
+					isSpawning = true;
+				}
+			} else if (numCreeps > governor.getCreepLimit()) {
+				// TODO: Deconstruct excess creep.
+			}
 		}
 	}
 }

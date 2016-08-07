@@ -6,15 +6,17 @@ import * as Config from "../../../config/config";
 export default class LinkerGovernor extends CreepGovernor implements ICreepGovernor {
 
 	public static PRIORITY: number = Config.PRIORITY_LINKER;
+	public static MINRCL: number = Config.MINRCL_LINKER;
 	public static ROLE: string = "Linker";
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = [CARRY, MOVE];
 		let name: string = null;
 		let properties: CreepProperties = {
-			renew_station_id: SpawnManager.getFirstSpawn().id,
+			homeRoom: this.room.name,
+			homeSpawn: SpawnManager.getFirstSpawn().id,
 			role: LinkerGovernor.ROLE,
-			target_controller_id: RoomManager.getFirstRoom().controller.id,
+			target_controller_id: this.room.controller.id,
 			target_energy_source_id: SpawnManager.getFirstSpawn().id,
 		};
 		return {body: bodyParts, name: name, properties: properties};

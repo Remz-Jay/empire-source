@@ -1,16 +1,18 @@
 import * as Config from "./../../config/config";
 import List = _.List;
+import CreepGovernor from "./creepGovernor";
 
 type PathFinderGoal = { pos: RoomPosition, range: number }[];
 type PathFinderPath = { path: RoomPosition[], ops: number };
 
 export interface ICreepAction {
 	creep: Creep;
+	governor: CreepGovernor;
 	renewStation: Spawn;
 	_minLifeBeforeNeedsRenew: number;
 
 	setCreep(creep: Creep): void;
-
+	setGovernor(governor: CreepGovernor): void;
 	/**
 	 * Wrapper for Creep.moveTo() method.
 	 */
@@ -45,12 +47,17 @@ let roomCallback = function (roomName: string): CostMatrix {
 export default class CreepAction implements ICreepAction {
 	public creep: Creep;
 	public renewStation: Spawn;
+	public governor: CreepGovernor;
 
 	public _minLifeBeforeNeedsRenew: number = Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
 
 	public setCreep(creep: Creep) {
 		this.creep = creep;
-		this.renewStation = Game.getObjectById<Spawn>(this.creep.memory.renew_station_id);
+		this.renewStation = Game.getObjectById<Spawn>(this.creep.memory.homeSpawn);
+	}
+
+	public setGovernor(governor: CreepGovernor): void {
+		this.governor = governor;
 	}
 
 	public moveTo(target: RoomPosition|PathFinderGoal) {
@@ -205,16 +212,14 @@ export default class CreepAction implements ICreepAction {
 					&& ( !!c.memory.homeSpawn && c.memory.homeSpawn === spawn.name)
 				);
 
-				if (x.length > this.max(room.energyInContainers, room)) {
+				if (x.length > this.governor.getCreepLimit()) {
 					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 						+ room.name + " because we\"re over cap.");
 					return true;
 				}
-				let body = this.getBody(room.energyCapacityAvailable, room.energyAvailable,
-					x.length, room.controller.level
-				);
-				if (UtilCreep.calculateRequiredEnergy(body)
-					> UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
+				let body = this.governor.getBody();
+				if (CreepGovernor.calculateRequiredEnergy(body)
+					> CreepGovernor.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
 					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 						+ room.name + " for an upgrade.");
 					return true;

@@ -2,7 +2,7 @@
  * Enable this if you want a lot of text to be logged to console.
  * @type {boolean}
  */
-export const VERBOSE: boolean = false;
+export const VERBOSE: boolean = true;
 
 /**
  * For extra chatty output.
@@ -29,6 +29,13 @@ export const PRIORITY_MULE: number = 15;
 export const PRIORITY_UPGRADER: number = 20;
 export const PRIORITY_LINKER: number = 30;
 
+export const MINRCL_CREEP: number = 0;
+export const MINRCL_BUILDER: number = 1;
+export const MINRCL_HARVESTER: number = 1;
+export const MINRCL_MULE: number = 2;
+export const MINRCL_UPGRADER: number = 1;
+export const MINRCL_LINKER: number = 5;
+
 export const BLACKLIST_SOURCES: string[] = [
-	"e14b8a0b914bfec5a61dd8f5",
+	"6f55f5da19e6449320a1190d",
 ];

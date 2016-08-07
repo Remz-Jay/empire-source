@@ -12,17 +12,19 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 	public action(): boolean {
 		super.action();
-		if (!this.renewCreep()) return;
-		let storage = this.creep.room.storage;
-		let link = _.filter(this.creep.room.find(FIND_MY_STRUCTURES),
-			s => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(storage));
+		if (!this.renewCreep()) {
+			return;
+		}
+		let storage: StructureStorage = this.creep.room.storage;
+		let linkResult: StructureLink[] = _.filter(this.creep.room.find(FIND_MY_STRUCTURES),
+			(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(storage)) as StructureLink[];
 
-		if(link.length > 0) {
-			link = link[0];
+		if(linkResult.length > 0) {
+			let link = linkResult[0];
 			if(!this.creep.pos.isNearTo(storage)) {
-				this.moveTo(storage);
-			} else if(!creep.pos.isNearTo(link)) {
-				this.moveTo(link);
+				this.moveTo(storage.pos);
+			} else if (!this.creep.pos.isNearTo(link)) {
+				this.moveTo(link.pos);
 			} else {
 				if (link.energy < 400) {
 					this.creep.withdraw(storage, RESOURCE_ENERGY, (400 - link.energy));

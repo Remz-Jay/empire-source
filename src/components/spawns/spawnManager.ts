@@ -1,22 +1,22 @@
 import * as Config from "./../../config/config";
 
-export let spawns: { [spawnName: string]: Spawn };
+export let spawns: Spawn[];
 export let spawnNames: string[] = [];
 export let spawnCount: number;
 
-export function loadSpawns() {
-	spawns = Game.spawns;
+export function load(room: Room) {
+	spawns = room.find<Spawn>(FIND_MY_SPAWNS);
 	spawnCount = _.size(spawns);
 
 	_loadSpawnNames();
 
 	if (Config.VERBOSE) {
-		console.log(spawnCount + " spawns in room.");
+		console.log("[SpawnManager] " + spawnCount + " spawns in room.");
 	}
 }
 
 export function getFirstSpawn(): Spawn {
-	return spawns[spawnNames[0]];
+	return spawns[0];
 }
 
 function _loadSpawnNames(): void {

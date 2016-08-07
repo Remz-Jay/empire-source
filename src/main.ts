@@ -12,8 +12,6 @@ import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
 
 import * as RoomManager from "./components/rooms/roomManager";
-import * as SpawnManager from "./components/spawns/spawnManager";
-import * as SourceManager from "./components/sources/sourceManager";
 import * as CreepManager from "./components/creeps/creepManager";
 
 Profiler.enable();
@@ -23,8 +21,6 @@ let StatsMan = new StatsManager();
 // Use this bootstrap wisely. You can cache some of your stuff to save CPU
 // You should extend prototypes before game loop in here.
 RoomManager.loadRooms();
-SpawnManager.loadSpawns();
-SourceManager.loadSources();
 
 // Screeps" system expects this "loop" method in main.js to run the application.
 // If we have this line, we can make sure that globals bootstrap and game loop work.
@@ -36,9 +32,8 @@ export function loop() {
 		PathFinder.use(true);
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
-		RoomManager.governRooms();
 		CreepManager.loadCreeps();
-		CreepManager.governCreeps();
+		RoomManager.governRooms();
 		StatsMan.runBuiltinStats();
 		StatsMan.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});

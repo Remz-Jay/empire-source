@@ -1,4 +1,5 @@
 import List = _.List;
+
 interface Room {
 	containers: List<Structure>;
 	containerCapacityAvailable: number;
