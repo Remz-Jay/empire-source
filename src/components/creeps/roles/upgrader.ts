@@ -59,9 +59,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 
 	public action(): boolean {
 		super.action();
-		if (this.needsRenew()) {
-			this.moveToRenew();
-		} else if (this.isBagEmpty()) {
+		if (this.isBagEmpty()) {
 			this.moveToCollectEnergy();
 		} else {
 			this.moveToController();

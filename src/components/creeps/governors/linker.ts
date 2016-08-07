@@ -9,8 +9,9 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 	public static MINRCL: number = Config.MINRCL_LINKER;
 	public static ROLE: string = "Linker";
 
+	public bodyPart = [CARRY, MOVE];
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = [CARRY, MOVE];
+		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,

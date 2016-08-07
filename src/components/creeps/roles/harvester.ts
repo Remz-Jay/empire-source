@@ -115,14 +115,11 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 
 	public action(): boolean {
 		super.action();
-		if (this.needsRenew()) {
-			this.moveToRenew();
-		} else if (this.isBagFull()) {
+		if (this.isBagFull()) {
 			this.moveToDropEnergy();
 		} else {
 			this.moveToHarvest();
 		}
-
 		return true;
 	}
 

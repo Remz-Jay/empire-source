@@ -9,8 +9,22 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	public static MINRCL: number = Config.MINRCL_HARVESTER;
 	public static ROLE: string = "Harvester";
 
+	public getBody() {
+		let numParts = _.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		if (numParts < 1) {
+			numParts = 1;
+		}
+		if (this.maxParts > 1 && numParts > this.maxParts) {
+			numParts = this.maxParts;
+		}
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			body = body.concat(this.bodyPart);
+		}
+		return CreepGovernor.sortBodyParts(body);
+	}
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
+		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,

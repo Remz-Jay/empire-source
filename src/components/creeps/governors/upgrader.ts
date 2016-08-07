@@ -9,7 +9,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public static ROLE: string = "Upgrader";
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
+		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,

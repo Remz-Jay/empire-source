@@ -20,6 +20,8 @@ export interface CreepGovernorConstructor {
 	new (room: Room): ICreepGovernor;
 }
 export interface ICreepGovernor {
+	bodyPart: string[];
+	maxParts: number;
 	getCreepConfig(): CreepConfiguration;
 	getCreepLimit(): number;
 	getBody(): string[];
@@ -87,6 +89,8 @@ export default class CreepGovernor implements ICreepGovernor {
 	};
 
 	public room: Room;
+	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
+	public maxParts: number = -1;
 	constructor(room: Room) {
 		this.room = room;
 	}
@@ -98,7 +102,18 @@ export default class CreepGovernor implements ICreepGovernor {
 		return 0;
 	}
 
-	public getBody(): string[] {
-		return [WORK, MOVE, CARRY, MOVE];
+	public getBody() {
+		let numParts = _.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		if (numParts < 1) {
+			numParts = 1;
+		}
+		if (this.maxParts > 1 && numParts > this.maxParts) {
+			numParts = this.maxParts;
+		}
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			body = body.concat(this.bodyPart);
+		}
+		return CreepGovernor.sortBodyParts(body);
 	}
 }

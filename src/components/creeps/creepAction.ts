@@ -306,6 +306,9 @@ export default class CreepAction implements ICreepAction {
 	};
 
 	public action(): boolean {
+		if (!this.renewCreep()) {
+			return false;
+		}
 		this.pickupResourcesInRange();
 		return true;
 	}

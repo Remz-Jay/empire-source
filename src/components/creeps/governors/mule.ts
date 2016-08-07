@@ -9,8 +9,9 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	public static MINRCL: number = Config.MINRCL_MULE;
 	public static ROLE: string = "Mule";
 
+	public bodyPart = [CARRY, MOVE];
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = [CARRY, MOVE];
+		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,

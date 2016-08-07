@@ -11,7 +11,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 		super(room);
 	}
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = [MOVE, MOVE, CARRY, WORK];
+		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,

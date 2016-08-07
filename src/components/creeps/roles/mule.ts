@@ -72,9 +72,6 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 
 	public action(): boolean {
 		super.action();
-		if (this.needsRenew()) {
-			this.moveToRenew();
-		}
 		return true;
 	}
 

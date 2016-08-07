@@ -74,9 +74,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 
 	public action(): boolean {
 		super.action();
-		if (this.needsRenew()) {
-			this.moveToRenew();
-		} else if (this.isBagEmpty()) {
+		if (this.isBagEmpty()) {
 			this.moveToCollectEnergy();
 		} else {
 			this.moveToConstructionSite();
