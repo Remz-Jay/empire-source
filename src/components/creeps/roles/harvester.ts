@@ -77,7 +77,16 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 
 	public moveToHarvest(): void {
 		if (this.tryHarvest() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.targetSource.pos);
+			if (!this.creep.memory.targetPath) {
+				if (!this.findNewPath(this.targetSource)) {
+					this.creep.say("HALP!");
+				}
+			} else {
+				let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+				this.moveByPath(path, this.targetSource);
+			}
+		} else {
+			delete this.creep.memory.targetPath;
 		}
 	}
 

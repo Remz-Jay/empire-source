@@ -69,6 +69,46 @@ export default class CreepAction implements ICreepAction {
 			this.creep.moveTo(<RoomPosition> target);
 		}
 	}
+	public findNewPath(target: RoomObject, memoryName: string = "targetPath", move: boolean = true): boolean {
+		let path = this.findPathFinderPath(this.createPathFinderMap(target.pos));
+		if (!!path) {
+			this.creep.memory[memoryName] = path;
+			if (move) {
+				return this.moveByPath(path, target, memoryName);
+			}
+		} else {
+			return false;
+		}
+	};
+	public moveByPath(path: RoomPosition[], target: RoomObject, memoryName: string = "targetPath"): boolean {
+		if (!!this.creep.memory.lastPosition) {
+			let lp = this.creep.memory.lastPosition;
+			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
+				console.log(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
+					+ JSON.stringify(lp) + ". Recalculating route.");
+				delete this.creep.memory.lastPosition;
+				this.findNewPath(target, memoryName);
+			}
+		}
+		this.creep.memory.lastPosition = this.creep.pos;
+		let status = this.creep.moveByPath(path);
+		switch (status) {
+			case ERR_NOT_FOUND:
+				delete this.creep.memory[memoryName];
+				if (!!target) {
+					return this.findNewPath(target, memoryName);
+				}
+				break;
+			case ERR_TIRED:
+				// Delete the lastPosition, because the creep hasn"t moved due to it being tired. No need to recalculate route now.
+				delete this.creep.memory.lastPosition;
+				return true;
+			case OK:
+				return true;
+			default:
+				console.log("Uncaught moveBy status " + JSON.stringify(status) + " in Class.Creep.moveByPath.");
+		}
+	};
 
 	public needsRenew(): boolean {
 		return (this.creep.ticksToLive < this._minLifeBeforeNeedsRenew);
@@ -92,7 +132,7 @@ export default class CreepAction implements ICreepAction {
 			goalsList = goals as List<RoomPosition>;
 		}
 		return _.map(goalsList, function (source: RoomPosition) {
-			// We can't actually walk on sources-- set `range` to 1 so we path
+			// We can"t actually walk on sources-- set `range` to 1 so we path
 			// next to it.
 			return {pos: source, range: range};
 		});
@@ -121,7 +161,7 @@ export default class CreepAction implements ICreepAction {
 			roomCallback: roomCallback,
 		});
 		if (path.path.length < 1) {
-			// We're near the target.
+			// We"re near the target.
 			return undefined;
 		} else {
 			return path.path;
