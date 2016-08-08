@@ -142,9 +142,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			if (!this.creep.memory.source) {
 				// Prefer energy from containers
 				let source: Source | StorageStructure = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-					filter: (structure: StorageStructure) => (structure.structureType === STRUCTURE_CONTAINER
-					|| structure.structureType === STRUCTURE_STORAGE)
-					&& structure.store[RESOURCE_ENERGY] > 100,
+					filter: (structure: StorageStructure) => ((structure.structureType === STRUCTURE_CONTAINER
+					|| structure.structureType === STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 100)
+					|| (structure.structureType === STRUCTURE_SPAWN),
 				}) as StorageStructure;
 				// Go to source otherwise
 				if (!source) {
@@ -198,8 +198,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	};
 
 	public action(): boolean {
-		super.action();
-		this.builderLogic();
+		if (super.action()) {
+			this.builderLogic();
+		}
 		// if (this.isBagEmpty()) {
 		// 	this.moveToCollectEnergy();
 		// } else {

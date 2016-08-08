@@ -20,7 +20,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().id,
+			homeSpawn: SpawnManager.getFirstSpawn().name,
 			role: BuilderGovernor.ROLE,
 			target_construction_site_id: Object.keys(Game.constructionSites)[0],
 			target_energy_source_id: SpawnManager.getFirstSpawn().id,

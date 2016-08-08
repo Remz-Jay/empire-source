@@ -1,7 +1,7 @@
 import * as Config from "./../../config/config";
 import * as SpawnManager from "./../spawns/spawnManager";
 import CreepAction from "./creepAction";
-import CreepGovernor, {CreepConfiguration, CreepGovernorConstructor} from "./creepGovernor";
+import CreepGovernor, {CreepConfiguration} from "./creepGovernor";
 import Harvester from "./roles/harvester";
 import Builder from "./roles/builder";
 import HarvesterGovernor from "./governors/harvester";

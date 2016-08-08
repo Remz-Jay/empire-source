@@ -10,6 +10,8 @@ export interface CreepProperties {
 	homeRoom: string;
 	homeSpawn: string;
 	targetRoom?: string;
+	target_link_id?: string;
+	target_storage_id?: string;
 	target_energy_dropoff_id?: string;
 	target_energy_source_id?: string;
 	target_source_id?: string;
@@ -22,9 +24,13 @@ export interface CreepGovernorConstructor {
 export interface ICreepGovernor {
 	bodyPart: string[];
 	maxParts: number;
+	maxCreeps: number;
+	emergency: boolean;
 	getCreepConfig(): CreepConfiguration;
 	getCreepLimit(): number;
 	getBody(): string[];
+	getNumberOfCreepsInRole(): number;
+	getCreepsInRole(): Creep[];
 }
 
 export default class CreepGovernor implements ICreepGovernor {
@@ -91,6 +97,8 @@ export default class CreepGovernor implements ICreepGovernor {
 	public room: Room;
 	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
 	public maxParts: number = -1;
+	public maxCreeps: number = 0;
+	public emergency: boolean = false;
 	constructor(room: Room) {
 		this.room = room;
 	}
@@ -99,7 +107,16 @@ export default class CreepGovernor implements ICreepGovernor {
 	}
 
 	public getCreepLimit(): number {
-		return 0;
+		return this.maxCreeps;
+	}
+
+	public getNumberOfCreepsInRole(): number {
+		return this.getCreepsInRole().length;
+	}
+
+	public getCreepsInRole(): Creep[] {
+		return _.filter(Game.creeps, (creep: Creep) => creep.memory.role === Object.getPrototypeOf(this).ROLE
+		&& creep.memory.homeRoom === this.room.name);
 	}
 
 	public getBody() {

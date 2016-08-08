@@ -26,7 +26,7 @@ StructureTower.prototype.run = function () {
 		let closestDamagedCreep = this.pos.findClosestByRange(FIND_MY_CREEPS, {
 			filter: (c: Creep) => {
 				return c.hits < c.hitsMax;
-			}
+			},
 		});
 		if (closestDamagedCreep) {
 			this.heal(closestDamagedCreep);

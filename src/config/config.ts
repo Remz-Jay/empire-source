@@ -37,5 +37,5 @@ export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
 
 export const BLACKLIST_SOURCES: string[] = [
-	"56941a3ce0c0ca2e29987ecb",
+	"93fb27c64c210a0dc3d9505e",
 ];

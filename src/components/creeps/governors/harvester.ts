@@ -10,7 +10,13 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	public static ROLE: string = "Harvester";
 
 	public getBody() {
-		let numParts = _.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		let numParts: number;
+
+		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
+			numParts = _.floor((this.room.energyCapacityAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		} else {
+			numParts = _.floor((this.room.energyAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		}
 		if (numParts < 1) {
 			numParts = 1;
 		}
@@ -28,7 +34,7 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().id,
+			homeSpawn: SpawnManager.getFirstSpawn().name,
 			role: HarvesterGovernor.ROLE,
 			target_energy_dropoff_id: SpawnManager.getFirstSpawn().id,
 			target_source_id: SourceManager.getFirstSource().id,
@@ -37,6 +43,17 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	}
 
 	public getCreepLimit(): number {
-		return (SourceManager.sources.length * Config.MAX_HARVESTERS_PER_SOURCE);
+		let max: number = SourceManager.sources.length;
+		if (this.room.energyCapacityAvailable < 1200) {
+			max = (SourceManager.sources.length * 2);
+		}
+		if (this.room.energyCapacityAvailable < 600) {
+			max = (SourceManager.sources.length * Config.MAX_HARVESTERS_PER_SOURCE);
+		}
+		if ((this.room.energyInContainers + this.room.energyAvailable) < (this.room.energyCapacityAvailable * 0.8)) {
+			this.emergency = true;
+			max = (SourceManager.sources.length * Config.MAX_HARVESTERS_PER_SOURCE);
+		}
+		return max;
 	}
 }

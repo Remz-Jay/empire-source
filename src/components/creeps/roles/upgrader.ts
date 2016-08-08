@@ -57,14 +57,38 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 		}
 	}
 
-	public action(): boolean {
-		super.action();
-		if (this.isBagEmpty()) {
-			this.moveToCollectEnergy();
-		} else {
-			this.moveToController();
+	public upgraderLogic() {
+		if (this.creep.memory.dumping && this.creep.carry.energy === 0) {
+			delete this.creep.memory.dumping;
+			delete this.creep.memory.source;
+			this.creep.say("U:COL");
 		}
+		if (!this.creep.memory.dumping && this.creep.carry.energy === this.creep.carryCapacity) {
+			this.creep.memory.dumping = true;
+			delete this.creep.memory.source;
+			this.creep.say("U:UPGR");
+		}
+		if (this.creep.memory.dumping) {
+			let target = this.creep.room.controller;
+			if (this.creep.pos.getRangeTo(target) > 2) {
+				this.moveTo(target.pos);
+				this.creep.upgradeController(target);
+			} else {
+				this.creep.upgradeController(target);
+			}
+		} else {
+			this.harvestFromContainersAndSources();
+		}
+	};
 
+	public action(): boolean {
+		if (super.action()) {
+			if (this.isBagEmpty()) {
+				this.moveToCollectEnergy();
+			} else {
+				this.moveToController();
+			}
+		}
 		return true;
 	}
 

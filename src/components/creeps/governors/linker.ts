@@ -1,6 +1,5 @@
 import {ICreepGovernor, CreepConfiguration, default as CreepGovernor, CreepProperties} from "../creepGovernor";
 import * as SpawnManager from "../../spawns/spawnManager";
-import * as RoomManager from "../../rooms/roomManager";
 import * as Config from "../../../config/config";
 
 export default class LinkerGovernor extends CreepGovernor implements ICreepGovernor {
@@ -10,21 +9,38 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 	public static ROLE: string = "Linker";
 
 	public bodyPart = [CARRY, MOVE];
+	public maxCreeps = 1;
+
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().id,
+			homeSpawn: SpawnManager.getFirstSpawn().name,
 			role: LinkerGovernor.ROLE,
-			target_controller_id: this.room.controller.id,
-			target_energy_source_id: SpawnManager.getFirstSpawn().id,
+			target_link_id: this.getStorageLink().id,
+			target_storage_id: this.room.storage.id,
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
 
 	public getCreepLimit(): number {
-		let limit = 1;
+		let limit = 0;
+		if (!!this.getStorageLink()) {
+				limit = this.maxCreeps;
+		}
 		return limit;
+	}
+
+	public getStorageLink(): StructureLink {
+		if (!!this.room.storage) {
+			let link: StructureLink[] = _.filter(this.room.find(FIND_MY_STRUCTURES),
+				(s: StructureLink) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.room.storage)) as StructureLink[];
+			if (link.length > 0) {
+				return link[0];
+			} else {
+				return undefined;
+			}
+		}
 	}
 }

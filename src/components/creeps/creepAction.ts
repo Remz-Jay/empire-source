@@ -250,7 +250,7 @@ export default class CreepAction implements ICreepAction {
 				//    renewStation = (undefined === this.creep.memory.homeSpawn) ? Game.spawns["Bastion"] : Game.spawns[this.creep.memory.homeSpawn];
 				// }
 			} else {
-				renewStation = (!this.creep.memory.homeSpawn) ? Game.spawns["Bastion"] : Game.spawns[this.creep.memory.homeSpawn];
+				renewStation = (!this.creep.memory.homeSpawn) ? this.creep.room.find<Spawn>(FIND_MY_SPAWNS)[0] : Game.spawns[this.creep.memory.homeSpawn];
 			}
 			let status: number;
 			let phrase: string;
@@ -299,8 +299,77 @@ export default class CreepAction implements ICreepAction {
 		} else {
 			return true;
 		}
-
 	};
+
+	public harvestFromContainersAndSources() {
+		if (!this.creep.memory.source) {
+			// Prefer energy from containers
+			let source: Structure | Source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+				filter: (structure: StorageStructure | StructureLink) => (structure.structureType === STRUCTURE_CONTAINER
+					|| structure.structureType === STRUCTURE_STORAGE
+					|| structure.structureType === STRUCTURE_LINK
+				) && (
+					((structure instanceof StructureContainer || structure instanceof StructureStorage)
+					&& !!structure.store && structure.store[RESOURCE_ENERGY] > (this.creep.carryCapacity - _.sum(this.creep.carry))) // containers and storage
+					|| (structure instanceof StructureLink && !!structure.energy && structure.energy > (this.creep.carryCapacity - _.sum(this.creep.carry))) // links
+				),
+				maxRooms: 1,
+			}) as StorageStructure | StructureLink;
+			// Go to source otherwise
+			if (!source) {
+				source = this.creep.pos.findClosestByPath(FIND_MY_SPAWNS, {
+					filter: (structure: Spawn) => structure.energy > 0
+					&& structure.room.name === this.creep.room.name,
+				}) as Spawn;
+				if (!source) {
+					source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
+						filter: (source: Source) => (source.energy > 100) || source.ticksToRegeneration < 30,
+					}) as Source;
+				}
+			}
+			if (!!source) {
+				this.creep.memory.source = source.id;
+			}
+		}
+		if (!!this.creep.memory.source) {
+			let source: Structure | Source = Game.getObjectById(this.creep.memory.source) as Structure | Source;
+			if (source instanceof Structure) { // Sources aren't structures
+				let status = this.creep.withdraw(source, RESOURCE_ENERGY);
+				switch (status) {
+					case ERR_NOT_ENOUGH_RESOURCES:
+					case ERR_INVALID_TARGET:
+					case ERR_NOT_OWNER:
+					case ERR_FULL:
+						delete this.creep.memory.source;
+						break;
+					case ERR_NOT_IN_RANGE:
+						this.creep.moveTo(source);
+						break;
+					case OK:
+						break;
+					default:
+						console.log(`Unhandled ERR in creep.source.container ${status}`);
+				}
+			} else {
+				let status = this.creep.harvest(source);
+				switch (status) {
+					case ERR_NOT_ENOUGH_RESOURCES:
+					case ERR_INVALID_TARGET:
+					case ERR_NOT_OWNER:
+					case ERR_FULL:
+						delete this.creep.memory.source;
+						break;
+					case ERR_NOT_IN_RANGE:
+						this.creep.moveTo(source.pos);
+						break;
+					case OK:
+						break;
+					default:
+						console.log(`Unhandled ERR in creep.source.harvest: ${status}`);
+				}
+			}
+		}
+	}
 
 	public action(): boolean {
 		if (!this.renewCreep()) {

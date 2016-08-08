@@ -57,9 +57,6 @@ export function governRooms(): void {
 			}, this);
 		}
 
-		// TODO: Sources and HarvesterPreference
-
-
 		if (room.controller.level > 0 && room.controller.my) {
 			// this is one of our controlled rooms
 			console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
