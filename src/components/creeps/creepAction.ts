@@ -2,9 +2,6 @@ import * as Config from "./../../config/config";
 import List = _.List;
 import CreepGovernor from "./creepGovernor";
 
-type PathFinderGoal = { pos: RoomPosition, range: number }[];
-type PathFinderPath = { path: RoomPosition[], ops: number };
-
 export interface ICreepAction {
 	creep: Creep;
 	governor: CreepGovernor;

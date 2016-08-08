@@ -16,7 +16,6 @@ export interface IHarvester {
 
 	action(): boolean;
 }
-type EnergyStructure = Extension | Spawn | Tower;
 
 export default class Harvester extends CreepAction implements IHarvester, ICreepAction {
 	public targetSource: Source;

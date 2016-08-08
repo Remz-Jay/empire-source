@@ -1,5 +1,4 @@
 import CreepAction, {ICreepAction} from "../creepAction";
-type EnergyStructure = Extension | Spawn | Tower;
 
 export interface IMule {
 
