@@ -34,7 +34,7 @@ config.json
 .idea/tasks.xml
 
 ##TypeScript
+/dist
 /typings
 /src/**/*.js
-/src
-/dist
+!/src/lib/**/*.js
