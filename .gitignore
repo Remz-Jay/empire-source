@@ -28,7 +28,6 @@ nbproject/
 configuration.ini
 config.json
 /legacy
-/javascript
 
 ## IDEA ignores
 .idea/workspace.xml
