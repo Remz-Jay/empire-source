@@ -10,7 +10,7 @@ module.exports = function(grunt) {
             options: {
                 email: credentials.username,
                 password: credentials.password,
-                branch: 'typescript',
+                branch: 'default',
                 ptr: false
             },
             dist: {
@@ -18,4 +18,4 @@ module.exports = function(grunt) {
             }
         }
     });
-}
+};
