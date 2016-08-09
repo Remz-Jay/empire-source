@@ -9,7 +9,14 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	public static MINRCL: number = Config.MINRCL_HARVESTER;
 	public static ROLE: string = "Harvester";
 
+	public emergency: boolean = SourceManager.isEmergency() || (this.getNumberOfCreepsInRole() < (this.getCreepLimit() / 2));
+	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];
+	public maxParts: number = 4;
 	public getBody() {
+		if (this.room.containers.length < 1) {
+			// no containers, so this creep will have to leg it.
+			this.bodyPart = [WORK, MOVE, CARRY, MOVE];
+		}
 		let numParts: number;
 
 		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
@@ -43,17 +50,6 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	}
 
 	public getCreepLimit(): number {
-		let max: number = SourceManager.sources.length;
-		if (this.room.energyCapacityAvailable < 1200) {
-			max = (SourceManager.sources.length * 2);
-		}
-		if (this.room.energyCapacityAvailable < 600) {
-			max = (SourceManager.sources.length * Config.MAX_HARVESTERS_PER_SOURCE);
-		}
-		if ((this.room.energyInContainers + this.room.energyAvailable) < (this.room.energyCapacityAvailable * 0.8)) {
-			this.emergency = true;
-			max = (SourceManager.sources.length * Config.MAX_HARVESTERS_PER_SOURCE);
-		}
-		return max;
+		return SourceManager.getNumberOfRequiredHarvesters();
 	}
 }

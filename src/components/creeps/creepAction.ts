@@ -228,7 +228,7 @@ export default class CreepAction implements ICreepAction {
 		if (this.creep.ticksToLive < 250
 			&& (this.creep.room.energyInContainers + this.creep.room.energyAvailable) < this.creep.room.energyCapacityAvailable) {
 			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
-				+ this.creep.room.name + " due to emergency energy level " + this.creep.room.energyInContainers);
+				+ this.creep.room.name + " due to emergency energy level " + (this.creep.room.energyInContainers + this.creep.room.energyAvailable));
 			return true;
 		}
 		if (this.creep.ticksToLive < 250) {
@@ -313,7 +313,7 @@ export default class CreepAction implements ICreepAction {
 			// Go to source otherwise
 			if (!source) {
 				source = this.creep.pos.findClosestByPath(FIND_MY_SPAWNS, {
-					filter: (structure: Spawn) => structure.energy > 0
+					filter: (structure: Spawn) => structure.energy === structure.energyCapacity
 					&& structure.room.name === this.creep.room.name,
 				}) as Spawn;
 				if (!source) {
@@ -338,7 +338,7 @@ export default class CreepAction implements ICreepAction {
 						delete this.creep.memory.source;
 						break;
 					case ERR_NOT_IN_RANGE:
-						this.creep.moveTo(source);
+						this.moveTo(source.pos);
 						break;
 					case OK:
 						break;
@@ -355,7 +355,7 @@ export default class CreepAction implements ICreepAction {
 						delete this.creep.memory.source;
 						break;
 					case ERR_NOT_IN_RANGE:
-						this.creep.moveTo(source.pos);
+						this.moveTo(source.pos);
 						break;
 					case OK:
 						break;

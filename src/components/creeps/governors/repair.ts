@@ -2,23 +2,22 @@ import {ICreepGovernor, CreepConfiguration, default as CreepGovernor, CreepPrope
 import * as SpawnManager from "../../spawns/spawnManager";
 import * as Config from "../../../config/config";
 
-export default class UpgraderGovernor extends CreepGovernor implements ICreepGovernor {
+export default class RepairGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_UPGRADER;
-	public static MINRCL: number = Config.MINRCL_UPGRADER;
-	public static ROLE: string = "Upgrader";
+	public static PRIORITY: number = Config.PRIORITY_REPAIR;
+	public static MINRCL: number = Config.MINRCL_REPAIR;
+	public static ROLE: string = "Repair";
 
-	public maxParts = 5;
+	public bodyPart = [CARRY, CARRY, WORK, MOVE, MOVE, MOVE];
+	public maxParts = 4;
 	public maxCreeps = 2;
-	public bodyPart = [CARRY, MOVE, WORK, WORK];
-
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
 			homeSpawn: SpawnManager.getFirstSpawn().name,
-			role: UpgraderGovernor.ROLE,
+			role: RepairGovernor.ROLE,
 			target_controller_id: this.room.controller.id,
 			target_energy_source_id: SpawnManager.getFirstSpawn().id,
 		};
@@ -27,16 +26,12 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 
 	public getCreepLimit(): number {
 		let num: number;
-		if (this.room.controller.level > 4) {
-			num = _.floor(this.room.energyInContainers / 10000);
-		} else if (this.room.controller.level < 3) {
+		if (this.room.controller.level < 4) {
 			num = 1;
 		} else {
-			num = this.maxCreeps;
+			num = _.floor(this.room.energyInContainers / 30000);
 		}
-		if (num > this.maxCreeps) {
-			num = this.maxCreeps;
-		}
-		return (num > 0) ? num : 1;
-	}
+
+		return (num > 0) ? num : 0;
+	};
 }

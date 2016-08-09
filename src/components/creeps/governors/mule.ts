@@ -45,10 +45,18 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	}
 
 	public getCreepLimit(): number {
-		if ((this.room.energyInContainers + this.room.energyAvailable)  < (this.room.energyCapacityAvailable * 0.8)) {
-			this.emergency = true;
-			this.maxCreeps = 3;
+		if (this.room.containers.length > 0) {
+			if (this.getCreepsInRole().length < 1 || (this.room.energyInContainers + this.room.energyAvailable)  < (this.room.energyCapacityAvailable * 0.8)) {
+				this.emergency = true;
+				this.maxCreeps = 3;
+			}
+			if (this.maxCreeps > this.room.containers.length) {
+				this.maxCreeps = this.room.containers.length;
+			}
+			return (this.room.controller.level < 3) ? 1 : this.maxCreeps;
+		} else {
+			return 0;
 		}
-		return (this.room.controller.level < 3) ? 1 : this.maxCreeps;
+
 	};
 }

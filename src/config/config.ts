@@ -28,6 +28,7 @@ export const PRIORITY_HARVESTER: number = 10;
 export const PRIORITY_MULE: number = 15;
 export const PRIORITY_UPGRADER: number = 20;
 export const PRIORITY_LINKER: number = 30;
+export const PRIORITY_REPAIR: number = 40;
 
 export const MINRCL_CREEP: number = 0;
 export const MINRCL_BUILDER: number = 1;
@@ -35,7 +36,8 @@ export const MINRCL_HARVESTER: number = 1;
 export const MINRCL_MULE: number = 2;
 export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
+export const MINRCL_REPAIR: number = 2;
 
 export const BLACKLIST_SOURCES: string[] = [
-	"93fb27c64c210a0dc3d9505e",
+	"af8ce260e6f676ef1f544211",
 ];

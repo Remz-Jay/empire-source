@@ -134,7 +134,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 						spawn.recycleCreep(this.creep);
 					}
 				} else {
-					this.creep.moveTo(spawn);
+					this.moveTo(spawn.pos);
 				}
 				this.creep.say("B:IDLE!");
 			}
@@ -142,9 +142,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			if (!this.creep.memory.source) {
 				// Prefer energy from containers
 				let source: Source | StorageStructure = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-					filter: (structure: StorageStructure) => ((structure.structureType === STRUCTURE_CONTAINER
-					|| structure.structureType === STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 100)
-					|| (structure.structureType === STRUCTURE_SPAWN),
+					filter: (structure: StorageStructure) => ((structure instanceof StructureContainer
+					|| structure instanceof StructureStorage) && structure.store[RESOURCE_ENERGY] > 100)
+					|| (structure instanceof StructureSpawn && structure.energy  >= (structure.energyCapacity * 0.8)),
 				}) as StorageStructure;
 				// Go to source otherwise
 				if (!source) {

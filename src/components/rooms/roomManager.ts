@@ -2,6 +2,8 @@ import * as Config from "./../../config/config";
 import * as CreepManager from "./../creeps/creepManager";
 import * as SpawnManager from "./../spawns/spawnManager";
 import * as SourceManager from "./../sources/sourceManager";
+import * as WallManager from "../walls/wallManager";
+import * as RampartManager from "../ramparts/rampartManager";
 
 export let rooms: { [roomName: string]: Room };
 export let costMatrices: { [roomName: string]: CostMatrix };
@@ -37,13 +39,15 @@ function _loadRoomNames() {
 export function governRooms(): void {
 	for (let roomName in rooms) {
 		let room = rooms[roomName];
+		room.addProperties();
 		let myStructures = room.find(FIND_MY_STRUCTURES);
+		WallManager.load(room);
+		WallManager.adjustStrength();
+		RampartManager.load(room);
+		RampartManager.adjustStrength();
 		SpawnManager.load(room);
 		SourceManager.load(room);
 		SourceManager.updateHarvesterPreference();
-		room.addProperties();
-		// TODO: Walls and Ramparts
-		// console.log(roomName, room.containers, room.containerCapacityAvailable , room.energyInContainers , room.energyPercentage);
 
 		let towers = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
 		_.each(towers, function(t: StructureTower) {

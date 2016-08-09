@@ -11,6 +11,9 @@ import UpgraderGovernor from "./governors/upgrader";
 import LinkerGovernor from "./governors/linker";
 import MuleGovernor from "./governors/mule";
 import Mule from "./roles/mule";
+import Linker from "./roles/linker";
+import Repair from "./roles/repair";
+import RepairGovernor from "./governors/repair";
 
 export let creeps: { [creepName: string]: Creep };
 export let creepNames: string[] = [];
@@ -21,15 +24,18 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Harvester: Harvester,
 	Upgrader: Upgrader,
 	Mule: Mule,
+	Linker: Linker,
+	Repair: Repair,
 };
 
-// TODO: Add claim, healer, remote*, repairbot, scout
+// TODO: Add claim, healer, remote*, scout
 let governors: {[key: string]: typeof CreepGovernor } = {
 	BuilderGovernor: BuilderGovernor,
 	HarvesterGovernor: HarvesterGovernor,
 	UpgraderGovernor: UpgraderGovernor,
 	LinkerGovernor: LinkerGovernor,
 	MuleGovernor: MuleGovernor,
+	RepairGovernor: RepairGovernor,
 };
 
 export function loadCreeps(): void {
@@ -66,9 +72,19 @@ export function governCreeps(room: Room): void {
 		if (room.controller.level >= prioritizedGovernors[index].MINRCL) {
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;
-			let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role === creepRole
+			let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === creepRole.toUpperCase()
 			&& creep.memory.homeRoom === room.name);
 			let numCreeps: number = creepsInRole.length;
+			let creepLimit: number = governor.getCreepLimit();
+			let body: string[] = governor.getBody();
+			let requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
+			console.log(
+				_.padLeft(creepRole, 9) + ":\t" + numCreeps
+				+ " (max:" + creepLimit
+				+ ")\t\t(" + _.padLeft(requiredEnergy.toString(), 4)
+				+ ") [" + body
+				+ "]"
+			);
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
 					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
@@ -79,15 +95,15 @@ export function governCreeps(room: Room): void {
 			}, this);
 
 			if (Config.VERBOSE) {
-				console.log(`${creepRole}: ${numCreeps}/${governor.getCreepLimit()}`);
+				console.log(`${creepRole}: ${numCreeps}/${creepLimit}`);
 			}
-			if (numCreeps < governor.getCreepLimit() && !isSpawning) {
+			if (numCreeps < creepLimit && !isSpawning) {
 				let config: CreepConfiguration = governor.getCreepConfig();
 				if (!_.isNumber(this.createCreep(config))) {
 					isSpawning = true;
+				} else if (governor.emergency) {
+					isSpawning = true; // prevent spawning of other roles until the emergency is over.
 				}
-			} else if (numCreeps > governor.getCreepLimit()) {
-				// TODO: Deconstruct excess creep.
 			}
 		}
 	}

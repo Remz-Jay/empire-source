@@ -38,9 +38,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (!!target) {
 			let taken = this.creep.room.find(FIND_MY_CREEPS, {
 				filter: (c: Creep) => c.name !== this.creep.name
-				&& c.memory.role === this.creep.memory.role
+				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
 				&& (!!c.memory.target && c.memory.target === target.id),
-
 			});
 			if (!!taken && taken.length > 0) {
 				blackList.push(target.id);
@@ -82,7 +81,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (!!target) {
 			let taken: Creep[] = this.creep.room.find(FIND_MY_CREEPS, {
 				filter: (c: Creep) => c.name !== this.creep.name
-				&& c.memory.role === this.creep.memory.role
+				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
 				&& (!!c.memory.target && c.memory.target === target.id),
 			}) as Creep[];
 			if (!!taken && taken.length > 0) {
