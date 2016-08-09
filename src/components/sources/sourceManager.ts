@@ -55,6 +55,7 @@ export function findAvailableHarvester(s: Source) {
 
 export function updateHarvesterPreference() {
 	_.each(sources, function (s: ISource) {
+		// FIXME: Fix this for higher WORK harvesters; less per source.
 		for (let i = 1; i <= Config.MAX_HARVESTERS_PER_SOURCE; i++) {
 			if (!s.memory[`preferredHarvester${i}`]
 				|| (

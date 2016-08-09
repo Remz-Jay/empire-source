@@ -115,7 +115,7 @@ export default class CreepGovernor implements ICreepGovernor {
 	}
 
 	public getCreepsInRole(): Creep[] {
-		return _.filter(Game.creeps, (creep: Creep) => creep.memory.role === Object.getPrototypeOf(this).ROLE
+		return _.filter(Game.creeps, (creep: Creep) => creep.memory.role === Object.getPrototypeOf(this).constructor.ROLE
 		&& creep.memory.homeRoom === this.room.name);
 	}
 

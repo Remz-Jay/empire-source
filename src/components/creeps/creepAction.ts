@@ -203,13 +203,8 @@ export default class CreepAction implements ICreepAction {
 		if (!!this.creep.memory.homeRoom && !!this.creep.memory.homeSpawn) {
 			try {
 				let room = Game.rooms[this.creep.memory.homeRoom];
-				let spawn = Game.spawns[this.creep.memory.homeSpawn];
-				let x = _.filter(Game.creeps, c => c.memory.role === this.creep.memory.role
-					&& ( !!c.memory.homeRoom && c.memory.homeRoom === room.name)
-					&& ( !!c.memory.homeSpawn && c.memory.homeSpawn === spawn.name)
-				);
-
-				if (x.length > this.governor.getCreepLimit()) {
+				let x: number = this.governor.getNumberOfCreepsInRole();
+				if (x > this.governor.getCreepLimit()) {
 					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 						+ room.name + " because we\"re over cap.");
 					return true;
