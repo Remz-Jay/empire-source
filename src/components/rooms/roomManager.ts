@@ -55,7 +55,9 @@ export function governRooms(): void {
 		SpawnManager.load(room);
 		SourceManager.load(room);
 		SourceManager.updateHarvesterPreference();
-
+		if (room.controller.level > 1 && room.numberOfCreeps < 5) {
+			Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
+		}
 		if (room.controller.level > 0 && room.controller.my) {
 			// this is one of our controlled rooms
 			console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +

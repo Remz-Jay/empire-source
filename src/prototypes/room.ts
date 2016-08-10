@@ -5,6 +5,7 @@ interface Room {
 	containerCapacityAvailable: number;
 	energyInContainers: number;
 	energyPercentage: number;
+	numberOfCreeps: number;
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -17,6 +18,7 @@ interface Room {
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
 	getEnergyPercentage(): number;
+	getNumberOfCreepsInRoom(): number;
 	addProperties(): void;
 }
 Room.prototype.getReservedRoom = function () {
@@ -139,9 +141,15 @@ Room.prototype.getEnergyInContainers = function () {
 Room.prototype.getEnergyPercentage = function () {
 	return _.floor(this.energyInContainers / (this.containerCapacityAvailable / 100));
 };
+
+Room.prototype.getNumberOfCreepsInRoom = function(): number {
+	return this.find(FIND_MY_CREEPS).length;
+};
+
 Room.prototype.addProperties = function () {
 	this.containers = this.getContainers();
 	this.containerCapacityAvailable = this.getContainerCapacityAvailable();
 	this.energyInContainers = this.getEnergyInContainers();
 	this.energyPercentage = this.getEnergyPercentage();
+	this.numberOfCreeps = this.getNumberOfCreepsInRoom();
 };

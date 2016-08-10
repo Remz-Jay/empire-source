@@ -130,11 +130,13 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				break;
 			case ERR_FULL:
 			case ERR_NOT_ENOUGH_ENERGY:
-				delete this.creep.memory.target;
-				delete this.creep.memory.targetPath;
-				// We're empty, drop from idle to pick up new stuff to haul.
-				delete this.creep.memory.idle;
-				this.muleLogic();
+				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
+					delete this.creep.memory.target;
+					delete this.creep.memory.targetPath;
+					// We're empty, drop from idle to pick up new stuff to haul.
+					delete this.creep.memory.idle;
+					this.muleLogic();
+				}
 				break;
 			case OK:
 				delete this.creep.memory.targetPath;
@@ -279,8 +281,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				if (!!source) {
 					this.creep.memory.source = source.id;
 				} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
-					this.creep.memory.source = this.creep.room.storage.id;
-					this.creep.memory.mineralType = RESOURCE_ENERGY;
+					if (!!this.scanForTargets()) { // Only collect from the storage if we have targets that require energy.
+						this.creep.memory.source = this.creep.room.storage.id;
+						this.creep.memory.mineralType = RESOURCE_ENERGY;
+					}
 				}
 			}
 			if (!!this.creep.memory.source) {
