@@ -8,8 +8,8 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public static MINRCL: number = Config.MINRCL_UPGRADER;
 	public static ROLE: string = "Upgrader";
 
-	public maxParts = 5;
-	public maxCreeps = 2;
+	public maxParts = 8;
+	public maxCreeps = 1;
 	public bodyPart = [CARRY, MOVE, WORK, WORK];
 
 	public getCreepConfig(): CreepConfiguration {

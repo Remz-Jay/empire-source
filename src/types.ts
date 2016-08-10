@@ -37,3 +37,40 @@ declare interface StatsObject {
 	sources: {[k: string]: any};
 	minerals: {[k: string]: any};
 }
+
+declare interface ProfilerObject {
+	[name: string]: any;
+	filter: any;
+	enabledTick: any;
+	totalTime: any;
+	map: any;
+	type: any;
+	disableTick: any;
+}
+declare interface Memory {
+	stats: {
+		[name: string]: any;
+	};
+	walls: {
+		[name: string]: any;
+	};
+	ramparts: {
+		[name: string]: any;
+	};
+	profiler: ProfilerObject;
+	config: {
+		[name: string]: {
+			[name: string]: any;
+		};
+		Wall: {
+			[name: string]: any;
+		};
+		Rampart: {
+			[name: string]: any;
+		};
+	};
+}
+
+declare interface Game {
+	profiler: any;
+}

@@ -37,4 +37,3 @@ config.json
 /dist
 /typings
 /src/**/*.js
-!/src/lib/**/*.js

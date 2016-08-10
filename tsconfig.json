@@ -1,4 +1,5 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
@@ -6,55 +7,20 @@
     "noResolve": false,
     "noImplicitAny": true,
     "experimentalDecorators": true,
-    "allowJs": true
+    "allowJs": false
   },
-  "compileOnSave": true,
+  "include": [
+    "typings/**/*.d.ts",
+    "src/**/*"
+  ],
   "exclude": [
-    "dist",
     "node_modules",
-    "libs",
+    "dist",
+    "javascript",
+    "legacy",
     ".idea",
     "etc",
-    "legacy",
+    "libs",
     "lib"
-  ],
-  "filesGlob": [
-    "typings/**/*.d.ts",
-    "src/**/*.ts",
-    "src/lib/*.js"
-  ],
-  "files": [
-    "typings/globals/lodash/index.d.ts",
-    "typings/globals/screeps/index.d.ts",
-    "typings/index.d.ts",
-    "src/components/creeps/creepAction.ts",
-    "src/components/creeps/creepGovernor.ts",
-    "src/components/creeps/creepManager.ts",
-    "src/components/creeps/governors/builder.ts",
-    "src/components/creeps/governors/harvester.ts",
-    "src/components/creeps/governors/linker.ts",
-    "src/components/creeps/governors/mule.ts",
-    "src/components/creeps/governors/repair.ts",
-    "src/components/creeps/governors/upgrader.ts",
-    "src/components/creeps/roles/builder.ts",
-    "src/components/creeps/roles/harvester.ts",
-    "src/components/creeps/roles/linker.ts",
-    "src/components/creeps/roles/mule.ts",
-    "src/components/creeps/roles/repair.ts",
-    "src/components/creeps/roles/upgrader.ts",
-    "src/components/ramparts/rampartManager.ts",
-    "src/components/rooms/roomManager.ts",
-    "src/components/sources/sourceManager.ts",
-    "src/components/spawns/spawnManager.ts",
-    "src/components/walls/wallManager.ts",
-    "src/config/config.ts",
-    "src/main.ts",
-    "src/prototypes/link.ts",
-    "src/prototypes/room.ts",
-    "src/prototypes/tower.ts",
-    "src/shared/memoryManager.ts",
-    "src/shared/statsManager.ts",
-    "src/types.ts",
-    "src/lib/screeps-profiler.js"
   ]
 }
