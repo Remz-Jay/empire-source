@@ -4,6 +4,7 @@ import * as SpawnManager from "./../spawns/spawnManager";
 import * as SourceManager from "./../sources/sourceManager";
 import * as WallManager from "../walls/wallManager";
 import * as RampartManager from "../ramparts/rampartManager";
+import * as StatsManager from "../../shared/statsManager";
 
 export let rooms: { [roomName: string]: Room };
 export let costMatrices: { [roomName: string]: CostMatrix };
@@ -37,7 +38,13 @@ function _loadRoomNames() {
 }
 
 export function governRooms(): void {
+	let CpuRoomInit = 0;
+	let CpuTowers = 0;
+	let CpuLinks = 0;
+	let CpuRoles = 0;
+	let CpuCreeps = 0;
 	for (let roomName in rooms) {
+		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		let room = rooms[roomName];
 		room.addProperties();
 		let myStructures = room.find(FIND_MY_STRUCTURES);
@@ -49,18 +56,6 @@ export function governRooms(): void {
 		SourceManager.load(room);
 		SourceManager.updateHarvesterPreference();
 
-		let towers = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
-		_.each(towers, function(t: StructureTower) {
-			t.run();
-		}, this);
-
-		if (!!room.storage) {
-			let links = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
-			_.each(links, function(l: StructureLink) {
-				l.run();
-			}, this);
-		}
-
 		if (room.controller.level > 0 && room.controller.my) {
 			// this is one of our controlled rooms
 			console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
@@ -68,8 +63,32 @@ export function governRooms(): void {
 				` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
 			);
 		}
+		CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
+
+		let CpuBeforeTowers = Game.cpu.getUsed();
+		let towers = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
+		_.each(towers, function(t: StructureTower) {
+			t.run();
+		}, this);
+		CpuTowers += (Game.cpu.getUsed() - CpuBeforeTowers);
+
+		let CpuBeforeLinks = Game.cpu.getUsed();
+		if (!!room.storage) {
+			let links = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
+			_.each(links, function(l: StructureLink) {
+				l.run();
+			}, this);
+		}
+		CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
 
 		// run the creeps in this room
-		CreepManager.governCreeps(room);
+		let statObject: CreepStats = CreepManager.governCreeps(room);
+		CpuRoles += statObject.roles;
+		CpuCreeps += statObject.creeps;
 	}
+	StatsManager.addStat("cpu.roominit", CpuRoomInit);
+	StatsManager.addStat("cpu.towers", CpuTowers);
+	StatsManager.addStat("cpu.links", CpuLinks);
+	StatsManager.addStat("cpu.roles", CpuRoles);
+	StatsManager.addStat("cpu.creeps", CpuCreeps);
 }

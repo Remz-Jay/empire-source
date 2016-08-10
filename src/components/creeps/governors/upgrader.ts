@@ -1,4 +1,4 @@
-import {ICreepGovernor, CreepConfiguration, default as CreepGovernor, CreepProperties} from "../creepGovernor";
+import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
 import * as SpawnManager from "../../spawns/spawnManager";
 import * as Config from "../../../config/config";
 
