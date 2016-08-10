@@ -1,7 +1,7 @@
 import * as Config from "./../../config/config";
 import * as SpawnManager from "./../spawns/spawnManager";
 import CreepAction from "./creepAction";
-import CreepGovernor, {CreepConfiguration} from "./creepGovernor";
+import CreepGovernor from "./creepGovernor";
 import Harvester from "./roles/harvester";
 import Builder from "./roles/builder";
 import HarvesterGovernor from "./governors/harvester";
@@ -65,11 +65,14 @@ export function createCreep(config: CreepConfiguration): string|number {
 	return status;
 }
 
-export function governCreeps(room: Room): void {
+export function governCreeps(room: Room): CreepStats {
+	let CpuRoles = 0;
+	let CpuCreeps = 0;
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
 		if (room.controller.level >= prioritizedGovernors[index].MINRCL) {
+			let CpuBeforeRoles = Game.cpu.getUsed();
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;
 			let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === creepRole.toUpperCase()
@@ -85,15 +88,6 @@ export function governCreeps(room: Room): void {
 				+ ") [" + body
 				+ "]"
 			);
-			_.each(creepsInRole, function (creep: Creep) {
-				if (!creep.spawning) {
-					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
-					role.setCreep(<Creep> creep);
-					role.setGovernor(governor);
-					role.action();
-				}
-			}, this);
-
 			if (Config.VERBOSE) {
 				console.log(`${creepRole}: ${numCreeps}/${creepLimit}`);
 			}
@@ -105,8 +99,21 @@ export function governCreeps(room: Room): void {
 					isSpawning = true; // prevent spawning of other roles until the emergency is over.
 				}
 			}
+			CpuRoles += (Game.cpu.getUsed() - CpuBeforeRoles);
+
+			let CpuBeforeCreeps = Game.cpu.getUsed();
+			_.each(creepsInRole, function (creep: Creep) {
+				if (!creep.spawning) {
+					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
+					role.setCreep(<Creep> creep);
+					role.setGovernor(governor);
+					role.action();
+				}
+			}, this);
+			CpuCreeps += Game.cpu.getUsed() - CpuBeforeCreeps;
 		}
 	}
+	return {roles: CpuRoles, creeps: CpuCreeps};
 }
 
 function _loadCreepNames(): void {

@@ -1,23 +1,5 @@
 import * as Config from "../../config/config";
 
-export interface CreepConfiguration {
-	body: string[];
-	name: string;
-	properties: CreepProperties;
-}
-export interface CreepProperties {
-	role: string;
-	homeRoom: string;
-	homeSpawn: string;
-	targetRoom?: string;
-	target_link_id?: string;
-	target_storage_id?: string;
-	target_energy_dropoff_id?: string;
-	target_energy_source_id?: string;
-	target_source_id?: string;
-	target_construction_site_id?: string;
-	target_controller_id?: string;
-}
 export interface CreepGovernorConstructor {
 	new (room: Room): ICreepGovernor;
 }

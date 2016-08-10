@@ -7,7 +7,7 @@ import "./prototypes/room";
 import "./prototypes/link";
 import "./prototypes/tower";
 
-import StatsManager from "./shared/statsManager";
+import * as StatsManager from "./shared/statsManager";
 import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
 
@@ -15,7 +15,7 @@ import * as RoomManager from "./components/rooms/roomManager";
 import * as CreepManager from "./components/creeps/creepManager";
 
 Profiler.enable();
-let StatsMan = new StatsManager();
+StatsManager.init();
 
 // This code is executed only when Screeps system reloads your script.
 // Use this bootstrap wisely. You can cache some of your stuff to save CPU
@@ -33,9 +33,13 @@ export function loop() {
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
 		CreepManager.loadCreeps();
+		let CpuInit = Game.cpu.getUsed();
+		let cpuBeforeStats = Game.cpu.getUsed();
+		StatsManager.runBuiltinStats();
+		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
+		StatsManager.addStat("cpu.init", CpuInit);
 		RoomManager.governRooms();
-		StatsMan.runBuiltinStats();
-		StatsMan.addStat("cpu.getUsed", Game.cpu.getUsed());
+		StatsManager.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});
 
 }
