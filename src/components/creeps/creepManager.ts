@@ -14,6 +14,8 @@ import Mule from "./roles/mule";
 import Linker from "./roles/linker";
 import Repair from "./roles/repair";
 import RepairGovernor from "./governors/repair";
+import Miner from "./roles/miner";
+import MinerGovernor from "./governors/miner";
 
 export let creeps: { [creepName: string]: Creep };
 export let creepNames: string[] = [];
@@ -26,6 +28,7 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Mule: Mule,
 	Linker: Linker,
 	Repair: Repair,
+	Miner: Miner,
 };
 
 // TODO: Add claim, healer, remote*, scout
@@ -36,6 +39,7 @@ let governors: {[key: string]: typeof CreepGovernor } = {
 	LinkerGovernor: LinkerGovernor,
 	MuleGovernor: MuleGovernor,
 	RepairGovernor: RepairGovernor,
+	MinerGovernor: MinerGovernor,
 };
 
 export function loadCreeps(): void {
