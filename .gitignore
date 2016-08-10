@@ -27,7 +27,6 @@ nbproject/
 ##Project specific ignores
 configuration.ini
 config.json
-/legacy
 
 ## IDEA ignores
 .idea/workspace.xml

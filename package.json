@@ -1,8 +1,8 @@
 {
   "name": "screeps",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Remco's Screeps Scripts",
-  "main": "./dist/main.js",
+  "main": "./src/main.ts",
   "dependencies": {
     "grunt": "^1.0.1",
     "grunt-screeps": "^1.2.1",
@@ -40,8 +40,13 @@
   "keywords": [
     "screeps"
   ],
+  "repository": {
+    "type": "git",
+    "url" : "https://github.com/Remz-Jay/screeps.git"
+  },
   "directories": {
-    "bin": "dist"
+    "bin": "dist",
+    "lib": "lib"
   },
   "author": "Remco Overdijk",
   "license": "UNLICENSED"
