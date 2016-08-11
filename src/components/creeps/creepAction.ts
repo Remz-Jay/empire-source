@@ -88,7 +88,7 @@ export default class CreepAction implements ICreepAction {
 		if (!!this.creep.memory.lastPosition) {
 			let lp = this.creep.memory.lastPosition;
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
-				this.creep.memory.stuckTicks = (_.isNumber(this.creep.memory.stuckTicks)) ? this.creep.memory.stuckTicks + 1 : 1;
+				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
 				if (this.creep.memory.stuckTicks > 2) {
 					console.log(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
 						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
@@ -96,10 +96,11 @@ export default class CreepAction implements ICreepAction {
 					delete this.creep.memory.lastPosition;
 					this.findNewPath(target, memoryName);
 				}
+			} else {
+				delete this.creep.memory.stuckTicks;
 			}
 		}
 		this.creep.memory.lastPosition = this.creep.pos;
-		delete this.creep.memory.stuckTicks;
 		let status = this.creep.moveByPath(path);
 		switch (status) {
 			case ERR_NOT_FOUND:
@@ -111,6 +112,7 @@ export default class CreepAction implements ICreepAction {
 			case ERR_TIRED:
 				// Delete the lastPosition, because the creep hasn"t moved due to it being tired. No need to recalculate route now.
 				delete this.creep.memory.lastPosition;
+				delete this.creep.memory.stuckTicks;
 				return true;
 			case OK:
 				return true;
@@ -196,7 +198,7 @@ export default class CreepAction implements ICreepAction {
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						this.creep.withdraw(t);
+						this.creep.withdraw(t, RESOURCE_ENERGY);
 					}
 				}, this);
 			}

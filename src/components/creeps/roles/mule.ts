@@ -129,7 +129,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				}
 				break;
 			case ERR_FULL:
-			case ERR_NOT_ENOUGH_ENERGY:
+			case ERR_NOT_ENOUGH_RESOURCES:
 				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
 					delete this.creep.memory.target;
 					delete this.creep.memory.targetPath;
@@ -195,6 +195,47 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		return resource;
 	}
 
+	public setSource(blackList: string[] = []): void {
+		// Get energy from containers
+		let source: StructureContainer = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+			filter: (structure: StructureContainer) => blackList.indexOf(structure.id) === -1 &&
+			structure.structureType === STRUCTURE_CONTAINER &&
+			structure.store[RESOURCE_ENERGY] > 300,
+		}) as StructureContainer;
+		if (!source) {
+			// No energy in containers found. Get some minerals instead
+			source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+				filter: (structure: StructureContainer) => blackList.indexOf(structure.id) === -1 &&
+				structure.structureType === STRUCTURE_CONTAINER &&
+				_.sum(structure.store) > 400,
+			}) as StructureContainer;
+			if (!!source) {
+				this.creep.memory.mineralType = this.getMineralTypeFromStore(source);
+			}
+		} else {
+			// We're hauling energy. Unset the mineral type.
+			this.creep.memory.mineralType = RESOURCE_ENERGY;
+		}
+		if (!!source) {
+			let taken: Creep[] = this.creep.room.find(FIND_MY_CREEPS, {
+				filter: (c: Creep) => c.name !== this.creep.name
+				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
+				&& (!!c.memory.source && c.memory.source === source.id),
+			}) as Creep[];
+			if (!!taken && taken.length > 0) {
+				blackList.push(source.id);
+				this.setSource(blackList);
+			} else {
+				this.creep.memory.source = source.id;
+			}
+		} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
+			if (!!this.scanForTargets()) { // Only collect from the storage if we have targets that require energy.
+				this.creep.memory.source = this.creep.room.storage.id;
+				this.creep.memory.mineralType = RESOURCE_ENERGY;
+			}
+		}
+	}
+
 	public muleLogic(): void {
 		if (!!this.creep.memory.dumping && _.sum(this.creep.carry) === 0) {
 			delete this.creep.memory.dumping;
@@ -234,58 +275,38 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.dumpRoutine(target);
 			}
 		} else if (!!this.creep.memory.idle) {
-			// return to duty when able
-			let target = this.scanForTargets();
-			if (!!target) {
-				this.creep.memory.target = target.id;
-				delete this.creep.memory.idle;
-				this.creep.memory.dumping = true;
+			if (_.sum(this.creep.carry) > 0 && this.creep.carry.energy === 0) {
+				// We're carrying Minerals. Drop them off first before returning to duty.
+				this.dumpAtStorage();
 			} else {
-				// scan for dropped energy if we have room
-				if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-					let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, {maxRooms: 1}) as Resource;
-					if (!!target) {
-						if (this.creep.pickup(target) === ERR_NOT_IN_RANGE) {
-							this.moveTo(target.pos);
+				// return to duty when able
+				let target = this.scanForTargets();
+				if (!!target) {
+					this.creep.memory.target = target.id;
+					delete this.creep.memory.targetPath;
+					delete this.creep.memory.idle;
+					this.creep.memory.dumping = true;
+				} else {
+					// scan for dropped energy if we have room
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, {maxRooms: 1}) as Resource;
+						if (!!target) {
+							if (this.creep.pickup(target) === ERR_NOT_IN_RANGE) {
+								this.moveTo(target.pos);
+							}
+						} else {
+							// No dropped energy found, proceed to offload at Storage.
+							this.dumpAtStorage();
 						}
 					} else {
-						// No dropped energy found, proceed to offload at Storage.
+						// We're full. Go dump at a Storage.
 						this.dumpAtStorage();
 					}
-				} else {
-					// We're full. Go dump at a Storage.
-					this.dumpAtStorage();
 				}
 			}
-
 		} else {
 			if (!this.creep.memory.source) {
-				// Get energy from containers
-				let source: StructureContainer = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-					filter: (structure: StructureContainer) => structure.structureType === STRUCTURE_CONTAINER &&
-					structure.store[RESOURCE_ENERGY] > 300,
-				}) as StructureContainer;
-				if (!source) {
-					// No energy in containers found. Get some minerals instead
-					source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-						filter: (structure: StructureContainer) => structure.structureType === STRUCTURE_CONTAINER &&
-						_.sum(structure.store) > 400,
-					}) as StructureContainer;
-					if (!!source) {
-						this.creep.memory.mineralType = this.getMineralTypeFromStore(source);
-					}
-				} else {
-					// We're hauling energy. Unset the mineral type.
-					this.creep.memory.mineralType = RESOURCE_ENERGY;
-				}
-				if (!!source) {
-					this.creep.memory.source = source.id;
-				} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
-					if (!!this.scanForTargets()) { // Only collect from the storage if we have targets that require energy.
-						this.creep.memory.source = this.creep.room.storage.id;
-						this.creep.memory.mineralType = RESOURCE_ENERGY;
-					}
-				}
+				this.setSource();
 			}
 			if (!!this.creep.memory.source) {
 				let source = Game.getObjectById(this.creep.memory.source);
@@ -293,13 +314,14 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					if (!this.creep.memory.mineralType) {
 						this.creep.memory.mineralType = RESOURCE_ENERGY;
 					}
-					let status = this.creep.withdraw(source, this.creep.memory.mineralType);
+					let status = this.creep.withdraw(source, this.creep.memory.mineralType, (this.creep.carryCapacity - _.sum(this.creep.carry)));
 					switch (status) {
 						case ERR_NOT_ENOUGH_RESOURCES:
 						case ERR_INVALID_TARGET:
 						case ERR_NOT_OWNER:
 						case ERR_FULL:
 							delete this.creep.memory.source;
+							this.setSource();
 							break;
 						case ERR_NOT_IN_RANGE:
 							this.moveTo(source.pos);
@@ -320,6 +342,37 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				} else {
 					this.creep.say("DRY");
 				}
+			}
+		}
+	};
+
+	public pickupResourcesInRange(): void {
+		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+			let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
+			if (targets.length > 0) {
+				_.each(targets, function (t) {
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						this.creep.pickup(t);
+					}
+				}, this);
+			}
+			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
+				filter: (s: StructureContainer) => {
+					return s.structureType === STRUCTURE_CONTAINER
+						&& _.sum(s.store) > 50;
+				},
+			});
+			if (targets.length > 0) {
+				_.each(targets, function (t: StructureContainer) {
+					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+						if (t.store.energy > 50) {
+							this.creep.withdraw(t, RESOURCE_ENERGY);
+						} else {
+							let x: string = this.getMineralTypeFromStore(t);
+							this.creep.withdraw(t, x);
+						}
+					}
+				}, this);
 			}
 		}
 	};

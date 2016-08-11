@@ -133,13 +133,15 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public action(): boolean {
-		if (super.action()) {
-			if (this.isBagFull()) {
-				this.moveToDropMinerals();
-			} else {
-				this.moveToMine();
-			}
-			return true;
+		// Don't do super.action here, we don't want to pick up resources.
+		if (!this.renewCreep()) {
+			return false;
 		}
+		if (this.isBagFull()) {
+			this.moveToDropMinerals();
+		} else {
+			this.moveToMine();
+		}
+		return true;
 	}
 }
