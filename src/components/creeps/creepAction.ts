@@ -88,13 +88,18 @@ export default class CreepAction implements ICreepAction {
 		if (!!this.creep.memory.lastPosition) {
 			let lp = this.creep.memory.lastPosition;
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
-				console.log(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
-					+ JSON.stringify(lp) + ". Recalculating route.");
-				delete this.creep.memory.lastPosition;
-				this.findNewPath(target, memoryName);
+				this.creep.memory.stuckTicks = (_.isNumber(this.creep.memory.stuckTicks)) ? this.creep.memory.stuckTicks + 1 : 1;
+				if (this.creep.memory.stuckTicks > 2) {
+					console.log(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
+						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
+					delete this.creep.memory.stuckTicks;
+					delete this.creep.memory.lastPosition;
+					this.findNewPath(target, memoryName);
+				}
 			}
 		}
 		this.creep.memory.lastPosition = this.creep.pos;
+		delete this.creep.memory.stuckTicks;
 		let status = this.creep.moveByPath(path);
 		switch (status) {
 			case ERR_NOT_FOUND:
