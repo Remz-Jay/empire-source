@@ -58,7 +58,7 @@ export function findAvailableHarvester(s: Source) {
 export function updateHarvesterPreference() {
 	_.each(sources, function (s: ISource) {
 		for (let i = 1; i <= Config.MAX_HARVESTERS_PER_SOURCE; i++) {
-			if (i > getMaxHarvestersPerSource() || i > getMiningSlots(s)) {
+			if (i > getMaxHarvestersPerSource() || i > getMiningSlots(s).length) {
 				if (!s.memory[`preferredHarvester${i}`]) {
 					let preferredHarvester: string = s.memory[`preferredHarvester${i}`];
 					delete s.memory[`preferredHarvester${i}`];
@@ -97,13 +97,13 @@ export function getMiningSlots(source: Source) {
 		source.pos.x + 1,
 		true // returns a LookAtResultWithPos[]
 	) as LookAtResultWithPos[];
-	let num: number = 0;
+	let slots: LookAtResultWithPos[] = [];
 	for (let result of lookResults) {
 		if (result.terrain === "plain" || result.terrain === "swamp") {
-			num++;
+			slots.push(result);
 		}
 	}
-	return num;
+	return slots;
 }
 
 export function getMaxHarvestersPerSource(): number {
@@ -122,7 +122,7 @@ export function getNumberOfRequiredHarvesters(): number {
 	let max: number = getMaxHarvestersPerSource();
 	let num: number = 0;
 	_.each(sources, function(s: Source) {
-		let maxPos: number = getMiningSlots(s);
+		let maxPos: number = getMiningSlots(s).length;
 		if (max > maxPos) {
 			num += maxPos;
 		} else {

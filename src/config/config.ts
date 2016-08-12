@@ -22,6 +22,10 @@ export const MAX_HARVESTERS_PER_SOURCE: number = 3;
  */
 export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
 
+/**
+ * Priorities for Regular Room Creeps
+ * @type {number}
+ */
 export const PRIORITY_CREEP: number = -1;
 export const PRIORITY_BUILDER: number = 30;
 export const PRIORITY_HARVESTER: number = 10;
@@ -31,6 +35,16 @@ export const PRIORITY_LINKER: number = 30;
 export const PRIORITY_REPAIR: number = 40;
 export const PRIORITY_MINER: number = 35;
 
+/**
+ * Priorities for Assimilation Package Creeps
+ * @type {number}
+ */
+export const PRIORITY_ASM_CLAIM: number = 10;
+export const PRIORITY_ASM_BUILDER: number = 30;
+/**
+ * Minimum homeRoom RCL values for Regular Room Creeps
+ * @type {number}
+ */
 export const MINRCL_CREEP: number = 0;
 export const MINRCL_BUILDER: number = 1;
 export const MINRCL_HARVESTER: number = 1;
@@ -39,6 +53,13 @@ export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
 export const MINRCL_REPAIR: number = 2;
 export const MINRCL_MINER: number = 6;
+
+/**
+ * Minimum homeRoom RCL values for Assimilation Package Creeps
+ * @type {number}
+ */
+export const MINRCL_ASM_CLAIM: number = 4;
+export const MINRCL_ASM_BUILDER: number = 4;
 
 export const BLACKLIST_SOURCES: string[] = [
 	"af8ce260e6f676ef1f544211",

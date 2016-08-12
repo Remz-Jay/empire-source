@@ -2,6 +2,8 @@ declare type PathFinderGoal = { pos: RoomPosition, range: number }[];
 declare type PathFinderPath = { path: RoomPosition[], ops: number };
 declare type EnergyStructure = Extension | Spawn | Tower;
 declare type StorageStructure = StructureStorage | StructureContainer | StructureTerminal;
+declare type findRouteRoute = {exit: string; room: string; }
+declare type findRouteArray = findRouteRoute[];
 
 declare interface CreepStats  {
 	roles: number;
@@ -47,7 +49,24 @@ declare interface ProfilerObject {
 	type: any;
 	disableTick: any;
 }
+declare interface RemoteRoomConfig {
+	homeRoom: string;
+	targetRoom: string;
+	homeDistance: number;
+	route: findRouteArray;
+}
+
+declare interface RemoteCreepProperties extends CreepProperties {
+	config: RemoteRoomConfig;
+}
+declare interface AssimilationObject {
+	targets: string[];
+	config: {
+		[roomName: string]: RemoteRoomConfig
+	};
+}
 declare interface Memory {
+	assimilation?: AssimilationObject;
 	stats: {
 		[name: string]: any;
 	};
@@ -73,4 +92,5 @@ declare interface Memory {
 
 declare interface Game {
 	profiler: any;
+	assman: any;
 }

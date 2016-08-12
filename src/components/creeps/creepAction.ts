@@ -213,7 +213,7 @@ export default class CreepAction implements ICreepAction {
 				let x: number = this.governor.getNumberOfCreepsInRole();
 				if (x > this.governor.getCreepLimit()) {
 					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
-						+ room.name + " because we\"re over cap.");
+						+ room.name + " because we're over cap.");
 					return true;
 				}
 				let body = this.governor.getBody();
@@ -231,10 +231,10 @@ export default class CreepAction implements ICreepAction {
 		}
 		return false;
 	};
-	public renewCreep(max: number = 1000): boolean {
+	public renewCreep(max: number = 1400): boolean {
 		if (this.creep.ticksToLive < 250
-			&& ((this.creep.room.energyInContainers + this.creep.room.energyAvailable) < this.creep.room.energyCapacityAvailable)
-			|| this.creep.room.energyAvailable < 300) {
+			&& (((this.creep.room.energyInContainers + this.creep.room.energyAvailable) < this.creep.room.energyCapacityAvailable)
+			|| this.creep.room.energyAvailable < 300)) {
 			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 				+ this.creep.room.name + " due to emergency energy level " + (this.creep.room.energyAvailable));
 			return true;

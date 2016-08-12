@@ -109,6 +109,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				if (this.creep.carry.energy > 0) {
 					status = this.creep.transfer(target, RESOURCE_ENERGY);
 				} else {
+					this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
 					status = this.creep.transfer(target, this.creep.memory.mineralType);
 				}
 				break;

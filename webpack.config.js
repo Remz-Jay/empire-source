@@ -1,3 +1,5 @@
+var webpack = require("webpack");
+
 module.exports = {
 	entry: "./src/main.ts",
 	output: {
@@ -32,5 +34,10 @@ module.exports = {
 		compilerOptions: {
 			outDir: "./dist"
 		}
-	}
+	},
+	/** Doesn't work with ES6 yet. see: https://github.com/mishoo/UglifyJS2/issues/448
+	plugins: [
+		new webpack.optimize.UglifyJsPlugin()
+	]
+	**/
 };

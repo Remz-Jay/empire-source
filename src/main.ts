@@ -13,6 +13,7 @@ import * as MemoryManager from "./shared/memoryManager";
 
 import * as RoomManager from "./components/rooms/roomManager";
 import * as CreepManager from "./components/creeps/creepManager";
+// import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 
 Profiler.enable();
 StatsManager.init();
@@ -39,6 +40,7 @@ export function loop() {
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
 		StatsManager.addStat("cpu.init", CpuInit);
 		RoomManager.governRooms();
+		// AssimilationManager.govern();
 		StatsManager.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});
 
