@@ -1,27 +1,16 @@
 import CreepAction from "../../components/creeps/creepAction";
+import WarriorGovernor from "./governors/warrior";
 
-export interface IASMCreepAction {
+export interface IWFCreepAction {
+	wait: boolean;
+	squad: Creep[];
+	moveToTargetRoom(): void;
 }
 
-export default class ASMCreepAction extends CreepAction implements IASMCreepAction {
-
-	public repairInfra(modifier: number = 0.8): boolean {
-		if (this.creep.carry.energy > 0 ) {
-			let targets = this.creep.pos.findInRange<Structure>(FIND_STRUCTURES, 1, {
-				filter: (s: Structure) => (
-					s.structureType === STRUCTURE_ROAD
-					|| s.structureType === STRUCTURE_CONTAINER
-				) && s.hits < (s.hitsMax * modifier),
-			});
-			if (targets.length > 0) {
-				this.creep.repair(targets[0]);
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public moveToTargetRoom() {
+export default class WFCreepAction extends CreepAction implements IWFCreepAction {
+	public squad: Creep[] = [];
+	public wait: boolean = false;
+	public moveToTargetRoom(): void {
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
 			let index: number = 0;
 			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {
@@ -48,11 +37,30 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 		}
 	}
 
+	public followWarrior() {
+		let w = _.find(this.squad, (c: Creep) => c.memory.role === WarriorGovernor.ROLE);
+		if (!this.creep.pos.isNearTo(w)) {
+			this.moveTo(w.pos);
+		}
+	}
+
+	public waitAtFlag(roomName: string) {
+		let flag = Game.flags[roomName];
+		if (!flag) {
+			console.log(`Warfare Creep waitAtFlag error: No flag for room ${roomName} found.`);
+		} else {
+			if (!this.creep.pos.isNearTo(flag)) {
+				this.moveTo(flag.pos);
+			}
+		}
+	}
+
 	public action(): boolean {
 		if (!this.renewCreep()) {
 			return false;
+		} else {
+			// yeah.
 		}
-		this.pickupResourcesInRange();
 		return true;
 	}
 }

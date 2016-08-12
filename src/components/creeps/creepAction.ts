@@ -19,6 +19,7 @@ export interface ICreepAction {
 	tryRenew(): number;
 	moveToRenew(): void;
 	pickupResourcesInRange(): void;
+	nextStepIntoRoom(): boolean;
 
 	action(): boolean;
 
@@ -56,6 +57,32 @@ export default class CreepAction implements ICreepAction {
 	public setGovernor(governor: CreepGovernor): void {
 		this.governor = governor;
 	}
+
+	/**
+	 * If we're on an EXIT_, make sure we do one step into the room before continuing
+	 * To avoid room switching.
+	 * Returns false if we're not on an EXIT_.
+	 * @returns {boolean|RoomPosition}
+	 */
+	public nextStepIntoRoom(): boolean {
+		if (this.creep.pos.x === 0) {
+			this.creep.move(RIGHT);
+			return false;
+		}
+		if (this.creep.pos.x === 49) {
+			this.creep.move(LEFT);
+			return false;
+		}
+		if (this.creep.pos.y === 0) {
+			this.creep.move(BOTTOM);
+			return false;
+		}
+		if (this.creep.pos.y === 49) {
+			this.creep.move(TOP);
+			return false;
+		}
+		return true;
+	};
 
 	public moveTo(target: RoomPosition|PathFinderGoal) {
 		try {

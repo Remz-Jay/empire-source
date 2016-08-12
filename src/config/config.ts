@@ -45,6 +45,14 @@ export const PRIORITY_ASM_MULE: number = 30;
 export const PRIORITY_ASM_BUILDER: number = 40;
 
 /**
+ * Priorities for Warfare Package Creeps
+ * @type {number}
+ */
+export const PRIORITY_WF_WARRIOR: number = 10;
+export const PRIORITY_WF_RANGER: number = 20;
+export const PRIORITY_WF_HEALER: number = 30;
+
+/**
  * Minimum homeRoom RCL values for Regular Room Creeps
  * @type {number}
  */
@@ -65,6 +73,14 @@ export const MINRCL_ASM_CLAIM: number = 4;
 export const MINRCL_ASM_HARVESTER: number = 4;
 export const MINRCL_ASM_MULE: number = 4;
 export const MINRCL_ASM_BUILDER: number = 4;
+
+/**
+ * Minimum homeRoom RCL values for Warfare Package Creeps
+ * @type {number}
+ */
+export const MINRCL_WF_WARRIOR: number = 4;
+export const MINRCL_WF_RANGER: number = 4;
+export const MINRCL_WF_HEALER: number = 4;
 
 export const BLACKLIST_SOURCES: string[] = [
 	"af8ce260e6f676ef1f544211",

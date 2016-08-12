@@ -66,8 +66,16 @@ declare interface AssimilationObject {
 		[roomName: string]: RemoteRoomConfig
 	};
 }
+
+declare interface OffenseObject {
+	targets: string[];
+	config: {
+		[roomName: string]: RemoteRoomConfig
+	};
+}
 declare interface Memory {
 	assimilation?: AssimilationObject;
+	offense?: OffenseObject;
 	stats: {
 		[name: string]: any;
 	};
@@ -94,4 +102,5 @@ declare interface Memory {
 declare interface Game {
 	profiler: any;
 	assman: any;
+	offense: any;
 }

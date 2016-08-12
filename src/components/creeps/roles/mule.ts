@@ -228,7 +228,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (!!this.creep.memory.dumping && _.sum(this.creep.carry) === 0) {
 			delete this.creep.memory.dumping;
 			delete this.creep.memory.target;
+			delete this.creep.memory.targetPath;
 			delete this.creep.memory.source;
+			delete this.creep.memory.sourcePath;
 			delete this.creep.memory.idle;
 			this.creep.say("M:COL");
 		}
@@ -236,7 +238,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			_.sum(this.creep.carry) === this.creep.carryCapacity) {
 			this.creep.memory.dumping = true;
 			delete this.creep.memory.target;
+			delete this.creep.memory.targetPath;
 			delete this.creep.memory.source;
+			delete this.creep.memory.sourcePath;
 			delete this.creep.memory.idle;
 			this.creep.say("M:DIST");
 		}
@@ -250,7 +254,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					this.creep.memory.idle = true;
 					delete this.creep.memory.dumping;
 					delete this.creep.memory.target;
+					delete this.creep.memory.targetPath;
 					delete this.creep.memory.source;
+					delete this.creep.memory.sourcePath;
 				}
 			} else if (!this.creep.memory.target && this.creep.carry.energy === 0) {
 					this.creep.memory.target = this.creep.room.storage.id;
@@ -259,6 +265,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			let target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
 			if (!target) {
 				delete this.creep.memory.target;
+				delete this.creep.memory.targetPath;
 			} else {
 				this.dumpRoutine(target);
 			}
@@ -309,10 +316,20 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 						case ERR_NOT_OWNER:
 						case ERR_FULL:
 							delete this.creep.memory.source;
+							delete this.creep.memory.sourcePath;
 							this.setSource();
 							break;
 						case ERR_NOT_IN_RANGE:
-							this.moveTo(source.pos);
+							if (!!this.creep.memory.source && this.creep.memory.source === source.id && !!this.creep.memory.sourcePath) {
+								let path = this.deserializePathFinderPath(this.creep.memory.sourcePath);
+								this.moveByPath(path, source, "sourcePath");
+							} else {
+								this.creep.memory.source = source.id;
+								delete this.creep.memory.sourcePath;
+								if (!this.findNewPath(source, "sourcePath")) {
+									this.creep.say("HALP!");
+								}
+							}
 							break;
 						case OK:
 							break;
@@ -321,6 +338,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					}
 				} else {
 					delete this.creep.memory.source;
+					delete this.creep.memory.sourcePath;
 					delete this.creep.memory.mineralType;
 				}
 			} else {
