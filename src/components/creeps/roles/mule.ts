@@ -183,19 +183,6 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		}
 	};
 
-	public getMineralTypeFromStore(source: StorageStructure | Creep): string {
-		let resource: string = RESOURCE_ENERGY;
-		let s: any = (source instanceof Creep) ? source.carry : source.store;
-		_.reduce(s, function(result, value, key) {
-			if (_.isNumber(value) && value > result) {
-				result = value;
-				resource = key;
-			}
-			return result;
-		}, 0);
-		return resource;
-	}
-
 	public setSource(blackList: string[] = []): void {
 		// Get energy from containers
 		let source: StructureContainer = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {

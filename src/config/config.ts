@@ -40,7 +40,10 @@ export const PRIORITY_MINER: number = 35;
  * @type {number}
  */
 export const PRIORITY_ASM_CLAIM: number = 10;
-export const PRIORITY_ASM_BUILDER: number = 30;
+export const PRIORITY_ASM_HARVESTER: number = 20;
+export const PRIORITY_ASM_MULE: number = 30;
+export const PRIORITY_ASM_BUILDER: number = 40;
+
 /**
  * Minimum homeRoom RCL values for Regular Room Creeps
  * @type {number}
@@ -59,6 +62,8 @@ export const MINRCL_MINER: number = 6;
  * @type {number}
  */
 export const MINRCL_ASM_CLAIM: number = 4;
+export const MINRCL_ASM_HARVESTER: number = 4;
+export const MINRCL_ASM_MULE: number = 4;
 export const MINRCL_ASM_BUILDER: number = 4;
 
 export const BLACKLIST_SOURCES: string[] = [

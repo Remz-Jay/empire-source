@@ -73,8 +73,9 @@ export default class CreepAction implements ICreepAction {
 			this.creep.moveTo(<RoomPosition> target);
 		}
 	}
-	public findNewPath(target: RoomObject, memoryName: string = "targetPath", move: boolean = true): boolean {
-		let path = this.findPathFinderPath(this.createPathFinderMap(target.pos));
+	public findNewPath(target: RoomObject | RoomPosition, memoryName: string = "targetPath", move: boolean = true): boolean {
+		let pos: RoomPosition = (target instanceof RoomObject) ? target.pos : target;
+		let path = this.findPathFinderPath(this.createPathFinderMap(pos));
 		if (!!path) {
 			this.creep.memory[memoryName] = path;
 			if (move) {
@@ -84,7 +85,7 @@ export default class CreepAction implements ICreepAction {
 			return false;
 		}
 	};
-	public moveByPath(path: RoomPosition[], target: RoomObject, memoryName: string = "targetPath"): boolean {
+	public moveByPath(path: RoomPosition[], target: RoomObject | RoomPosition, memoryName: string = "targetPath"): boolean {
 		if (!!this.creep.memory.lastPosition) {
 			let lp = this.creep.memory.lastPosition;
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
@@ -120,6 +121,19 @@ export default class CreepAction implements ICreepAction {
 				console.log("Uncaught moveBy status " + JSON.stringify(status) + " in Class.Creep.moveByPath.");
 		}
 	};
+
+	public getMineralTypeFromStore(source: StorageStructure | Creep): string {
+		let resource: string = RESOURCE_ENERGY;
+		let s: any = (source instanceof Creep) ? source.carry : source.store;
+		_.reduce(s, function(result, value, key) {
+			if (_.isNumber(value) && value > result) {
+				result = value;
+				resource = key;
+			}
+			return result;
+		}, 0);
+		return resource;
+	}
 
 	public needsRenew(): boolean {
 		return (this.creep.ticksToLive < this._minLifeBeforeNeedsRenew);
@@ -232,18 +246,19 @@ export default class CreepAction implements ICreepAction {
 		return false;
 	};
 	public renewCreep(max: number = 1400): boolean {
+		let homeRoom = Game.rooms[this.creep.memory.homeRoom];
 		if (this.creep.ticksToLive < 250
-			&& (((this.creep.room.energyInContainers + this.creep.room.energyAvailable) < this.creep.room.energyCapacityAvailable)
-			|| this.creep.room.energyAvailable < 300)) {
+			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
+			|| homeRoom.energyAvailable < 300)) {
 			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
-				+ this.creep.room.name + " due to emergency energy level " + (this.creep.room.energyAvailable));
+				+ homeRoom.name + " due to emergency energy level " + (homeRoom.energyAvailable));
 			return true;
 		}
 		if (this.creep.ticksToLive < 250) {
 			this.creep.memory.hasRenewed = false;
 		}
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false) {
-			let spawns: Spawn[] = <Spawn[]> this.creep.room.find(FIND_MY_SPAWNS);
+			let spawns: Spawn[] = <Spawn[]> homeRoom.find(FIND_MY_SPAWNS);
 			let renewStation: Spawn;
 			if (spawns.length > 0) {
 				// if(spawns.length > 0 && this.creep.room.controller.level > 1 && UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))
@@ -253,7 +268,7 @@ export default class CreepAction implements ICreepAction {
 				//    renewStation = (undefined === this.creep.memory.homeSpawn) ? Game.spawns["Bastion"] : Game.spawns[this.creep.memory.homeSpawn];
 				// }
 			} else {
-				renewStation = (!this.creep.memory.homeSpawn) ? this.creep.room.find<Spawn>(FIND_MY_SPAWNS)[0] : Game.spawns[this.creep.memory.homeSpawn];
+				renewStation = (!this.creep.memory.homeSpawn) ? homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0] : Game.spawns[this.creep.memory.homeSpawn];
 			}
 			let status: number;
 			let phrase: string;

@@ -7,7 +7,7 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 	public static MINRCL: number = Config.MINRCL_ASM_CLAIM;
 	public static ROLE: string = "Claim";
 
-	public maxParts = 2;
+	public maxParts = 6;
 	public maxCreeps = 1;
 	public bodyPart = [CLAIM, MOVE];
 

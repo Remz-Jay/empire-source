@@ -5,6 +5,10 @@ import * as SourceManager from "../../components/sources/sourceManager";
 import Claim from "./roles/claim";
 import ASMBuilderGovernor from "./governors/builder";
 import ASMBuilder from "./roles/builder";
+import ASMHarvesterGovernor from "./governors/harvester";
+import ASMHarvester from "./roles/harvester";
+import ASMMuleGovernor from "./governors/mule";
+import ASMMule from "./roles/mule";
 
 function initMemory(): void {
 	if (!Memory.assimilation) {
@@ -107,14 +111,18 @@ function manageClaim(roomName: string, claim: boolean = false) {
 			}
 		}, this);
 	} else {
-		createCreep(homeSpawn, governor.getCreepConfig());
+		if (!Game.rooms[roomName] || !Game.rooms[roomName].controller || Game.rooms[roomName].controller.reservation.ticksToEnd < 1000) {
+			createCreep(homeSpawn, governor.getCreepConfig());
+		}
 	}
 }
-function manageContainers() {
+function manageContainers(): StructureContainer[] {
+	let allContainers: StructureContainer[] = [];
 	_.each(SourceManager.sources, function(source: Source) {
 		let containers = source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1, {
 			filter: (structure: Structure) => structure.structureType === STRUCTURE_CONTAINER,
 		});
+		allContainers = allContainers.concat(containers);
 		if (containers.length < 1) {
 			// No containers yet. See if we're constructing one.
 			let sites = source.pos.findInRange(FIND_CONSTRUCTION_SITES, 1, {
@@ -128,12 +136,10 @@ function manageContainers() {
 			}
 		}
 	}, this);
+	return allContainers;
 }
 
-function manageConstructions(skip: boolean = true) {
-	if (skip) {
-		return;
-	}
+function manageConstructions() {
 	let sites = targetRoom.find(FIND_CONSTRUCTION_SITES, {
 		filter: (cs: ConstructionSite) => cs.my,
 	});
@@ -156,6 +162,51 @@ function manageConstructions(skip: boolean = true) {
 		}
 	}
 }
+
+function manageHarvest(containers: StructureContainer[]) {
+	if (containers.length > 0) {
+		// we need harvesters
+		let governor = new ASMHarvesterGovernor(homeRoom, homeSpawn, config, containers);
+		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMHarvesterGovernor.ROLE.toUpperCase()
+		&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+		if (creepsInRole.length > 0) {
+			_.each(creepsInRole, function (creep: Creep) {
+				if (!creep.spawning) {
+					let role: ASMHarvester = new ASMHarvester();
+					role.setCreep(<Creep> creep);
+					role.setGovernor(governor);
+					role.action();
+				}
+			}, this);
+		}
+		if (creepsInRole.length < governor.getCreepLimit()) {
+			createCreep(homeSpawn, governor.getCreepConfig());
+		}
+	}
+}
+
+function manageMules(containers: StructureContainer[]) {
+	if (containers.length > 0) {
+		// we need mules
+		let governor = new ASMMuleGovernor(homeRoom, homeSpawn, config, containers);
+		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMMuleGovernor.ROLE.toUpperCase()
+		&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+		if (creepsInRole.length > 0) {
+			_.each(creepsInRole, function (creep: Creep) {
+				if (!creep.spawning) {
+					let role: ASMMule = new ASMMule();
+					role.setCreep(<Creep> creep);
+					role.setGovernor(governor);
+					role.action();
+				}
+			}, this);
+		}
+		if (creepsInRole.length < governor.getCreepLimit()) {
+			createCreep(homeSpawn, governor.getCreepConfig());
+		}
+	}
+}
+
 export function govern(): void {
 	setup();
 	_.each(Memory.assimilation.targets, function(roomName) {
@@ -169,12 +220,17 @@ export function govern(): void {
 			if (!!targetRoom) {
 				// We have vision of the room, that's good.
 				vision = true;
+				targetRoom.addProperties();
 				SourceManager.load(targetRoom);
-				manageContainers();
+				let containers = manageContainers();
+				if (containers.length > 0) {
+					manageHarvest(containers);
+					manageMules(containers);
+				}
 				manageConstructions();
 				console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
 					+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
-					+ " (" + targetRoom.energyPercentage + "%) in targetRoom."
+					+ " (" + targetRoom.energyPercentage + "%) in storage."
 					+ " (RCL=" + targetRoom.controller.level + " @ "
 					+ targetRoom.controller.reservation.ticksToEnd
 					+ " (" + targetRoom.controller.reservation.username + "))"

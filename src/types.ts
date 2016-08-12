@@ -58,6 +58,7 @@ declare interface RemoteRoomConfig {
 
 declare interface RemoteCreepProperties extends CreepProperties {
 	config: RemoteRoomConfig;
+	container?: string;
 }
 declare interface AssimilationObject {
 	targets: string[];
