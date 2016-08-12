@@ -153,9 +153,9 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 					this.dumpAtStorageOrLink();
 				}
 			} else {
-				if (this.isBagFull()) {
-					this.creep.memory.resetTarget = true;
-					if (this.repairInfra()) {
+				if (this.repairInfra()) {
+					if (this.isBagFull()) {
+						this.creep.memory.resetTarget = true;
 						this.dumpRoutine(this.storage);
 					}
 				} else {

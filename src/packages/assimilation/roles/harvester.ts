@@ -68,7 +68,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 				this.moveTo(this.container.pos);
 				break;
 			case ERR_FULL:
-				this.repairInfra();
+				this.repairInfra(1);
 				break;
 			default:
 				console.log(`harvester energyDropOff error ${status}`);

@@ -31,13 +31,13 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 		return true;
 	};
 
-	public repairInfra(): boolean {
+	public repairInfra(modifier: number = 0.8): boolean {
 		if (this.creep.carry.energy > 0 ) {
 			let targets = this.creep.pos.findInRange<Structure>(FIND_STRUCTURES, 1, {
 				filter: (s: Structure) => (
 					s.structureType === STRUCTURE_ROAD
 					|| s.structureType === STRUCTURE_CONTAINER
-				) && s.hits < (s.hitsMax * 0.8),
+				) && s.hits < (s.hitsMax * modifier),
 			});
 			if (targets.length > 0) {
 				this.creep.repair(targets[0]);
@@ -63,8 +63,6 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 		} else {
 			if (!!this.creep.memory.exit && !!this.creep.memory.exitPath) {
 				let path = this.deserializePathFinderPath(this.creep.memory.exitPath);
-				// TODO: exit is not a RoomObject. This might cause trouble!
-				console.log(JSON.stringify(this.creep.memory.exit));
 				this.moveByPath(path, this.creep.memory.exit, "exitPath");
 			} else {
 				delete this.creep.memory.exitPath;

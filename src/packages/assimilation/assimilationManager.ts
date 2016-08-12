@@ -222,6 +222,10 @@ export function govern(): void {
 				vision = true;
 				targetRoom.addProperties();
 				SourceManager.load(targetRoom);
+				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
+				if (hostiles.length > 0) {
+					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles)} in room ${targetRoom.name} (ASM)`);
+				}
 				let containers = manageContainers();
 				if (containers.length > 0) {
 					manageHarvest(containers);

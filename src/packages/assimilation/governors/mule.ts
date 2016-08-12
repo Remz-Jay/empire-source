@@ -47,22 +47,22 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	public checkContainerAssignment(): string {
 		let freeContainer: string = undefined;
 		_.each(this.containers, function(c: StructureContainer) {
-			let h = this.checkAssignedHarvester(c);
-			if (!h) {
+			let mules = this.checkAssignedMules(c);
+			if (!mules || mules.length < 2) {
 				freeContainer = c.id;
 			}
 		}, this);
 		return freeContainer;
 	}
 
-	public checkAssignedHarvester(c: StructureContainer): Creep {
-		let harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === ASMMuleGovernor.ROLE.toUpperCase());
-		return _.find(harvesters, function (h: Creep) {
-			return (!!h.memory.container) && c.id === h.memory.container;
-		});
+	public checkAssignedMules(c: StructureContainer): Creep[] {
+		return _.filter(Game.creeps, creep =>
+			(creep.memory.role.toUpperCase() === ASMMuleGovernor.ROLE.toUpperCase())
+			&& (!!creep.memory.container && c.id === creep.memory.container)
+		);
 	}
 
 	public getCreepLimit(): number {
-		return this.containers.length;
+		return this.containers.length * 2;
 	}
 }
