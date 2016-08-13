@@ -9,6 +9,8 @@ import ASMHarvesterGovernor from "./governors/harvester";
 import ASMHarvester from "./roles/harvester";
 import ASMMuleGovernor from "./governors/mule";
 import ASMMule from "./roles/mule";
+import WarriorGovernor from "../warfare/governors/warrior";
+import Warrior from "../warfare/roles/warrior";
 
 function initMemory(): void {
 	if (!Memory.assimilation) {
@@ -185,6 +187,25 @@ function manageHarvest(containers: StructureContainer[]) {
 	}
 }
 
+function manageDefenders(limit: number = 0) {
+	let governor = new WarriorGovernor(homeRoom, homeSpawn, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === WarriorGovernor.ROLE.toUpperCase()
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+	if (creepsInRole.length > 0) {
+		_.each(creepsInRole, function (creep: Creep) {
+			if (!creep.spawning) {
+				let role: Warrior = new Warrior();
+				role.setCreep(<Creep> creep);
+				role.setGovernor(governor);
+				role.action();
+			}
+		}, this);
+	}
+	if (creepsInRole.length < limit) {
+		createCreep(homeSpawn, governor.getCreepConfig());
+	}
+}
+
 function manageMules(containers: StructureContainer[]) {
 	if (containers.length > 0) {
 		// we need mules
@@ -215,6 +236,7 @@ export function govern(): void {
 			homeRoom = Game.rooms[config.homeRoom];
 			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
 			targetRoom = Game.rooms[roomName];
+			manageDefenders();
 			manageClaim(roomName, false);
 			let vision: boolean = false;
 			if (!!targetRoom) {
@@ -224,7 +246,8 @@ export function govern(): void {
 				SourceManager.load(targetRoom);
 				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
 				if (hostiles.length > 0) {
-					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles)} in room ${targetRoom.name} (ASM)`);
+					manageDefenders(1);
+					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles.length)} in room ${targetRoom.name} (ASM)`);
 				}
 				let containers = manageContainers();
 				if (containers.length > 0) {

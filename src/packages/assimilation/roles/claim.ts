@@ -32,7 +32,9 @@ export default class Claim extends ASMCreepAction implements IClaim {
 		if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 			this.moveToTargetRoom();
 		} else {
-			this.assimilateRoom();
+			if (this.flee()) {
+				this.assimilateRoom();
+			}
 		}
 		return true;
 	}

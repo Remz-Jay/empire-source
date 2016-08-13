@@ -46,7 +46,7 @@ export function governRooms(): void {
 	for (let roomName in rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		let room = rooms[roomName];
-		if (!!room.controller && room.controller.level > 0 && room.controller.my) {
+		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
 			room.addProperties();
 			let myStructures = room.find(FIND_MY_STRUCTURES);
 			WallManager.load(room);
@@ -59,13 +59,11 @@ export function governRooms(): void {
 			if (room.controller.level > 1 && room.numberOfCreeps < 5) {
 				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
 			}
-			if (room.controller.level > 0 && room.controller.my) {
-				// this is one of our controlled rooms
-				console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
-					`${room.energyInContainers}/${room.containerCapacityAvailable} (${room.energyPercentage}%) in storage.` +
-					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
-				);
-			}
+			// this is one of our controlled rooms
+			console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
+				`${room.energyInContainers}/${room.containerCapacityAvailable} (${room.energyPercentage}%) in storage.` +
+				` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
+			);
 			CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
 			let CpuBeforeTowers = Game.cpu.getUsed();

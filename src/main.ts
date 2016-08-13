@@ -14,7 +14,7 @@ import * as MemoryManager from "./shared/memoryManager";
 import * as RoomManager from "./components/rooms/roomManager";
 import * as CreepManager from "./components/creeps/creepManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
-// import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
+import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 
 Profiler.enable();
 StatsManager.init();
@@ -42,7 +42,7 @@ export function loop() {
 		StatsManager.addStat("cpu.init", CpuInit);
 		RoomManager.governRooms();
 		AssimilationManager.govern();
-		// OffenseManager.govern();
+		OffenseManager.govern();
 		StatsManager.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});
 

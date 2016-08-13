@@ -1,11 +1,13 @@
 import * as Config from "../../../../config/config";
 import WarfareCreepAction from "../../warfareCreepAction";
-import WarriorGovernor from "../../governors/warrior";
+/*import WarriorGovernor from "../../governors/warrior";
 import RangerGovernor from "../../governors/ranger";
 import HealerGovernor from "../../governors/healer";
 import Warrior from "../../roles/warrior";
 import Ranger from "../../roles/ranger";
-import Healer from "../../roles/healer";
+import Healer from "../../roles/healer";*/
+import TerminatorGovernor from "../../governors/terminator";
+import Terminator from "../../roles/terminator";
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -21,6 +23,17 @@ let homeRoom: Room;
 let homeSpawn: Spawn;
 let targetRoom: Room;
 
+let squadConfig = {
+	roles: [
+		{
+			"governor": TerminatorGovernor,
+			"role": Terminator,
+			"maxCreeps": 2,
+		},
+	],
+};
+
+/*
 let squadConfig = {
 	roles: [
 		{
@@ -40,6 +53,7 @@ let squadConfig = {
 		},
 	],
 };
+*/
 
 function setup() {
 	initMemory();
@@ -143,6 +157,7 @@ function manageSquad(targetRoomName: string) {
 				role.setCreep(<Creep> c);
 				role.wait = wait;
 				role.squad = creeps;
+				role.squadSize = squadSize;
 				role.setGovernor(governor);
 				role.action();
 			}

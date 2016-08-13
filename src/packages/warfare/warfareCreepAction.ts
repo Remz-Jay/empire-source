@@ -4,11 +4,13 @@ import WarriorGovernor from "./governors/warrior";
 export interface IWFCreepAction {
 	wait: boolean;
 	squad: Creep[];
+	squadSize: number;
 	moveToTargetRoom(): void;
 }
 
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
 	public squad: Creep[] = [];
+	public squadSize: number = 0;
 	public wait: boolean = false;
 	public moveToTargetRoom(): void {
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
