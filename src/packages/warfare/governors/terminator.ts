@@ -10,7 +10,8 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 	public maxParts = 10;
 	public maxCreeps = 2;
 	public bodyPart = [RANGED_ATTACK, RANGED_ATTACK, MOVE];
-	public basePart = [HEAL, HEAL, HEAL, ATTACK, ATTACK, ATTACK, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE];
+	public toughPart = [TOUGH, TOUGH, MOVE];
+	public basePart = [HEAL, HEAL, HEAL, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -35,6 +36,11 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			body = body.concat(this.bodyPart);
+		}
+		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
+		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
+		for (let i = 0; i < numTough; i ++) {
+			body = body.concat(this.toughPart);
 		}
 		return WarfareCreepGovernor.sortBodyParts(body);
 	}

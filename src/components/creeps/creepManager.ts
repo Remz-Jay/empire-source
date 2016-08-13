@@ -31,7 +31,6 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Miner: Miner,
 };
 
-// TODO: Add claim, healer, remote*, scout
 let governors: {[key: string]: typeof CreepGovernor } = {
 	BuilderGovernor: BuilderGovernor,
 	HarvesterGovernor: HarvesterGovernor,

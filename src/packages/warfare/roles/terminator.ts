@@ -4,93 +4,84 @@ export interface ITerminator {
 	action(): boolean;
 }
 
-export default class Terminator extends WarfareCreepAction implements ITerminator {
+let roomCallback = function (roomName: string): CostMatrix {
+	try {
+		let room = Game.rooms[roomName];
+		if (!room) {
+			return;
+		}
+		return room.getCreepMatrix();
+	} catch (e) {
+		console.log(JSON.stringify(e), "Terminator.roomCallback", roomName);
+		return new PathFinder.CostMatrix();
+	}
+};
 
-	public response: string = "";
+export default class Terminator extends WarfareCreepAction implements ITerminator {
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 	}
 
-	public getPriorityCreep(creeps: Creep[]): Creep {
-		let target: Creep = undefined;
-		_.reduce(creeps, function(result, value) {
-			if ((value.hitsMax - value.hits) > result) {
-				result = (value.hitsMax - value.hits);
-				target = value;
+	public checkTough(): boolean {
+		let tough: number = 0;
+		_.each(this.creep.body, function (part: BodyPartDefinition) {
+			if (part.type === TOUGH) {
+				tough += part.hits;
 			}
-			return result;
-		}, 0);
-		return target;
+		});
+		return (tough > 50) ? true : false;
 	}
 
-	public heal(): boolean {
-		if (this.creep.hits < this.creep.hitsMax) {
-			this.creep.heal(this.creep);
-			this.response = this.response.concat("H");
-			return false;
-		} else {
-			let targets = this.creep.pos.findInRange<Creep>(FIND_MY_CREEPS, 1, {
-				filter: (c: Creep) => c.hits < c.hitsMax,
-			});
+	public moveToHeal(): boolean {
+		if (!this.checkTough()) {
+			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
 			if (targets.length > 0) {
-				let target = this.getPriorityCreep(targets);
-				this.creep.heal(target);
-				this.response = this.response.concat("H");
+				let goals = _.map(targets, function (t: Creep) {
+					return {pos: t.pos, range: 4};
+				});
+				let path = PathFinder.search(this.creep.pos, goals, {
+					flee: true,
+					maxRooms: 1,
+					plainCost: 2,
+					swampCost: 6,
+					roomCallback: roomCallback,
+				});
+				let pos = path.path[0];
+				this.creep.move(this.creep.pos.getDirectionTo(pos));
+				this.creep.memory.waitForHealth = true;
+				delete this.creep.memory.targetPath;
 				return false;
 			}
 		}
 		return true;
 	}
-	public attack(): boolean {
-		let targets = this.creep.pos.findInRange<Creep>(FIND_HOSTILE_CREEPS, 1, {
-			filter: (c: Creep) => c.hits < c.hitsMax,
-		});
+
+	public moveToSafeRange(): boolean {
+		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2);
 		if (targets.length > 0) {
-			let target = this.getPriorityCreep(targets);
-			this.creep.attack(target);
-			this.response = this.response.concat("A");
+			let goals = _.map(targets, function (t: Creep) {
+				return {pos: t.pos, range: 3};
+			});
+			let path = PathFinder.search(this.creep.pos, goals, {
+				flee: true,
+				maxRooms: 1,
+				plainCost: 2,
+				swampCost: 6,
+				roomCallback: roomCallback,
+			});
+			let pos = path.path[0];
+			this.creep.move(this.creep.pos.getDirectionTo(pos));
+			delete this.creep.memory.targetPath;
 			return false;
 		}
 		return true;
-	}
-	public rangedAttack(): boolean {
-		let targets: Creep[] = this.creep.pos.findInRange<Creep>(FIND_HOSTILE_CREEPS, 3);
-		if (targets.length > 0) {
-			if (targets.length > 1) {
-				this.creep.rangedMassAttack();
-				this.response = this.response.concat("M");
-				return false;
-			} else {
-				let target = this.getPriorityCreep(targets);
-				this.creep.rangedAttack(target);
-				this.response = this.response.concat("R");
-				return false;
-			}
-		}
-		return true;
-	}
-	public rangedHeal(): boolean {
-		let targets = this.creep.pos.findInRange<Creep>(FIND_MY_CREEPS, 3, {
-			filter: (c: Creep) => c.hits < c.hitsMax,
-		});
-		if (targets.length > 0) {
-			let target = this.getPriorityCreep(targets);
-			this.creep.rangedHeal(target);
-			this.response = this.response.concat("Z");
-			return false;
-		}
-		return true;
-	}
-	public findTarget(): Creep {
-		let hostile = this.creep.pos.findClosestByPath<Creep>(FIND_HOSTILE_CREEPS, {maxRooms: 1});
-		if (!!hostile) {
-			return hostile;
-		}
-		return undefined;
 	}
 
 	public move() {
+		if (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
+			return;
+		}
 		let target: Creep = undefined;
 		if (!this.creep.memory.target) {
 			target = this.findTarget();
@@ -101,7 +92,6 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				delete this.creep.memory.target;
 				delete this.creep.memory.targetPath;
 				this.waitAtFlag(this.creep.memory.config.targetRoom);
-				this.response = this.response.concat("F");
 			}
 		} else {
 			target = Game.getObjectById<Creep>(this.creep.memory.target);
@@ -114,22 +104,24 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					delete this.creep.memory.target;
 					delete this.creep.memory.targetPath;
 					this.waitAtFlag(this.creep.memory.config.targetRoom);
-					this.response = this.response.concat("F");
 				}
 			}
 		}
-		if (!!target && !!this.creep.memory.target && !this.creep.pos.isNearTo(target)) {
-			if (!!this.creep.memory.target && this.creep.memory.target === target.id && !!this.creep.memory.targetPath) {
-				let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-				this.moveByPath(path, target);
-				this.response = this.response.concat("P");
-			} else {
-				this.creep.memory.target = target.id;
-				delete this.creep.memory.targetPath;
-				this.response = this.response.concat("N");
-				if (!this.findNewPath(target)) {
-					this.creep.say("HALP!");
+		if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
+			if (this.creep.pos.getRangeTo(target) > 3) { // move closer if we're out of RANGED_ATTACK range.
+				if (!!this.creep.memory.targetPath) {
+					let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+					this.moveByPath(path, target);
+				} else {
+					this.creep.memory.target = target.id;
+					delete this.creep.memory.targetPath;
+					if (!this.findNewPath(target)) {
+						this.creep.say("HALP!");
+					}
 				}
+			} else {
+				// Just sit there.
+				delete this.creep.memory.targetPath;
 			}
 		} else {
 			delete this.creep.memory.targetPath;
@@ -151,29 +143,45 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 		return (lookResults.length === this.squadSize) ? true : false;
 	}
 	public action(): boolean {
-		if (super.renewCreep()) {
+		if (!!this.creep.memory.inCombat || super.renewCreep()) {
 			if ((this.wait && !this.creep.memory.squadComplete) || !this.creep.memory.squadComplete) {
-				this.response = this.response.concat("W");
 				this.waitAtFlag(this.creep.memory.homeRoom);
 				this.creep.memory.squadComplete = this.isSquadComplete();
 			} else {
 				if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-					this.response = this.response.concat("RR");
 					this.moveToTargetRoom();
 				} else {
 					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 					if (this.heal()) {
+						delete this.creep.memory.waitForHealth;
 						if (this.rangedHeal()) {
-							this.attack();
-							this.rangedAttack();
+							if (!this.rangedAttack()) {
+								this.creep.memory.inCombat = true;
+							} else {
+								delete this.creep.memory.inCombat;
+							}
 						}
 					} else {
-						this.rangedAttack();
+						if (!this.rangedAttack()) {
+							this.creep.memory.inCombat = true;
+						} else {
+							delete this.creep.memory.inCombat;
+						}
 					}
 					this.move();
 				}
 			}
-			this.creep.say(this.response);
+		} else {
+			if (!!this.creep.memory.lastHealth && this.creep.memory.lastHealth > this.creep.hits) {
+				// Our health changed negatively last tick. Defend before proceeding to renew.
+				this.creep.memory.inCombat = true;
+				this.creep.memory.lastHealth = this.creep.hits;
+				this.heal();
+				this.rangedAttack();
+				this.move();
+			} else {
+				this.creep.memory.lastHealth = this.creep.hits;
+			}
 		}
 		return true;
 	}

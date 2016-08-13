@@ -28,7 +28,7 @@ let squadConfig = {
 		{
 			"governor": TerminatorGovernor,
 			"role": Terminator,
-			"maxCreeps": 2,
+			"maxCreeps": 1,
 		},
 	],
 };
