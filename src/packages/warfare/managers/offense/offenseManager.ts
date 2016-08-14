@@ -8,6 +8,8 @@ import Ranger from "../../roles/ranger";
 import Healer from "../../roles/healer";*/
 import TerminatorGovernor from "../../governors/terminator";
 import Terminator from "../../roles/terminator";
+import ScoutGovernor from "../../governors/scout";
+import Scout from "../../roles/scout";
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -26,11 +28,17 @@ let targetRoom: Room;
 let squadConfig = {
 	roles: [
 		{
-			"governor": TerminatorGovernor,
-			"role": Terminator,
+			"governor": ScoutGovernor,
+			"role": Scout,
 			"maxCreeps": 1,
 		},
+		{
+			"governor": TerminatorGovernor,
+			"role": Terminator,
+			"maxCreeps": 0,
+		},
 	],
+	wait: false,
 };
 
 /*
@@ -58,9 +66,14 @@ let squadConfig = {
 function setup() {
 	initMemory();
 	Game.offense = {
-		add(roomName: string) {
+		add(roomName: string, homeRoomName?: string) {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				Memory.offense.targets.push(roomName);
+				if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
+					getConfigForRemoteTarget(roomName, homeRoomName);
+				} else {
+					getConfigForRemoteTarget(roomName);
+				}
 				console.log(`Added ${roomName} for Assault.`);
 			} else {
 				console.log(`Room ${roomName} does not exist.`);
@@ -72,7 +85,33 @@ function setup() {
 		},
 	};
 }
-function getConfigForRemoteTarget(remoteRoomName: string): RemoteRoomConfig {
+
+function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
+	return Game.map.findRoute(fromRoom, toRoom, {
+		routeCallback(roomName) {
+			let parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+			let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
+			let username = _.get(
+				_.find(Game.structures, (s) => true), "owner.username",
+				_.get(_.find(Game.creeps, (s) => true), "owner.username")
+			) as string;
+			let isMyRoom = Game.rooms[roomName] &&
+				Game.rooms[roomName].controller &&
+				Game.rooms[roomName].controller.my;
+			let isMyReservedRoom = Game.rooms[roomName] &&
+				Game.rooms[roomName].controller &&
+				Game.rooms[roomName].controller.reservation &&
+				Game.rooms[roomName].controller.reservation.username === username;
+			if (isHighway || isMyRoom || isMyReservedRoom) {
+				return 1;
+			} else {
+				return 2.5;
+			}
+		},
+	});
+}
+
+function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string): RemoteRoomConfig {
 	if (!!Memory.offense.config[remoteRoomName]) {
 		return Memory.offense.config[remoteRoomName];
 	} else {
@@ -80,25 +119,23 @@ function getConfigForRemoteTarget(remoteRoomName: string): RemoteRoomConfig {
 		let distance: number = Infinity;
 		let target: string = undefined;
 		let optimalRoute: findRouteArray = undefined;
-		for (let room in Game.rooms) {
-			let route = Game.map.findRoute(room, remoteRoomName, {
-				routeCallback(roomName) {
-					let parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-					let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-					let isMyRoom = Game.rooms[roomName] &&
-						Game.rooms[roomName].controller &&
-						Game.rooms[roomName].controller.my;
-					if (isHighway || isMyRoom) {
-						return 1;
-					} else {
-						return 2.5;
-					}
-				},
-			});
+		if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
+			let route = findRoute(homeRoomName, remoteRoomName);
 			if (!_.isNumber(route) && route.length < distance) {
 				distance = route.length;
 				optimalRoute = route;
-				target = room;
+				target = homeRoomName;
+			}
+		} else {
+			for (let room in Game.rooms) {
+				if (room !== remoteRoomName) {
+					let route = findRoute(room, remoteRoomName);
+					if (!_.isNumber(route) && route.length < distance) {
+						distance = route.length;
+						optimalRoute = route;
+						target = room;
+					}
+				}
 			}
 		}
 		let roomConfig: RemoteRoomConfig = {
@@ -144,7 +181,7 @@ function manageSquad(targetRoomName: string) {
 	// TODO: Make the squad wait for the last spawning member.
 	let squadSize = _.sum(squadConfig.roles, "maxCreeps");
 	let wait: boolean = false;
-	if (creeps.length < squadSize) {
+	if (squadConfig.wait && creeps.length < squadSize) {
 		wait = true;
 	}
 	_.each(squadConfig.roles, function(squadRole) {
@@ -153,6 +190,9 @@ function manageSquad(targetRoomName: string) {
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
+				if (!squadConfig.wait) {
+					c.memory.squadComplete = true;
+				}
 				let role: WarfareCreepAction = new squadRole.role();
 				role.setCreep(<Creep> c);
 				role.wait = wait;
@@ -164,7 +204,8 @@ function manageSquad(targetRoomName: string) {
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
 			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
-			createCreep(homeSpawn, governor.getCreepConfig());
+			let status = createCreep(homeSpawn, governor.getCreepConfig());
+			console.log("manageSquad.spawn", status, JSON.stringify(governor.getCreepConfig()));
 		}
 	}, this);
 }

@@ -43,9 +43,9 @@ export function governRooms(): void {
 	let CpuLinks = 0;
 	let CpuRoles = 0;
 	let CpuCreeps = 0;
-	for (let roomName in rooms) {
+	for (let roomName in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
-		let room = rooms[roomName];
+		let room = Game.rooms[roomName];
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
 			room.addProperties();
 			let myStructures = room.find(FIND_MY_STRUCTURES);

@@ -27,6 +27,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public wait: boolean = false;
 	public moveToTargetRoom(): void {
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
+			this.nextStepIntoRoom();
 			let index: number = 0;
 			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {
 				if (route.room === this.creep.room.name) {

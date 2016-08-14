@@ -96,7 +96,7 @@ function profileObjectFunctions(object: any, label: string) {
 				objectToWrap[functionName] = profileFunction(originalFunction, extendedLabel);
 			}
 		} catch (e) {
-			console.log(JSON.stringify(e), "Profiler.profileObjectFunctions");
+			// console.log(JSON.stringify(e), "Profiler.profileObjectFunctions");
 		}
 		/* eslint no-empty:0 */
 	});
