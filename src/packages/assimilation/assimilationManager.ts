@@ -29,9 +29,14 @@ let targetRoom: Room;
 function setup() {
 	initMemory();
 	Game.assman = {
-		add(roomName: string) {
+		add(roomName: string, claim: boolean = false, homeRoomName?: string) {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				Memory.assimilation.targets.push(roomName);
+				if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
+					getConfigForRemoteTarget(roomName, claim, homeRoomName);
+				} else {
+					getConfigForRemoteTarget(roomName, claim);
+				}
 				console.log(`Added ${roomName} for assimilation.`);
 			} else {
 				console.log(`Room ${roomName} does not exist.`);
@@ -39,11 +44,28 @@ function setup() {
 		},
 		remove(roomName: string) {
 			Memory.assimilation.targets = _.pull(Memory.assimilation.targets, roomName);
+			delete Memory.assimilation.config[roomName];
 			console.log(`Removed ${roomName} from the assimilation targets.`);
 		},
 	};
 }
-function getConfigForRemoteTarget(remoteRoomName: string): RemoteRoomConfig {
+function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
+	return Game.map.findRoute(fromRoom, toRoom, {
+		routeCallback(roomName) {
+			let parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+			let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
+			let isMyRoom = Game.rooms[roomName] &&
+				Game.rooms[roomName].controller &&
+				Game.rooms[roomName].controller.my;
+			if (isHighway || isMyRoom) {
+				return 1;
+			} else {
+				return 2.5;
+			}
+		},
+	});
+}
+function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false, homeRoomName?: string): RemoteRoomConfig {
 	if (!!Memory.assimilation.config[remoteRoomName]) {
 		return Memory.assimilation.config[remoteRoomName];
 	} else {
@@ -51,25 +73,23 @@ function getConfigForRemoteTarget(remoteRoomName: string): RemoteRoomConfig {
 		let distance: number = Infinity;
 		let target: string = undefined;
 		let optimalRoute: findRouteArray = undefined;
-		for (let room in Game.rooms) {
-			let route = Game.map.findRoute(room, remoteRoomName, {
-				routeCallback(roomName) {
-					let parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-					let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-					let isMyRoom = Game.rooms[roomName] &&
-						Game.rooms[roomName].controller &&
-						Game.rooms[roomName].controller.my;
-					if (isHighway || isMyRoom) {
-						return 1;
-					} else {
-						return 2.5;
-					}
-				},
-			});
+		if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
+			let route = findRoute(homeRoomName, remoteRoomName);
 			if (!_.isNumber(route) && route.length < distance) {
 				distance = route.length;
 				optimalRoute = route;
-				target = room;
+				target = homeRoomName;
+			}
+		} else {
+			for (let room in Game.rooms) {
+				if (room !== remoteRoomName) {
+					let route = findRoute(room, remoteRoomName);
+					if (!_.isNumber(route) && route.length < distance) {
+						distance = route.length;
+						optimalRoute = route;
+						target = room;
+					}
+				}
 			}
 		}
 		let roomConfig: RemoteRoomConfig = {
@@ -77,6 +97,7 @@ function getConfigForRemoteTarget(remoteRoomName: string): RemoteRoomConfig {
 			targetRoom: remoteRoomName,
 			homeDistance: distance,
 			route: optimalRoute,
+			claim: claim,
 		};
 		Memory.assimilation.config[remoteRoomName] = roomConfig;
 		return roomConfig;
@@ -141,7 +162,7 @@ function manageContainers(): StructureContainer[] {
 	return allContainers;
 }
 
-function manageConstructions() {
+function manageConstructions(maxBuilders: number = 1) {
 	let sites = targetRoom.find(FIND_CONSTRUCTION_SITES, {
 		filter: (cs: ConstructionSite) => cs.my,
 	});
@@ -159,7 +180,8 @@ function manageConstructions() {
 					role.action();
 				}
 			}, this);
-		} else {
+		}
+		if (creepsInRole.length < maxBuilders) {
 			createCreep(homeSpawn, governor.getCreepConfig());
 		}
 	}
@@ -237,7 +259,7 @@ export function govern(): void {
 			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
 			targetRoom = Game.rooms[roomName];
 			manageDefenders();
-			manageClaim(roomName, false);
+			manageClaim(roomName, config.claim);
 			let vision: boolean = false;
 			if (!!targetRoom) {
 				// We have vision of the room, that's good.
@@ -246,15 +268,25 @@ export function govern(): void {
 				SourceManager.load(targetRoom);
 				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
 				if (hostiles.length > 0) {
-					manageDefenders(1);
+					if (config.claim) {
+						manageDefenders(4);
+					} else {
+						manageDefenders(1);
+					}
 					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles.length)} in room ${targetRoom.name} (ASM)`);
 				}
 				let containers = manageContainers();
 				if (containers.length > 0) {
 					manageHarvest(containers);
-					manageMules(containers);
+					if (!config.claim) {
+						manageMules(containers);
+					}
 				}
-				manageConstructions();
+				if (config.claim) {
+					manageConstructions(4);
+				} else {
+					manageConstructions(1);
+				}
 				console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
 					+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
 					+ " (" + targetRoom.energyPercentage + "%) in storage."
