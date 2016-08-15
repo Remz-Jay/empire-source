@@ -119,6 +119,17 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 		return true;
 	}
+
+	public findHealTarget(): Creep {
+		let wounded = this.creep.pos.findClosestByPath<Creep>(FIND_MY_CREEPS, {
+			maxRooms: 1,
+			costCallback: roomCallback,
+			filter: (c: Creep) => c.hits < c.hitsMax,
+		});
+		if (!!wounded) {
+			return wounded;
+		}
+	}
 	public findTarget(): Creep {
 		// Prioritize Hostiles with offensive capabilities.
 		let hostile = this.creep.pos.findClosestByPath<Creep>(FIND_HOSTILE_CREEPS, {

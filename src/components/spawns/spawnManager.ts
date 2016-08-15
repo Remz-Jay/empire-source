@@ -15,8 +15,17 @@ export function load(room: Room) {
 	}
 }
 
+export function hasSpawn(): boolean {
+	return (spawns.length < 1) ? false : true;
+}
+
 export function getFirstSpawn(): Spawn {
-	return spawns[0];
+	let spawn =  spawns[0];
+	if (!!spawn) {
+		return spawn;
+	} else {
+		return Game.spawns[0];
+	}
 }
 
 function _loadSpawnNames(): void {

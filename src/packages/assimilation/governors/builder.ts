@@ -8,7 +8,7 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "ASMBuilder";
 
 	public maxParts = 8;
-	public maxCreeps = 1;
+	public maxCreeps = 4;
 	public bodyPart = [WORK, MOVE, CARRY, MOVE, CARRY, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
@@ -29,7 +29,7 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 		if (targetRoom.controller.level > 4) {
 			num = _.floor(targetRoom.energyInContainers / 10000);
 		} else if (targetRoom.controller.level < 3) {
-			num = 1;
+			num = this.maxCreeps;
 		} else {
 			num = this.maxCreeps;
 		}

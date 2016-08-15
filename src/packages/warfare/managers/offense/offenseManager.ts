@@ -10,6 +10,7 @@ import TerminatorGovernor from "../../governors/terminator";
 import Terminator from "../../roles/terminator";
 import ScoutGovernor from "../../governors/scout";
 import Scout from "../../roles/scout";
+import FasterminatorGovernor from "../../governors/fasterminator";
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -30,12 +31,17 @@ let squadConfig = {
 		{
 			"governor": ScoutGovernor,
 			"role": Scout,
-			"maxCreeps": 1,
+			"maxCreeps": 0,
 		},
 		{
 			"governor": TerminatorGovernor,
 			"role": Terminator,
 			"maxCreeps": 0,
+		},
+		{
+			"governor": FasterminatorGovernor,
+			"role": Terminator,
+			"maxCreeps": 2,
 		},
 	],
 	wait: false,

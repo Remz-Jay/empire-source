@@ -62,7 +62,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 								return (
 									(
 										structure.hits <  RampartManager.getAverageStrength() ||
-										structure.hits < structure.hitsMax * 0.2
+										structure.hits < structure.hitsMax * 0.1
 									) &&
 									structure.structureType === STRUCTURE_RAMPART
 								);
@@ -120,9 +120,9 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 	};
 
 	public action(): boolean {
-		if (super.action()) {
-			this.repairLogic();
-			return true;
+		if (!this.renewCreep()) {
+			return false;
 		}
+		this.repairLogic();
 	}
 }

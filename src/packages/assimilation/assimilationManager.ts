@@ -9,8 +9,8 @@ import ASMHarvesterGovernor from "./governors/harvester";
 import ASMHarvester from "./roles/harvester";
 import ASMMuleGovernor from "./governors/mule";
 import ASMMule from "./roles/mule";
-import WarriorGovernor from "../warfare/governors/warrior";
-import Warrior from "../warfare/roles/warrior";
+import FasterminatorGovernor from "../warfare/governors/fasterminator";
+import Terminator from "../warfare/roles/terminator";
 
 function initMemory(): void {
 	if (!Memory.assimilation) {
@@ -120,7 +120,7 @@ function createCreep(spawn: Spawn, creepConfig: CreepConfiguration): string|numb
 	return status;
 }
 function manageClaim(roomName: string, claim: boolean = false) {
-	let governor = new ClaimGovernor(homeRoom, homeSpawn, config);
+	let governor = new ClaimGovernor(homeRoom, homeSpawn, config, claim);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ClaimGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
 	if (creepsInRole.length > 0) {
@@ -134,7 +134,10 @@ function manageClaim(roomName: string, claim: boolean = false) {
 			}
 		}, this);
 	} else {
-		if (!Game.rooms[roomName] || !Game.rooms[roomName].controller || Game.rooms[roomName].controller.reservation.ticksToEnd < 1000) {
+		if (!Game.rooms[roomName] || !Game.rooms[roomName].controller
+			|| !Game.rooms[roomName].controller.reservation
+			|| Game.rooms[roomName].controller.reservation.ticksToEnd < 1000
+		) {
 			createCreep(homeSpawn, governor.getCreepConfig());
 		}
 	}
@@ -166,21 +169,21 @@ function manageConstructions(maxBuilders: number = 1) {
 	let sites = targetRoom.find(FIND_CONSTRUCTION_SITES, {
 		filter: (cs: ConstructionSite) => cs.my,
 	});
+	let governor = new ASMBuilderGovernor(homeRoom, homeSpawn, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMBuilderGovernor.ROLE.toUpperCase()
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+	if (creepsInRole.length > 0) {
+		_.each(creepsInRole, function (creep: Creep) {
+			if (!creep.spawning) {
+				let role: ASMBuilder = new ASMBuilder();
+				role.setCreep(<Creep> creep);
+				role.setGovernor(governor);
+				role.action();
+			}
+		}, this);
+	}
 	if (sites.length > 0) {
 		// we need a builder
-		let governor = new ASMBuilderGovernor(homeRoom, homeSpawn, config);
-		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMBuilderGovernor.ROLE.toUpperCase()
-		&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
-		if (creepsInRole.length > 0) {
-			_.each(creepsInRole, function (creep: Creep) {
-				if (!creep.spawning) {
-					let role: ASMBuilder = new ASMBuilder();
-					role.setCreep(<Creep> creep);
-					role.setGovernor(governor);
-					role.action();
-				}
-			}, this);
-		}
 		if (creepsInRole.length < maxBuilders) {
 			createCreep(homeSpawn, governor.getCreepConfig());
 		}
@@ -210,13 +213,13 @@ function manageHarvest(containers: StructureContainer[]) {
 }
 
 function manageDefenders(limit: number = 0) {
-	let governor = new WarriorGovernor(homeRoom, homeSpawn, config);
-	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === WarriorGovernor.ROLE.toUpperCase()
+	let governor = new FasterminatorGovernor(homeRoom, homeSpawn, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === FasterminatorGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
 	if (creepsInRole.length > 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
-				let role: Warrior = new Warrior();
+				let role: Terminator = new Terminator();
 				role.setCreep(<Creep> creep);
 				role.setGovernor(governor);
 				role.action();
@@ -258,8 +261,9 @@ export function govern(): void {
 			homeRoom = Game.rooms[config.homeRoom];
 			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
 			targetRoom = Game.rooms[roomName];
-			manageDefenders();
-			manageClaim(roomName, config.claim);
+			if (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1) {
+				manageClaim(roomName, config.claim);
+			}
 			let vision: boolean = false;
 			if (!!targetRoom) {
 				// We have vision of the room, that's good.
@@ -268,31 +272,31 @@ export function govern(): void {
 				SourceManager.load(targetRoom);
 				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
 				if (hostiles.length > 0) {
-					if (config.claim) {
-						manageDefenders(4);
-					} else {
-						manageDefenders(1);
-					}
 					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles.length)} in room ${targetRoom.name} (ASM)`);
 				}
 				let containers = manageContainers();
 				if (containers.length > 0) {
-					manageHarvest(containers);
-					if (!config.claim) {
+					if (config.claim) {
+						// manageMules(containers);
+					} else {
+						manageHarvest(containers);
 						manageMules(containers);
 					}
 				}
 				if (config.claim) {
-					manageConstructions(4);
+					// manageConstructions(1);
 				} else {
 					manageConstructions(1);
+				}
+				if (config.claim) {
+					manageDefenders(1);
+				} else {
+					manageDefenders(1);
 				}
 				console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
 					+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
 					+ " (" + targetRoom.energyPercentage + "%) in storage."
 					+ " (RCL=" + targetRoom.controller.level + " @ "
-					+ targetRoom.controller.reservation.ticksToEnd
-					+ " (" + targetRoom.controller.reservation.username + "))"
 				);
 			}
 		}

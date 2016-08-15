@@ -22,6 +22,14 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 	}
 
 	public moveToTargetRoom() {
+/*		let flag = Game.flags[this.creep.memory.targetRoom];
+		if (!!flag) {
+			let path = this.findPathFinderPath(this.createPathFinderMap([flag.pos]));
+			if (!!path) {
+				this.moveByPath(path, flag);
+				return;
+			}
+		}*/
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
 			let index: number = 0;
 			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {
@@ -30,7 +38,7 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 				}
 			}, this);
 			let route = this.creep.memory.config.route[index];
-			console.log(`finding route to ${route.exit} in ${route.room}`);
+			console.log(`finding route to ${index} / ${route.exit} in ${route.room}`);
 			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit);
 			this.creep.memory.exitRoom = route.room;
 		} else {

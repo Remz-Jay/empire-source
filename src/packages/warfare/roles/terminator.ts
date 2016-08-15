@@ -10,7 +10,21 @@ let roomCallback = function (roomName: string): CostMatrix {
 		if (!room) {
 			return;
 		}
-		return room.getCreepMatrix();
+		let matrix = room.getCreepMatrix();
+		// avoid the edges
+		for (let i = 1; i < 50; i++) {
+			matrix.set(0, i, 50);
+		}
+		for (let i = 1; i < 50; i++) {
+			matrix.set(49, i, 50);
+		}
+		for (let i = 1; i < 50; i++) {
+			matrix.set(i, 0, 50);
+		}
+		for (let i = 1; i < 50; i++) {
+			matrix.set(i, 49, 50);
+		}
+		return matrix;
 	} catch (e) {
 		console.log(JSON.stringify(e), "Terminator.roomCallback", roomName);
 		return new PathFinder.CostMatrix();
@@ -19,6 +33,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 
 export default class Terminator extends WarfareCreepAction implements ITerminator {
 
+	public hardPath: boolean = false;
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 	}
@@ -89,13 +104,19 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				this.creep.memory.target = target.id;
 				delete this.creep.memory.targetPath;
 			} else {
-				delete this.creep.memory.target;
-				delete this.creep.memory.targetPath;
-				this.waitAtFlag(this.creep.memory.config.targetRoom);
+				target = this.findHealTarget();
+				if (!!target) {
+					this.creep.memory.target = target.id;
+					delete this.creep.memory.targetPath;
+				} else {
+					delete this.creep.memory.target;
+					delete this.creep.memory.targetPath;
+					this.waitAtFlag(this.creep.memory.config.targetRoom);
+				}
 			}
 		} else {
 			target = Game.getObjectById<Creep>(this.creep.memory.target);
-			if (!target) { // target died?
+			if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
 				target = this.findTarget();
 				if (!!target) {
 					this.creep.memory.target = target.id;
@@ -107,13 +128,31 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				}
 			}
 		}
+		// Just moveTo when we're safely behind walls
+		if (!!target && !this.hardPath) {
+			this.moveTo(target.pos);
+			this.creep.move(this.creep.pos.getDirectionTo(target));
+			return;
+		}
+
+		// Otherwise, use a pathFinder path to get there.
 		if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
 			if (this.creep.pos.getRangeTo(target) > 3) { // move closer if we're out of RANGED_ATTACK range.
 				if (!!this.creep.memory.targetPath) {
-					let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					this.moveByPath(path, target);
+					if (!this.creep.memory.pathTTL || this.creep.memory.pathTTL < 5) {
+						let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
+						this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? this.creep.memory.pathTTL + 1 : 1;
+						this.moveByPath(path, target);
+					} else {
+						delete this.creep.memory.targetPath;
+						this.creep.memory.pathTTL = 1;
+						if (!this.findNewPath(target)) {
+							this.creep.say("HALP!");
+						}
+					}
 				} else {
 					this.creep.memory.target = target.id;
+					this.creep.memory.pathTTL = 1;
 					delete this.creep.memory.targetPath;
 					if (!this.findNewPath(target)) {
 						this.creep.say("HALP!");
@@ -151,6 +190,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 					this.moveToTargetRoom();
 				} else {
+					this.nextStepIntoRoom();
 					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 					if (this.heal()) {
 						delete this.creep.memory.waitForHealth;

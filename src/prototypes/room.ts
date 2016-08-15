@@ -68,7 +68,7 @@ Room.prototype.getCreepMatrix = function () {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
 			this.find(FIND_CREEPS).forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
+				costMatrix.set(creep.pos.x, creep.pos.y, 100);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
 			this.setCreepMatrix(costMatrix);
@@ -86,7 +86,10 @@ Room.prototype.getCostMatrix = function () {
 		W7N44: [
 			{x: 27, y: 30, w: 20}, // container next to extension, keep free for mule to deliver energy.
 		],
-		W6N42: [],
+		W6N42: [
+			{x: 11, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
+			{x: 12, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
+		],
 	};
 	try {
 		let costMatrix = (!!this.costMatrix) ? this.costMatrix : undefined;

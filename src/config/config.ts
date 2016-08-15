@@ -59,11 +59,11 @@ export const PRIORITY_WF_HEALER: number = 30;
 export const MINRCL_CREEP: number = 0;
 export const MINRCL_BUILDER: number = 1;
 export const MINRCL_HARVESTER: number = 1;
-export const MINRCL_MULE: number = 2;
+export const MINRCL_MULE: number = 1;
 export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
 export const MINRCL_REPAIR: number = 2;
-export const MINRCL_MINER: number = 6;
+export const MINRCL_MINER: number = 7;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps

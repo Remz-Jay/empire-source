@@ -13,9 +13,9 @@ StructureTower.prototype.run = function () {
 				&& structure.structureType !== STRUCTURE_WALL)
 				|| (structure.structureType === STRUCTURE_RAMPART
 				&& structure.my
-				&& structure.hits < 2000000)
+				&& structure.hits < 20000)
 				|| (structure.structureType === STRUCTURE_WALL
-					&& structure.hits < 100000
+					&& structure.hits < 10000
 				)
 			),
 		});

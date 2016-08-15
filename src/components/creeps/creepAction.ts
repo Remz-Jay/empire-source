@@ -272,11 +272,11 @@ export default class CreepAction implements ICreepAction {
 		}
 		return false;
 	};
-	public renewCreep(max: number = 1400): boolean {
+	public renewCreep(max: number = 1300): boolean {
 		let homeRoom = Game.rooms[this.creep.memory.homeRoom];
 		if (this.creep.ticksToLive < 250
-			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
-			|| homeRoom.energyAvailable < 300)) {
+			// && (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
+			&& homeRoom.energyAvailable < 300) {
 			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 				+ homeRoom.name + " due to emergency energy level " + (homeRoom.energyAvailable));
 			return true;
@@ -324,6 +324,10 @@ export default class CreepAction implements ICreepAction {
 						console.log("Done renewing.");
 						this.creep.memory.hasRenewed = true;
 						delete this.creep.memory.renewPath;
+					} else {
+						if (this.creep.carry.energy > 0) {
+							this.creep.transfer(renewStation, RESOURCE_ENERGY);
+						}
 					}
 					break;
 				case ERR_FULL:
