@@ -107,7 +107,7 @@ export default class CreepGovernor implements ICreepGovernor {
 		if (numParts < 1) {
 			numParts = 1;
 		}
-		if (this.maxParts > 1 && numParts > this.maxParts) {
+		if (numParts > this.maxParts) {
 			numParts = this.maxParts;
 		}
 		let body: string[] = [];

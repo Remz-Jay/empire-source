@@ -118,7 +118,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			let target = this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES) as ConstructionSite;
 			if (!!target) {
 				this.creep.memory.target = target.id;
-				delete this.creep.memory.target;
+				delete this.creep.memory.idle;
 				this.creep.memory.building = true;
 			} else {
 				// nothing to build. return energy.
@@ -211,7 +211,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	};
 
 	public action(): boolean {
-		if (super.action()) {
+		if (super.action() && this.flee()) {
 			this.builderLogic();
 		}
 		// if (this.isBagEmpty()) {

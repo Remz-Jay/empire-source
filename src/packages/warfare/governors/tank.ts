@@ -1,15 +1,15 @@
 import * as Config from "../../../config/config";
 import WarfareCreepGovernor from "../warfareCreepGovernor";
 
-export default class HealerGovernor extends WarfareCreepGovernor {
+export default class TankGovernor extends WarfareCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_WF_HEALER;
-	public static MINRCL: number = Config.MINRCL_WF_HEALER;
-	public static ROLE: string = "Healer";
+	public static PRIORITY: number = Config.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "Tank";
 
-	public maxParts = 4;
+	public maxParts = 5;
 	public maxCreeps = 2;
-	public bodyPart = [HEAL, HEAL, MOVE];
+	public bodyPart = [TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -17,7 +17,7 @@ export default class HealerGovernor extends WarfareCreepGovernor {
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			homeSpawn: this.spawn.name,
-			role: HealerGovernor.ROLE,
+			role: TankGovernor.ROLE,
 			config: this.config,
 		};
 		return {body: bodyParts, name: name, properties: properties};

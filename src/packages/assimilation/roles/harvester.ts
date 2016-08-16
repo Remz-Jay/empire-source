@@ -76,7 +76,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public action(): boolean {
-		if (super.renewCreep()) {
+		if (super.renewCreep() && this.flee()) {
 			this.creep.say(this.creep.memory.config.targetRoom);
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				this.moveToTargetRoom();

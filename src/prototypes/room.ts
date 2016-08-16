@@ -90,6 +90,10 @@ Room.prototype.getCostMatrix = function () {
 			{x: 11, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
 			{x: 12, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
 		],
+		W5N42: [
+			{x: 37, y: 24, w: 20}, // Narrow Path in the tower bulwark
+			{x: 38, y: 25, w: 20}, // Narrow Path in the tower bulwark
+		],
 	};
 	try {
 		let costMatrix = (!!this.costMatrix) ? this.costMatrix : undefined;
@@ -109,7 +113,7 @@ Room.prototype.getCostMatrix = function () {
 				}
 			});
 			this.find(FIND_CONSTRUCTION_SITES).forEach(function (site: ConstructionSite) {
-				costs.set(site.pos.x, site.pos.y, 5);
+				costs.set(site.pos.x, site.pos.y, 100);
 			});
 			_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
 			// console.log("Returning NEW CostMatrix for room " + this.name);

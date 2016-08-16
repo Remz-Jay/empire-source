@@ -148,7 +148,6 @@ function manageContainers(): StructureContainer[] {
 		let containers = source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1, {
 			filter: (structure: Structure) => structure.structureType === STRUCTURE_CONTAINER,
 		});
-		allContainers = allContainers.concat(containers);
 		if (containers.length < 1) {
 			// No containers yet. See if we're constructing one.
 			let sites = source.pos.findInRange(FIND_CONSTRUCTION_SITES, 1, {
@@ -160,6 +159,8 @@ function manageContainers(): StructureContainer[] {
 				let slot = slots[0];
 				targetRoom.createConstructionSite(slot.x, slot.y, STRUCTURE_CONTAINER);
 			}
+		} else {
+			allContainers = allContainers.concat(containers[0]); // In case there's more containers per source, just use 1.
 		}
 	}, this);
 	return allContainers;
@@ -273,10 +274,12 @@ export function govern(): void {
 				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
 				if (hostiles.length > 0) {
 					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles.length)} in room ${targetRoom.name} (ASM)`);
+					manageDefenders(1);
 				}
 				let containers = manageContainers();
 				if (containers.length > 0) {
 					if (config.claim) {
+						manageHarvest(containers);
 						// manageMules(containers);
 					} else {
 						manageHarvest(containers);
@@ -288,11 +291,7 @@ export function govern(): void {
 				} else {
 					manageConstructions(1);
 				}
-				if (config.claim) {
-					manageDefenders(1);
-				} else {
-					manageDefenders(1);
-				}
+				manageDefenders();
 				console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
 					+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
 					+ " (" + targetRoom.energyPercentage + "%) in storage."

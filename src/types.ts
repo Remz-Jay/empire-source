@@ -74,6 +74,17 @@ declare interface OffenseObject {
 		[roomName: string]: RemoteRoomConfig
 	};
 }
+
+declare interface SquadRole {
+	governor: Object;
+	role: Object;
+	maxCreeps: number;
+}
+declare interface SquadConfig {
+	roles: SquadRole[];
+	wait: boolean;
+}
+
 declare interface Memory {
 	assimilation?: AssimilationObject;
 	offense?: OffenseObject;

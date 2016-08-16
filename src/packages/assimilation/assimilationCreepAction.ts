@@ -56,18 +56,6 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 		}
 	}
 
-	public flee(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 10);
-		if (targets.length > 0) {
-			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 7}; });
-			let path = PathFinder.search(this.creep.pos, goals, {flee: true, maxRooms: 2});
-			this.creep.moveByPath(path.path);
-			this.creep.say("FLEE!");
-			return false;
-		}
-		return true;
-	}
-
 	public action(): boolean {
 		if (!this.renewCreep() || !this.flee()) {
 			return false;

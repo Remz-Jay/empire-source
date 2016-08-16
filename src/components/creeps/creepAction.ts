@@ -84,6 +84,24 @@ export default class CreepAction implements ICreepAction {
 		return true;
 	};
 
+	public flee(): boolean {
+		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
+		if (targets.length > 0) {
+			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 4}; });
+			let path = PathFinder.search(this.creep.pos, goals, {
+				flee: true,
+				maxRooms: 2,
+				plainCost: 2,
+				swampCost: 6,
+				roomCallback: roomCallback,
+			});
+			this.creep.moveByPath(path.path);
+			this.creep.say("FLEE!");
+			return false;
+		}
+		return true;
+	}
+
 	public moveTo(target: RoomPosition|PathFinderGoal) {
 		try {
 			let pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
@@ -274,11 +292,12 @@ export default class CreepAction implements ICreepAction {
 	};
 	public renewCreep(max: number = 1300): boolean {
 		let homeRoom = Game.rooms[this.creep.memory.homeRoom];
-		if (this.creep.ticksToLive < 250
-			// && (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
-			&& homeRoom.energyAvailable < 300) {
+		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
+			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
+			|| homeRoom.energyAvailable < 300)) {
 			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 				+ homeRoom.name + " due to emergency energy level " + (homeRoom.energyAvailable));
+			this.creep.memory.hasRenewed = true;
 			return true;
 		}
 		if (this.creep.ticksToLive < 250) {
@@ -336,7 +355,7 @@ export default class CreepAction implements ICreepAction {
 					break;
 				case ERR_BUSY:
 				case ERR_NOT_ENOUGH_ENERGY:
-					console.log(this.creep.name + " (" + this.creep.memory.role + ") is waiting for renew at " + renewStation.name + ".");
+					console.log(`${this.creep.name} (${this.creep.memory.role}) is waiting for renew at ${renewStation.name} - ${this.creep.ticksToLive}`);
 					if (this.creep.carry.energy > 0) {
 						this.creep.transfer(renewStation, RESOURCE_ENERGY);
 					}
@@ -421,10 +440,10 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public action(): boolean {
+		this.pickupResourcesInRange();
 		if (!this.renewCreep()) {
 			return false;
 		}
-		this.pickupResourcesInRange();
 		return true;
 	}
 }
