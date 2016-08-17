@@ -8,7 +8,7 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "Claim";
 
 	public claim: boolean = false;
-	public maxParts = 6;
+	public maxParts = 5;
 	public maxCreeps = 1;
 	public bodyPart = [CLAIM, MOVE];
 
@@ -42,7 +42,9 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 		}
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
-			body = body.concat(this.bodyPart);
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
 		}
 		return AssimilationCreepGovernor.sortBodyParts(body);
 	}

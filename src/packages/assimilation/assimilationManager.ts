@@ -200,10 +200,22 @@ function manageHarvest(containers: StructureContainer[]) {
 		if (creepsInRole.length > 0) {
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
+					if (!creep.memory.container) {
+						creep.memory.container = governor.checkContainerAssignment();
+					}
 					let role: ASMHarvester = new ASMHarvester();
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
 					role.action();
+					if (creep.ticksToLive < 200 && (creepsInRole.length === governor.getCreepLimit())) {
+						// Do a preemptive spawn if this creep is about to expire.
+						let status = createCreep(homeSpawn, governor.getCreepConfig());
+						if (_.isNumber(status)) {
+							console.log("manageHarvesters.preempt-spawn", Config.translateErrorCode(status));
+						} else {
+							console.log("manageHarvesters.preempt-spawn", status);
+						}
+					}
 				}
 			}, this);
 		}
@@ -213,10 +225,10 @@ function manageHarvest(containers: StructureContainer[]) {
 	}
 }
 
-function manageDefenders(limit: number = 0) {
+function manageDefenders(roomName: string, limit: number = 0) {
 	let governor = new FasterminatorGovernor(homeRoom, homeSpawn, config);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === FasterminatorGovernor.ROLE.toUpperCase()
-	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
 	if (creepsInRole.length > 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
@@ -262,6 +274,7 @@ export function govern(): void {
 			homeRoom = Game.rooms[config.homeRoom];
 			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
 			targetRoom = Game.rooms[roomName];
+			manageDefenders(roomName, 1);
 			if (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1) {
 				manageClaim(roomName, config.claim);
 			}
@@ -274,7 +287,7 @@ export function govern(): void {
 				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
 				if (hostiles.length > 0) {
 					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles.length)} in room ${targetRoom.name} (ASM)`);
-					manageDefenders(1);
+					// manageDefenders(1);
 				}
 				let containers = manageContainers();
 				if (containers.length > 0) {
@@ -291,7 +304,6 @@ export function govern(): void {
 				} else {
 					manageConstructions(1);
 				}
-				manageDefenders();
 				console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
 					+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
 					+ " (" + targetRoom.energyPercentage + "%) in storage."

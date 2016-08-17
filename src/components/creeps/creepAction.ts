@@ -85,9 +85,9 @@ export default class CreepAction implements ICreepAction {
 	};
 
 	public flee(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
+		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
 		if (targets.length > 0) {
-			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 4}; });
+			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 5}; });
 			let path = PathFinder.search(this.creep.pos, goals, {
 				flee: true,
 				maxRooms: 2,

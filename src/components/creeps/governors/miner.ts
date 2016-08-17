@@ -22,7 +22,9 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 		}
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
-			body = body.concat(this.bodyPart);
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
 		}
 		return CreepGovernor.sortBodyParts(body);
 	}

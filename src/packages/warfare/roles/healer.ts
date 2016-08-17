@@ -110,10 +110,12 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 			// Just moveTo when we're safely behind walls
 			if (!!target && !this.hardPath) {
 				// this.moveTo(target.pos);
-				if (target.hits < target.hitsMax) {
+				if (target.hits < target.hitsMax && target.pos.x < 47 && target.pos.roomName === this.creep.pos.roomName) {
 					// this.creep.move(this.creep.pos.getDirectionTo(target));
 					this.moveTo(target.pos);
 				} else {
+					delete this.creep.memory.target;
+					delete this.creep.memory.targetPath;
 					target = undefined;
 				}
 				return;

@@ -20,7 +20,7 @@ export default class Tank extends WarfareCreepAction {
 	}
 
 	public moveToHeal(): boolean {
-		if (!this.checkTough()) {
+		if (!this.checkTough() || this.creep.memory.waitForHealth) {
 			this.creep.memory.waitForHealth = true;
 			this.creep.memory.positionIterator = this.positionIterator = (this.positions.length - 2);
 			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
@@ -95,7 +95,6 @@ export default class Tank extends WarfareCreepAction {
 		}
 		if (this.creep.hits === this.creep.hitsMax && !!this.creep.memory.waitForHealth) {
 			delete this.creep.memory.waitForHealth;
-			// this.creep.memory.positionIterator = this.positions.length - 1;
 		}
 		if (this.attack()) {
 			if (this.attackEnemyStructure()) {

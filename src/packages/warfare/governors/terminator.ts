@@ -35,12 +35,16 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 		}
 		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
-			body = body.concat(this.bodyPart);
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
 		}
 		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
 		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
 		for (let i = 0; i < numTough; i ++) {
-			body = body.concat(this.toughPart);
+			if (body.length + this.toughPart.length <= 50) {
+				body = body.concat(this.toughPart);
+			}
 		}
 		return WarfareCreepGovernor.sortBodyParts(body);
 	}

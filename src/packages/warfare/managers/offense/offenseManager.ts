@@ -1,4 +1,5 @@
 import * as Config from "../../../../config/config";
+import * as StatsManager from "../../../../shared/statsManager";
 import WarfareCreepAction from "../../warfareCreepAction";
 import TankGovernor from "../../governors/tank";
 import Tank from "../../roles/tank";
@@ -66,7 +67,7 @@ let artilleryConfig = {
 		{
 			"governor": HealerGovernor,
 			"role": Healer,
-			"maxCreeps": 1,
+			"maxCreeps": 0,
 		},
 	],
 	wait: false,
@@ -101,7 +102,7 @@ let schmoopPositions: RoomPosition[] = [
 
 let assaultPositions: RoomPosition[] = [
 	new RoomPosition(2, 32, "W4N42"),
-	new RoomPosition(43, 31, "W5N42"),
+	new RoomPosition(45, 31, "W5N42"),
 ].reverse();
 
 let positions: RoomPosition[] = [
@@ -295,7 +296,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.squadSize = squadSize;
 				role.setGovernor(governor);
 				role.action();
-				if (c.ticksToLive < 150 && (creepsInRole.length === squadRole.maxCreeps)) {
+				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
 					homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
 					let status = createCreep(homeSpawn, governor.getCreepConfig());
@@ -361,6 +362,9 @@ export function govern(): void {
 				}
 				console.log(`AssaultRoom ${roomName} has ${targetRoom.energyInContainers} energy in containers, `
 					+ `${hostiles.length} hostiles and ${towers.length} towers with ${energyInTowers} energy.`);
+				StatsManager.addStat(`offense.${roomName}.energy`, targetRoom.energyInContainers);
+				StatsManager.addStat(`offense.${roomName}.hostiles`, hostiles.length);
+				StatsManager.addStat(`offense.${roomName}.towerEnergy`, energyInTowers);
 			}
 		}
 	}, this);

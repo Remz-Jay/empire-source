@@ -9,7 +9,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 	public static MINRCL: number = Config.MINRCL_BUILDER;
 
 	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
-	public maxParts: number = 8;
+	public maxParts: number = 3;
 
 	constructor(room: Room) {
 		super(room);

@@ -63,23 +63,26 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 				this.creep.memory.idle = true;
 				delete this.creep.memory.target;
 				delete this.creep.memory.source;
-				let spawn = this.creep.pos.findClosestByPath<Spawn>(FIND_MY_SPAWNS, {maxRooms: 1});
-				if (this.creep.pos.isNearTo(spawn)) {
-					this.creep.memory.homeRoom = this.creep.room.name;
-					this.creep.memory.role = "Upgrader";
-					this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS).name;
-					if (this.creep.carry.energy > 0) {
-						this.creep.transfer(spawn, RESOURCE_ENERGY);
-					} else {
-						// spawn.recycleCreep(this.creep);
+				let spawn = this.creep.pos.findClosestByPath<Spawn>(FIND_MY_SPAWNS);
+				if (!!spawn) {
+					if (this.creep.pos.isNearTo(spawn)) {
 						this.creep.memory.homeRoom = this.creep.room.name;
 						this.creep.memory.role = "Upgrader";
 						this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS).name;
+						if (this.creep.carry.energy > 0) {
+							this.creep.transfer(spawn, RESOURCE_ENERGY);
+						} else {
+							// spawn.recycleCreep(this.creep);
+							this.creep.memory.homeRoom = this.creep.room.name;
+							this.creep.memory.role = "Upgrader";
+							this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS).name;
+						}
+					} else {
+						this.moveTo(spawn.pos);
 					}
 				} else {
-					this.moveTo(spawn.pos);
+					this.creep.say("B:IDLE!");
 				}
-				this.creep.say("B:IDLE!");
 			}
 		} else {
 			if (!this.creep.memory.source) {

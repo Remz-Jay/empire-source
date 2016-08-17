@@ -40,9 +40,21 @@ export function loop() {
 		StatsManager.runBuiltinStats();
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
 		StatsManager.addStat("cpu.init", CpuInit);
-		RoomManager.governRooms();
-		AssimilationManager.govern();
-		OffenseManager.govern();
+		try {
+			RoomManager.governRooms();
+		} catch (e) {
+			console.log("RoomManager Exception", JSON.stringify(e));
+		}
+		try {
+			AssimilationManager.govern();
+		} catch (e) {
+			console.log("AssimilationManager Exception", JSON.stringify(e));
+		}
+		try {
+			OffenseManager.govern();
+		} catch (e) {
+			console.log("OffenseManager Exception", JSON.stringify(e));
+		}
 		StatsManager.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});
 

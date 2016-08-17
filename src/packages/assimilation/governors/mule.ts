@@ -26,9 +26,11 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 		}
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
-			body = body.concat(this.bodyPart);
+			if (body.length + this.bodyPart.length <= 46) {
+				body = body.concat(this.bodyPart);
+			}
 		}
-		body = body.concat([WORK, WORK]);
+		body = body.concat([WORK, WORK, MOVE, MOVE]);
 		return AssimilationCreepGovernor.sortBodyParts(body);
 	}
 

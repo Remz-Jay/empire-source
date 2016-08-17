@@ -76,7 +76,8 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
 				this.creep.moveTo(this.positions[this.positionIterator], {reusePath: 25});
 			} else {
-				this.creep.memory.positionIterator++;
+				this.positionIterator = ++this.creep.memory.positionIterator;
+				return this.moveUsingPositions();
 			}
 			return true;
 		}

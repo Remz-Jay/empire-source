@@ -63,7 +63,7 @@ export const MINRCL_MULE: number = 1;
 export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
 export const MINRCL_REPAIR: number = 2;
-export const MINRCL_MINER: number = 7;
+export const MINRCL_MINER: number = 8;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps

@@ -31,6 +31,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 						this.creep.transfer(link, RESOURCE_ENERGY);
 					} else if (link.energy > 400) {
 						this.creep.withdraw(link, RESOURCE_ENERGY, (link.energy - 400));
+						this.creep.transfer(storage, RESOURCE_ENERGY);
 					} else {
 						this.creep.transfer(storage, RESOURCE_ENERGY);
 					}

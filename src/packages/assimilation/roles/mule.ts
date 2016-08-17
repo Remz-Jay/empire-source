@@ -1,5 +1,5 @@
 import ASMCreepAction from "../assimilationCreepAction";
-
+import * as Config from "../../../config/config"
 export interface IASMMule {
 	action(): boolean;
 }
@@ -33,8 +33,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			// find a nearby link first, if storage isn't close
 			if (!!this.storage && this.creep.carry.energy > 0 && this.creep.pos.getRangeTo(this.storage) > 9) {
 				let target: StructureLink[] = this.creep.pos.findInRange(FIND_STRUCTURES, 15, {
-					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK
-					&& s.energy < s.energyCapacity,
+					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK,
 				}) as StructureLink[];
 				if (!!target && target.length > 0) {
 					this.creep.memory.target = target[0].id;
@@ -100,6 +99,8 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				}
 				break;
 			case ERR_FULL:
+				this.creep.say("FULLWAIT");
+				break;
 			case ERR_NOT_ENOUGH_RESOURCES:
 				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
 					delete this.creep.memory.target;
@@ -150,7 +151,15 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 						delete this.creep.memory.target;
 						delete this.creep.memory.targetPath;
 					}
-					this.dumpAtStorageOrLink();
+					if (this.creep.room.name === this.creep.memory.homeRoom) {
+						if (this.creep.ticksToLive < 450) {
+							this.creep.memory.hasRenewed = false;
+						}
+						this.dumpAtStorageOrLink();
+					} else {
+						this.creep.memory.resetTarget = true;
+						this.dumpRoutine(this.storage);
+					}
 				}
 			} else {
 				if (this.repairInfra()) {
