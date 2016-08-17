@@ -1,7 +1,7 @@
-import * as Config from "./../../config/config";
+import * as Config from "../../config/config";
+import * as RoomManager from "../rooms/roomManager";
 import List = _.List;
 import CreepGovernor from "./creepGovernor";
-
 export interface ICreepAction {
 	creep: Creep;
 	governor: CreepGovernor;
@@ -140,7 +140,7 @@ export default class CreepAction implements ICreepAction {
 						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
 					delete this.creep.memory.stuckTicks;
 					delete this.creep.memory.lastPosition;
-					this.findNewPath(target, memoryName);
+					return this.findNewPath(target, memoryName);
 				}
 			} else {
 				delete this.creep.memory.stuckTicks;
@@ -290,8 +290,8 @@ export default class CreepAction implements ICreepAction {
 		}
 		return false;
 	};
-	public renewCreep(max: number = 1300): boolean {
-		let homeRoom = Game.rooms[this.creep.memory.homeRoom];
+	public renewCreep(max: number = Config.MAX_TTL): boolean {
+		let homeRoom = RoomManager.getRoomByName(this.creep.memory.homeRoom);
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
 			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
 			|| homeRoom.energyAvailable < 300)) {
@@ -304,7 +304,7 @@ export default class CreepAction implements ICreepAction {
 			this.creep.memory.hasRenewed = false;
 		}
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false) {
-			let spawns: Spawn[] = <Spawn[]> homeRoom.find(FIND_MY_SPAWNS);
+			let spawns: Spawn[] = homeRoom.mySpawns;
 			let renewStation: Spawn;
 			if (spawns.length > 0) {
 				// if(spawns.length > 0 && this.creep.room.controller.level > 1 && UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))
@@ -316,52 +316,28 @@ export default class CreepAction implements ICreepAction {
 			} else {
 				renewStation = (!this.creep.memory.homeSpawn) ? homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0] : Game.spawns[this.creep.memory.homeSpawn];
 			}
-			let status: number;
-			let phrase: string;
-			if (this.expireCreep()) {
-				status = renewStation.recycleCreep(this.creep);
-				phrase = "demolition.";
+			if (!this.creep.pos.isNearTo(renewStation)) {
+				console.log(this.creep.name + " (" + this.creep.memory.role + ") is moving to "
+					+ renewStation.name + " for renew.");
+				if (!this.creep.memory.renewPath) {
+					this.findNewPath(renewStation, "renewPath");
+				} else {
+					let path = this.deserializePathFinderPath(this.creep.memory.renewPath);
+					this.moveByPath(path, renewStation, "renewPath");
+				}
 			} else {
-				status = renewStation.renewCreep(this.creep);
-				phrase = "renew.";
-			}
-			switch (status) {
-				case ERR_NOT_IN_RANGE:
-					console.log(this.creep.name + " (" + this.creep.memory.role + ") is moving to "
-						+ renewStation.name + " for " + phrase);
-					if (!this.creep.memory.renewPath) {
-						this.findNewPath(renewStation, "renewPath");
-					} else {
-						let path = this.deserializePathFinderPath(this.creep.memory.renewPath);
-						this.moveByPath(path, renewStation, "renewPath");
-					}
-					break;
-				case OK:
-					console.log(this.creep.name + " (" + this.creep.memory.role + ") renewed at "
-						+ renewStation.name + ". now at " + this.creep.ticksToLive);
-					if (this.creep.ticksToLive > max) {
-						console.log("Done renewing.");
-						this.creep.memory.hasRenewed = true;
-						delete this.creep.memory.renewPath;
-					} else {
-						if (this.creep.carry.energy > 0) {
-							this.creep.transfer(renewStation, RESOURCE_ENERGY);
-						}
-					}
-					break;
-				case ERR_FULL:
-					this.creep.memory.hasRenewed = true;
-					delete this.creep.memory.renewPath;
-					break;
-				case ERR_BUSY:
-				case ERR_NOT_ENOUGH_ENERGY:
+				if (this.expireCreep()) {
+					renewStation.recycleCreep(this.creep);
+				} else {
 					console.log(`${this.creep.name} (${this.creep.memory.role}) is waiting for renew at ${renewStation.name} - ${this.creep.ticksToLive}`);
 					if (this.creep.carry.energy > 0) {
 						this.creep.transfer(renewStation, RESOURCE_ENERGY);
 					}
-					break;
-				default:
-					console.log("Uncaught Creep Renew Error" + JSON.stringify(status));
+					if (this.creep.ticksToLive > max) {
+						this.creep.memory.hasRenewed = true;
+						delete this.creep.memory.renewPath;
+					}
+				}
 			}
 			return false;
 		} else {

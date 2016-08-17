@@ -5,7 +5,17 @@ interface Room {
 	containerCapacityAvailable: number;
 	energyInContainers: number;
 	energyPercentage: number;
+	allCreeps: Creep[];
+	myCreeps: Creep[];
+	hostileCreeps: Creep[];
 	numberOfCreeps: number;
+	allStructures: Structure[];
+	myStructures: OwnedStructure[];
+	hostileStructures: OwnedStructure[];
+	mySpawns: StructureSpawn[];
+	allConstructionSites: ConstructionSite[];
+	myConstructionSites: ConstructionSite[];
+	minerals: Mineral[];
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -18,7 +28,17 @@ interface Room {
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
 	getEnergyPercentage(): number;
+	getAllCreeps(): Creep[];
+	getMyCreeps(): Creep[];
+	getHostileCreeps(): Creep[];
 	getNumberOfCreepsInRoom(): number;
+	getAllStructures(): Structure[];
+	getMyStructures(): OwnedStructure[];
+	getHostileStructures(): OwnedStructure[];
+	getMySpawns(): StructureSpawn[];
+	getAllConstructionSites(): ConstructionSite[];
+	getMyConstructionSites(): ConstructionSite[];
+	getMinerals(): Mineral[];
 	addProperties(): void;
 }
 Room.prototype.getReservedRoom = function () {
@@ -67,7 +87,7 @@ Room.prototype.getCreepMatrix = function () {
 		} else {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
-			this.find(FIND_CREEPS).forEach(function (creep: Creep) {
+			this.allCreeps.forEach(function (creep: Creep) {
 				costMatrix.set(creep.pos.x, creep.pos.y, 100);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
@@ -102,7 +122,7 @@ Room.prototype.getCostMatrix = function () {
 			return costMatrix;
 		} else {
 			let costs = new PathFinder.CostMatrix();
-			this.find(FIND_STRUCTURES).forEach(function (structure: Structure) {
+			this.allStructures.forEach(function (structure: Structure) {
 				if (structure.structureType === STRUCTURE_ROAD) {
 					// Favor roads over plain tiles
 					costs.set(structure.pos.x, structure.pos.y, 1);
@@ -112,7 +132,7 @@ Room.prototype.getCostMatrix = function () {
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
 				}
 			});
-			this.find(FIND_CONSTRUCTION_SITES).forEach(function (site: ConstructionSite) {
+			this.allConstructionSites.forEach(function (site: ConstructionSite) {
 				costs.set(site.pos.x, site.pos.y, 100);
 			});
 			_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
@@ -127,9 +147,7 @@ Room.prototype.getCostMatrix = function () {
 };
 
 Room.prototype.getContainers = function (): List<Structure> {
-	return this.find(FIND_STRUCTURES, {
-		filter: (s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE,
-	});
+	return this.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE);
 };
 Room.prototype.getContainerCapacityAvailable = function () {
 	let total = 0;
@@ -148,15 +166,55 @@ Room.prototype.getEnergyInContainers = function () {
 Room.prototype.getEnergyPercentage = function () {
 	return _.floor(this.energyInContainers / (this.containerCapacityAvailable / 100));
 };
-
-Room.prototype.getNumberOfCreepsInRoom = function(): number {
-	return this.find(FIND_MY_CREEPS).length;
+Room.prototype.getAllCreeps = function(): Creep[] {
+	return this.find(FIND_CREEPS);
 };
-
+Room.prototype.getMyCreeps = function(): Creep[] {
+	return this.allCreeps.filter((c: Creep) => !!c.my);
+};
+Room.prototype.getHostileCreeps = function(): Creep[] {
+	return this.allCreeps.filter((c: Creep) => !c.my);
+};
+Room.prototype.getNumberOfCreepsInRoom = function(): number {
+	return this.myCreeps.length;
+};
+Room.prototype.getAllStructures = function(): Structure[] {
+	return this.find(FIND_STRUCTURES);
+};
+Room.prototype.getMyStructures = function(): OwnedStructure[] {
+	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
+};
+// TODO: This might be buggy with Neutral structures, which aren't OwnedStructures and don't have a .my parameter..
+Room.prototype.getHostileStructures = function (): OwnedStructure[] {
+	return this.allStructures.filter((s: OwnedStructure) => !s.my);
+};
+Room.prototype.getMySpawns = function(): StructureSpawn[] {
+	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+};
+Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
+	return this.find(FIND_CONSTRUCTION_SITES);
+};
+Room.prototype.getMyConstructionSites = function(): ConstructionSite[] {
+	return this.allConstructionSites.filter((cs: ConstructionSite) => !!cs.my);
+};
+Room.prototype.getMinerals = function(): Mineral[] {
+	return this.find(FIND_MINERALS);
+};
 Room.prototype.addProperties = function () {
+	this.allStructures = this.getAllStructures();
+	this.myStructures = this.getMyStructures();
+	this.hostileStructures = this.getHostileStructures();
+	this.mySpawns = this.getMySpawns();
+	this.allCreeps = this.getAllCreeps();
+	this.myCreeps = this.getMyCreeps();
+	this.hostileCreeps = this.getHostileCreeps();
+	this.allConstructionSites = this.getAllConstructionSites();
+	this.myConstructionSites = this.getMyConstructionSites();
+	this.numberOfCreeps = this.getNumberOfCreepsInRoom();
+	this.minerals = this.getMinerals();
+
 	this.containers = this.getContainers();
 	this.containerCapacityAvailable = this.getContainerCapacityAvailable();
 	this.energyInContainers = this.getEnergyInContainers();
 	this.energyPercentage = this.getEnergyPercentage();
-	this.numberOfCreeps = this.getNumberOfCreepsInRoom();
 };

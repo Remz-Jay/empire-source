@@ -11,8 +11,12 @@ export let costMatrices: { [roomName: string]: CostMatrix };
 export let roomNames: string[] = [];
 
 export function loadRooms() {
-	rooms = Game.rooms;
+	rooms = {};
 	costMatrices = {};
+	_.each(Game.rooms, function(r: Room) {
+		r.addProperties();
+		rooms[r.name] = r;
+	});
 	_loadRoomNames();
 
 	if (Config.VERBOSE) {
@@ -45,16 +49,15 @@ export function governRooms(): void {
 	let CpuCreeps = 0;
 	for (let roomName in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
-		let room = Game.rooms[roomName];
+		let room = getRoomByName(roomName);
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
-			room.addProperties();
-			let myStructures = room.find(FIND_MY_STRUCTURES);
 			WallManager.load(room);
 			WallManager.adjustStrength();
 			RampartManager.load(room);
 			RampartManager.adjustStrength();
 			SpawnManager.load(room);
 			if (SpawnManager.hasSpawn()) {
+				SpawnManager.renewCreeps();
 				SourceManager.load(room);
 				SourceManager.updateHarvesterPreference();
 				if (room.controller.level > 1 && room.numberOfCreeps < 5) {
@@ -68,7 +71,7 @@ export function governRooms(): void {
 				CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
 				let CpuBeforeTowers = Game.cpu.getUsed();
-				let towers = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
+				let towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
 				_.each(towers, function(t: StructureTower) {
 					t.run();
 				}, this);
@@ -76,7 +79,7 @@ export function governRooms(): void {
 
 				let CpuBeforeLinks = Game.cpu.getUsed();
 				if (!!room.storage) {
-					let links = _.filter(myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
+					let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
 					_.each(links, function(l: StructureLink) {
 						l.run();
 					}, this);

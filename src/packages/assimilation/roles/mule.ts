@@ -1,5 +1,4 @@
 import ASMCreepAction from "../assimilationCreepAction";
-import * as Config from "../../../config/config"
 export interface IASMMule {
 	action(): boolean;
 }
@@ -99,8 +98,8 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				}
 				break;
 			case ERR_FULL:
-				this.creep.say("FULLWAIT");
-				break;
+				// this.creep.say("FULLWAIT");
+				// break;
 			case ERR_NOT_ENOUGH_RESOURCES:
 				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
 					delete this.creep.memory.target;

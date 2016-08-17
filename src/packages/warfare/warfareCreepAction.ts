@@ -15,7 +15,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 			return;
 		}
 		let matrix = room.getCreepMatrix();
-		room.find(FIND_CREEPS).forEach(function (creep: Creep) {
+		room.allCreeps.forEach(function (creep: Creep) {
 			matrix.set(creep.pos.x, creep.pos.y, 10);
 		});
 		for (let i = 1; i < 50; i++) {

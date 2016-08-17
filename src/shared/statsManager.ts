@@ -235,7 +235,7 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 	});
 
 	// Mineral Mining
-	let minerals = room.find(FIND_MINERALS);
+	let minerals = room.minerals;
 	stats.rooms[room.name].minerals = {};
 	_.forEach(minerals, (mineral: Mineral) => {
 		stats.minerals[mineral.id] = {
@@ -249,7 +249,7 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 	});
 
 	// Hostiles in Room
-	let hostiles = room.find(FIND_HOSTILE_CREEPS);
+	let hostiles = room.hostileCreeps;
 	stats.rooms[room.name].hostiles = {};
 	_.forEach(hostiles, (hostile: Creep) => {
 		if (!stats.rooms[room.name].hostiles[hostile.owner.username]) {
@@ -260,5 +260,5 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 	});
 
 	// My Creeps
-	stats.rooms[room.name].creeps = room.find(FIND_MY_CREEPS).length;
+	stats.rooms[room.name].creeps = room.numberOfCreeps;
 }

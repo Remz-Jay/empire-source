@@ -21,6 +21,7 @@ export const MAX_HARVESTERS_PER_SOURCE: number = 3;
  * @type {number}
  */
 export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
+export const MAX_TTL = 1400;
 
 /**
  * Priorities for Regular Room Creeps

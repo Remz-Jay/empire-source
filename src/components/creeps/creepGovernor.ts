@@ -61,7 +61,7 @@ export default class CreepGovernor implements ICreepGovernor {
 				case CARRY:
 					return 2;
 				case MOVE:
-					return 5;
+					return 105;
 				case CLAIM:
 					return 80;
 				case HEAL:

@@ -5,7 +5,7 @@ export interface IASMCreepAction {
 
 export default class ASMCreepAction extends CreepAction implements IASMCreepAction {
 
-	public repairInfra(modifier: number = 0.8): boolean {
+	public repairInfra(modifier: number = 0.3): boolean {
 		if (this.creep.carry.energy > 0 ) {
 			let targets = this.creep.pos.findInRange<Structure>(FIND_STRUCTURES, 1, {
 				filter: (s: Structure) => (

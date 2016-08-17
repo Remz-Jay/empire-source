@@ -78,12 +78,16 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 					this.creep.memory.target = target.id;
 				} else {
 					let spawn: Spawn = this.creep.pos.findClosestByRange(FIND_MY_SPAWNS) as Spawn;
-					if (this.creep.pos.isNearTo(spawn)) {
-						if (this.creep.carry.energy > 0) {
-							this.creep.transfer(spawn, RESOURCE_ENERGY);
+					if (!!spawn) {
+						if (this.creep.pos.isNearTo(spawn)) {
+							if (this.creep.carry.energy > 0) {
+								this.creep.transfer(spawn, RESOURCE_ENERGY);
+							}
+						} else {
+							this.creep.moveTo(spawn);
 						}
 					} else {
-						this.creep.moveTo(spawn);
+						this.creep.say("IDLE");
 					}
 				}
 			}

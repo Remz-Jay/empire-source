@@ -35,8 +35,8 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 
 	public getStorageLink(): StructureLink {
 		if (!!this.room.storage) {
-			let link: StructureLink[] = _.filter(this.room.find(FIND_MY_STRUCTURES),
-				(s: StructureLink) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.room.storage)) as StructureLink[];
+			let link: StructureLink[] = _.filter(this.room.myStructures,
+				(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.room.storage)) as StructureLink[];
 			if (link.length > 0) {
 				return link[0];
 			} else {

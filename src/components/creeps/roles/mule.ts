@@ -79,11 +79,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			),
 		}) as EnergyStructure;
 		if (!!target) {
-			let taken: Creep[] = this.creep.room.find(FIND_MY_CREEPS, {
-				filter: (c: Creep) => c.name !== this.creep.name
+			let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.target && c.memory.target === target.id),
-			}) as Creep[];
+				&& (!!c.memory.target && c.memory.target === target.id)) as Creep[];
 			if (!!taken && taken.length > 0) {
 				blackList.push(target.id);
 				return this.scanForTargets(blackList);
@@ -205,11 +203,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			this.creep.memory.mineralType = RESOURCE_ENERGY;
 		}
 		if (!!source) {
-			let taken: Creep[] = this.creep.room.find(FIND_MY_CREEPS, {
-				filter: (c: Creep) => c.name !== this.creep.name
+			let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.source && c.memory.source === source.id),
-			}) as Creep[];
+				&& (!!c.memory.source && c.memory.source === source.id)) as Creep[];
 			if (!!taken && taken.length > 0) {
 				blackList.push(source.id);
 				this.setSource(blackList);

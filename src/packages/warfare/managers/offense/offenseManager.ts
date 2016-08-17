@@ -1,13 +1,19 @@
 import * as Config from "../../../../config/config";
 import * as StatsManager from "../../../../shared/statsManager";
+import * as RoomManager from "../../../../components/rooms/roomManager";
+
 import WarfareCreepAction from "../../warfareCreepAction";
+
+import FastankGovernor from "../../governors/fastank";
 import TankGovernor from "../../governors/tank";
 import Tank from "../../roles/tank";
+
 import FasterminatorGovernor from "../../governors/fasterminator";
 import Terminator from "../../roles/terminator";
-import Healer from "../../roles/healer";
+
 import HealerGovernor from "../../governors/healer";
-import FastankGovernor from "../../governors/fastank";
+import Healer from "../../roles/healer";
+
 /*import WarriorGovernor from "../../governors/warrior";
 import RangerGovernor from "../../governors/ranger";
 import HealerGovernor from "../../governors/healer";
@@ -18,7 +24,6 @@ import TerminatorGovernor from "../../governors/terminator";
 
 import ScoutGovernor from "../../governors/scout";
 import Scout from "../../roles/scout";
-
 */
 
 function initMemory(): void {
@@ -32,7 +37,7 @@ function initMemory(): void {
 
 let config: RemoteRoomConfig;
 let homeRoom: Room;
-let homeSpawn: Spawn;
+let homeSpawn: StructureSpawn;
 let targetRoom: Room;
 
 let squadConfig = {
@@ -245,10 +250,10 @@ function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string)
 	}
 }
 
-function createCreep(spawn: Spawn, creepConfig: CreepConfiguration): string|number {
+function createCreep(spawn: StructureSpawn, creepConfig: CreepConfiguration): string|number {
 	let status: number | string = spawn.canCreateCreep(creepConfig.body, creepConfig.name);
 	if (status === OK) {
-		status = spawn.createCreep(creepConfig.body, creepConfig.name, creepConfig.properties);
+		status = spawn.createCreepWhenIdle(creepConfig.body, creepConfig.name, creepConfig.properties);
 
 		if (Config.VERBOSE) {
 			if (_.isNumber(status)) {
@@ -298,7 +303,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
-					homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
+					homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
 					let status = createCreep(homeSpawn, governor.getCreepConfig());
 					if (_.isNumber(status)) {
 						console.log("manageSquad.preempt-spawn", Config.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
@@ -309,7 +314,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 			}
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
-			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
+			homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
 			let status = createCreep(homeSpawn, governor.getCreepConfig());
 			if (_.isNumber(status)) {
 				console.log("manageSquad.spawn", Config.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
@@ -325,9 +330,9 @@ export function govern(): void {
 	_.each(Memory.offense.targets, function(roomName) {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);
-			homeRoom = Game.rooms[config.homeRoom];
-			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
-			targetRoom = Game.rooms[roomName];
+			homeRoom = RoomManager.getRoomByName(config.homeRoom);
+			homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
+			targetRoom = RoomManager.getRoomByName(roomName);
 			switch (roomName) {
 				case "W5N43":
 					manageSquad(roomName, artilleryConfig, assaultPositions);
@@ -348,11 +353,8 @@ export function govern(): void {
 			if (!!targetRoom) {
 				// We have vision of the room, that's good.
 				vision = true;
-				targetRoom.addProperties();
-				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
-				let towers = targetRoom.find(FIND_HOSTILE_STRUCTURES, {
-					filter: (s: Structure) => s.structureType === STRUCTURE_TOWER,
-				});
+				let hostiles = targetRoom.hostileCreeps;
+				let towers = targetRoom.hostileStructures.filter((s: Structure) => s.structureType === STRUCTURE_TOWER);
 				let energyInTowers: number = 0;
 				if (towers.length > 0) {
 					energyInTowers = towers.reduce<number>(function(result: number, n: StructureTower): number {
