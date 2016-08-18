@@ -209,7 +209,7 @@ function manageHarvest(containers: StructureContainer[]) {
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
 					role.action();
-					if (creep.ticksToLive < 200 && (creepsInRole.length === governor.getCreepLimit())) {
+					if (creep.ticksToLive < 100 && (creepsInRole.length === governor.getCreepLimit())) {
 						// Do a preemptive spawn if this creep is about to expire.
 						let status = createCreep(homeSpawn, governor.getCreepConfig());
 						if (_.isNumber(status)) {

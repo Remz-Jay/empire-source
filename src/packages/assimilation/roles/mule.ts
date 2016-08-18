@@ -98,8 +98,13 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				}
 				break;
 			case ERR_FULL:
-				// this.creep.say("FULLWAIT");
-				// break;
+				let containers = this.creep.pos.findInRange<StorageStructure>(FIND_STRUCTURES, 1, {
+					filter: (s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE,
+				});
+				if (containers.length > 0) {
+					this.creep.transfer(containers[0], RESOURCE_ENERGY);
+				}
+				break;
 			case ERR_NOT_ENOUGH_RESOURCES:
 				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
 					delete this.creep.memory.target;
@@ -139,7 +144,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	}
 
 	public action(): boolean {
-		if (super.action()) {
+		if (this.renewCreep() && this.flee()) {
 			this.creep.say(this.creep.memory.config.targetRoom);
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				if (this.isBagEmpty()) {
@@ -151,7 +156,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 						delete this.creep.memory.targetPath;
 					}
 					if (this.creep.room.name === this.creep.memory.homeRoom) {
-						if (this.creep.ticksToLive < 450) {
+						if (this.creep.ticksToLive < 350) {
 							this.creep.memory.hasRenewed = false;
 						}
 						this.dumpAtStorageOrLink();

@@ -202,19 +202,22 @@ Room.prototype.getMinerals = function(): Mineral[] {
 };
 Room.prototype.addProperties = function () {
 	this.allStructures = this.getAllStructures();
-	this.myStructures = this.getMyStructures();
-	this.hostileStructures = this.getHostileStructures();
-	this.mySpawns = this.getMySpawns();
 	this.allCreeps = this.getAllCreeps();
-	this.myCreeps = this.getMyCreeps();
-	this.hostileCreeps = this.getHostileCreeps();
 	this.allConstructionSites = this.getAllConstructionSites();
-	this.myConstructionSites = this.getMyConstructionSites();
-	this.numberOfCreeps = this.getNumberOfCreepsInRoom();
 	this.minerals = this.getMinerals();
 
-	this.containers = this.getContainers();
-	this.containerCapacityAvailable = this.getContainerCapacityAvailable();
-	this.energyInContainers = this.getEnergyInContainers();
-	this.energyPercentage = this.getEnergyPercentage();
+	this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+	this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
+	this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
+
+	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
+	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
+	this.hostileCreeps = (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
+
+	this.myConstructionSites = (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
+
+	this.containers = (this.allStructures.length > 0) ? this.getContainers() : [];
+	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
+	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
+	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
 };

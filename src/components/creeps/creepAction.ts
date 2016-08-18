@@ -135,12 +135,13 @@ export default class CreepAction implements ICreepAction {
 			let lp = this.creep.memory.lastPosition;
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
-				if (this.creep.memory.stuckTicks > 2) {
+				if (this.creep.memory.stuckTicks > 1) {
 					console.log(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
 						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
 					delete this.creep.memory.stuckTicks;
 					delete this.creep.memory.lastPosition;
-					return this.findNewPath(target, memoryName);
+					// TODO: Figure out this recursive mess..
+					this.findNewPath(target, memoryName, false);
 				}
 			} else {
 				delete this.creep.memory.stuckTicks;
@@ -152,7 +153,7 @@ export default class CreepAction implements ICreepAction {
 			case ERR_NOT_FOUND:
 				delete this.creep.memory[memoryName];
 				if (!!target) {
-					return this.findNewPath(target, memoryName);
+					this.findNewPath(target, memoryName, false);
 				}
 				break;
 			case ERR_TIRED:

@@ -22,14 +22,19 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 	}
 
 	public moveToTargetRoom() {
-/*		let flag = Game.flags[this.creep.memory.targetRoom];
+		let flag = Game.flags[this.creep.memory.config.targetRoom];
 		if (!!flag) {
-			let path = this.findPathFinderPath(this.createPathFinderMap([flag.pos]));
-			if (!!path) {
-				this.moveByPath(path, flag);
-				return;
+			if (!!this.creep.memory.flagPath) {
+				let path = this.deserializePathFinderPath(this.creep.memory.flagPath);
+				this.moveByPath(path, flag, "flagPath");
+			} else {
+				delete this.creep.memory.flagPath;
+				if (!this.findNewPath(flag, "flagPath")) {
+					this.creep.say("HALP!");
+				}
 			}
-		}*/
+			return;
+		}
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
 			let index: number = 0;
 			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {

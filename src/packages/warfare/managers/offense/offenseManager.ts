@@ -45,7 +45,7 @@ let squadConfig = {
 		{
 			"governor": FasterminatorGovernor,
 			"role": Terminator,
-			"maxCreeps": 1,
+			"maxCreeps": 0,
 		},
 	],
 	wait: false,
@@ -67,7 +67,7 @@ let artilleryConfig = {
 		{
 			"governor": TankGovernor,
 			"role": Tank,
-			"maxCreeps": 1,
+			"maxCreeps": 0,
 		},
 		{
 			"governor": HealerGovernor,
@@ -88,12 +88,12 @@ let assaultConfig = {
 		{
 			"governor": TankGovernor,
 			"role": Tank,
-			"maxCreeps": 2,
+			"maxCreeps": 0,
 		},
 		{
 			"governor": HealerGovernor,
 			"role": Healer,
-			"maxCreeps": 2,
+			"maxCreeps": 0,
 		},
 	],
 	wait: false,
@@ -102,12 +102,15 @@ let assaultConfig = {
 let schmoopPositions: RoomPosition[] = [
 	new RoomPosition(33, 11, "W6N40"),
 	new RoomPosition(40, 6, "W3N40"),
-	new RoomPosition(36, 46, "W3N41"),
+	new RoomPosition(6, 4, "W2N40"),
+	new RoomPosition(2, 20, "W2N42"),
+	new RoomPosition(9, 17, "W3N42"),
+	new RoomPosition(10, 10, "W4N42"),
 ];
 
 let assaultPositions: RoomPosition[] = [
-	new RoomPosition(2, 32, "W4N42"),
-	new RoomPosition(45, 31, "W5N42"),
+	new RoomPosition(34, 44, "W4N42"),
+	new RoomPosition(33, 20, "W5N42"),
 ].reverse();
 
 let positions: RoomPosition[] = [
@@ -334,13 +337,13 @@ export function govern(): void {
 			homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
 			targetRoom = RoomManager.getRoomByName(roomName);
 			switch (roomName) {
-				case "W5N43":
+				case "W5N43": // Dummy for Kov Main secondary force
 					manageSquad(roomName, artilleryConfig, assaultPositions);
 					break;
-				case "W4N42":
+				case "W4N42": // Kov Main
 					manageSquad(roomName, assaultConfig, assaultPositions);
 					break;
-				case "W3N41":
+				case "W3N42": // Kov Satellite
 					manageSquad(roomName, sqibConfig, schmoopPositions);
 					break;
 				case "W4N43":

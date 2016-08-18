@@ -7,7 +7,8 @@ export default class FasterminatorGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "Fasterminator";
 
-	public maxParts = 10;
+	public maxParts = 12;
+	public maxTough = 2;
 	public maxCreeps = 5;
 	public bodyPart = [RANGED_ATTACK, MOVE];
 	public toughPart = [TOUGH, MOVE];
@@ -41,6 +42,9 @@ export default class FasterminatorGovernor extends WarfareCreepGovernor {
 		}
 		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
 		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
+		if (numTough > this.maxTough) {
+			numTough = this.maxTough;
+		}
 		for (let i = 0; i < numTough; i ++) {
 			if (body.length + this.toughPart.length <= 50) {
 				body = body.concat(this.toughPart);

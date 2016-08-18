@@ -36,12 +36,19 @@ StructureSpawn.prototype.getPriorityCreep = function(creeps: Creep[], reverse = 
 };
 
 StructureSpawn.prototype.renewCreeps = function(): void {
-	let targets = this.pos.findInRange(FIND_MY_CREEPS, 1, {
-		filter: (c: Creep) => c.memory.hasRenewed === false && c.ticksToLive < 1500,
-	});
+	let creeps = this.pos.findInRange(FIND_MY_CREEPS, 1);
+	let targets = creeps.filter((c: Creep) => c.ticksToLive < 100);
 	if (targets.length > 0) {
-		let reverse = (targets.length > 2) ? true : true;
-		let prio = this.getPriorityCreep(targets, reverse);
+		let prio = this.getPriorityCreep(targets);
+		if (!!prio) {
+			this.renewCreep(prio);
+			this.isBusy = true;
+			return;
+		}
+	}
+	targets = creeps.filter((c: Creep) => c.memory.hasRenewed === false && c.ticksToLive < 1500);
+	if (targets.length > 0) {
+		let prio = this.getPriorityCreep(targets, true);
 		if (!!prio) {
 			this.renewCreep(prio);
 			this.isBusy = true;

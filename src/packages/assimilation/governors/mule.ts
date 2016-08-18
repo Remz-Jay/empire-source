@@ -8,7 +8,7 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "ASMMule";
 
 	public bodyPart: string[] = [CARRY, MOVE];
-	public maxParts: number = 8;
+	public maxParts: number = 14;
 	public maxCreeps: number = 1;
 	public containers: StructureContainer[] = [];
 
