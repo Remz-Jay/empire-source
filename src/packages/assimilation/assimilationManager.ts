@@ -313,10 +313,8 @@ export function govern(): void {
 					} catch (e) {
 						throw new Error("Rest." + (<Error> e).message);
 					}
-					console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
-						+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
-						+ " (" + targetRoom.energyPercentage + "%) in storage."
-						+ " RCL:" + targetRoom.controller.level
+					console.log(`AssimilationRoom ${roomName} has ${targetRoom.energyInContainers}/${targetRoom.containerCapacityAvailable}`
+						+ `(${targetRoom.energyPercentage}%) in storage.`
 					);
 				}
 			}

@@ -25,12 +25,29 @@ export function loadRooms() {
 	}
 }
 
+export function reloadCaches() {
+	for (let roomName in rooms) {
+		if (rooms.hasOwnProperty(roomName)) {
+			rooms[roomName].reloadCache();
+		}
+	}
+}
+
 export function getFirstRoom(): Room {
 	return rooms[roomNames[0]];
 }
 
 export function getRoomByName(roomName: string): Room {
-	return (rooms.hasOwnProperty(roomName)) ? rooms[roomName] : undefined;
+	if (rooms.hasOwnProperty(roomName))  {
+		return rooms[roomName];
+	} else if (!!Game.rooms[roomName]) {
+		let r = Game.rooms[roomName];
+		r.addProperties();
+		rooms[r.name] = r;
+		return r;
+	}  else {
+		return undefined;
+	}
 }
 
 function _loadRoomNames() {

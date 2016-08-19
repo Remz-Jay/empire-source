@@ -1,5 +1,5 @@
 import CreepAction, {ICreepAction} from "../creepAction";
-
+import * as RoomManager from "../../rooms/roomManager";
 export interface IMule {
 
 	targetEnergyDropOff: Spawn | Structure;
@@ -203,7 +203,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			this.creep.memory.mineralType = RESOURCE_ENERGY;
 		}
 		if (!!source) {
-			let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
+			let taken: Creep[] = RoomManager.getRoomByName(this.creep.room.name).myCreeps.filter((c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
 				&& (!!c.memory.source && c.memory.source === source.id)) as Creep[];
 			if (!!taken && taken.length > 0) {

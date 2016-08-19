@@ -1,3 +1,4 @@
+import * as RoomManager from "../../components/rooms/roomManager";
 import CreepAction from "../../components/creeps/creepAction";
 import WarriorGovernor from "./governors/warrior";
 
@@ -10,7 +11,7 @@ export interface IWFCreepAction {
 
 let roomCallback = function (roomName: string): CostMatrix {
 	try {
-		let room = Game.rooms[roomName];
+		let room = RoomManager.getRoomByName(roomName);
 		if (!room) {
 			return;
 		}
@@ -74,7 +75,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 		if (this.positionIterator < this.positions.length) {
 			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				this.creep.moveTo(this.positions[this.positionIterator], {reusePath: 25});
+				this.moveTo(this.positions[this.positionIterator]);
 			} else {
 				this.positionIterator = ++this.creep.memory.positionIterator;
 				return this.moveUsingPositions();

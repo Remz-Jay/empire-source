@@ -48,9 +48,10 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 	public checkContainerAssignment(): string {
 		let freeContainer: string = undefined;
+		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
 		_.each(this.containers, function(c: StructureContainer) {
 			let mules = this.checkAssignedMules(c);
-			if (!mules || mules.length < 2) {
+			if (!mules || mules.length < multiplier) {
 				freeContainer = c.id;
 			}
 		}, this);
@@ -63,8 +64,8 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 			&& (!!creep.memory.container && c.id === creep.memory.container)
 		);
 	}
-
 	public getCreepLimit(): number {
-		return this.containers.length * 2;
+		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
+		return this.containers.length * multiplier;
 	}
 }

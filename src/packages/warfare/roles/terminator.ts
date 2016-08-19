@@ -1,3 +1,4 @@
+import * as RoomManager from "../../../components/rooms/roomManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface ITerminator {
@@ -6,7 +7,7 @@ export interface ITerminator {
 
 let roomCallback = function (roomName: string): CostMatrix {
 	try {
-		let room = Game.rooms[roomName];
+		let room = RoomManager.getRoomByName(roomName);
 		if (!room) {
 			return;
 		}

@@ -40,6 +40,7 @@ interface Room {
 	getMyConstructionSites(): ConstructionSite[];
 	getMinerals(): Mineral[];
 	addProperties(): void;
+	reloadCache(): void;
 }
 Room.prototype.getReservedRoom = function () {
 	if (!!this.memory.reservedRoom && !!Game.rooms[this.memory.reservedRoom]) {
@@ -66,21 +67,21 @@ Room.prototype.setReservedRoom = function (roomName) {
 };
 
 Room.prototype.setCostMatrix = function (costMatrix) {
-	this.costMatrix = costMatrix;
+	this.memory.costMatrix = costMatrix.serialize();
 };
 
 Room.prototype.setCreepMatrix = function (costMatrix) {
-	this.creepMatrix = costMatrix;
+	this.memory.creepMatrix = costMatrix.serialize();
 };
 
 Room.prototype.expireMatrices = function () {
-	delete this.creepMatrix;
-	delete this.costMatrix;
+	delete this.memory.creepMatrix;
+	delete this.memory.costMatrix;
 };
 
 Room.prototype.getCreepMatrix = function () {
 	try {
-		let creepMatrix = (!!this.creepMatrix) ? this.creepMatrix : undefined;
+		let creepMatrix = (!!this.memory.creepMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.creepMatrix) : undefined;
 		if (!!creepMatrix) {
 			// console.log("Returning existing CreepMatrix for room " + this.name);
 			return creepMatrix;
@@ -95,7 +96,7 @@ Room.prototype.getCreepMatrix = function () {
 			return costMatrix;
 		}
 	} catch (e) {
-		console.log(JSON.stringify(e), "Room.Prototype.getCreepMatrix", this.name);
+		console.log(e.message, "Room.Prototype.getCreepMatrix", this.name);
 		return new PathFinder.CostMatrix();
 	}
 
@@ -116,7 +117,7 @@ Room.prototype.getCostMatrix = function () {
 		],
 	};
 	try {
-		let costMatrix = (!!this.costMatrix) ? this.costMatrix : undefined;
+		let costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
 		if (!!costMatrix) {
 			// console.log("Returning existing CostMatrix for room " + this.name);
 			return costMatrix;
@@ -179,7 +180,15 @@ Room.prototype.getNumberOfCreepsInRoom = function(): number {
 	return this.myCreeps.length;
 };
 Room.prototype.getAllStructures = function(): Structure[] {
-	return this.find(FIND_STRUCTURES);
+	let allStructures: Structure[] = [];
+	if (!!this.memory.allStructures && _.isArray(this.memory.allStructures)) {
+		this.memory.allStructures.forEach((s: string) => allStructures.push(Game.getObjectById<Structure>(s)));
+	} else {
+		allStructures = this.find(FIND_STRUCTURES) as Structure[];
+		this.memory.allStructures = [];
+		allStructures.forEach((s: Structure) => this.memory.allStructures.push(s.id));
+	}
+	return allStructures;
 };
 Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
@@ -192,15 +201,49 @@ Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
 };
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
-	return this.find(FIND_CONSTRUCTION_SITES);
+	let allConstructionSites: ConstructionSite[] = [];
+	if (!!this.memory.allConstructionSites && _.isArray(this.memory.allConstructionSites)) {
+		this.memory.allConstructionSites.forEach((s: string) => allConstructionSites.push(Game.getObjectById<ConstructionSite>(s)));
+	} else {
+		allConstructionSites = this.find(FIND_CONSTRUCTION_SITES) as ConstructionSite[];
+		this.memory.allConstructionSites = [];
+		allConstructionSites.forEach((s: ConstructionSite) => this.memory.allConstructionSites.push(s.id));
+	}
+	return allConstructionSites;
 };
 Room.prototype.getMyConstructionSites = function(): ConstructionSite[] {
 	return this.allConstructionSites.filter((cs: ConstructionSite) => !!cs.my);
 };
 Room.prototype.getMinerals = function(): Mineral[] {
-	return this.find(FIND_MINERALS);
+	let allMinerals: Mineral[] = [];
+	if (!!this.memory.allMinerals && _.isArray(this.memory.allMinerals)) {
+		this.memory.allMinerals.forEach((s: string) => allMinerals.push(Game.getObjectById<Mineral>(s)));
+	} else {
+		allMinerals = this.find(FIND_MINERALS) as Mineral[];
+		this.memory.allMinerals = [];
+		allMinerals.forEach((s: Mineral) => this.memory.allMinerals.push(s.id));
+	}
+	return allMinerals;
 };
 Room.prototype.addProperties = function () {
+	switch (Game.time % 8) {
+		case 0:
+			delete this.memory.allStructures;
+			break;
+		case 2:
+			delete this.memory.allConstructionSites;
+			break;
+		case 4:
+			// TODO: Might have to split this to creep every tick and cost every n ticks.
+			delete this.memory.costMatrix;
+			break;
+		case 6:
+			delete this.memory.allMinerals;
+			break;
+		default:
+			// do nothing.
+	}
+	delete this.memory.creepMatrix;
 	this.allStructures = this.getAllStructures();
 	this.allCreeps = this.getAllCreeps();
 	this.allConstructionSites = this.getAllConstructionSites();
@@ -220,4 +263,40 @@ Room.prototype.addProperties = function () {
 	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
 	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
 	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
+};
+
+Room.prototype.reloadCache = function(): void {
+	switch (Game.time % 4) {
+		case 0:
+			delete this.memory.allStructures;
+			this.allStructures = this.getAllStructures();
+			this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+			this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
+			this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
+			this.containers = (this.allStructures.length > 0) ? this.getContainers() : [];
+			break;
+		case 1:
+			delete this.memory.allConstructionSites;
+			this.allConstructionSites = this.getAllConstructionSites();
+			this.myConstructionSites = (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
+			break;
+		case 2:
+			// TODO: Might have to split this to creep every tick and cost every n ticks.
+			this.expireMatrices();
+			break;
+		case 3:
+			delete this.memory.allMinerals;
+			this.minerals = this.getMinerals();
+			break;
+		default:
+			throw new Error("Room.prototype.ModuloException");
+	}
+	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
+	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
+	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
+
+	this.allCreeps = this.getAllCreeps();
+	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
+	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
+	this.hostileCreeps = (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
 };

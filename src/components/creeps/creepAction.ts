@@ -13,7 +13,7 @@ export interface ICreepAction {
 	/**
 	 * Wrapper for Creep.moveTo() method.
 	 */
-	moveTo(target: RoomPosition|PathFinderGoal): number;
+	moveTo(target: RoomPosition|PathFinderGoal): string | number;
 
 	needsRenew(): boolean;
 	tryRenew(): number;
@@ -30,13 +30,13 @@ export interface ICreepAction {
 
 let roomCallback = function (roomName: string): CostMatrix {
 	try {
-		let room = Game.rooms[roomName];
+		let room = RoomManager.getRoomByName(roomName);
 		if (!room) {
 			return;
 		}
 		return room.getCreepMatrix();
 	} catch (e) {
-		console.log(JSON.stringify(e), "creepAction.roomCallback", roomName);
+		console.log(e.message, "creepAction.roomCallback", roomName);
 		return new PathFinder.CostMatrix();
 	}
 
@@ -102,20 +102,52 @@ export default class CreepAction implements ICreepAction {
 		return true;
 	}
 
-	public moveTo(target: RoomPosition|PathFinderGoal) {
+	public comparePfg(l: PathFinderGoal, r: PathFinderGoal): boolean {
+		let retVal = true;
+		l.forEach((pi: PathFinderItem, idx: number) => {
+			if (pi.pos.x !== r[idx].pos.x || pi.pos.y !== r[idx].pos.y || pi.pos.roomName !== r[idx].pos.roomName) {
+				retVal = false;
+			}
+		}, this);
+		return retVal;
+	}
+
+	public moveTo(target: RoomPosition|PathFinderGoal): string | number {
 		try {
 			let pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
-			let path: RoomPosition[] = this.findPathFinderPath(pfg);
-			if (!!path) {
-				let pos = path[0];
-				return this.creep.move(this.creep.pos.getDirectionTo(pos));
+			let path: RoomPosition[] = [];
+			if (!!this.creep.memory.pfg && this.comparePfg(pfg, this.creep.memory.pfg) && !!this.creep.memory.pfgPath) {
+				path = this.deserializePathFinderPath(this.creep.memory.pfgPath);
+				console.log("creepAction.moveTo.CachedPath");
 			} else {
-				return ERR_NOT_FOUND;
+				path = this.findPathFinderPath(pfg);
+				if (!!path) {
+					this.creep.memory.pfg = pfg;
+					this.creep.memory.pfgPath = path;
+				} else {
+					return ERR_NOT_FOUND;
+				}
+			}
+			if (path.length > 0) {
+				let status = this.creep.move(this.creep.pos.getDirectionTo(path.shift()));
+				if (status === OK) {
+					this.creep.memory.pfgPath = path;
+				} else if (status === ERR_NOT_FOUND) {
+					delete this.creep.memory.pfgPath;
+					return this.moveTo(pfg);
+				}
+				return status;
+			} else {
+				delete this.creep.memory.pfgPath;
+				return this.moveTo(pfg);
 			}
 		} catch (e) {
-			console.log(JSON.stringify(target), "creepAction.moveTo");
+			console.log(e.message, JSON.stringify(target), "creepAction.moveTo");
 			// fall back to regular move.
-			this.creep.moveTo(<RoomPosition> target);
+			if (!(target instanceof RoomPosition)) {
+				target = new RoomPosition(target[0].pos.x, target[0].pos.y, target[0].pos.roomName);
+			}
+			this.creep.moveTo(<RoomPosition> target, {reusePath: 25});
 		}
 	}
 	public findNewPath(target: RoomObject | RoomPosition, memoryName: string = "targetPath", move: boolean = true): boolean {
@@ -136,7 +168,7 @@ export default class CreepAction implements ICreepAction {
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
 				if (this.creep.memory.stuckTicks > 1) {
-					console.log(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
+					Memory.log.creeps.push(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
 						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
 					delete this.creep.memory.stuckTicks;
 					delete this.creep.memory.lastPosition;
@@ -164,7 +196,7 @@ export default class CreepAction implements ICreepAction {
 			case OK:
 				return true;
 			default:
-				console.log("Uncaught moveBy status " + JSON.stringify(status) + " in Class.Creep.moveByPath.");
+				throw new Error("Uncaught moveBy status " + JSON.stringify(status) + " in Class.Creep.moveByPath.");
 		}
 	};
 
@@ -269,25 +301,23 @@ export default class CreepAction implements ICreepAction {
 		// see if an upgrade for this creep is available
 		if (!!this.creep.memory.homeRoom && !!this.creep.memory.homeSpawn) {
 			try {
-				let room = Game.rooms[this.creep.memory.homeRoom];
+				let room = RoomManager.getRoomByName(this.creep.memory.homeRoom);
 				let x: number = this.governor.getNumberOfCreepsInRole();
 				if (x > this.governor.getCreepLimit()) {
-					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
+					Memory.log.creeps.push("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 						+ room.name + " because we're over cap.");
 					return true;
 				}
 				let body = this.governor.getBody();
 				if (CreepGovernor.calculateRequiredEnergy(body)
 					> CreepGovernor.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
-					console.log("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
+					Memory.log.creeps.push("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 						+ room.name + " for an upgrade.");
 					return true;
 				}
 			} catch (e) {
-				console.log(JSON.stringify(e), "this.creep.renewCreep.ExpireCreep");
-				return false;
+				throw new Error(`creepAction.ExpireCreep: ${e.message}`);
 			}
-
 		}
 		return false;
 	};
@@ -296,7 +326,7 @@ export default class CreepAction implements ICreepAction {
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
 			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
 			|| homeRoom.energyAvailable < 300)) {
-			console.log("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
+			Memory.log.creeps.push("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 				+ homeRoom.name + " due to emergency energy level " + (homeRoom.energyAvailable));
 			this.creep.memory.hasRenewed = true;
 			return true;
@@ -318,8 +348,8 @@ export default class CreepAction implements ICreepAction {
 				renewStation = (!this.creep.memory.homeSpawn) ? homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0] : Game.spawns[this.creep.memory.homeSpawn];
 			}
 			if (!this.creep.pos.isNearTo(renewStation)) {
-				console.log(this.creep.name + " (" + this.creep.memory.role + ") is moving to "
-					+ renewStation.name + " for renew.");
+				Memory.log.creeps.push(`${_.padRight(this.creep.name, 10)}\t${_.padRight(this.creep.memory.role, 10)}\t${_.padRight(this.creep.ticksToLive.toString(), 4)}`
+				+ `is moving to ${renewStation.name} for renew.`);
 				if (!this.creep.memory.renewPath) {
 					this.findNewPath(renewStation, "renewPath");
 				} else {
@@ -330,7 +360,8 @@ export default class CreepAction implements ICreepAction {
 				if (this.expireCreep()) {
 					renewStation.recycleCreep(this.creep);
 				} else {
-					console.log(`${this.creep.name} (${this.creep.memory.role}) is waiting for renew at ${renewStation.name} - ${this.creep.ticksToLive}`);
+					Memory.log.creeps.push(`${_.padRight(this.creep.name, 10)}\t${_.padRight(this.creep.memory.role, 10)}\t${_.padRight(this.creep.ticksToLive.toString(), 4)}`
+					+ ` is waiting for renew at ${renewStation.name}`);
 					if (this.creep.carry.energy > 0) {
 						this.creep.transfer(renewStation, RESOURCE_ENERGY);
 					}
@@ -393,7 +424,7 @@ export default class CreepAction implements ICreepAction {
 					case OK:
 						break;
 					default:
-						console.log(`Unhandled ERR in creep.source.container ${status}`);
+						throw new Error(`Unhandled ERR in creep.source.container ${status}`);
 				}
 			} else {
 				let status = this.creep.harvest(source);
@@ -410,7 +441,7 @@ export default class CreepAction implements ICreepAction {
 					case OK:
 						break;
 					default:
-						console.log(`Unhandled ERR in creep.source.harvest: ${status}`);
+						throw new Error(`Unhandled ERR in creep.source.harvest: ${status}`);
 				}
 			}
 		}
