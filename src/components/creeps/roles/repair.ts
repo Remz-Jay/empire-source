@@ -57,19 +57,13 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 				// Still nothing? Fortify Ramparts and Walls if we have spare energy.
 				if (this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
 					if (!target) {
-						target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-							filter: (structure: Structure) => {
-								return (
-									(
-										(structure.hits <  RampartManager.getAverageStrength()
-											&& structure.hits < WallManager.getAverageStrength())
-											|| structure.hits < structure.hitsMax * 0.1
-									) &&
-									structure.structureType === STRUCTURE_RAMPART
-								);
-							},
-						}) as Structure;
-						if (!target) {
+						let rampart = RampartManager.getWeakestRampart();
+						if ((rampart.hits < RampartManager.getAverageStrength()
+							&& rampart.hits < WallManager.getAverageStrength())
+							|| rampart.hits < rampart.hitsMax * 0.1
+						) {
+							target = rampart;
+						} else {
 							target = WallManager.getWeakestWall();
 						}
 					}

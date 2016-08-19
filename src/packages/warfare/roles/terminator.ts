@@ -217,12 +217,10 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 					if (this.heal()) {
 						delete this.creep.memory.waitForHealth;
-						if (this.rangedHeal()) {
-							if (!this.rangedAttack() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
-								this.creep.memory.inCombat = true;
-							} else {
-								delete this.creep.memory.inCombat;
-							}
+						if (!this.rangedAttack() || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+							this.creep.memory.inCombat = true;
+						} else {
+							delete this.creep.memory.inCombat;
 						}
 					} else {
 						if (!this.rangedAttack() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {

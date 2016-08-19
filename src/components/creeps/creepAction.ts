@@ -85,9 +85,9 @@ export default class CreepAction implements ICreepAction {
 	};
 
 	public flee(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
+		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 		if (targets.length > 0) {
-			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 5}; });
+			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 6}; });
 			let path = PathFinder.search(this.creep.pos, goals, {
 				flee: true,
 				maxRooms: 2,
@@ -118,27 +118,54 @@ export default class CreepAction implements ICreepAction {
 			let path: RoomPosition[] = [];
 			if (!!this.creep.memory.pfg && this.comparePfg(pfg, this.creep.memory.pfg) && !!this.creep.memory.pfgPath) {
 				path = this.deserializePathFinderPath(this.creep.memory.pfgPath);
-				console.log("creepAction.moveTo.CachedPath");
 			} else {
 				path = this.findPathFinderPath(pfg);
-				if (!!path) {
+				if (path.length) {
 					this.creep.memory.pfg = pfg;
 					this.creep.memory.pfgPath = path;
 				} else {
 					return ERR_NOT_FOUND;
 				}
 			}
-			if (path.length > 0) {
-				let status = this.creep.move(this.creep.pos.getDirectionTo(path.shift()));
+			if (!!this.creep.memory.lastPosition) {
+				let lp = this.creep.memory.lastPosition;
+				if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
+					this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
+					if (this.creep.memory.stuckTicks > 1) {
+						Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
+							+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
+						delete this.creep.memory.stuckTicks;
+						delete this.creep.memory.lastPosition;
+						delete this.creep.memory.pfgPath;
+						return this.moveTo(pfg);
+					}
+				} else {
+					delete this.creep.memory.stuckTicks;
+				}
+			}
+			let pos = path.shift();
+			if (this.creep.pos.isEqualTo(pos)) {
+				pos = path.shift();
+			}
+			if (this.creep.pos.isNearTo(pos)) {
+				this.creep.memory.lastPosition = this.creep.pos;
+				let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
 				if (status === OK) {
 					this.creep.memory.pfgPath = path;
 				} else if (status === ERR_NOT_FOUND) {
 					delete this.creep.memory.pfgPath;
 					return this.moveTo(pfg);
+				} else if (status === ERR_TIRED) {
+					// Delete the lastPosition, because the creep hasn't moved due to it being tired. No need to recalculate route now.
+					delete this.creep.memory.lastPosition;
+					delete this.creep.memory.stuckTicks;
 				}
 				return status;
 			} else {
+				console.log(`${this.creep.memory.role} ${this.creep.room.name} Went off path, recalculating`);
 				delete this.creep.memory.pfgPath;
+				delete this.creep.memory.lastPosition;
+				delete this.creep.memory.stuckTicks;
 				return this.moveTo(pfg);
 			}
 		} catch (e) {
@@ -168,8 +195,8 @@ export default class CreepAction implements ICreepAction {
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
 				if (this.creep.memory.stuckTicks > 1) {
-					Memory.log.creeps.push(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
-						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
+					Memory.log.creeps.push(`moveByPath: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
+						+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
 					delete this.creep.memory.stuckTicks;
 					delete this.creep.memory.lastPosition;
 					// TODO: Figure out this recursive mess..
@@ -259,6 +286,7 @@ export default class CreepAction implements ICreepAction {
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
+			maxOps: 1000,
 			plainCost: plainCost,
 			swampCost: swampCost,
 			roomCallback: roomCallback,
@@ -349,14 +377,11 @@ export default class CreepAction implements ICreepAction {
 			}
 			if (!this.creep.pos.isNearTo(renewStation)) {
 				Memory.log.creeps.push(`${_.padRight(this.creep.name, 10)}\t${_.padRight(this.creep.memory.role, 10)}\t${_.padRight(this.creep.ticksToLive.toString(), 4)}`
-				+ `is moving to ${renewStation.name} for renew.`);
-				if (!this.creep.memory.renewPath) {
-					this.findNewPath(renewStation, "renewPath");
-				} else {
-					let path = this.deserializePathFinderPath(this.creep.memory.renewPath);
-					this.moveByPath(path, renewStation, "renewPath");
-				}
+				+ ` is moving to ${renewStation.name} for renew.`);
+				this.moveTo(renewStation.pos);
 			} else {
+				delete this.creep.memory.pfg;
+				delete this.creep.memory.pfgPath;
 				if (this.expireCreep()) {
 					renewStation.recycleCreep(this.creep);
 				} else {
@@ -387,7 +412,7 @@ export default class CreepAction implements ICreepAction {
 				) && (
 					((structure instanceof StructureContainer || structure instanceof StructureStorage)
 					&& !!structure.store && structure.store[RESOURCE_ENERGY] > (this.creep.carryCapacity - _.sum(this.creep.carry))) // containers and storage
-					|| (structure instanceof StructureLink && !!structure.energy && structure.energy > (this.creep.carryCapacity - _.sum(this.creep.carry))) // links
+					|| (structure instanceof StructureLink && !!structure.energy && structure.energy >= (this.creep.carryCapacity - _.sum(this.creep.carry))) // links
 				),
 				maxRooms: 1,
 			}) as StorageStructure | StructureLink;

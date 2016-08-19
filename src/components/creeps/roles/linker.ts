@@ -26,11 +26,11 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				// } else if (!!terminalResult && terminalResult.length > 0 && !this.creep.pos.isNearTo(terminalResult[0])) {
 				// 	this.moveTo(terminalResult[0].pos);
 				} else {
-					if (link.energy < 400) {
-						this.creep.withdraw(storage, RESOURCE_ENERGY, (400 - link.energy));
+					if (link.energy < 412) {
+						this.creep.withdraw(storage, RESOURCE_ENERGY, (412 - link.energy));
 						this.creep.transfer(link, RESOURCE_ENERGY);
-					} else if (link.energy > 400) {
-						this.creep.withdraw(link, RESOURCE_ENERGY, (link.energy - 400));
+					} else if (link.energy > 412) {
+						this.creep.withdraw(link, RESOURCE_ENERGY, (link.energy - 412));
 						this.creep.transfer(storage, RESOURCE_ENERGY);
 					} else {
 						this.creep.transfer(storage, RESOURCE_ENERGY);

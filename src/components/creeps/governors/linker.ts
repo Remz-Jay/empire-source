@@ -10,7 +10,7 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 
 	public bodyPart = [CARRY, MOVE];
 	public maxCreeps = 1;
-	public maxParts = 8;
+	public maxParts = 9;
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

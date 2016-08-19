@@ -129,14 +129,6 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 				let spawn = this.creep.pos.findClosestByRange(FIND_MY_SPAWNS) as Spawn;
 				if (this.creep.pos.isNearTo(spawn)) {
 					this.creep.memory.role = "Repair";
-					if (this.creep.carry.energy > 0) {
-						this.creep.transfer(spawn, RESOURCE_ENERGY);
-					} else {
-						// spawn.recycleCreep(this.creep);
-						// this.creep.memory.homeRoom = this.creep.room.name;
-						this.creep.memory.role = "Repair";
-						// this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS);
-					}
 				} else {
 					this.moveTo(spawn.pos);
 				}

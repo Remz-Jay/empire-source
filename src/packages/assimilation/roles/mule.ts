@@ -26,14 +26,15 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public isBagFull(): boolean {
 		if (!!this.creep.memory.bagFull) {
+			if (this.creep.carry.energy === 0) {
+				delete this.creep.memory.bagFull;
+				return false;
+			}
 			return true;
 		}
 		if (_.sum(this.creep.carry) === this.creep.carryCapacity) {
 			this.creep.memory.bagFull = true;
 			return true;
-		}
-		if (this.creep.carry.energy === 0) {
-			delete this.creep.memory.bagFull;
 		}
 		return false;
 	}
@@ -180,7 +181,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				if (this.isBagFull() && this.repairInfra()) {
 					this.creep.memory.resetTarget = true;
 					this.dumpRoutine(this.storage);
-				} else {
+				} else if (!this.isBagFull()) {
 					this.collectFromContainer();
 				}
 			}

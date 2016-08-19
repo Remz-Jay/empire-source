@@ -238,6 +238,15 @@ function manageDefenders(roomName: string, limit: number = 0) {
 				role.setCreep(<Creep> creep);
 				role.setGovernor(governor);
 				role.action();
+				if (creep.ticksToLive < 100 && (creepsInRole.length === governor.getCreepLimit())) {
+					// Do a preemptive spawn if this creep is about to expire.
+					let status = createCreep(homeSpawn, governor.getCreepConfig());
+					if (_.isNumber(status)) {
+						console.log("manageDefenders.preempt-spawn", Config.translateErrorCode(status));
+					} else {
+						console.log("manageDefenders.preempt-spawn", status);
+					}
+				}
 			}
 		}, this);
 	}

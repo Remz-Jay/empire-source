@@ -182,7 +182,12 @@ Room.prototype.getNumberOfCreepsInRoom = function(): number {
 Room.prototype.getAllStructures = function(): Structure[] {
 	let allStructures: Structure[] = [];
 	if (!!this.memory.allStructures && _.isArray(this.memory.allStructures)) {
-		this.memory.allStructures.forEach((s: string) => allStructures.push(Game.getObjectById<Structure>(s)));
+		this.memory.allStructures.forEach((s: string) => {
+			let st = Game.getObjectById<Structure>(s);
+			if (!!st) {
+				allStructures.push(st);
+			}
+		});
 	} else {
 		allStructures = this.find(FIND_STRUCTURES) as Structure[];
 		this.memory.allStructures = [];
@@ -203,7 +208,12 @@ Room.prototype.getMySpawns = function(): StructureSpawn[] {
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	let allConstructionSites: ConstructionSite[] = [];
 	if (!!this.memory.allConstructionSites && _.isArray(this.memory.allConstructionSites)) {
-		this.memory.allConstructionSites.forEach((s: string) => allConstructionSites.push(Game.getObjectById<ConstructionSite>(s)));
+		this.memory.allConstructionSites.forEach((s: string) => {
+			let cs = Game.getObjectById<ConstructionSite>(s);
+			if (!!cs) {
+				allConstructionSites.push(cs);
+			}
+		});
 	} else {
 		allConstructionSites = this.find(FIND_CONSTRUCTION_SITES) as ConstructionSite[];
 		this.memory.allConstructionSites = [];

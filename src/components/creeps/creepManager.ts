@@ -91,9 +91,6 @@ export function governCreeps(room: Room): CreepStats {
 				+ ") [" + body
 				+ "]"
 			);
-			if (Config.VERBOSE) {
-				console.log(`${creepRole}: ${numCreeps}/${creepLimit}`);
-			}
 			if (numCreeps < creepLimit && !isSpawning) {
 				let config: CreepConfiguration = governor.getCreepConfig();
 				if (!_.isNumber(this.createCreep(config))) {

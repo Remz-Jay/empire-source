@@ -1,5 +1,5 @@
 import CreepAction, {ICreepAction} from "../creepAction";
-import * as RoomManager from "../../rooms/roomManager";
+
 export interface IMule {
 
 	targetEnergyDropOff: Spawn | Structure;
@@ -74,14 +74,16 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				blackList.indexOf(structure.id) === -1 && (
 					(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
 					|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.7))
-					|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity))
+					|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.5))
 				)
 			),
 		}) as EnergyStructure;
 		if (!!target) {
-			let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
+			let taken: Creep[] = this.creep.room.find(FIND_MY_CREEPS, {
+				filter: (c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.target && c.memory.target === target.id)) as Creep[];
+				&& (!!c.memory.target && c.memory.target === target.id),
+			}) as Creep[];
 			if (!!taken && taken.length > 0) {
 				blackList.push(target.id);
 				return this.scanForTargets(blackList);
@@ -203,9 +205,11 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			this.creep.memory.mineralType = RESOURCE_ENERGY;
 		}
 		if (!!source) {
-			let taken: Creep[] = RoomManager.getRoomByName(this.creep.room.name).myCreeps.filter((c: Creep) => c.name !== this.creep.name
+			let taken: Creep[] = this.creep.room.find(FIND_MY_CREEPS, {
+				filter: (c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.source && c.memory.source === source.id)) as Creep[];
+				&& (!!c.memory.source && c.memory.source === source.id),
+			}) as Creep[];
 			if (!!taken && taken.length > 0) {
 				blackList.push(source.id);
 				this.setSource(blackList);
@@ -380,7 +384,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	};
 
 	public action(): boolean {
-		if (super.action() && this.flee()) {
+		if (super.action()) {
 			this.muleLogic();
 		}
 		return true;
