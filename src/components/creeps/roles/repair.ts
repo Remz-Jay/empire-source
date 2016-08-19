@@ -61,8 +61,9 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 							filter: (structure: Structure) => {
 								return (
 									(
-										structure.hits <  RampartManager.getAverageStrength() ||
-										structure.hits < structure.hitsMax * 0.2
+										(structure.hits <  RampartManager.getAverageStrength()
+											&& structure.hits < WallManager.getAverageStrength())
+											|| structure.hits < structure.hitsMax * 0.1
 									) &&
 									structure.structureType === STRUCTURE_RAMPART
 								);
@@ -77,12 +78,16 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 					this.creep.memory.target = target.id;
 				} else {
 					let spawn: Spawn = this.creep.pos.findClosestByRange(FIND_MY_SPAWNS) as Spawn;
-					if (this.creep.pos.isNearTo(spawn)) {
-						if (this.creep.carry.energy > 0) {
-							this.creep.transfer(spawn, RESOURCE_ENERGY);
+					if (!!spawn) {
+						if (this.creep.pos.isNearTo(spawn)) {
+							if (this.creep.carry.energy > 0) {
+								this.creep.transfer(spawn, RESOURCE_ENERGY);
+							}
+						} else {
+							this.moveTo(spawn.pos);
 						}
 					} else {
-						this.creep.moveTo(spawn);
+						this.creep.say("IDLE");
 					}
 				}
 			}
@@ -120,9 +125,9 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 	};
 
 	public action(): boolean {
-		if (super.action()) {
-			this.repairLogic();
-			return true;
+		if (!this.renewCreep() || !this.flee()) {
+			return false;
 		}
+		this.repairLogic();
 	}
 }

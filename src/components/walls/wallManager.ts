@@ -30,9 +30,7 @@ export function adjustStrength() {
 }
 
 export function getWalls(): StructureWall[] {
-	let w = room.find(FIND_STRUCTURES, {
-		filter: (s: Structure) => s.structureType === STRUCTURE_WALL,
-	}) as StructureWall[];
+	let w = room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL) as StructureWall[];
 	if (Memory.config.Wall === undefined) {
 		Memory.config.Wall = {};
 	}

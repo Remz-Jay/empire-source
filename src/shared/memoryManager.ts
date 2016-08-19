@@ -2,6 +2,12 @@ export let memory: Memory;
 
 export function loadMemory(): void {
 	this.memory = Memory;
+	if (!this.memory.log) {
+		this.memory.log = {
+			creeps: [],
+			rooms: [],
+		};
+	}
 }
 
 export function cleanMemory(): void {

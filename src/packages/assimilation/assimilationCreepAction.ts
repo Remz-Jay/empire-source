@@ -5,23 +5,56 @@ export interface IASMCreepAction {
 
 export default class ASMCreepAction extends CreepAction implements IASMCreepAction {
 
-	public repairInfra(modifier: number = 0.8): boolean {
+	public repairInfra(modifier: number = 0.3): boolean {
 		if (this.creep.carry.energy > 0 ) {
-			let targets = this.creep.pos.findInRange<Structure>(FIND_STRUCTURES, 1, {
-				filter: (s: Structure) => (
-					s.structureType === STRUCTURE_ROAD
-					|| s.structureType === STRUCTURE_CONTAINER
-				) && s.hits < (s.hitsMax * modifier),
-			});
-			if (targets.length > 0) {
-				this.creep.repair(targets[0]);
-				return false;
+			let target: Structure;
+			if (!!this.creep.memory.repairtarget) {
+				target = Game.getObjectById<Structure>(this.creep.memory.repairtarget);
+			} else {
+				let targets = this.creep.pos.findInRange<Structure>(FIND_STRUCTURES, 1, {
+					filter: (s: Structure) => (
+						s.structureType === STRUCTURE_ROAD
+						|| s.structureType === STRUCTURE_CONTAINER
+					) && s.hits < (s.hitsMax * modifier),
+				});
+				if (targets.length > 0) {
+					this.creep.memory.repairtarget = targets[0].id;
+					target = targets[0];
+				} else {
+					return true;
+				}
+			}
+			if (target.hits < target.hitsMax * 0.8) {
+				let status = this.creep.repair(target);
+				if (status !== OK) {
+					delete this.creep.memory.repairtarget;
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				delete this.creep.memory.repairtarget;
+				return true;
 			}
 		}
 		return true;
 	}
 
 	public moveToTargetRoom() {
+		let flag = Game.flags[this.creep.memory.config.targetRoom];
+		if (!!flag) {
+			if (!!this.creep.memory.flagPath) {
+				let path = this.deserializePathFinderPath(this.creep.memory.flagPath);
+				this.moveByPath(path, flag, "flagPath");
+			} else {
+				delete this.creep.memory.flagPath;
+				if (!this.findNewPath(flag, "flagPath")) {
+					this.creep.say("HALP!");
+				}
+			}
+			return;
+		}
+		console.log("NON FLAG MOVE");
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
 			let index: number = 0;
 			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {
@@ -30,7 +63,7 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 				}
 			}, this);
 			let route = this.creep.memory.config.route[index];
-			console.log(`finding route to ${route.exit} in ${route.room}`);
+			console.log(`finding route to ${index} / ${route.exit} in ${route.room}`);
 			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit);
 			this.creep.memory.exitRoom = route.room;
 		} else {
@@ -46,18 +79,6 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 				}
 			}
 		}
-	}
-
-	public flee(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 10);
-		if (targets.length > 0) {
-			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 7}; });
-			let path = PathFinder.search(this.creep.pos, goals, {flee: true, maxRooms: 2});
-			this.creep.moveByPath(path.path);
-			this.creep.say("FLEE!");
-			return false;
-		}
-		return true;
 	}
 
 	public action(): boolean {

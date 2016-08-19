@@ -1,4 +1,5 @@
-declare type PathFinderGoal = { pos: RoomPosition, range: number }[];
+declare type PathFinderItem = { pos: RoomPosition, range: number };
+declare type PathFinderGoal = PathFinderItem[];
 declare type PathFinderPath = { path: RoomPosition[], ops: number };
 declare type EnergyStructure = Extension | Spawn | Tower;
 declare type StorageStructure = StructureStorage | StructureContainer | StructureTerminal;
@@ -74,9 +75,24 @@ declare interface OffenseObject {
 		[roomName: string]: RemoteRoomConfig
 	};
 }
+
+declare interface SquadRole {
+	governor: Object;
+	role: Object;
+	maxCreeps: number;
+}
+declare interface SquadConfig {
+	roles: SquadRole[];
+	wait: boolean;
+}
+
 declare interface Memory {
 	assimilation?: AssimilationObject;
 	offense?: OffenseObject;
+	log: {
+		creeps: string[];
+		rooms: string[];
+	};
 	stats: {
 		[name: string]: any;
 	};

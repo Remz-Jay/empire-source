@@ -118,7 +118,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			let target = this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES) as ConstructionSite;
 			if (!!target) {
 				this.creep.memory.target = target.id;
-				delete this.creep.memory.target;
+				delete this.creep.memory.idle;
 				this.creep.memory.building = true;
 			} else {
 				// nothing to build. return energy.
@@ -128,10 +128,14 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 				delete this.creep.memory.source;
 				let spawn = this.creep.pos.findClosestByRange(FIND_MY_SPAWNS) as Spawn;
 				if (this.creep.pos.isNearTo(spawn)) {
+					this.creep.memory.role = "Repair";
 					if (this.creep.carry.energy > 0) {
 						this.creep.transfer(spawn, RESOURCE_ENERGY);
 					} else {
-						spawn.recycleCreep(this.creep);
+						// spawn.recycleCreep(this.creep);
+						// this.creep.memory.homeRoom = this.creep.room.name;
+						this.creep.memory.role = "Repair";
+						// this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS);
 					}
 				} else {
 					this.moveTo(spawn.pos);
@@ -193,12 +197,21 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 							console.log(`Unhandled ERR in builder.source.harvest: ${status}`);
 					}
 				}
+			} else {
+				if (this.creep.carry.energy > 0) {
+					// no sources, just return to building.
+					this.creep.memory.building = true;
+					delete this.creep.memory.target;
+					delete this.creep.memory.target;
+					delete this.creep.memory.source;
+					this.creep.say("B:BUILD");
+				}
 			}
 		}
 	};
 
 	public action(): boolean {
-		if (super.action()) {
+		if (super.action() && this.flee()) {
 			this.builderLogic();
 		}
 		// if (this.isBagEmpty()) {

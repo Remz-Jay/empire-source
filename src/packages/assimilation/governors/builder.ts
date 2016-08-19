@@ -1,4 +1,5 @@
 import * as Config from "../../../config/config";
+import * as RoomManager from "../../../components/rooms/roomManager";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
@@ -8,7 +9,7 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "ASMBuilder";
 
 	public maxParts = 8;
-	public maxCreeps = 1;
+	public maxCreeps = 4;
 	public bodyPart = [WORK, MOVE, CARRY, MOVE, CARRY, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
@@ -24,12 +25,12 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 	}
 
 	public getCreepLimit(): number {
-		let targetRoom = Game.rooms[this.config.targetRoom];
+		let targetRoom = RoomManager.getRoomByName(this.config.targetRoom);
 		let num: number;
 		if (targetRoom.controller.level > 4) {
 			num = _.floor(targetRoom.energyInContainers / 10000);
 		} else if (targetRoom.controller.level < 3) {
-			num = 1;
+			num = this.maxCreeps;
 		} else {
 			num = this.maxCreeps;
 		}

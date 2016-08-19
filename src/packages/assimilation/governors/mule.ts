@@ -8,7 +8,7 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "ASMMule";
 
 	public bodyPart: string[] = [CARRY, MOVE];
-	public maxParts: number = 8;
+	public maxParts: number = 14;
 	public maxCreeps: number = 1;
 	public containers: StructureContainer[] = [];
 
@@ -26,9 +26,11 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 		}
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
-			body = body.concat(this.bodyPart);
+			if (body.length + this.bodyPart.length <= 46) {
+				body = body.concat(this.bodyPart);
+			}
 		}
-		body = body.concat([WORK, WORK]);
+		body = body.concat([WORK, WORK, MOVE, MOVE]);
 		return AssimilationCreepGovernor.sortBodyParts(body);
 	}
 
@@ -46,9 +48,10 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 	public checkContainerAssignment(): string {
 		let freeContainer: string = undefined;
+		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
 		_.each(this.containers, function(c: StructureContainer) {
 			let mules = this.checkAssignedMules(c);
-			if (!mules || mules.length < 2) {
+			if (!mules || mules.length < multiplier) {
 				freeContainer = c.id;
 			}
 		}, this);
@@ -61,8 +64,8 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 			&& (!!creep.memory.container && c.id === creep.memory.container)
 		);
 	}
-
 	public getCreepLimit(): number {
-		return this.containers.length * 2;
+		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
+		return this.containers.length * multiplier;
 	}
 }

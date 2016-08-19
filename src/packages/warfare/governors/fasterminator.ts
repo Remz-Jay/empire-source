@@ -1,17 +1,18 @@
 import * as Config from "../../../config/config";
 import WarfareCreepGovernor from "../warfareCreepGovernor";
 
-export default class TerminatorGovernor extends WarfareCreepGovernor {
+export default class FasterminatorGovernor extends WarfareCreepGovernor {
 
 	public static PRIORITY: number = Config.PRIORITY_WF_WARRIOR;
 	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
-	public static ROLE: string = "Terminator";
+	public static ROLE: string = "Fasterminator";
 
-	public maxParts = 10;
-	public maxCreeps = 2;
-	public bodyPart = [RANGED_ATTACK, RANGED_ATTACK, MOVE];
-	public toughPart = [TOUGH, TOUGH, MOVE];
-	public basePart = [HEAL, HEAL, HEAL, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE];
+	public maxParts = 12;
+	public maxTough = 2;
+	public maxCreeps = 5;
+	public bodyPart = [RANGED_ATTACK, MOVE];
+	public toughPart = [TOUGH, MOVE];
+	public basePart = [HEAL, HEAL, HEAL, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -19,7 +20,7 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			homeSpawn: this.spawn.name,
-			role: TerminatorGovernor.ROLE,
+			role: FasterminatorGovernor.ROLE,
 			config: this.config,
 		};
 		return {body: bodyParts, name: name, properties: properties};
@@ -41,6 +42,9 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 		}
 		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
 		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
+		if (numTough > this.maxTough) {
+			numTough = this.maxTough;
+		}
 		for (let i = 0; i < numTough; i ++) {
 			if (body.length + this.toughPart.length <= 50) {
 				body = body.concat(this.toughPart);

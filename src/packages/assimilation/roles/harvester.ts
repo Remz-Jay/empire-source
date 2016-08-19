@@ -12,7 +12,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 		this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
-		if (!this.creep.memory.source) {
+		if (!this.creep.memory.source && !!this.container) {
 			let source = this.findSourceNearContainer(this.container);
 			this.source = source;
 			this.creep.memory.source = source.id;
@@ -76,11 +76,12 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public action(): boolean {
-		if (super.renewCreep()) {
+		if (this.flee()) {
 			this.creep.say(this.creep.memory.config.targetRoom);
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				this.moveToTargetRoom();
 			} else {
+				this.nextStepIntoRoom();
 				if (this.isBagFull()) {
 					this.moveToDropEnergy();
 				} else {

@@ -55,7 +55,7 @@ export function createCreep(config: CreepConfiguration): string|number {
 	let spawn = SpawnManager.getFirstSpawn();
 	let status: number | string = spawn.canCreateCreep(config.body, config.name);
 	if (status === OK) {
-		status = spawn.createCreep(config.body, config.name, config.properties);
+		status = spawn.createCreepWhenIdle(config.body, config.name, config.properties);
 
 		if (Config.VERBOSE) {
 			if (_.isNumber(status)) {

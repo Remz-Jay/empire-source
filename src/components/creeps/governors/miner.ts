@@ -22,7 +22,9 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 		}
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
-			body = body.concat(this.bodyPart);
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
 		}
 		return CreepGovernor.sortBodyParts(body);
 	}
@@ -39,9 +41,7 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 
 	public getCreepLimit(): number {
 		// Look for Mineral sources that have minerals left and have an extractor.
-		return (this.room.find(FIND_MINERALS, {
-			filter: (m: Mineral) => m.mineralAmount > 0
-			&& m.pos.lookFor(LOOK_STRUCTURES).length > 0,
-		}).length > 0) ? this.maxCreeps : 0;
+		return (this.room.minerals.filter((m: Mineral) => m.mineralAmount > 0
+			&& m.pos.lookFor(LOOK_STRUCTURES).length > 0).length > 0) ? this.maxCreeps : 0;
 	}
 }

@@ -13,9 +13,9 @@ StructureTower.prototype.run = function () {
 				&& structure.structureType !== STRUCTURE_WALL)
 				|| (structure.structureType === STRUCTURE_RAMPART
 				&& structure.my
-				&& structure.hits < 2000000)
+				&& structure.hits < 100000)
 				|| (structure.structureType === STRUCTURE_WALL
-					&& structure.hits < 100000
+					&& structure.hits < 20000
 				)
 			),
 		});
@@ -25,7 +25,7 @@ StructureTower.prototype.run = function () {
 
 		let closestDamagedCreep = this.pos.findClosestByRange(FIND_MY_CREEPS, {
 			filter: (c: Creep) => {
-				return c.hits < c.hitsMax;
+				return c.hits < c.hitsMax && c.memory.role !== "Tank" && c.memory.role !== "Fastank";
 			},
 		});
 		if (closestDamagedCreep) {

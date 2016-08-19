@@ -82,7 +82,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	};
 
 	public action(): boolean {
-		if (super.action()) {
+		if (super.action() && this.flee()) {
 			this.upgraderLogic();
 		}
 		return true;

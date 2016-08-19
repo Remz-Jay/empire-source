@@ -1,5 +1,4 @@
 import ASMCreepAction from "../assimilationCreepAction";
-
 export interface IASMMule {
 	action(): boolean;
 }
@@ -21,11 +20,22 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	}
 
 	public isBagEmpty(): boolean {
+		delete this.creep.memory.bagFull;
 		return (this.creep.carry.energy === 0);
 	}
 
 	public isBagFull(): boolean {
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
+		if (!!this.creep.memory.bagFull) {
+			return true;
+		}
+		if (_.sum(this.creep.carry) === this.creep.carryCapacity) {
+			this.creep.memory.bagFull = true;
+			return true;
+		}
+		if (this.creep.carry.energy === 0) {
+			delete this.creep.memory.bagFull;
+		}
+		return false;
 	}
 
 	public dumpAtStorageOrLink() {
@@ -33,8 +43,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			// find a nearby link first, if storage isn't close
 			if (!!this.storage && this.creep.carry.energy > 0 && this.creep.pos.getRangeTo(this.storage) > 9) {
 				let target: StructureLink[] = this.creep.pos.findInRange(FIND_STRUCTURES, 15, {
-					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK
-					&& s.energy < s.energyCapacity,
+					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK,
 				}) as StructureLink[];
 				if (!!target && target.length > 0) {
 					this.creep.memory.target = target[0].id;
@@ -100,6 +109,13 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				}
 				break;
 			case ERR_FULL:
+				let containers = this.creep.pos.findInRange<StorageStructure>(FIND_STRUCTURES, 1, {
+					filter: (s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE,
+				});
+				if (containers.length > 0) {
+					this.creep.transfer(containers[0], RESOURCE_ENERGY);
+				}
+				break;
 			case ERR_NOT_ENOUGH_RESOURCES:
 				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
 					delete this.creep.memory.target;
@@ -139,7 +155,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	}
 
 	public action(): boolean {
-		if (super.action()) {
+		if (this.renewCreep() && this.flee()) {
 			this.creep.say(this.creep.memory.config.targetRoom);
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				if (this.isBagEmpty()) {
@@ -150,16 +166,22 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 						delete this.creep.memory.target;
 						delete this.creep.memory.targetPath;
 					}
-					this.dumpAtStorageOrLink();
-				}
-			} else {
-				if (this.repairInfra()) {
-					if (this.isBagFull()) {
+					if (this.creep.room.name === this.creep.memory.homeRoom) {
+						if (this.creep.ticksToLive < 350) {
+							this.creep.memory.hasRenewed = false;
+						}
+						this.dumpAtStorageOrLink();
+					} else {
 						this.creep.memory.resetTarget = true;
 						this.dumpRoutine(this.storage);
-					} else {
-						this.collectFromContainer();
 					}
+				}
+			} else {
+				if (this.isBagFull() && this.repairInfra()) {
+					this.creep.memory.resetTarget = true;
+					this.dumpRoutine(this.storage);
+				} else {
+					this.collectFromContainer();
 				}
 			}
 		}

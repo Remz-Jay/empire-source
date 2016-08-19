@@ -21,6 +21,7 @@ export const MAX_HARVESTERS_PER_SOURCE: number = 3;
  * @type {number}
  */
 export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
+export const MAX_TTL = 1400;
 
 /**
  * Priorities for Regular Room Creeps
@@ -59,11 +60,11 @@ export const PRIORITY_WF_HEALER: number = 30;
 export const MINRCL_CREEP: number = 0;
 export const MINRCL_BUILDER: number = 1;
 export const MINRCL_HARVESTER: number = 1;
-export const MINRCL_MULE: number = 2;
+export const MINRCL_MULE: number = 1;
 export const MINRCL_UPGRADER: number = 1;
 export const MINRCL_LINKER: number = 5;
 export const MINRCL_REPAIR: number = 2;
-export const MINRCL_MINER: number = 6;
+export const MINRCL_MINER: number = 8;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps
@@ -85,3 +86,44 @@ export const MINRCL_WF_HEALER: number = 4;
 export const BLACKLIST_SOURCES: string[] = [
 	"af8ce260e6f676ef1f544211",
 ];
+
+export function translateErrorCode(errorCode: number): string {
+	switch (errorCode) {
+		case OK:
+			return "OK";
+		case ERR_NOT_OWNER:
+			return "ERR_NOT_OWNER";
+		case ERR_NO_PATH:
+			return "ERR_NO_PATH";
+		case ERR_NAME_EXISTS:
+			return "ERR_NAME_EXISTS";
+		case ERR_BUSY:
+			return "ERR_BUSY";
+		case ERR_NOT_FOUND:
+			return "ERR_NOT_FOUND";
+		case ERR_NOT_ENOUGH_ENERGY:
+			return "ERR_NOT_ENOUGH_ENERGY";
+		case ERR_NOT_ENOUGH_RESOURCES:
+			return "ERR_NOT_ENOUGH_RESOURCES";
+		case ERR_INVALID_TARGET:
+			return "ERR_INVALID_TARGET";
+		case ERR_FULL:
+			return "ERR_FULL";
+		case ERR_NOT_IN_RANGE:
+			return "ERR_NOT_IN_RANGE";
+		case ERR_INVALID_ARGS:
+			return "ERR_INVALID_ARGS";
+		case ERR_TIRED:
+			return "ERR_TIRED";
+		case ERR_NO_BODYPART:
+			return "ERR_NO_BODYPART";
+		case ERR_NOT_ENOUGH_EXTENSIONS:
+			return "ERR_NOT_ENOUGH_EXTENSIONS";
+		case ERR_RCL_NOT_ENOUGH:
+			return "ERR_RCL_NOT_ENOUGH";
+		case ERR_GCL_NOT_ENOUGH:
+			return "ERR_GCL_NOT_ENOUGH";
+		default:
+			return "Unknown Error Code.";
+	}
+};

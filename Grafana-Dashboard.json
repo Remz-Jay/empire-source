@@ -108,18 +108,9 @@
           },
           "targets": [
             {
-              "hide": true,
+              "hide": false,
               "refId": "A",
-              "target": "stats.gauges.spawn.Spawn1.defenderIndex"
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "stats.gauges.spawn.Spawn2.defenderIndex"
-            },
-            {
-              "refId": "C",
-              "target": "sumSeries(#A, #B)"
+              "target": "sumSeries(stats.gauges.room.*.hostiles.*)"
             }
           ],
           "thresholds": "2,4",
@@ -130,7 +121,7 @@
           "valueMaps": [
             {
               "op": "=",
-              "text": "N/A",
+              "text": "Clear",
               "value": "null"
             },
             {
@@ -225,12 +216,12 @@
         {
           "aliasColors": {
             "95th": "#BF1B00",
+            "Mean": "#E5AC0E",
             "Total": "#7EB26D",
             "nPercentile(stats.gauges.cpu.getUsed, 95)": "#BF1B00",
             "stats.gauges.cpu.creeps": "#0A437C",
             "stats.gauges.cpu.getUsed": "#7EB26D",
-            "stats.gauges.cpu.roles": "#E24D42",
-            "Mean": "#E5AC0E"
+            "stats.gauges.cpu.roles": "#E24D42"
           },
           "bars": false,
           "datasource": "${DS_LOCALGRAPHITE}",
@@ -283,9 +274,9 @@
           "steppedLine": false,
           "targets": [
             {
+              "hide": true,
               "refId": "F",
-              "target": "alias(movingAverage(stats.gauges.cpu.getUsed, '30min'), 'Mean')",
-              "hide": true
+              "target": "alias(movingAverage(stats.gauges.cpu.getUsed, '30min'), 'Mean')"
             },
             {
               "refId": "B",
@@ -339,6 +330,99 @@
               "show": true
             }
           ]
+        },
+        {
+          "aliasColors": {
+            "Energy": "#6ED0E0",
+            "Hostiles": "#890F02"
+          },
+          "bars": false,
+          "datasource": "${DS_LOCALGRAPHITE}",
+          "decimals": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 65,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "Hostiles",
+              "yaxis": 2
+            }
+          ],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "refId": "A",
+              "target": "alias(stats.gauges.offense.W4N42.energy, 'Energy')"
+            },
+            {
+              "refId": "B",
+              "target": "alias(stats.gauges.offense.W4N42.towerEnergy, 'TowerEnergy')"
+            },
+            {
+              "refId": "C",
+              "target": "alias(stats.gauges.offense.W4N42.hostiles, 'Hostiles')"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Assault",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
         }
       ],
       "title": "New row"
@@ -355,6 +439,7 @@
           },
           "bars": true,
           "datasource": "${DS_LOCALGRAPHITE}",
+          "decimals": 0,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -367,10 +452,12 @@
           "id": 49,
           "isNew": true,
           "legend": {
+            "alignAsTable": true,
             "avg": false,
             "current": true,
             "max": false,
             "min": false,
+            "rightSide": true,
             "show": true,
             "total": false,
             "values": true
@@ -390,6 +477,10 @@
             },
             {
               "alias": "95th",
+              "bars": false
+            },
+            {
+              "alias": "Mean",
               "bars": false
             }
           ],
@@ -415,6 +506,11 @@
             {
               "refId": "D",
               "target": "alias(nPercentile(#A,95), '95th')"
+            },
+            {
+              "hide": false,
+              "refId": "E",
+              "target": "alias(movingMedian(nonNegativeDerivative(summarize(stats.gauges.tick, '1m', 'avg', false)), '1hour'), 'Mean')"
             }
           ],
           "timeFrom": null,
@@ -460,16 +556,18 @@
             "threshold1": null,
             "threshold1Color": "rgba(216, 200, 27, 0.27)",
             "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+            "threshold2Color": "rgba(234, 112, 112, 0.22)",
+            "thresholdLine": false
           },
           "id": 50,
           "isNew": true,
           "legend": {
-            "alignAsTable": false,
+            "alignAsTable": true,
             "avg": false,
             "current": true,
             "max": false,
             "min": false,
+            "rightSide": true,
             "show": true,
             "total": false,
             "values": true
@@ -485,6 +583,12 @@
           "seriesOverrides": [
             {
               "alias": "W7N44"
+            },
+            {
+              "alias": "Total",
+              "bars": false,
+              "lines": false,
+              "stack": false
             }
           ],
           "span": 4,
@@ -498,6 +602,10 @@
             {
               "refId": "B",
               "target": "aliasByNode(stats.gauges.reservedRoom.$reservedrooms.creeps, 3)"
+            },
+            {
+              "refId": "C",
+              "target": "alias(sumSeries(#A, #B), 'Total')"
             }
           ],
           "timeFrom": null,
@@ -519,7 +627,7 @@
               "label": "",
               "logBase": 1,
               "max": null,
-              "min": 0,
+              "min": null,
               "show": true
             },
             {
@@ -548,11 +656,12 @@
           "id": 51,
           "isNew": true,
           "legend": {
-            "alignAsTable": false,
+            "alignAsTable": true,
             "avg": false,
             "current": true,
             "max": false,
             "min": false,
+            "rightSide": true,
             "show": true,
             "total": false,
             "values": true
@@ -560,7 +669,7 @@
           "lines": true,
           "linewidth": 2,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -1079,7 +1188,7 @@
             {
               "hide": false,
               "refId": "A",
-              "target": "asPercent(stats.gauges.cpu.reservedrooms, #B)"
+              "target": "asPercent(stats.gauges.cpu.links, #B)"
             },
             {
               "hide": true,
@@ -1088,7 +1197,7 @@
             }
           ],
           "thresholds": "80,90",
-          "title": "Reserved Rooms",
+          "title": "Links",
           "type": "singlestat",
           "valueFontSize": "100%",
           "valueMaps": [
@@ -1312,9 +1421,9 @@
           ],
           "span": 1,
           "sparkline": {
-            "fillColor": "rgba(236, 191, 105, 0.55)",
-            "full": true,
-            "lineColor": "rgb(193, 76, 31)",
+            "fillColor": "rgba(2, 102, 114, 0.55)",
+            "full": false,
+            "lineColor": "rgb(64, 106, 252)",
             "show": true
           },
           "targets": [
@@ -1334,7 +1443,7 @@
               "value": "null"
             }
           ],
-          "valueName": "avg"
+          "valueName": "current"
         },
         {
           "cacheTimeout": null,
@@ -1389,7 +1498,7 @@
             "fillColor": "rgba(31, 118, 189, 0.18)",
             "full": false,
             "lineColor": "rgb(31, 120, 193)",
-            "show": false
+            "show": true
           },
           "targets": [
             {
@@ -1408,7 +1517,7 @@
               "value": "null"
             }
           ],
-          "valueName": "avg"
+          "valueName": "current"
         }
       ],
       "showTitle": true,
@@ -1469,7 +1578,7 @@
               "to": "null"
             }
           ],
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "span": 2,
           "sparkline": {
@@ -1553,7 +1662,7 @@
           "points": false,
           "renderer": "flot",
           "repeat": null,
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "seriesOverrides": [
             {
@@ -1673,7 +1782,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "seriesOverrides": [],
           "span": 3,
@@ -1772,7 +1881,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "seriesOverrides": [
             {
@@ -1834,8 +1943,8 @@
       "repeat": "rooms",
       "scopedVars": {
         "rooms": {
-          "text": "W6N42",
-          "value": "W6N42",
+          "text": "W5N42",
+          "value": "W5N42",
           "selected": true
         }
       },
@@ -1896,7 +2005,7 @@
               "to": "null"
             }
           ],
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "span": 2,
           "sparkline": {
@@ -1956,7 +2065,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "seriesOverrides": [],
           "span": 3,
@@ -2045,7 +2154,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1470753413642,
+          "repeatIteration": 1471483151106,
           "scopedVars": {},
           "seriesOverrides": [
             {
@@ -2107,8 +2216,8 @@
       "repeat": "reservedrooms",
       "scopedVars": {
         "reservedrooms": {
-          "text": "W7N42",
-          "value": "W7N42",
+          "text": "W4N42",
+          "value": "W4N42",
           "selected": true
         }
       },
@@ -2117,7 +2226,7 @@
     }
   ],
   "time": {
-    "from": "now-12h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {
@@ -2191,7 +2300,7 @@
   },
   "refresh": "15s",
   "schemaVersion": 12,
-  "version": 24,
+  "version": 34,
   "links": [],
   "gnetId": null
 }

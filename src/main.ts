@@ -1,11 +1,7 @@
-/**
- * Application bootstrap.
- * BEFORE CHANGING THIS FILE, make sure you read this:
- * http://support.screeps.com/hc/en-us/articles/204825672-New-main-loop-architecture
- */
 import "./prototypes/room";
 import "./prototypes/link";
 import "./prototypes/tower";
+import "./prototypes/spawn";
 
 import * as StatsManager from "./shared/statsManager";
 import * as Profiler from "./lib/screeps-profiler";
@@ -16,34 +12,59 @@ import * as CreepManager from "./components/creeps/creepManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 
-Profiler.enable();
+delete Memory.log;
+
+/*Profiler.enable();
+Profiler.registerObject(StatsManager, "StatsManager");
+Profiler.registerObject(RoomManager, "RoomManager");
+Profiler.registerObject(CreepManager, "CreepManager");
+Profiler.registerObject(AssimilationManager, "AssimilationManager");
+Profiler.registerObject(OffenseManager, "OffenseManager");*/
+
 StatsManager.init();
 
-// This code is executed only when Screeps system reloads your script.
-// Use this bootstrap wisely. You can cache some of your stuff to save CPU
-// You should extend prototypes before game loop in here.
-RoomManager.loadRooms();
-
-// Screeps" system expects this "loop" method in main.js to run the application.
-// If we have this line, we can make sure that globals bootstrap and game loop work.
-// http://support.screeps.com/hc/en-us/articles/204825672-New-main-loop-architecture
-
 export function loop() {
-	// This is executed every tick
 	Profiler.wrap(function () {
+		console.log();
+		console.log();
 		PathFinder.use(true);
+		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
 		CreepManager.loadCreeps();
 		let CpuInit = Game.cpu.getUsed();
+
 		let cpuBeforeStats = Game.cpu.getUsed();
 		StatsManager.runBuiltinStats();
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
 		StatsManager.addStat("cpu.init", CpuInit);
-		RoomManager.governRooms();
-		AssimilationManager.govern();
-		OffenseManager.govern();
+
+		try {
+			RoomManager.governRooms();
+		} catch (e) {
+			console.log("RoomManager Exception", (<Error> e).message);
+		}
+		try {
+			AssimilationManager.govern();
+		} catch (e) {
+			console.log("AssimilationManager Exception", (<Error> e).message);
+		}
+		try {
+			OffenseManager.govern();
+		} catch (e) {
+			console.log("OffenseManager Exception", (<Error> e).message);
+		}
+
+		Memory.log.creeps.forEach((message: String, index: number) => {
+			console.log("log.creeps", message);
+		});
+		delete Memory.log;
+
+		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
+		console.log(`End of tick ${Game.time}.\t`
+			+ `GCL:${Game.gcl.level}@${perc}%\t`
+			+ `CPU:${_.ceil(Game.cpu.getUsed())}/${Game.cpu.limit}\t`
+			+ `RES:${Game.cpu.tickLimit}/${Game.cpu.bucket}`);
 		StatsManager.addStat("cpu.getUsed", Game.cpu.getUsed());
 	});
-
 }

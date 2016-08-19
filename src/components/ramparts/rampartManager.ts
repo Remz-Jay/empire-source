@@ -34,9 +34,7 @@ export function adjustStrength() {
 }
 
 export function getRamparts(): StructureRampart[] {
-	let r = room.find(FIND_MY_STRUCTURES, {
-		filter: (s: Structure) => s.structureType === STRUCTURE_RAMPART,
-	}) as StructureRampart[];
+	let r = room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_RAMPART) as StructureRampart[];
 	if (Memory.config.Rampart === undefined) {
 		Memory.config.Rampart = {};
 	}

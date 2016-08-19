@@ -1,11 +1,11 @@
 import * as Config from "./../../config/config";
 
-export let spawns: Spawn[];
+export let spawns: StructureSpawn[];
 export let spawnNames: string[] = [];
 export let spawnCount: number;
 
 export function load(room: Room) {
-	spawns = room.find<Spawn>(FIND_MY_SPAWNS);
+	spawns = room.find<StructureSpawn>(FIND_MY_SPAWNS);
 	spawnCount = _.size(spawns);
 
 	_loadSpawnNames();
@@ -15,8 +15,17 @@ export function load(room: Room) {
 	}
 }
 
-export function getFirstSpawn(): Spawn {
-	return spawns[0];
+export function hasSpawn(): boolean {
+	return (spawns.length < 1) ? false : true;
+}
+
+export function getFirstSpawn(): StructureSpawn {
+	let spawn =  spawns[0];
+	if (!!spawn) {
+		return spawn;
+	} else {
+		return Game.spawns[0] as StructureSpawn;
+	}
 }
 
 function _loadSpawnNames(): void {
@@ -25,4 +34,10 @@ function _loadSpawnNames(): void {
 			spawnNames.push(spawnName);
 		}
 	}
+}
+
+export function renewCreeps(): void {
+	spawns.forEach(function(s: StructureSpawn) {
+		s.renewCreeps();
+	});
 }

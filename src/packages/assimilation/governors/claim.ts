@@ -7,9 +7,15 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 	public static MINRCL: number = Config.MINRCL_ASM_CLAIM;
 	public static ROLE: string = "Claim";
 
-	public maxParts = 6;
+	public claim: boolean = false;
+	public maxParts = 5;
 	public maxCreeps = 1;
 	public bodyPart = [CLAIM, MOVE];
+
+	constructor(homeRoom: Room, homeSpawn: Spawn, config: RemoteRoomConfig, claim: boolean = false) {
+		super(homeRoom, homeSpawn, config);
+		this.claim = claim;
+	}
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -21,6 +27,26 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 			config: this.config,
 		};
 		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public getBody() {
+		if (this.claim) {
+			return  AssimilationCreepGovernor.sortBodyParts([CLAIM, TOUGH, MOVE, MOVE, MOVE, MOVE]);
+		}
+		let numParts = _.floor(this.room.energyCapacityAvailable / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		if (numParts < 1) {
+			numParts = 1;
+		}
+		if (this.maxParts > 1 && numParts > this.maxParts) {
+			numParts = this.maxParts;
+		}
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return AssimilationCreepGovernor.sortBodyParts(body);
 	}
 
 	public getCreepLimit(): number {

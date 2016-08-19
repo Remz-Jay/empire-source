@@ -9,7 +9,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 	public static MINRCL: number = Config.MINRCL_BUILDER;
 
 	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
-	public maxParts: number = 8;
+	public maxParts: number = 3;
 
 	constructor(room: Room) {
 		super(room);
@@ -33,7 +33,11 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 			return cs.pos.roomName === this.room.name;
 		}, this);
 		if (sites.length > 0) {
-			return (_.floor(sites.length / 4) >= 1 ) ? _.floor(sites.length / 4) : 1;
+			if (this.room.controller.level > 4) {
+				return (_.floor(sites.length / 4) >= 1 ) ? _.floor(sites.length / 4) : 1;
+			} else {
+				return 1;
+			}
 		} else {
 			return 0;
 		}

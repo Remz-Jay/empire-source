@@ -115,6 +115,7 @@ export function getMaxHarvestersPerSource(): number {
 	if (capacity < 600 || isEmergency()) {
 		max = Config.MAX_HARVESTERS_PER_SOURCE;
 	}
+	max = 1;
 	return max;
 }
 

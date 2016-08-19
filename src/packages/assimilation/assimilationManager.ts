@@ -1,16 +1,21 @@
-import ClaimGovernor from "./governors/claim";
 import * as Config from "../../config/config";
 import * as SourceManager from "../../components/sources/sourceManager";
+import * as RoomManager from "../../components/rooms/roomManager";
 
+import ClaimGovernor from "./governors/claim";
 import Claim from "./roles/claim";
+
 import ASMBuilderGovernor from "./governors/builder";
 import ASMBuilder from "./roles/builder";
+
 import ASMHarvesterGovernor from "./governors/harvester";
 import ASMHarvester from "./roles/harvester";
+
 import ASMMuleGovernor from "./governors/mule";
 import ASMMule from "./roles/mule";
-import WarriorGovernor from "../warfare/governors/warrior";
-import Warrior from "../warfare/roles/warrior";
+
+import SentinelGovernor from "../warfare/governors/sentinel";
+import Terminator from "../warfare/roles/terminator";
 
 function initMemory(): void {
 	if (!Memory.assimilation) {
@@ -23,7 +28,7 @@ function initMemory(): void {
 
 let config: RemoteRoomConfig;
 let homeRoom: Room;
-let homeSpawn: Spawn;
+let homeSpawn: StructureSpawn;
 let targetRoom: Room;
 
 function setup() {
@@ -104,11 +109,10 @@ function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false
 	}
 }
 
-function createCreep(spawn: Spawn, creepConfig: CreepConfiguration): string|number {
+function createCreep(spawn: StructureSpawn, creepConfig: CreepConfiguration): string|number {
 	let status: number | string = spawn.canCreateCreep(creepConfig.body, creepConfig.name);
 	if (status === OK) {
-		status = spawn.createCreep(creepConfig.body, creepConfig.name, creepConfig.properties);
-
+		status = spawn.createCreepWhenIdle(creepConfig.body, creepConfig.name, creepConfig.properties);
 		if (Config.VERBOSE) {
 			if (_.isNumber(status)) {
 				console.log(`Unable to create ${creepConfig.properties.role} Creep (${status})`);
@@ -120,7 +124,7 @@ function createCreep(spawn: Spawn, creepConfig: CreepConfiguration): string|numb
 	return status;
 }
 function manageClaim(roomName: string, claim: boolean = false) {
-	let governor = new ClaimGovernor(homeRoom, homeSpawn, config);
+	let governor = new ClaimGovernor(homeRoom, homeSpawn, config, claim);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ClaimGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
 	if (creepsInRole.length > 0) {
@@ -134,7 +138,10 @@ function manageClaim(roomName: string, claim: boolean = false) {
 			}
 		}, this);
 	} else {
-		if (!Game.rooms[roomName] || !Game.rooms[roomName].controller || Game.rooms[roomName].controller.reservation.ticksToEnd < 1000) {
+		if (!Game.rooms[roomName] || !Game.rooms[roomName].controller
+			|| !Game.rooms[roomName].controller.reservation
+			|| Game.rooms[roomName].controller.reservation.ticksToEnd < 1000
+		) {
 			createCreep(homeSpawn, governor.getCreepConfig());
 		}
 	}
@@ -145,7 +152,6 @@ function manageContainers(): StructureContainer[] {
 		let containers = source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1, {
 			filter: (structure: Structure) => structure.structureType === STRUCTURE_CONTAINER,
 		});
-		allContainers = allContainers.concat(containers);
 		if (containers.length < 1) {
 			// No containers yet. See if we're constructing one.
 			let sites = source.pos.findInRange(FIND_CONSTRUCTION_SITES, 1, {
@@ -157,30 +163,30 @@ function manageContainers(): StructureContainer[] {
 				let slot = slots[0];
 				targetRoom.createConstructionSite(slot.x, slot.y, STRUCTURE_CONTAINER);
 			}
+		} else {
+			allContainers = allContainers.concat(containers[0]); // In case there's more containers per source, just use 1.
 		}
 	}, this);
 	return allContainers;
 }
 
 function manageConstructions(maxBuilders: number = 1) {
-	let sites = targetRoom.find(FIND_CONSTRUCTION_SITES, {
-		filter: (cs: ConstructionSite) => cs.my,
-	});
+	let sites = targetRoom.myConstructionSites;
+	let governor = new ASMBuilderGovernor(homeRoom, homeSpawn, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMBuilderGovernor.ROLE.toUpperCase()
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+	if (creepsInRole.length > 0) {
+		_.each(creepsInRole, function (creep: Creep) {
+			if (!creep.spawning) {
+				let role: ASMBuilder = new ASMBuilder();
+				role.setCreep(<Creep> creep);
+				role.setGovernor(governor);
+				role.action();
+			}
+		}, this);
+	}
 	if (sites.length > 0) {
 		// we need a builder
-		let governor = new ASMBuilderGovernor(homeRoom, homeSpawn, config);
-		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMBuilderGovernor.ROLE.toUpperCase()
-		&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
-		if (creepsInRole.length > 0) {
-			_.each(creepsInRole, function (creep: Creep) {
-				if (!creep.spawning) {
-					let role: ASMBuilder = new ASMBuilder();
-					role.setCreep(<Creep> creep);
-					role.setGovernor(governor);
-					role.action();
-				}
-			}, this);
-		}
 		if (creepsInRole.length < maxBuilders) {
 			createCreep(homeSpawn, governor.getCreepConfig());
 		}
@@ -196,10 +202,22 @@ function manageHarvest(containers: StructureContainer[]) {
 		if (creepsInRole.length > 0) {
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
+					if (!creep.memory.container) {
+						creep.memory.container = governor.checkContainerAssignment();
+					}
 					let role: ASMHarvester = new ASMHarvester();
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
 					role.action();
+					if (creep.ticksToLive < 100 && (creepsInRole.length === governor.getCreepLimit())) {
+						// Do a preemptive spawn if this creep is about to expire.
+						let status = createCreep(homeSpawn, governor.getCreepConfig());
+						if (_.isNumber(status)) {
+							console.log("manageHarvesters.preempt-spawn", Config.translateErrorCode(status));
+						} else {
+							console.log("manageHarvesters.preempt-spawn", status);
+						}
+					}
 				}
 			}, this);
 		}
@@ -209,14 +227,14 @@ function manageHarvest(containers: StructureContainer[]) {
 	}
 }
 
-function manageDefenders(limit: number = 0) {
-	let governor = new WarriorGovernor(homeRoom, homeSpawn, config);
-	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === WarriorGovernor.ROLE.toUpperCase()
-	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === targetRoom.name);
+function manageDefenders(roomName: string, limit: number = 0) {
+	let governor = new SentinelGovernor(homeRoom, homeSpawn, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === SentinelGovernor.ROLE.toUpperCase()
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
 	if (creepsInRole.length > 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
-				let role: Warrior = new Warrior();
+				let role: Terminator = new Terminator();
 				role.setCreep(<Creep> creep);
 				role.setGovernor(governor);
 				role.action();
@@ -253,48 +271,55 @@ function manageMules(containers: StructureContainer[]) {
 export function govern(): void {
 	setup();
 	_.each(Memory.assimilation.targets, function(roomName) {
-		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
-			config = getConfigForRemoteTarget(roomName);
-			homeRoom = Game.rooms[config.homeRoom];
-			homeSpawn = homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0];
-			targetRoom = Game.rooms[roomName];
-			manageDefenders();
-			manageClaim(roomName, config.claim);
-			let vision: boolean = false;
-			if (!!targetRoom) {
-				// We have vision of the room, that's good.
-				vision = true;
-				targetRoom.addProperties();
-				SourceManager.load(targetRoom);
-				let hostiles = targetRoom.find(FIND_HOSTILE_CREEPS);
-				if (hostiles.length > 0) {
-					if (config.claim) {
-						manageDefenders(4);
-					} else {
-						manageDefenders(1);
-					}
-					Game.notify(`Warning: Hostiles ${JSON.stringify(hostiles.length)} in room ${targetRoom.name} (ASM)`);
+		try {
+			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
+				config = getConfigForRemoteTarget(roomName);
+				homeRoom = RoomManager.getRoomByName(config.homeRoom);
+				homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
+				targetRoom = RoomManager.getRoomByName(roomName);
+				try {
+					manageDefenders(roomName, 1);
+				} catch (e) {
+					throw new Error("manageDefenders." + (<Error> e).message);
 				}
-				let containers = manageContainers();
-				if (containers.length > 0) {
-					manageHarvest(containers);
-					if (!config.claim) {
-						manageMules(containers);
+				if (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1) {
+					try {
+						manageClaim(roomName, config.claim);
+					} catch (e) {
+						throw new Error("manageClaim." + (<Error> e).message);
 					}
 				}
-				if (config.claim) {
-					manageConstructions(4);
-				} else {
-					manageConstructions(1);
+				let vision: boolean = false;
+				if (!!targetRoom) {
+					// We have vision of the room, that's good.
+					vision = true;
+					SourceManager.load(targetRoom);
+					try {
+						let containers = manageContainers();
+						if (containers.length > 0) {
+							if (config.claim) {
+								manageHarvest(containers);
+								// manageMules(containers);
+							} else {
+								manageHarvest(containers);
+								manageMules(containers);
+							}
+						}
+						if (config.claim) {
+							// manageConstructions(1);
+						} else {
+							manageConstructions(1);
+						}
+					} catch (e) {
+						throw new Error("Rest." + (<Error> e).message);
+					}
+					console.log(`AssimilationRoom ${roomName} has ${targetRoom.energyInContainers}/${targetRoom.containerCapacityAvailable}`
+						+ `(${targetRoom.energyPercentage}%) in storage.`
+					);
 				}
-				console.log(`AssimilationRoom ${roomName} has ${JSON.stringify(vision)} vision. `
-					+ targetRoom.energyInContainers + "/" + targetRoom.containerCapacityAvailable
-					+ " (" + targetRoom.energyPercentage + "%) in storage."
-					+ " (RCL=" + targetRoom.controller.level + " @ "
-					+ targetRoom.controller.reservation.ticksToEnd
-					+ " (" + targetRoom.controller.reservation.username + "))"
-				);
 			}
+		} catch (e) {
+			throw new Error("YOLO." + (<Error> e).message);
 		}
 	}, this);
 }

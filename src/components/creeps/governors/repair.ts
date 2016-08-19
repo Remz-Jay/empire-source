@@ -26,10 +26,10 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 
 	public getCreepLimit(): number {
 		let num: number;
-		if (this.room.controller.level < 4) {
+		if (this.room.controller.level < 5) {
 			num = 1;
 		} else {
-			num = _.floor(this.room.energyInContainers / 200000);
+			num = _.floor(this.room.energyInContainers / 100000);
 		}
 
 		return (num > 0) ? num : 0;
