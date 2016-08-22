@@ -18,7 +18,7 @@ export function initMemory(room: Room) {
 
 export function load(room: Room) {
 	sourceRoom = room;
-	sources = sourceRoom.find<Source>(FIND_SOURCES);
+	sources = sourceRoom.sources;
 	sourceCount = _.size(sources);
 	if (Config.VERBOSE) {
 		console.log("[SourceManager] " + sourceCount + " sources in room.");
@@ -50,9 +50,7 @@ export function blacklistSources(sourceIds: string[]): boolean {
 
 export function findAvailableHarvester(s: Source) {
 	let harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === "Harvester".toUpperCase());
-	return _.find(harvesters, function (h: Creep) {
-		return (!h.memory.preferredSource) && s.room.name === h.room.name;
-	});
+	return harvesters.find((h: Creep) => (!h.memory.preferredSource) && s.room.name === h.room.name);
 }
 
 export function updateHarvesterPreference() {

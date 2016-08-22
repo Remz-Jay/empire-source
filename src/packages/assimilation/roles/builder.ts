@@ -29,7 +29,10 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 
 		if (this.creep.memory.building) {
 			if (!this.creep.memory.target) {
-				let target: ConstructionSite = this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {maxRooms: 1}) as ConstructionSite;
+				let target: ConstructionSite = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+					maxRooms: 1,
+					costCallback: this.roomCallback,
+				}) as ConstructionSite;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
@@ -39,7 +42,10 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 					delete this.creep.memory.target;
 					delete this.creep.memory.source;
 					this.creep.say("B:IDLE");
-					this.moveTo(this.creep.pos.findClosestByPath<Spawn>(FIND_MY_SPAWNS, {maxRooms: 1}).pos);
+					this.moveTo(this.creep.pos.findClosestByPath<Spawn>(this.creep.room.mySpawns, {
+						maxRooms: 1,
+						costCallback: this.roomCallback,
+					}).pos);
 				}
 			}
 			let target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
@@ -52,7 +58,10 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 			}
 		} else if (this.creep.memory.idle) {
 			// scan for sites and return to active duty when found
-			let target = this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {maxRooms: 1}) as ConstructionSite;
+			let target = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+				maxRooms: 1,
+				costCallback: this.roomCallback,
+			}) as ConstructionSite;
 			if (!!target) {
 				this.creep.memory.target = target.id;
 				delete this.creep.memory.target;
@@ -63,19 +72,21 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 				this.creep.memory.idle = true;
 				delete this.creep.memory.target;
 				delete this.creep.memory.source;
-				let spawn = this.creep.pos.findClosestByPath<Spawn>(FIND_MY_SPAWNS);
+				let spawn = this.creep.pos.findClosestByPath<Spawn>(this.creep.room.mySpawns, {
+					costCallback: this.roomCallback,
+				});
 				if (!!spawn) {
 					if (this.creep.pos.isNearTo(spawn)) {
 						this.creep.memory.homeRoom = this.creep.room.name;
 						this.creep.memory.role = "Upgrader";
-						this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS).name;
+						this.creep.memory.homeSpawn = spawn.name;
 						if (this.creep.carry.energy > 0) {
 							this.creep.transfer(spawn, RESOURCE_ENERGY);
 						} else {
 							// spawn.recycleCreep(this.creep);
 							this.creep.memory.homeRoom = this.creep.room.name;
 							this.creep.memory.role = "Upgrader";
-							this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS).name;
+							this.creep.memory.homeSpawn = spawn.name;
 						}
 					} else {
 						this.moveTo(spawn.pos);
@@ -87,15 +98,15 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 		} else {
 			if (!this.creep.memory.source) {
 				// Prefer energy from containers
-				let source: Source | StorageStructure = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-					filter: (structure: StorageStructure) => ((structure.structureType === STRUCTURE_CONTAINER
-					|| structure.structureType === STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 100),
-					maxRooms: 2,
+				let source: Source | StorageStructure = this.creep.pos.findClosestByPath(this.creep.room.containers, {
+					filter: (structure: StorageStructure) => structure.store[RESOURCE_ENERGY] > 100,
+					costCallback: this.roomCallback,
 				}) as StorageStructure;
 				// Go to source otherwise
 				if (!source) {
-					source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
+					source = this.creep.pos.findClosestByPath(this.creep.room.sources, {
 						filter: (source: Source) => (source.energy > 100) || source.ticksToRegeneration < 30,
+						costCallback: this.roomCallback,
 					}) as Source;
 				}
 				if (!!source) {

@@ -212,7 +212,7 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 	});
 
 	stats.rooms[room.name].sources = {};
-	let sources = room.find(FIND_SOURCES);
+	let sources = room.sources;
 
 	_.forEach(sources, (source: Source) => {
 		stats.sources[source.id] = {

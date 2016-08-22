@@ -42,9 +42,7 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 
 	public checkAssignedHarvester(c: StructureContainer): Creep {
 		let harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === ASMHarvesterGovernor.ROLE.toUpperCase());
-		return _.find(harvesters, function (h: Creep) {
-			return (!!h.memory.container) && c.id === h.memory.container;
-		});
+		return harvesters.find((h: Creep) => (!!h.memory.container) && c.id === h.memory.container);
 	}
 
 	public getCreepLimit(): number {

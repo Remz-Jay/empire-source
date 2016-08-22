@@ -9,7 +9,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public static ROLE: string = "Upgrader";
 
 	public maxParts = 8;
-	public maxCreeps = 1;
+	public maxCreeps = 2;
 	public bodyPart = [CARRY, MOVE, WORK, WORK];
 
 	public getCreepConfig(): CreepConfiguration {
@@ -28,7 +28,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public getCreepLimit(): number {
 		let num: number;
 		if (this.room.controller.level > 4) {
-			num = _.floor(this.room.energyInContainers / 10000);
+			num = _.floor(this.room.energyInContainers / 200000);
 		} else if (this.room.controller.level < 5) {
 			num = 2;
 		} else {
@@ -38,5 +38,12 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 			num = this.maxCreeps;
 		}
 		return (num > 0) ? num : 1;
+	}
+
+	public getBody() {
+		if (this.room.name === "W6N42") {
+			this.maxParts = 1;
+		}
+		return super.getBody();
 	}
 }

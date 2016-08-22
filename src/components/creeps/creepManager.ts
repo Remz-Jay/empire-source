@@ -52,20 +52,23 @@ export function loadCreeps(): void {
 	}
 }
 export function createCreep(config: CreepConfiguration): string|number {
-	let spawn = SpawnManager.getFirstSpawn();
-	let status: number | string = spawn.canCreateCreep(config.body, config.name);
-	if (status === OK) {
-		status = spawn.createCreepWhenIdle(config.body, config.name, config.properties);
-
-		if (Config.VERBOSE) {
-			if (_.isNumber(status)) {
-				console.log(`Unable to create ${config.properties.role} Creep (${status})`);
-			} else {
-				console.log(`Started creating new ${config.properties.role} Creep ${status}`);
+	let spawn = SpawnManager.getFreeSpawn();
+	if (!!spawn) {
+		let status: number | string = spawn.canCreateCreep(config.body, config.name);
+		if (status === OK) {
+			status = spawn.createCreepWhenIdle(config.body, config.name, config.properties);
+			if (Config.VERBOSE) {
+				if (_.isNumber(status)) {
+					console.log(`Unable to create ${config.properties.role} Creep (${status})`);
+				} else {
+					console.log(`Started creating new ${config.properties.role} Creep ${status}`);
+				}
 			}
 		}
+		return status;
+	} else {
+		return ERR_BUSY;
 	}
-	return status;
 }
 
 export function governCreeps(room: Room): CreepStats {

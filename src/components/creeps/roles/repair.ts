@@ -32,17 +32,18 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		if (!!this.creep.memory.repairing) {
 			if (!this.creep.memory.target) {
 				// See if any owned buildings are damaged.
-				let target: Structure = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+				let target: Structure = this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
 					filter: (structure: Structure) => {
 						return (
 							structure.hits < (structure.hitsMax * this.myStructureMultiplier) &&
 							structure.structureType !== STRUCTURE_RAMPART
 						);
 					},
+					costCallback: this.roomCallback,
 				}) as Structure;
 				// No? Try to repair a neutral structure instead.
 				if (!target) {
-					target = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+					target = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
 						filter: (structure: Structure) => {
 							return (
 								structure.hits < (structure.hitsMax * this.publicStructureMultiplier) &&
@@ -52,6 +53,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 								)
 							);
 						},
+						costCallback: this.roomCallback,
 					}) as Structure;
 				}
 				// Still nothing? Fortify Ramparts and Walls if we have spare energy.

@@ -67,7 +67,7 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				flee: true,
 				maxRooms: 1,
 				plainCost: 2,
-				swampCost: 6,
+				swampCost: 10,
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];

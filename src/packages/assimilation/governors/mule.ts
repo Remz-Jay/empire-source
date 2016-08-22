@@ -66,6 +66,9 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 	public getCreepLimit(): number {
 		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
+		if (this.config.targetRoom === "W7N42") {
+			multiplier = 1;
+		}
 		return this.containers.length * multiplier;
 	}
 }

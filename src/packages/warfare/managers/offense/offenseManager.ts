@@ -14,6 +14,9 @@ import Terminator from "../../roles/terminator";
 import HealerGovernor from "../../governors/healer";
 import Healer from "../../roles/healer";
 
+import DismantlerGovernor from "../../governors/dismantler";
+import Dismantler from "../../roles/dismantler";
+
 /*import WarriorGovernor from "../../governors/warrior";
 import RangerGovernor from "../../governors/ranger";
 import HealerGovernor from "../../governors/healer";
@@ -46,6 +49,17 @@ let squadConfig = {
 			"governor": FasterminatorGovernor,
 			"role": Terminator,
 			"maxCreeps": 0,
+		},
+	],
+	wait: false,
+};
+
+let dismantleConfig = {
+	roles: [
+		{
+			"governor": DismantlerGovernor,
+			"role": Dismantler,
+			"maxCreeps": 1,
 		},
 	],
 	wait: false,
@@ -99,6 +113,20 @@ let assaultConfig = {
 	wait: false,
 };
 
+let dismantlePositions: RoomPosition[] = [
+	new RoomPosition(46, 31, "W5N42"),
+/*	new RoomPosition(2, 28, "W4N42"),
+	new RoomPosition(2, 29, "W4N42"),
+	new RoomPosition(2, 30, "W4N42"),
+	new RoomPosition(2, 31, "W4N42"),
+	new RoomPosition(2, 32, "W4N42"),
+	new RoomPosition(2, 33, "W4N42"),
+	new RoomPosition(2, 34, "W4N42"),
+	new RoomPosition(5, 32, "W4N42"),
+	new RoomPosition(5, 33, "W4N42"),*/
+	new RoomPosition(16, 21, "W3N42"),
+
+];
 let schmoopPositions: RoomPosition[] = [
 	new RoomPosition(33, 11, "W6N40"),
 	new RoomPosition(40, 6, "W3N40"),
@@ -109,8 +137,8 @@ let schmoopPositions: RoomPosition[] = [
 ];
 
 let assaultPositions: RoomPosition[] = [
-	new RoomPosition(34, 44, "W4N42"),
-	new RoomPosition(33, 20, "W5N42"),
+	new RoomPosition(18, 40, "W4N42"),
+	new RoomPosition(46, 31, "W5N42"),
 ].reverse();
 
 let positions: RoomPosition[] = [
@@ -281,6 +309,7 @@ function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	return creeps;
 }
 function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosition[]) {
+	let resetIterator = false;
 	let creeps = loadCreeps(targetRoomName, sq);
 	// TODO: Make the squad wait for the last spawning member.
 	let squadSize = _.sum(sq.roles, "maxCreeps");
@@ -302,11 +331,13 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.wait = wait;
 				role.squad = creeps;
 				role.squadSize = squadSize;
+				if (resetIterator) {
+					c.memory.positionIterator = 1;
+				}
 				role.setGovernor(governor);
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
-					homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
 					let status = createCreep(homeSpawn, governor.getCreepConfig());
 					if (_.isNumber(status)) {
 						console.log("manageSquad.preempt-spawn", Config.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
@@ -317,7 +348,6 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 			}
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
-			homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
 			let status = createCreep(homeSpawn, governor.getCreepConfig());
 			if (_.isNumber(status)) {
 				console.log("manageSquad.spawn", Config.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
@@ -334,20 +364,20 @@ export function govern(): void {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);
 			homeRoom = RoomManager.getRoomByName(config.homeRoom);
-			homeSpawn = homeRoom.find<StructureSpawn>(FIND_MY_SPAWNS)[0];
+			homeSpawn = homeRoom.mySpawns[0];
 			targetRoom = RoomManager.getRoomByName(roomName);
 			switch (roomName) {
 				case "W5N43": // Dummy for Kov Main secondary force
-					manageSquad(roomName, artilleryConfig, assaultPositions);
+					manageSquad(roomName, sqibConfig, assaultPositions);
 					break;
 				case "W4N42": // Kov Main
-					manageSquad(roomName, assaultConfig, assaultPositions);
+					manageSquad(roomName, sqibConfig, assaultPositions);
 					break;
 				case "W3N42": // Kov Satellite
 					manageSquad(roomName, sqibConfig, schmoopPositions);
 					break;
-				case "W4N43":
-					manageSquad(roomName, sqibConfig, positions);
+				case "W3N42": // 10CPU Main
+					manageSquad(roomName, dismantleConfig, dismantlePositions);
 					break;
 				default:
 					manageSquad(roomName, squadConfig, positions);

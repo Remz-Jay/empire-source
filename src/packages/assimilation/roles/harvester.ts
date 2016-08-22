@@ -1,4 +1,5 @@
 import ASMCreepAction from "../assimilationCreepAction";
+import ASMHarvesterGovernor from "../governors/harvester";
 
 export interface IASMHarvester {
 	action(): boolean;
@@ -8,9 +9,17 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 
 	public container: StructureContainer;
 	public source: Source;
+	public governor: ASMHarvesterGovernor;
+
+	public setGovernor(governor: ASMHarvesterGovernor): void {
+		this.governor = governor;
+	}
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
+		if (!this.creep.memory.container && !this.creep.memory.source) {
+			this.creep.memory.container = this.governor.checkContainerAssignment();
+		}
 		this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
 		if (!this.creep.memory.source && !!this.container) {
 			let source = this.findSourceNearContainer(this.container);
@@ -43,16 +52,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 
 	public moveToHarvest(): void {
 		if (this.tryHarvest() === ERR_NOT_IN_RANGE) {
-			if (!this.creep.memory.targetPath) {
-				if (!this.findNewPath(this.source)) {
-					this.creep.say("HALP!");
-				}
-			} else {
-				let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-				this.moveByPath(path, this.source);
-			}
-		} else {
-			delete this.creep.memory.targetPath;
+			this.moveTo([{pos: this.source.pos, range: 0}]);
 		}
 	}
 	public tryEnergyDropOff(): number {
@@ -76,8 +76,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public action(): boolean {
-		if (this.flee()) {
-			this.creep.say(this.creep.memory.config.targetRoom);
+		if (this.flee() && !this.shouldIGoHome()) {
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				this.moveToTargetRoom();
 			} else {

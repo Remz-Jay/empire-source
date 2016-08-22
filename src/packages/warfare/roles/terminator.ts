@@ -35,6 +35,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 export default class Terminator extends WarfareCreepAction implements ITerminator {
 
 	public hardPath: boolean = true;
+	public noTarget: boolean = false;
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
 		super.setCreep(creep, positions);
@@ -51,6 +52,10 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 	}
 
 	public moveToHeal(): boolean {
+		if (this.creep.getActiveBodyparts(RANGED_ATTACK) < 2) {
+			this.positionIterator = this.creep.memory.positionIterator = 0;
+			this.moveUsingPositions();
+		}
 		if (!this.checkTough()) {
 			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
 			if (targets.length > 0) {
@@ -61,7 +66,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					flee: true,
 					maxRooms: 1,
 					plainCost: 2,
-					swampCost: 6,
+					swampCost: 15,
 					roomCallback: roomCallback,
 				});
 				let pos = path.path[0];
@@ -87,7 +92,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				flee: true,
 				maxRooms: 1,
 				plainCost: 2,
-				swampCost: 6,
+				swampCost: 15,
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
@@ -104,7 +109,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 		}
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure = undefined;
-			if (!this.creep.memory.target) {
+			if (!this.noTarget && !this.creep.memory.target) {
 				target = this.findTarget();
 				if (!!target) {
 					this.creep.memory.target = target.id;
@@ -126,7 +131,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 						}
 					}
 				}
-			} else {
+			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
 					target = this.findTarget();
@@ -184,6 +189,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				}
 			} else {
 				delete this.creep.memory.targetPath;
+				this.waitAtFlag(this.creep.memory.config.targetRoom);
 			}
 		}
 	}

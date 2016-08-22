@@ -5,7 +5,7 @@ export let spawnNames: string[] = [];
 export let spawnCount: number;
 
 export function load(room: Room) {
-	spawns = room.find<StructureSpawn>(FIND_MY_SPAWNS);
+	spawns = room.mySpawns;
 	spawnCount = _.size(spawns);
 
 	_loadSpawnNames();
@@ -17,6 +17,10 @@ export function load(room: Room) {
 
 export function hasSpawn(): boolean {
 	return (spawns.length < 1) ? false : true;
+}
+
+export function getFreeSpawn(): StructureSpawn {
+	return spawns.find((s: StructureSpawn) => !s.isBusy);
 }
 
 export function getFirstSpawn(): StructureSpawn {

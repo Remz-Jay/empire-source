@@ -55,9 +55,9 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				this.creep.memory.target = this.storage.id;
 			} else {
 				// last resort; just return energy to the nearest container.
-				let target: StructureContainer = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-					filter: (structure: StructureContainer) => structure.structureType === STRUCTURE_CONTAINER
-					&& _.sum(structure.store) < structure.storeCapacity,
+				let target: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.containers, {
+					filter: (structure: StructureContainer) => _.sum(structure.store) < structure.storeCapacity,
+					costCallback: this.roomCallback,
 				}) as StructureContainer;
 				if (!!target) {
 					this.creep.memory.target = target.id;
@@ -98,16 +98,8 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		}
 		switch (status) {
 			case ERR_NOT_IN_RANGE:
-				if (!!this.creep.memory.target && this.creep.memory.target === target.id && !!this.creep.memory.targetPath) {
-					let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-					this.moveByPath(path, target);
-				} else {
-					this.creep.memory.target = target.id;
-					delete this.creep.memory.targetPath;
-					if (!this.findNewPath(target)) {
-						this.creep.say("HALP!");
-					}
-				}
+				this.creep.memory.target = target.id;
+				this.moveTo(target.pos);
 				break;
 			case ERR_FULL:
 				let containers = this.creep.pos.findInRange<StorageStructure>(FIND_STRUCTURES, 1, {
@@ -120,14 +112,12 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			case ERR_NOT_ENOUGH_RESOURCES:
 				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
 					delete this.creep.memory.target;
-					delete this.creep.memory.targetPath;
 					// We're empty, drop from idle to pick up new stuff to haul.
 					delete this.creep.memory.idle;
 					// this.muleLogic();
 				}
 				break;
 			case OK:
-				delete this.creep.memory.targetPath;
 				break;
 			default:
 				console.log(`Status ${status} not defined for RoleMule.dump`);
@@ -156,8 +146,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	}
 
 	public action(): boolean {
-		if (this.renewCreep() && this.flee()) {
-			this.creep.say(this.creep.memory.config.targetRoom);
+		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				if (this.isBagEmpty()) {
 					this.moveToTargetRoom();
@@ -165,7 +154,6 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 					if (!!this.creep.memory.resetTarget) {
 						delete this.creep.memory.resetTarget;
 						delete this.creep.memory.target;
-						delete this.creep.memory.targetPath;
 					}
 					if (this.creep.room.name === this.creep.memory.homeRoom) {
 						if (this.creep.ticksToLive < 350) {
@@ -178,6 +166,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 					}
 				}
 			} else {
+				this.pickupResourcesInRange();
 				if (this.isBagFull() && this.repairInfra()) {
 					this.creep.memory.resetTarget = true;
 					this.dumpRoutine(this.storage);

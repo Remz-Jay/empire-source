@@ -45,7 +45,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 					flee: true,
 					maxRooms: 1,
 					plainCost: 2,
-					swampCost: 6,
+					swampCost: 10,
 					roomCallback: roomCallback,
 				});
 				let pos = path.path[0];
@@ -68,7 +68,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 				flee: true,
 				maxRooms: 1,
 				plainCost: 2,
-				swampCost: 6,
+				swampCost: 10,
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];

@@ -31,6 +31,11 @@ export default class Claim extends ASMCreepAction implements IClaim {
 		if (!this.flee()) {
 			return;
 		}
+/*		if (this.goHome) {
+			this.creep.say("HOME");
+			this.moveTo(Game.rooms[this.creep.memory.homeRoom].mySpawns[0].pos);
+			return false;
+		}*/
 		this.creep.say(this.creep.memory.config.targetRoom);
 		if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 			this.moveToTargetRoom();

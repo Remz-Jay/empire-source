@@ -14,12 +14,12 @@ import * as OffenseManager from "./packages/warfare/managers/offense/offenseMana
 
 delete Memory.log;
 
-/*Profiler.enable();
+Profiler.enable();
 Profiler.registerObject(StatsManager, "StatsManager");
 Profiler.registerObject(RoomManager, "RoomManager");
 Profiler.registerObject(CreepManager, "CreepManager");
 Profiler.registerObject(AssimilationManager, "AssimilationManager");
-Profiler.registerObject(OffenseManager, "OffenseManager");*/
+Profiler.registerObject(OffenseManager, "OffenseManager");
 
 StatsManager.init();
 

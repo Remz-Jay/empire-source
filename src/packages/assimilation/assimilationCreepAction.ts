@@ -5,6 +5,21 @@ export interface IASMCreepAction {
 
 export default class ASMCreepAction extends CreepAction implements IASMCreepAction {
 
+	public goHome: boolean;
+
+	public setGoHome(gh: boolean): void {
+		this.goHome = gh;
+	}
+
+	public shouldIGoHome(): boolean {
+		if (this.goHome) {
+			this.moveTo(Game.rooms[this.creep.memory.homeRoom].minerals[0].pos);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public repairInfra(modifier: number = 0.3): boolean {
 		if (this.creep.carry.energy > 0 ) {
 			let target: Structure;
@@ -24,7 +39,11 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 					return true;
 				}
 			}
-			if (target.hits < target.hitsMax * 0.8) {
+			let top = modifier + 0.2;
+			if (top > 1.0) {
+				top = 1;
+			}
+			if (target.hits < target.hitsMax * top) {
 				let status = this.creep.repair(target);
 				if (status !== OK) {
 					delete this.creep.memory.repairtarget;
@@ -42,16 +61,8 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 
 	public moveToTargetRoom() {
 		let flag = Game.flags[this.creep.memory.config.targetRoom];
-		if (!!flag) {
-			if (!!this.creep.memory.flagPath) {
-				let path = this.deserializePathFinderPath(this.creep.memory.flagPath);
-				this.moveByPath(path, flag, "flagPath");
-			} else {
-				delete this.creep.memory.flagPath;
-				if (!this.findNewPath(flag, "flagPath")) {
-					this.creep.say("HALP!");
-				}
-			}
+		if (!!flag && !!flag.pos) {
+			this.moveTo(flag.pos);
 			return;
 		}
 		console.log("NON FLAG MOVE");
@@ -64,7 +75,9 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			}, this);
 			let route = this.creep.memory.config.route[index];
 			console.log(`finding route to ${index} / ${route.exit} in ${route.room}`);
-			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit);
+			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit, {
+				costCallback: this.roomCallback,
+			});
 			this.creep.memory.exitRoom = route.room;
 		} else {
 			if (!!this.creep.memory.exit && !!this.creep.memory.exitPath) {
@@ -82,9 +95,10 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 	}
 
 	public action(): boolean {
-		if (!this.renewCreep() || !this.flee()) {
+		if (!this.renewCreep() || !this.flee() || this.shouldIGoHome()) {
 			return false;
 		}
+
 		this.pickupResourcesInRange();
 		return true;
 	}

@@ -37,10 +37,11 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public assignNewSource(): boolean {
-		let target: Mineral = <Mineral> this.creep.pos.findClosestByPath(FIND_MINERALS, {
+		let target: Mineral = <Mineral> this.creep.pos.findClosestByPath(this.creep.room.minerals, {
 			filter: (source: Mineral) => {
 				return !!source.pos.lookFor(LOOK_STRUCTURES);
 			},
+			costCallback: this.roomCallback,
 		});
 		if (target) {
 			this.targetMineralSource = target;
@@ -54,13 +55,14 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public assignNewDropOff(): boolean {
-		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
 			filter: (structure: StorageStructure) => {
 				return (
 						structure.structureType === STRUCTURE_CONTAINER ||
 						structure.structureType === STRUCTURE_STORAGE
 					) && _.sum(structure.store) < structure.storeCapacity;
 			},
+			costCallback: this.roomCallback,
 		});
 		if (target != null) {
 			this.targetMineralDropOff = target;
@@ -81,16 +83,8 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 
 	public moveToMine(): void {
 		if (this.tryMining() === ERR_NOT_IN_RANGE) {
-			if (!this.creep.memory.targetPath) {
-				if (!this.findNewPath(this.targetMineralSource)) {
-					this.creep.say("HALP!");
-				}
-			} else {
-				let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-				this.moveByPath(path, this.targetMineralSource);
-			}
+			this.moveTo(this.targetMineralSource.pos);
 		} else {
-			delete this.creep.memory.targetPath;
 			let targets: StructureContainer[] = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
 				filter: function (s: StructureContainer) {
 					return s.structureType === STRUCTURE_CONTAINER &&

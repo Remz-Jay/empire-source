@@ -86,6 +86,12 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public moveToTargetRoom(): void {
+		let flag = Game.flags[this.creep.memory.config.targetRoom];
+		if (!!flag && !!flag.pos) {
+			this.moveTo(flag.pos);
+			return;
+		}
+		console.log("WARFARE NON FLAG MOVE");
 		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
 			this.nextStepIntoRoom();
 			let index: number = 0;
@@ -96,7 +102,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			}, this);
 			let route = this.creep.memory.config.route[index];
 			console.log(`finding route to ${route.exit} in ${route.room}`);
-			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit);
+			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit, {
+				costCallback: this.roomCallback,
+			});
 			this.creep.memory.exitRoom = route.room;
 		} else {
 			if (!!this.creep.memory.exit && !!this.creep.memory.exitPath) {
@@ -272,7 +280,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public findHealTarget(): Creep {
-		let wounded = this.creep.pos.findClosestByPath<Creep>(FIND_MY_CREEPS, {
+		let wounded = this.creep.pos.findClosestByPath<Creep>(this.creep.room.myCreeps, {
 			maxRooms: 1,
 			costCallback: roomCallback,
 			filter: (c: Creep) => c.hits < c.hitsMax,
@@ -283,7 +291,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 	public findTarget(): Creep {
 		// Prioritize Hostiles with offensive capabilities.
-		let hostile = this.creep.pos.findClosestByPath<Creep>(FIND_HOSTILE_CREEPS, {
+		let hostile = this.creep.pos.findClosestByPath<Creep>(this.creep.room.hostileCreeps, {
 			maxRooms: 1,
 			costCallback: roomCallback,
 			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
@@ -294,7 +302,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return hostile;
 		} else {
 			// Return worker creeps instead.
-			hostile = this.creep.pos.findClosestByPath<Creep>(FIND_HOSTILE_CREEPS, {
+			hostile = this.creep.pos.findClosestByPath<Creep>(this.creep.room.hostileCreeps, {
 				maxRooms: 1,
 				costCallback: roomCallback,
 			});
@@ -306,7 +314,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public findHostileStructure(structureType: string): Structure {
-		let hostile = this.creep.pos.findClosestByPath<Structure>(FIND_HOSTILE_STRUCTURES, {
+		let hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.hostileStructures, {
 			maxRooms: 1,
 			costCallback: roomCallback,
 			filter: (c: Structure) => c.structureType === structureType,
@@ -315,7 +323,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public findPublicStructure(structureType: string): Structure {
-		let hostile = this.creep.pos.findClosestByPath<Structure>(FIND_STRUCTURES, {
+		let hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.allStructures, {
 			maxRooms: 1,
 			costCallback: roomCallback,
 			filter: (c: Structure) => c.structureType === structureType,
@@ -338,7 +346,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return hostile;
 		} else {
 			// Any odd structure will do.
-			hostile = this.creep.pos.findClosestByPath<Structure>(FIND_HOSTILE_STRUCTURES, {
+			hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.hostileStructures, {
 				maxRooms: 1,
 				costCallback: roomCallback,
 			});
@@ -356,9 +364,10 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 				if (!!hostile) {
 					return hostile;
 				} else {
-					hostile = this.creep.pos.findClosestByPath<Structure>(FIND_STRUCTURES, {
+					hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.allStructures, {
 						filter: (s: Structure) => s.structureType === STRUCTURE_WALL
 						|| s.structureType === STRUCTURE_CONTAINER,
+						costCallback: this.roomCallback,
 					});
 				}
 			}
@@ -370,7 +379,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public followWarrior() {
-		let w = _.find(this.squad, (c: Creep) => c.memory.role === WarriorGovernor.ROLE);
+		let w = this.squad.find((c: Creep) => c.memory.role === WarriorGovernor.ROLE);
 		if (!this.creep.pos.isNearTo(w)) {
 			this.moveTo(w.pos);
 		}

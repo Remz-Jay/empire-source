@@ -1,7 +1,5 @@
-import List = _.List;
-
 interface Room {
-	containers: List<Structure>;
+	containers: Structure[];
 	containerCapacityAvailable: number;
 	energyInContainers: number;
 	energyPercentage: number;
@@ -15,6 +13,7 @@ interface Room {
 	mySpawns: StructureSpawn[];
 	allConstructionSites: ConstructionSite[];
 	myConstructionSites: ConstructionSite[];
+	sources: Source[];
 	minerals: Mineral[];
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
@@ -24,7 +23,7 @@ interface Room {
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
 	getCostMatrix(): CostMatrix;
-	getContainers(): List<Structure>;
+	getContainers(): Structure[];
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
 	getEnergyPercentage(): number;
@@ -36,8 +35,10 @@ interface Room {
 	getMyStructures(): OwnedStructure[];
 	getHostileStructures(): OwnedStructure[];
 	getMySpawns(): StructureSpawn[];
+	getFreeSpawn(): StructureSpawn;
 	getAllConstructionSites(): ConstructionSite[];
 	getMyConstructionSites(): ConstructionSite[];
+	getSources(): Source[];
 	getMinerals(): Mineral[];
 	addProperties(): void;
 	reloadCache(): void;
@@ -114,6 +115,9 @@ Room.prototype.getCostMatrix = function () {
 		W5N42: [
 			{x: 37, y: 24, w: 20}, // Narrow Path in the tower bulwark
 			{x: 38, y: 25, w: 20}, // Narrow Path in the tower bulwark
+			{x: 43, y: 22, w: 20}, // Narrow Path, route to W4N42
+			{x: 43, y: 23, w: 20}, // Narrow Path, route to W4N42
+			{x: 43, y: 24, w: 20}, // Narrow Path, route to W4N42
 		],
 	};
 	try {
@@ -147,7 +151,7 @@ Room.prototype.getCostMatrix = function () {
 	}
 };
 
-Room.prototype.getContainers = function (): List<Structure> {
+Room.prototype.getContainers = function (): Structure[] {
 	return this.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE);
 };
 Room.prototype.getContainerCapacityAvailable = function () {
@@ -198,12 +202,14 @@ Room.prototype.getAllStructures = function(): Structure[] {
 Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
 };
-// TODO: This might be buggy with Neutral structures, which aren't OwnedStructures and don't have a .my parameter..
 Room.prototype.getHostileStructures = function (): OwnedStructure[] {
-	return this.allStructures.filter((s: OwnedStructure) => !s.my);
+	return this.allStructures.filter((s: OwnedStructure) => s.hasOwnProperty("my") && s.my === false);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+};
+Room.prototype.getFreeSpawn = function(): StructureSpawn {
+	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || this.mySpawns[0];
 };
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	let allConstructionSites: ConstructionSite[] = [];
@@ -235,29 +241,34 @@ Room.prototype.getMinerals = function(): Mineral[] {
 	}
 	return allMinerals;
 };
+Room.prototype.getSources = function(): Source[] {
+	let allSources: Source[] = [];
+	if (!!this.memory.allSources && _.isArray(this.memory.allSources)) {
+		this.memory.allSources.forEach((s: string) => allSources.push(Game.getObjectById<Source>(s)));
+	} else {
+		allSources = this.find(FIND_SOURCES) as Source[];
+		this.memory.allSources = [];
+		allSources.forEach((s: Source) => this.memory.allSources.push(s.id));
+	}
+	return allSources;
+};
 Room.prototype.addProperties = function () {
-	switch (Game.time % 8) {
-		case 0:
-			delete this.memory.allStructures;
-			break;
-		case 2:
-			delete this.memory.allConstructionSites;
-			break;
-		case 4:
-			// TODO: Might have to split this to creep every tick and cost every n ticks.
-			delete this.memory.costMatrix;
-			break;
-		case 6:
-			delete this.memory.allMinerals;
-			break;
-		default:
-			// do nothing.
+	if (Game.time % 100 === 0) {
+		delete this.memory.allSources;
+		delete this.memory.allMinerals;
+	}
+	if (Game.time % 10 === 0) {
+		delete this.memory.allStructures;
+		delete this.memory.allConstructionSites;
+		// TODO: Might have to split this to creep every tick and cost every n ticks.
+		delete this.memory.costMatrix;
 	}
 	delete this.memory.creepMatrix;
 	this.allStructures = this.getAllStructures();
 	this.allCreeps = this.getAllCreeps();
 	this.allConstructionSites = this.getAllConstructionSites();
 	this.minerals = this.getMinerals();
+	this.sources = this.getSources();
 
 	this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
 	this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
