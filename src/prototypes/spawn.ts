@@ -52,6 +52,10 @@ StructureSpawn.prototype.renewCreeps = function(): void {
 		if (!!prio) {
 			this.renewCreep(prio);
 			this.isBusy = true;
+			if (targets.length > 4 && prio.ticksToLive > 400) {
+				// Send away the creep with the highest TTL if we're crowded to keep things moving.
+				prio.memory.hasRenewed = true;
+			}
 		}
 	}
 };

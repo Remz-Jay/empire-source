@@ -112,7 +112,7 @@ export default class CreepAction implements ICreepAction {
 		return retVal;
 	}
 
-	public moveTo(target: RoomPosition|PathFinderGoal): string | number {
+	public moveTo(target: RoomPosition|PathFinderGoal, retry: boolean = false): string | number {
 		try {
 			let pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
 			let path: RoomPosition[] = [];
@@ -136,13 +136,13 @@ export default class CreepAction implements ICreepAction {
 				let lp = this.creep.memory.lastPosition;
 				if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 					this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
-					if (this.creep.memory.stuckTicks > 1) {
+					if (this.creep.memory.stuckTicks > 2) {
 						Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
 							+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
 						this.creep.memory.stuckTicks = undefined;
 						this.creep.memory.lastPosition = undefined;
 						this.creep.memory.pfgPath = undefined;
-						return this.moveTo(pfg);
+						return (retry) ? ERR_NOT_FOUND : this.moveTo(pfg, true);
 					}
 				} else {
 					delete this.creep.memory.stuckTicks;
@@ -153,17 +153,14 @@ export default class CreepAction implements ICreepAction {
 				pos = path.shift();
 			}
 			if (this.creep.pos.isNearTo(pos)) {
-				this.creep.memory.lastPosition = this.creep.pos;
 				let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
 				if (status === OK) {
+					this.creep.memory.lastPosition = this.creep.pos;
 					this.creep.memory.pfgPath = path;
-				} else if (status === ERR_NOT_FOUND) {
-					delete this.creep.memory.pfgPath;
-					return this.moveTo(pfg);
 				} else if (status === ERR_TIRED) {
 					// Delete the lastPosition, because the creep hasn't moved due to it being tired. No need to recalculate route now.
-					delete this.creep.memory.lastPosition;
-					delete this.creep.memory.stuckTicks;
+					this.creep.memory.lastPosition = undefined;
+					this.creep.memory.stuckTicks = undefined;
 				}
 				return status;
 			} else {
@@ -171,7 +168,7 @@ export default class CreepAction implements ICreepAction {
 				this.creep.memory.stuckTicks = undefined;
 				this.creep.memory.lastPosition = undefined;
 				this.creep.memory.pfgPath = undefined;
-				// return this.moveTo(pfg);
+				return (retry) ? ERR_NOT_FOUND : this.moveTo(pfg, true);
 			}
 		} catch (e) {
 			console.log(e.message, JSON.stringify(target), "creepAction.moveTo");
@@ -285,13 +282,13 @@ export default class CreepAction implements ICreepAction {
 		let plainCost = 2;
 		let swampCost = 6;
 		if (_.sum(this.creep.carry) > (this.creep.carryCapacity / 2)) {
-			plainCost = 4;
+			plainCost = 2;
 			swampCost = 10;
 		}
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			maxOps: 1000,
+			maxOps: 3000,
 			plainCost: plainCost,
 			swampCost: swampCost,
 			roomCallback: this.roomCallback,

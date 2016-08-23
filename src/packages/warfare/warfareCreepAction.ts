@@ -221,10 +221,10 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 		return true;
 	}
-	public rangedAttack(): boolean {
+	public rangedAttack(doMass: boolean = true): boolean {
 		let targets: Creep[] = this.creep.pos.findInRange<Creep>(FIND_HOSTILE_CREEPS, 3);
 		if (targets.length > 0) {
-			if (targets.length > 1) {
+			if (doMass && targets.length > 1) {
 				this.creep.rangedMassAttack();
 				return false;
 			} else {

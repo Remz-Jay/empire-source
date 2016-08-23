@@ -52,7 +52,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 	}
 
 	public moveToHeal(): boolean {
-		if (this.creep.getActiveBodyparts(RANGED_ATTACK) < 2) {
+		if (this.creep.getActiveBodyparts(RANGED_ATTACK) < 3) {
 			this.positionIterator = this.creep.memory.positionIterator = 0;
 			this.moveUsingPositions();
 		}
@@ -223,13 +223,13 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 					if (this.heal()) {
 						delete this.creep.memory.waitForHealth;
-						if (!this.rangedAttack() || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+						if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 							this.creep.memory.inCombat = true;
 						} else {
 							delete this.creep.memory.inCombat;
 						}
 					} else {
-						if (!this.rangedAttack() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+						if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 							this.creep.memory.inCombat = true;
 						} else {
 							delete this.creep.memory.inCombat;

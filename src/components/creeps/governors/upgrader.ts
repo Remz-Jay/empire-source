@@ -41,9 +41,9 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getBody() {
-		if (this.room.name === "W6N42") {
+/*		if (this.room.name === "W6N42" || this.room.name === "W5N42") {
 			this.maxParts = 1;
-		}
+		}*/
 		return super.getBody();
 	}
 }

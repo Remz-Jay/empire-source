@@ -16,6 +16,8 @@ import ASMMule from "./roles/mule";
 
 import SentinelGovernor from "../warfare/governors/sentinel";
 import Terminator from "../warfare/roles/terminator";
+import ASMRaiderGovernor from "./governors/raider";
+import ASMRaider from "./roles/raider";
 
 function initMemory(): void {
 	if (!Memory.assimilation) {
@@ -296,6 +298,28 @@ function manageMules(containers: StructureContainer[]) {
 	}
 }
 
+function manageRaiders(roomName: string) {
+	// we need raiders
+	let governor = new ASMRaiderGovernor(homeRoom, homeSpawn, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMRaiderGovernor.ROLE.toUpperCase()
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
+	if (creepsInRole.length > 0) {
+		_.each(creepsInRole, function (creep: Creep) {
+			if (!creep.spawning) {
+				let role: ASMRaider = new ASMRaider();
+				role.setCreep(<Creep> creep);
+				role.setGoHome(goHome);
+				role.setGovernor(governor);
+				role.action();
+			}
+		}, this);
+	}
+	if (creepsInRole.length < governor.getCreepLimit() && !isSpawning && !goHome) {
+		isSpawning = true;
+		createCreep(homeSpawn, governor.getCreepConfig());
+	}
+}
+
 export function govern(): void {
 	setup();
 	_.each(Memory.assimilation.targets, function(roomName) {
@@ -307,6 +331,14 @@ export function govern(): void {
 				targetRoom = RoomManager.getRoomByName(roomName);
 				isSpawning = false;
 				goHome = false;
+				if (roomName === "W3N42") {
+					try {
+						manageRaiders(roomName);
+					} catch (e) {
+						console.log(e.message, "ASM.manageRaiders");
+					}
+					return;
+				}
 				if (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1) {
 					try {
 						manageClaim(roomName, config.claim);

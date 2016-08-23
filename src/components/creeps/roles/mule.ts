@@ -71,8 +71,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			filter: (structure: EnergyStructure) => (
 				blackList.indexOf(structure.id) === -1 && (
 					(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
-					|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.7))
-					|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.5))
+					|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.75))
+					|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.85))
 				)
 			),
 			costCallback: this.roomCallback,

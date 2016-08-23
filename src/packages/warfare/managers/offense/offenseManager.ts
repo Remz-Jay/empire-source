@@ -79,13 +79,8 @@ let sqibConfig = {
 let artilleryConfig = {
 	roles: [
 		{
-			"governor": TankGovernor,
-			"role": Tank,
-			"maxCreeps": 0,
-		},
-		{
-			"governor": HealerGovernor,
-			"role": Healer,
+			"governor": FasterminatorGovernor,
+			"role": Terminator,
 			"maxCreeps": 0,
 		},
 	],
@@ -112,6 +107,11 @@ let assaultConfig = {
 	],
 	wait: false,
 };
+
+let helpPositions: RoomPosition[] = [
+	new RoomPosition(47, 43, "W7N44"),
+	new RoomPosition(9, 41, "W6N44"),
+];
 
 let dismantlePositions: RoomPosition[] = [
 	new RoomPosition(46, 31, "W5N42"),
@@ -332,7 +332,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.squad = creeps;
 				role.squadSize = squadSize;
 				if (resetIterator) {
-					c.memory.positionIterator = 1;
+					c.memory.positionIterator = 0;
 				}
 				role.setGovernor(governor);
 				role.action();
@@ -378,6 +378,9 @@ export function govern(): void {
 					break;
 				case "W3N42": // 10CPU Main
 					manageSquad(roomName, dismantleConfig, dismantlePositions);
+					break;
+				case "W6N44":
+					manageSquad(roomName, artilleryConfig, helpPositions);
 					break;
 				default:
 					manageSquad(roomName, squadConfig, positions);

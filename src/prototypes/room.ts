@@ -89,8 +89,11 @@ Room.prototype.getCreepMatrix = function () {
 		} else {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
-			this.allCreeps.forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 100);
+			this.myCreeps.forEach(function (creep: Creep) {
+				costMatrix.set(creep.pos.x, creep.pos.y, 15);
+			});
+			this.hostileCreeps.forEach(function (creep: Creep) {
+				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
 			this.setCreepMatrix(costMatrix);
@@ -106,18 +109,19 @@ Room.prototype.getCreepMatrix = function () {
 Room.prototype.getCostMatrix = function () {
 	this.roomConfig = {
 		W7N44: [
-			{x: 27, y: 30, w: 20}, // container next to extension, keep free for mule to deliver energy.
+			{x: 27, y: 30, w: 9}, // container next to extension, keep free for mule to deliver energy.
 		],
 		W6N42: [
-			{x: 11, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
-			{x: 12, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
+			{x: 11, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
+			{x: 12, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
+			{x: 25, y: 5, w: 9}, // Narrow Path near upper Source in the corner.
 		],
 		W5N42: [
-			{x: 37, y: 24, w: 20}, // Narrow Path in the tower bulwark
-			{x: 38, y: 25, w: 20}, // Narrow Path in the tower bulwark
-			{x: 43, y: 22, w: 20}, // Narrow Path, route to W4N42
-			{x: 43, y: 23, w: 20}, // Narrow Path, route to W4N42
-			{x: 43, y: 24, w: 20}, // Narrow Path, route to W4N42
+			{x: 37, y: 24, w: 9}, // Narrow Path in the tower bulwark
+			{x: 38, y: 25, w: 9}, // Narrow Path in the tower bulwark
+			{x: 43, y: 22, w: 9}, // Narrow Path, route to W4N42
+			{x: 43, y: 23, w: 9}, // Narrow Path, route to W4N42
+			{x: 43, y: 24, w: 9}, // Narrow Path, route to W4N42
 		],
 	};
 	try {
@@ -135,6 +139,11 @@ Room.prototype.getCostMatrix = function () {
 					(structure.structureType !== STRUCTURE_RAMPART)) {
 					// Can't walk through non-walkable buildings
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
+				}
+			});
+			this.allStructures.forEach((s: OwnedStructure) => {
+				if (s.structureType === STRUCTURE_RAMPART && !s.my) {
+					costs.set(s.pos.x, s.pos.y, 0xff);
 				}
 			});
 			this.allConstructionSites.forEach(function (site: ConstructionSite) {
