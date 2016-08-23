@@ -36,7 +36,10 @@ StructureSpawn.prototype.getPriorityCreep = function(creeps: Creep[], reverse = 
 };
 
 StructureSpawn.prototype.renewCreeps = function(): void {
-	let creeps = this.pos.findInRange(FIND_MY_CREEPS, 1);
+	let creeps = this.pos.findInRange(FIND_MY_CREEPS, 1, {
+		filter: (c: Creep) => c.ticksToLive < 1400
+		&& c.getActiveBodyparts(CLAIM) === 0,
+	});
 	let targets = creeps.filter((c: Creep) => c.ticksToLive < 100);
 	if (targets.length > 0) {
 		let prio = this.getPriorityCreep(targets);
@@ -46,16 +49,20 @@ StructureSpawn.prototype.renewCreeps = function(): void {
 			return;
 		}
 	}
-	targets = creeps.filter((c: Creep) => c.memory.hasRenewed === false && c.ticksToLive < 1500);
+	targets = creeps.filter((c: Creep) => c.memory.hasRenewed === false);
+	let prio: Creep;
 	if (targets.length > 0) {
-		let prio = this.getPriorityCreep(targets, true);
-		if (!!prio) {
-			this.renewCreep(prio);
-			this.isBusy = true;
-			if (targets.length > 4 && prio.ticksToLive > 400) {
-				// Send away the creep with the highest TTL if we're crowded to keep things moving.
-				prio.memory.hasRenewed = true;
-			}
+		prio = this.getPriorityCreep(targets, true);
+		this.isBusy = true;
+	} else if (creeps.length > 0) {
+		prio = this.getPriorityCreep(creeps);
+		this.isBusy = false;
+	}
+	if (!!prio) {
+		this.renewCreep(prio);
+		if (targets.length > 4 && prio.ticksToLive > 400) {
+			// Send away the creep with the highest TTL if we're crowded to keep things moving.
+			prio.memory.hasRenewed = true;
 		}
 	}
 };

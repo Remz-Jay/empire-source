@@ -1,6 +1,5 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
 import * as SourceManager from "../../sources/sourceManager";
-import * as SpawnManager from "../../spawns/spawnManager";
 import * as Config from "../../../config/config";
 
 export default class HarvesterGovernor extends CreepGovernor implements ICreepGovernor {
@@ -41,11 +40,12 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
 		let name: string = null;
+		let spawn = this.room.getFreeSpawn();
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().name,
+			homeSpawn: spawn.name,
 			role: HarvesterGovernor.ROLE,
-			target_energy_dropoff_id: SpawnManager.getFirstSpawn().id,
+			target_energy_dropoff_id: spawn.id,
 			target_source_id: SourceManager.getFirstSource().id,
 		};
 		return {body: bodyParts, name: name, properties: properties};

@@ -1,5 +1,4 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as SpawnManager from "../../spawns/spawnManager";
 import * as Config from "../../../config/config";
 
 export default class MinerGovernor extends CreepGovernor implements ICreepGovernor {
@@ -17,7 +16,7 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().name,
+			homeSpawn: this.room.getFreeSpawn().name,
 			role: MinerGovernor.ROLE,
 		};
 		return {body: bodyParts, name: name, properties: properties};

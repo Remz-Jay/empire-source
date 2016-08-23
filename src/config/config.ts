@@ -128,7 +128,7 @@ export function translateErrorCode(errorCode: number): string {
 	}
 };
 
-export let resourceTypes: string[] = [
+export const RESOURCE_TYPES: string[] = [
 	RESOURCE_HYDROGEN,
 	RESOURCE_OXYGEN,
 	RESOURCE_UTRIUM,

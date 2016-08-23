@@ -164,7 +164,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		let done: boolean = false;
-		Config.resourceTypes.forEach((r: string) => {
+		Config.RESOURCE_TYPES.forEach((r: string) => {
 			if (done) {
 				return;
 			}

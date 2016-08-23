@@ -16,8 +16,6 @@ export interface ICreepAction {
 	moveTo(target: RoomPosition|PathFinderGoal): string | number;
 
 	needsRenew(): boolean;
-	tryRenew(): number;
-	moveToRenew(): void;
 	pickupResourcesInRange(): void;
 	nextStepIntoRoom(): boolean;
 
@@ -37,7 +35,6 @@ export default class CreepAction implements ICreepAction {
 
 	public setCreep(creep: Creep) {
 		this.creep = creep;
-		this.renewStation = Game.getObjectById<Spawn>(this.creep.memory.homeSpawn);
 	}
 
 	public setGovernor(governor: CreepGovernor): void {
@@ -244,16 +241,6 @@ export default class CreepAction implements ICreepAction {
 
 	public needsRenew(): boolean {
 		return (this.creep.ticksToLive < this._minLifeBeforeNeedsRenew);
-	}
-
-	public tryRenew(): number {
-		return this.renewStation.renewCreep(this.creep);
-	}
-
-	public moveToRenew(): void {
-		if (this.tryRenew() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.renewStation.pos);
-		}
 	}
 
 	public createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number = 1): PathFinderGoal {
