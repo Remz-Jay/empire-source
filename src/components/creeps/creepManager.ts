@@ -1,5 +1,4 @@
 import * as Config from "./../../config/config";
-import * as SpawnManager from "./../spawns/spawnManager";
 import CreepAction from "./creepAction";
 import CreepGovernor from "./creepGovernor";
 import Harvester from "./roles/harvester";
@@ -51,8 +50,8 @@ export function loadCreeps(): void {
 		console.log(creepCount + " creeps found in the playground.");
 	}
 }
-export function createCreep(config: CreepConfiguration): string|number {
-	let spawn = SpawnManager.getFreeSpawn();
+export function createCreep(room: Room, config: CreepConfiguration): string|number {
+	let spawn = room.getFreeSpawn();
 	if (!!spawn) {
 		let status: number | string = spawn.canCreateCreep(config.body, config.name);
 		if (status === OK) {
@@ -96,7 +95,7 @@ export function governCreeps(room: Room): CreepStats {
 			);
 			if (numCreeps < creepLimit && !isSpawning) {
 				let config: CreepConfiguration = governor.getCreepConfig();
-				if (!_.isNumber(this.createCreep(config))) {
+				if (!_.isNumber(this.createCreep(room, config))) {
 					isSpawning = true;
 				} else if (governor.emergency) {
 					isSpawning = true; // prevent spawning of other roles until the emergency is over.

@@ -1,6 +1,5 @@
 import * as Config from "./../../config/config";
 import * as CreepManager from "./../creeps/creepManager";
-import * as SpawnManager from "./../spawns/spawnManager";
 import * as SourceManager from "./../sources/sourceManager";
 import * as WallManager from "../walls/wallManager";
 import * as RampartManager from "../ramparts/rampartManager";
@@ -23,18 +22,6 @@ export function loadRooms() {
 		let count = _.size(rooms);
 		console.log(count + " rooms found.");
 	}
-}
-
-export function reloadCaches() {
-	for (let roomName in rooms) {
-		if (rooms.hasOwnProperty(roomName)) {
-			rooms[roomName].reloadCache();
-		}
-	}
-}
-
-export function getFirstRoom(): Room {
-	return rooms[roomNames[0]];
 }
 
 export function getRoomByName(roomName: string): Room {
@@ -72,9 +59,10 @@ export function governRooms(): void {
 			WallManager.adjustStrength();
 			RampartManager.load(room);
 			RampartManager.adjustStrength();
-			SpawnManager.load(room);
-			if (SpawnManager.hasSpawn()) {
-				SpawnManager.renewCreeps();
+			if (room.mySpawns.length > 0) {
+				room.mySpawns.forEach(function(s: StructureSpawn) {
+					s.renewCreeps();
+				});
 				SourceManager.load(room);
 				SourceManager.updateHarvesterPreference();
 				if (room.controller.level > 1 && room.numberOfCreeps < 5) {

@@ -346,6 +346,7 @@ export default class CreepAction implements ICreepAction {
 			Memory.log.creeps.push("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 				+ homeRoom.name + " due to emergency energy level " + (homeRoom.energyAvailable));
 			this.creep.memory.hasRenewed = true;
+			delete this.creep.memory.renewStation;
 			return true;
 		}
 		if (this.creep.ticksToLive < 250) {
@@ -386,6 +387,7 @@ export default class CreepAction implements ICreepAction {
 					}
 					if (this.creep.ticksToLive > max) {
 						this.creep.memory.hasRenewed = true;
+						delete this.creep.memory.renewStation;
 						delete this.creep.memory.renewPath;
 					}
 				}
@@ -479,9 +481,6 @@ export default class CreepAction implements ICreepAction {
 
 	public action(): boolean {
 		this.pickupResourcesInRange();
-		if (!this.renewCreep()) {
-			return false;
-		}
-		return true;
+		return this.renewCreep();
 	}
 }

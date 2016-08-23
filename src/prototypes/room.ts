@@ -218,7 +218,7 @@ Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
 };
 Room.prototype.getFreeSpawn = function(): StructureSpawn {
-	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || this.mySpawns.sample();
+	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || _.sample(this.mySpawns);
 };
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	let allConstructionSites: ConstructionSite[] = [];

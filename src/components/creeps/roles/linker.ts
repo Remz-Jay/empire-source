@@ -191,7 +191,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				done = true;
 			}
 		}, this);
-		return (done) ? true : false;
+		return !!(done);
 	}
 	public cleanUp(): boolean {
 		if (_.sum(this.creep.carry) > 0) {

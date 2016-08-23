@@ -16,7 +16,7 @@ export default class Tank extends WarfareCreepAction {
 				tough += part.hits;
 			}
 		});
-		return (tough > 50) ? true : false;
+		return (tough > 50);
 	}
 
 	public moveToHeal(): boolean {

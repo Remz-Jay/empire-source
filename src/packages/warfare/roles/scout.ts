@@ -31,7 +31,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 				tough += part.hits;
 			}
 		});
-		return (tough > 50) ? true : false;
+		return (tough > 50);
 	}
 
 	public moveToHeal(): boolean {
@@ -141,7 +141,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 			flag.pos.x + 1,
 			true // returns a LookAtResultWithPos[]
 		) as LookAtResultWithPos[];
-		return (lookResults.length === this.squadSize) ? true : false;
+		return (lookResults.length === this.squadSize);
 	}
 	public action(): boolean {
 		if (!!this.creep.memory.inCombat || super.renewCreep()) {

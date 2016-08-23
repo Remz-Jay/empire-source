@@ -41,8 +41,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	}
 
 	public checkTough(): boolean {
-		let tough: number = this.creep.getActiveBodyparts(TOUGH);
-		return (tough > 0) ? true : false;
+		return (this.creep.getActiveBodyparts(TOUGH) > 0);
 	}
 
 	public moveToHeal(): boolean {
