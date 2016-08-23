@@ -17,7 +17,6 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: ASMBuilderGovernor.ROLE,
 			config: this.config,
 		};

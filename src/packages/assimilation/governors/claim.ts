@@ -12,8 +12,8 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 	public maxCreeps = 1;
 	public bodyPart = [CLAIM, MOVE];
 
-	constructor(homeRoom: Room, homeSpawn: Spawn, config: RemoteRoomConfig, claim: boolean = false) {
-		super(homeRoom, homeSpawn, config);
+	constructor(homeRoom: Room, config: RemoteRoomConfig, claim: boolean = false) {
+		super(homeRoom, config);
 		this.claim = claim;
 	}
 
@@ -22,7 +22,6 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: ClaimGovernor.ROLE,
 			config: this.config,
 		};

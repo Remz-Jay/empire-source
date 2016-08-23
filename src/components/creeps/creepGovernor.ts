@@ -85,7 +85,7 @@ export default class CreepGovernor implements ICreepGovernor {
 		this.room = room;
 	}
 	public getCreepConfig(): CreepConfiguration {
-		return {body: [], name: "", properties: {role: null, homeRoom: null, homeSpawn: null}};
+		return {body: [], name: "", properties: {role: null, homeRoom: null}};
 	}
 
 	public getCreepLimit(): number {

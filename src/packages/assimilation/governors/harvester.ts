@@ -12,8 +12,8 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	public maxCreeps: number = 1;
 	public containers: StructureContainer[] = [];
 
-	constructor(homeRoom: Room, homeSpawn: Spawn, config: RemoteRoomConfig, containers: StructureContainer[]) {
-		super(homeRoom, homeSpawn, config);
+	constructor(homeRoom: Room, config: RemoteRoomConfig, containers: StructureContainer[]) {
+		super(homeRoom, config);
 		this.containers = containers;
 	}
 
@@ -22,7 +22,6 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: ASMHarvesterGovernor.ROLE,
 			config: this.config,
 			container: this.checkContainerAssignment(),

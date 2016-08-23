@@ -16,7 +16,6 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 		let spawn = this.room.getFreeSpawn();
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: spawn.name,
 			role: MuleGovernor.ROLE,
 			target_controller_id: this.room.controller.id,
 			target_energy_source_id: spawn.id,

@@ -43,7 +43,6 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 		let spawn = this.room.getFreeSpawn();
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: spawn.name,
 			role: HarvesterGovernor.ROLE,
 			target_energy_dropoff_id: spawn.id,
 			target_source_id: SourceManager.getFirstSource().id,

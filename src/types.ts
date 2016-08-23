@@ -19,7 +19,6 @@ declare interface CreepConfiguration {
 declare interface CreepProperties {
 	role: string;
 	homeRoom: string;
-	homeSpawn: string;
 	targetRoom?: string;
 	target_link_id?: string;
 	target_storage_id?: string;

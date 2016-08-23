@@ -16,7 +16,6 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.room.getFreeSpawn().name,
 			role: LinkerGovernor.ROLE,
 			target_link_id: this.getStorageLink().id,
 			target_storage_id: this.room.storage.id,

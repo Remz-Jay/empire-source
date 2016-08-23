@@ -16,7 +16,6 @@ export default class RangerGovernor extends WarfareCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: RangerGovernor.ROLE,
 			config: this.config,
 		};

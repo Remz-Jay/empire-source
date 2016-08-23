@@ -16,7 +16,6 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.room.getFreeSpawn().name,
 			role: MinerGovernor.ROLE,
 		};
 		return {body: bodyParts, name: name, properties: properties};

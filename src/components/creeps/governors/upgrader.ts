@@ -17,7 +17,6 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 		let spawn = this.room.getFreeSpawn();
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: spawn.name,
 			role: UpgraderGovernor.ROLE,
 			target_controller_id: this.room.controller.id,
 			target_energy_source_id: spawn.id,

@@ -18,7 +18,6 @@ export default class DismantlerGovernor extends WarfareCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: DismantlerGovernor.ROLE,
 			config: this.config,
 		};

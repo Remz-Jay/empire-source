@@ -316,7 +316,7 @@ export default class CreepAction implements ICreepAction {
 
 	public expireCreep(): boolean {
 		// see if an upgrade for this creep is available
-		if (!!this.creep.memory.homeRoom && !!this.creep.memory.homeSpawn) {
+		if (!!this.creep.memory.homeRoom) {
 			try {
 				let room = RoomManager.getRoomByName(this.creep.memory.homeRoom);
 				let x: number = this.governor.getNumberOfCreepsInRole();

@@ -19,7 +19,6 @@ export default class SentinelGovernor extends WarfareCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: SentinelGovernor.ROLE,
 			config: this.config,
 		};

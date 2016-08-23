@@ -40,7 +40,6 @@ function initMemory(): void {
 
 let config: RemoteRoomConfig;
 let homeRoom: Room;
-let homeSpawn: StructureSpawn;
 let targetRoom: Room;
 
 let squadConfig = {
@@ -281,7 +280,8 @@ function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string)
 	}
 }
 
-function createCreep(spawn: StructureSpawn, creepConfig: CreepConfiguration): string|number {
+function createCreep(creepConfig: CreepConfiguration): string|number {
+	let spawn = homeRoom.getFreeSpawn();
 	let status: number | string = spawn.canCreateCreep(creepConfig.body, creepConfig.name);
 	if (status === OK) {
 		status = spawn.createCreepWhenIdle(creepConfig.body, creepConfig.name, creepConfig.properties);
@@ -318,7 +318,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 		wait = true;
 	}
 	_.each(sq.roles, function(squadRole) {
-		let governor = new squadRole.governor(homeRoom, homeSpawn, config);
+		let governor = new squadRole.governor(homeRoom, config);
 		let creepsInRole = _.filter(creeps, (c: Creep) => c.memory.role === squadRole.governor.ROLE);
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
 		_.each(creepsInRole, function(c: Creep){
@@ -338,7 +338,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
-					let status = createCreep(homeSpawn, governor.getCreepConfig());
+					let status = createCreep(governor.getCreepConfig());
 					if (_.isNumber(status)) {
 						console.log("manageSquad.preempt-spawn", Config.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
 					} else {
@@ -348,7 +348,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 			}
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
-			let status = createCreep(homeSpawn, governor.getCreepConfig());
+			let status = createCreep(governor.getCreepConfig());
 			if (_.isNumber(status)) {
 				console.log("manageSquad.spawn", Config.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
 			} else {
@@ -364,7 +364,6 @@ export function govern(): void {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);
 			homeRoom = RoomManager.getRoomByName(config.homeRoom);
-			homeSpawn = homeRoom.mySpawns[0];
 			targetRoom = RoomManager.getRoomByName(roomName);
 			switch (roomName) {
 				case "W5N43": // Dummy for Kov Main secondary force
