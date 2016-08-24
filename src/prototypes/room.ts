@@ -11,6 +11,7 @@ interface Room {
 	myStructures: OwnedStructure[];
 	hostileStructures: OwnedStructure[];
 	mySpawns: StructureSpawn[];
+	myLabs: StructureLab[];
 	allConstructionSites: ConstructionSite[];
 	myConstructionSites: ConstructionSite[];
 	sources: Source[];
@@ -35,6 +36,7 @@ interface Room {
 	getMyStructures(): OwnedStructure[];
 	getHostileStructures(): OwnedStructure[];
 	getMySpawns(): StructureSpawn[];
+	getMyLabs(): StructureLab[];
 	getFreeSpawn(): StructureSpawn;
 	getAllConstructionSites(): ConstructionSite[];
 	getMyConstructionSites(): ConstructionSite[];
@@ -217,6 +219,9 @@ Room.prototype.getHostileStructures = function (): OwnedStructure[] {
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
 };
+Room.prototype.getMyLabs = function(): StructureLab[] {
+	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LAB);
+};
 Room.prototype.getFreeSpawn = function(): StructureSpawn {
 	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || _.sample(this.mySpawns);
 };
@@ -269,9 +274,9 @@ Room.prototype.addProperties = function () {
 	if (Game.time % 10 === 0) {
 		delete this.memory.allStructures;
 		delete this.memory.allConstructionSites;
-		// TODO: Might have to split this to creep every tick and cost every n ticks.
 		delete this.memory.costMatrix;
 	}
+
 	delete this.memory.creepMatrix;
 	this.allStructures = this.getAllStructures();
 	this.allCreeps = this.getAllCreeps();
@@ -282,6 +287,7 @@ Room.prototype.addProperties = function () {
 	this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
 	this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
 	this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
+	this.myLabs = (!!this.controller && !!this.controller.my) ? this.getMyLabs() : [];
 
 	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
 	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
@@ -293,40 +299,4 @@ Room.prototype.addProperties = function () {
 	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
 	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
 	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
-};
-
-Room.prototype.reloadCache = function(): void {
-	switch (Game.time % 4) {
-		case 0:
-			delete this.memory.allStructures;
-			this.allStructures = this.getAllStructures();
-			this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
-			this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
-			this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
-			this.containers = (this.allStructures.length > 0) ? this.getContainers() : [];
-			break;
-		case 1:
-			delete this.memory.allConstructionSites;
-			this.allConstructionSites = this.getAllConstructionSites();
-			this.myConstructionSites = (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
-			break;
-		case 2:
-			// TODO: Might have to split this to creep every tick and cost every n ticks.
-			this.expireMatrices();
-			break;
-		case 3:
-			delete this.memory.allMinerals;
-			this.minerals = this.getMinerals();
-			break;
-		default:
-			throw new Error("Room.prototype.ModuloException");
-	}
-	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
-	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
-	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
-
-	this.allCreeps = this.getAllCreeps();
-	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
-	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
-	this.hostileCreeps = (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
 };

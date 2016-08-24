@@ -92,25 +92,33 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 				if (target.hits === target.hitsMax) {
 					delete this.creep.memory.target;
 				}
-				let status = this.creep.repair(target);
-				switch (status) {
-					case OK:
-						break;
-					case ERR_BUSY:
-					case ERR_INVALID_TARGET:
-					case ERR_NOT_OWNER:
-						delete this.creep.memory.target;
-						break;
-					case ERR_NOT_ENOUGH_RESOURCES:
-						delete this.creep.memory.target;
-						delete this.creep.memory.repairing;
-						break;
-					case ERR_NOT_IN_RANGE:
-						this.moveTo(target.pos);
-						break;
-					case ERR_NO_BODYPART:
-					default:
-						console.log("repairBot.repair.status: this should not happen");
+				if (this.creep.pos.getRangeTo(target) > 3) {
+					this.moveTo(target.pos);
+					let movingTargets = this.creep.pos.findInRange(this.creep.room.allStructures, 3, {
+						filter: (s: Structure) => s.hits < (s.hitsMax * 0.91),
+					});
+					if (movingTargets.length) {
+						this.creep.repair(_.sortBy(movingTargets, ["hits"]).pop());
+					}
+				} else {
+					let status = this.creep.repair(target);
+					switch (status) {
+						case OK:
+							break;
+						case ERR_BUSY:
+						case ERR_INVALID_TARGET:
+						case ERR_NOT_OWNER:
+							delete this.creep.memory.target;
+							break;
+						case ERR_NOT_ENOUGH_RESOURCES:
+							delete this.creep.memory.target;
+							delete this.creep.memory.repairing;
+							break;
+						case ERR_NOT_IN_RANGE:
+						case ERR_NO_BODYPART:
+						default:
+							console.log("repairBot.repair.status: this should not happen");
+					}
 				}
 			} else {
 				delete this.creep.memory.target;

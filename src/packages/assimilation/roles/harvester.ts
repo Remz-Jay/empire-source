@@ -51,6 +51,10 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public moveToHarvest(): void {
+		if (!this.source && !!Game.flags[this.creep.memory.config.targetRoom]) {
+			this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
+			return;
+		}
 		if (this.tryHarvest() === ERR_NOT_IN_RANGE) {
 			this.moveTo([{pos: this.source.pos, range: 0}]);
 		}

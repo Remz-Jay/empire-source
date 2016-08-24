@@ -51,6 +51,7 @@ export function governRooms(): void {
 	let CpuLinks = 0;
 	let CpuRoles = 0;
 	let CpuCreeps = 0;
+	let CpuLabs = 0;
 	for (let roomName in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		let room = getRoomByName(roomName);
@@ -68,11 +69,13 @@ export function governRooms(): void {
 				if (room.controller.level > 1 && room.numberOfCreeps < 5) {
 					Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
 				}
-				// this is one of our controlled rooms
-				console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
-					`${room.energyInContainers}/${room.containerCapacityAvailable} (${room.energyPercentage}%) in storage.` +
-					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
-				);
+				if (Config.ROOMSTATS) {
+					// this is one of our controlled rooms
+					console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
+						`${room.energyInContainers}/${room.containerCapacityAvailable} (${room.energyPercentage}%) in storage.` +
+						` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
+					);
+				}
 				CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
 				let CpuBeforeTowers = Game.cpu.getUsed();
@@ -91,6 +94,25 @@ export function governRooms(): void {
 				}
 				CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
 
+				let CpuBeforeLabs = Game.cpu.getUsed();
+				if (room.myLabs.length > 2) {
+					try {
+						if (!!Game.flags[room.name + "_LR"]) {
+							let flag = Game.flags[room.name + "_LR"];
+							let reaction = Config.labColors.resource(flag.color, flag.secondaryColor);
+							let reagents = Config.findReagents(reaction);
+							let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount > 0).pop();
+							let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount > 0).pop();
+							if (!!inLab1 && !!inLab2) {
+								let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
+								labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
+							}
+						}
+					} catch (e) {
+						console.log(`ERROR :: RoomManager.runLabs: ${e.message}`);
+					}
+				}
+				CpuLabs += (Game.cpu.getUsed() - CpuBeforeLabs);
 				// run the creeps in this room
 				let statObject: CreepStats = CreepManager.governCreeps(room);
 				CpuRoles += statObject.roles;
@@ -101,6 +123,7 @@ export function governRooms(): void {
 	StatsManager.addStat("cpu.roominit", CpuRoomInit);
 	StatsManager.addStat("cpu.towers", CpuTowers);
 	StatsManager.addStat("cpu.links", CpuLinks);
+	StatsManager.addStat("cpu.labs", CpuLabs);
 	StatsManager.addStat("cpu.roles", CpuRoles);
 	StatsManager.addStat("cpu.creeps", CpuCreeps);
 }
