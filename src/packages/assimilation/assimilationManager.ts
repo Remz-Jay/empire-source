@@ -256,7 +256,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 				role.setCreep(<Creep> creep);
 				role.setGovernor(governor);
 				role.action();
-				if (creep.ticksToLive < 100 && (creepsInRole.length === governor.getCreepLimit()) && !isSpawning) {
+				if (creep.ticksToLive < 100 && (creepsInRole.length === limit) && !isSpawning) {
 					// Do a preemptive spawn if this creep is about to expire.
 					isSpawning = true;
 					// TODO: might wanna remove the true here later
@@ -286,8 +286,11 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 				let role: Terminator = new Terminator();
 				role.setCreep(<Creep> creep);
 				role.setGovernor(governor);
+				if (!config.hasController) {
+					role.sourceKeeperDuty = true;
+				}
 				role.action();
-				if (creep.ticksToLive < 200 && (creepsInRole.length === governor.getCreepLimit()) && !isSpawning) {
+				if (creep.ticksToLive < 200 && (creepsInRole.length === limit) && !isSpawning) {
 					// Do a preemptive spawn if this creep is about to expire.
 					isSpawning = true;
 					// TODO: might wanna remove the true here later

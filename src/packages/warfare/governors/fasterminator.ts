@@ -12,7 +12,7 @@ export default class FasterminatorGovernor extends WarfareCreepGovernor {
 	public maxCreeps = 5;
 	public bodyPart = [RANGED_ATTACK, MOVE];
 	public toughPart = [TOUGH, MOVE];
-	public basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+	public basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

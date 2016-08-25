@@ -36,6 +36,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 
 	public hardPath: boolean = true;
 	public noTarget: boolean = false;
+	public sourceKeeperDuty: boolean = false;
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
 		super.setCreep(creep, positions);
@@ -188,8 +189,26 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					delete this.creep.memory.targetPath;
 				}
 			} else {
-				delete this.creep.memory.targetPath;
-				this.waitAtFlag(this.creep.memory.config.targetRoom);
+				if (this.sourceKeeperDuty) {
+					let lairs = this.creep.room.allStructures.filter(
+						(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
+						&& s.ticksToSpawn < 50
+						&& (s.pos.findInRange(FIND_SOURCES, 5).length > 0)
+					);
+					if (lairs.length > 0) {
+						if (this.creep.pos.getRangeTo(lairs[0].pos) > 5) {
+							this.moveTo([{pos: lairs[0].pos, range: 5}]);
+						} else {
+							this.creep.say("Come out!", true);
+						}
+					} else {
+						delete this.creep.memory.targetPath;
+						this.waitAtFlag(this.creep.memory.config.targetRoom);
+					}
+				} else {
+					delete this.creep.memory.targetPath;
+					this.waitAtFlag(this.creep.memory.config.targetRoom);
+				}
 			}
 		}
 	}

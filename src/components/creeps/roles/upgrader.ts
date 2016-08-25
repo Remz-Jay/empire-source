@@ -35,8 +35,10 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	}
 
 	public moveToCollectEnergy(): void {
-		if (this.tryCollectEnergy() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetEnergySource.pos)) {
 			this.moveTo(this.targetEnergySource.pos);
+		} else {
+			this.tryCollectEnergy();
 		}
 	}
 
@@ -45,15 +47,10 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	}
 
 	public moveToController(): void {
-		let status: number = this.tryUpgrading();
-		switch (status) {
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetController.pos);
-				break;
-			case OK:
-				break;
-			default:
-				console.log(`Upgrader error ${status}`);
+		if (!this.creep.pos.inRangeTo(this.targetController.pos, 3)) {
+			this.moveTo(this.targetController.pos);
+		} else {
+			this.tryUpgrading();
 		}
 	}
 

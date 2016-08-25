@@ -38,12 +38,9 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public tryHarvest(): number {
-		let targets: StructureContainer[] = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-			filter: function (s: StructureContainer) {
-				return s.structureType === STRUCTURE_CONTAINER &&
-					_.sum(s.store) < s.storeCapacity;
-			},
-		}) as StructureContainer[];
+		let targets: Structure[] = this.creep.room.containers.filter(
+			(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+		);
 		if (targets.length > 0) {
 			this.creep.transfer(targets[0], RESOURCE_ENERGY);
 		}
@@ -72,9 +69,6 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			let status = this.tryEnergyDropOff();
 			switch (status) {
 				case OK:
-					break;
-				case ERR_NOT_IN_RANGE:
-					this.moveTo(this.container.pos);
 					break;
 				case ERR_FULL:
 					this.repairInfra(1);

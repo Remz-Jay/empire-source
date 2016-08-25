@@ -458,38 +458,40 @@ export default class CreepAction implements ICreepAction {
 		if (!!this.creep.memory.source) {
 			let source: Structure | Source = Game.getObjectById(this.creep.memory.source) as Structure | Source;
 			if (source instanceof Structure) { // Sources aren't structures
-				let status = this.creep.withdraw(source, RESOURCE_ENERGY);
-				switch (status) {
-					case ERR_NOT_ENOUGH_RESOURCES:
-					case ERR_INVALID_TARGET:
-					case ERR_NOT_OWNER:
-					case ERR_FULL:
-						delete this.creep.memory.source;
-						break;
-					case ERR_NOT_IN_RANGE:
-						this.moveTo(source.pos);
-						break;
-					case OK:
-						break;
-					default:
-						throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+				if (!this.creep.pos.isNearTo(source)) {
+					this.moveTo(source.pos);
+				} else {
+					let status = this.creep.withdraw(source, RESOURCE_ENERGY);
+					switch (status) {
+						case ERR_NOT_ENOUGH_RESOURCES:
+						case ERR_INVALID_TARGET:
+						case ERR_NOT_OWNER:
+						case ERR_FULL:
+							delete this.creep.memory.source;
+							break;
+						case OK:
+							break;
+						default:
+							throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+					}
 				}
 			} else {
-				let status = this.creep.harvest(source);
-				switch (status) {
-					case ERR_NOT_ENOUGH_RESOURCES:
-					case ERR_INVALID_TARGET:
-					case ERR_NOT_OWNER:
-					case ERR_FULL:
-						delete this.creep.memory.source;
-						break;
-					case ERR_NOT_IN_RANGE:
-						this.moveTo(source.pos);
-						break;
-					case OK:
-						break;
-					default:
-						throw new Error(`Unhandled ERR in creep.source.harvest: ${status}`);
+				if (!this.creep.pos.isNearTo(source)) {
+					this.moveTo(source.pos);
+				} else {
+					let status = this.creep.harvest(source);
+					switch (status) {
+						case ERR_NOT_ENOUGH_RESOURCES:
+						case ERR_INVALID_TARGET:
+						case ERR_NOT_OWNER:
+						case ERR_FULL:
+							delete this.creep.memory.source;
+							break;
+						case OK:
+							break;
+						default:
+							throw new Error(`Unhandled ERR in creep.source.harvest: ${status}`);
+					}
 				}
 			}
 		}

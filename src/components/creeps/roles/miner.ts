@@ -82,19 +82,18 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public moveToMine(): void {
-		if (this.tryMining() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetMineralSource.pos)) {
 			this.moveTo(this.targetMineralSource.pos);
 		} else {
-			let targets: StructureContainer[] = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-				filter: function (s: StructureContainer) {
-					return s.structureType === STRUCTURE_CONTAINER &&
-						_.sum(s.store) < s.storeCapacity;
-				},
-			}) as StructureContainer[];
-			if (targets.length > 0) {
-				this.targetMineralDropOff = targets[0];
-				this.creep.memory.target_energy_dropoff_id = targets[0].id;
-				this.tryMineralDropOff();
+			if (this.tryMining() === OK) {
+				let targets: Structure[] = this.creep.room.containers.filter(
+					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+				);
+				if (targets.length > 0) {
+					this.targetMineralDropOff = targets[0];
+					this.creep.memory.target_energy_dropoff_id = targets[0].id;
+					this.tryMineralDropOff();
+				}
 			}
 		}
 	}
@@ -107,22 +106,20 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public moveToDropMinerals(): void {
-		let status = this.tryMineralDropOff();
-		switch (status) {
-			case ERR_NOT_ENOUGH_RESOURCES:
-			case OK:
-				break;
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetMineralDropOff.pos);
-				break;
-			case ERR_FULL:
-				this.assignNewDropOff();
-				break;
-			default:
-				console.log(`Miner energyDropOff error ${status}`);
-		}
-		if (this.tryMineralDropOff() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetMineralDropOff)) {
 			this.moveTo(this.targetMineralDropOff.pos);
+		} else {
+			let status = this.tryMineralDropOff();
+			switch (status) {
+				case ERR_NOT_ENOUGH_RESOURCES:
+				case OK:
+					break;
+				case ERR_FULL:
+					this.assignNewDropOff();
+					break;
+				default:
+					console.log(`Miner energyDropOff error ${status}`);
+			}
 		}
 	}
 

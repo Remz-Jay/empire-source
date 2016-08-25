@@ -92,7 +92,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 				if (target.hits === target.hitsMax) {
 					delete this.creep.memory.target;
 				}
-				if (this.creep.pos.getRangeTo(target) > 3) {
+				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 					this.moveTo(target.pos);
 					let movingTargets = this.creep.pos.findInRange(this.creep.room.allStructures, 3, {
 						filter: (s: Structure) => s.hits < (s.hitsMax * 0.91),

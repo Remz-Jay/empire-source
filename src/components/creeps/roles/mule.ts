@@ -57,8 +57,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	}
 
 	public moveToCollectEnergy(): void {
-		if (this.tryCollectEnergy() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetEnergySource.pos)) {
 			this.moveTo(this.targetEnergySource.pos);
+		} else {
+			this.tryCollectEnergy();
 		}
 	}
 
@@ -94,43 +96,44 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 
 	public dumpRoutine(target: Structure): void {
 		let status: number;
-		switch (target.structureType) {
-			case STRUCTURE_EXTENSION:
-			case STRUCTURE_SPAWN:
-			case STRUCTURE_TOWER:
-			case STRUCTURE_LINK:
-				status = this.creep.transfer(target, RESOURCE_ENERGY);
-				break;
-			case STRUCTURE_CONTAINER:
-			case STRUCTURE_STORAGE:
-				if (this.creep.carry.energy > 0) {
+		if (!this.creep.pos.isNearTo(target)) {
+			this.creep.memory.target = target.id;
+			this.moveTo(target.pos);
+		} else {
+			switch (target.structureType) {
+				case STRUCTURE_EXTENSION:
+				case STRUCTURE_SPAWN:
+				case STRUCTURE_TOWER:
+				case STRUCTURE_LINK:
 					status = this.creep.transfer(target, RESOURCE_ENERGY);
-				} else {
-					this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
-					status = this.creep.transfer(target, this.creep.memory.mineralType);
-				}
-				break;
-			default:
-				console.log(`Unhandled Structure in RoleMule.dumpRoutine: ${target.structureType} on target ${target}`);
-		}
-		switch (status) {
-			case ERR_NOT_IN_RANGE:
-				this.creep.memory.target = target.id;
-				this.moveTo(target.pos);
-				break;
-			case ERR_FULL:
-			case ERR_NOT_ENOUGH_RESOURCES:
-				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
-					delete this.creep.memory.target;
-					// We're empty, drop from idle to pick up new stuff to haul.
-					delete this.creep.memory.idle;
-					this.muleLogic();
-				}
-				break;
-			case OK:
-				break;
-			default:
-				console.log(`Status ${status} not defined for RoleMule.dump`);
+					break;
+				case STRUCTURE_CONTAINER:
+				case STRUCTURE_STORAGE:
+					if (this.creep.carry.energy > 0) {
+						status = this.creep.transfer(target, RESOURCE_ENERGY);
+					} else {
+						this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
+						status = this.creep.transfer(target, this.creep.memory.mineralType);
+					}
+					break;
+				default:
+					console.log(`Unhandled Structure in RoleMule.dumpRoutine: ${target.structureType} on target ${target}`);
+			}
+			switch (status) {
+				case ERR_FULL:
+				case ERR_NOT_ENOUGH_RESOURCES:
+					if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
+						delete this.creep.memory.target;
+						// We're empty, drop from idle to pick up new stuff to haul.
+						delete this.creep.memory.idle;
+						this.muleLogic();
+					}
+					break;
+				case OK:
+					break;
+				default:
+					console.log(`Status ${status} not defined for RoleMule.dump`);
+			}
 		}
 	};
 	public dumpAtStorage(): void {
@@ -265,12 +268,15 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					// scan for dropped energy if we have room
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
 						let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, {
+							filter: (r: Resource) => r.amount > 100,
 							maxRooms: 1,
 							costCallback: this.roomCallback,
 						}) as Resource;
 						if (!!target) {
-							if (this.creep.pickup(target) === ERR_NOT_IN_RANGE) {
+							if (!this.creep.pos.isNearTo(target)) {
 								this.moveTo(target.pos);
+							} else {
+								this.creep.pickup(target);
 							}
 						} else {
 							// No dropped energy found, proceed to offload at Storage.
@@ -289,26 +295,27 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			if (!!this.creep.memory.source) {
 				let source = Game.getObjectById(this.creep.memory.source);
 				if (source instanceof Structure) { // Sources aren't structures
-					if (!this.creep.memory.mineralType) {
-						this.creep.memory.mineralType = RESOURCE_ENERGY;
-					}
-					let status = this.creep.withdraw(source, this.creep.memory.mineralType, (this.creep.carryCapacity - _.sum(this.creep.carry)));
-					switch (status) {
-						case ERR_NOT_ENOUGH_RESOURCES:
-						case ERR_INVALID_TARGET:
-						case ERR_NOT_OWNER:
-						case ERR_FULL:
-							delete this.creep.memory.source;
-							this.setSource();
-							break;
-						case ERR_NOT_IN_RANGE:
-							this.creep.memory.source = source.id;
-							this.moveTo(source.pos);
-							break;
-						case OK:
-							break;
-						default:
-							console.log(`Unhandled ERR in RoleMule.source.container: ${status}`);
+					if (!this.creep.pos.isNearTo(source)) {
+						this.creep.memory.source = source.id;
+						this.moveTo(source.pos);
+					} else {
+						if (!this.creep.memory.mineralType) {
+							this.creep.memory.mineralType = RESOURCE_ENERGY;
+						}
+						let status = this.creep.withdraw(source, this.creep.memory.mineralType, (this.creep.carryCapacity - _.sum(this.creep.carry)));
+						switch (status) {
+							case ERR_NOT_ENOUGH_RESOURCES:
+							case ERR_INVALID_TARGET:
+							case ERR_NOT_OWNER:
+							case ERR_FULL:
+								delete this.creep.memory.source;
+								this.setSource();
+								break;
+							case OK:
+								break;
+							default:
+								console.log(`Unhandled ERR in RoleMule.source.container: ${status}`);
+						}
 					}
 				} else {
 					delete this.creep.memory.source;

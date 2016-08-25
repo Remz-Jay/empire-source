@@ -77,50 +77,49 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public dumpRoutine(target: Structure): void {
 		let status: number;
-		switch (target.structureType) {
-			case STRUCTURE_EXTENSION:
-			case STRUCTURE_SPAWN:
-			case STRUCTURE_TOWER:
-			case STRUCTURE_LINK:
-				status = this.creep.transfer(target, RESOURCE_ENERGY);
-				break;
-			case STRUCTURE_CONTAINER:
-			case STRUCTURE_STORAGE:
-				if (this.creep.carry.energy > 0) {
+		if (!this.creep.pos.isNearTo(target)) {
+			this.creep.memory.target = target.id;
+			this.moveTo(target.pos);
+		} else {
+			switch (target.structureType) {
+				case STRUCTURE_EXTENSION:
+				case STRUCTURE_SPAWN:
+				case STRUCTURE_TOWER:
+				case STRUCTURE_LINK:
 					status = this.creep.transfer(target, RESOURCE_ENERGY);
-				} else {
-					this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
-					status = this.creep.transfer(target, this.creep.memory.mineralType);
-				}
-				break;
-			default:
-				console.log(`Unhandled Structure in RoleMule.dumpRoutine: ${target.structureType} on target ${target}`);
-		}
-		switch (status) {
-			case ERR_NOT_IN_RANGE:
-				this.creep.memory.target = target.id;
-				this.moveTo(target.pos);
-				break;
-			case ERR_FULL:
-				let containers = this.creep.pos.findInRange<StorageStructure>(FIND_STRUCTURES, 1, {
-					filter: (s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE,
-				});
-				if (containers.length > 0) {
-					this.creep.transfer(containers[0], RESOURCE_ENERGY);
-				}
-				break;
-			case ERR_NOT_ENOUGH_RESOURCES:
-				if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
-					delete this.creep.memory.target;
-					// We're empty, drop from idle to pick up new stuff to haul.
-					delete this.creep.memory.idle;
-					// this.muleLogic();
-				}
-				break;
-			case OK:
-				break;
-			default:
-				console.log(`Status ${status} not defined for RoleMule.dump`);
+					break;
+				case STRUCTURE_CONTAINER:
+				case STRUCTURE_STORAGE:
+					if (this.creep.carry.energy > 0) {
+						status = this.creep.transfer(target, RESOURCE_ENERGY);
+					} else {
+						this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
+						status = this.creep.transfer(target, this.creep.memory.mineralType);
+					}
+					break;
+				default:
+					console.log(`Unhandled Structure in RoleMule.dumpRoutine: ${target.structureType} on target ${target}`);
+			}
+			switch (status) {
+				case ERR_FULL:
+					let containers = this.creep.room.containers.filter((s: StorageStructure) => _.sum(s.store) < s.storeCapacity && s.pos.isNearTo(this.creep));
+					if (containers.length > 0) {
+						this.creep.transfer(containers[0], RESOURCE_ENERGY);
+					}
+					break;
+				case ERR_NOT_ENOUGH_RESOURCES:
+					if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
+						delete this.creep.memory.target;
+						// We're empty, drop from idle to pick up new stuff to haul.
+						delete this.creep.memory.idle;
+						// this.muleLogic();
+					}
+					break;
+				case OK:
+					break;
+				default:
+					console.log(`Status ${status} not defined for RoleMule.dump`);
+			}
 		}
 	};
 
@@ -128,20 +127,10 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		if (!this.creep.memory.mineralType) {
 			this.creep.memory.mineralType = RESOURCE_ENERGY;
 		}
-		let status = this.creep.withdraw(this.container, this.creep.memory.mineralType, (this.creep.carryCapacity - _.sum(this.creep.carry)));
-		switch (status) {
-			case ERR_NOT_ENOUGH_RESOURCES:
-			case ERR_INVALID_TARGET:
-			case ERR_NOT_OWNER:
-			case ERR_FULL:
-				break;
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.container.pos);
-				break;
-			case OK:
-				break;
-			default:
-				console.log(`Unhandled ERR in ASMMule.source.container: ${status}`);
+		if (!this.creep.pos.isNearTo(this.container.pos)) {
+			this.moveTo(this.container.pos);
+		} else {
+			this.creep.withdraw(this.container, this.creep.memory.mineralType, (this.creep.carryCapacity - _.sum(this.creep.carry)));
 		}
 	}
 
