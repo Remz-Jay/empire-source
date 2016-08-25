@@ -30,7 +30,7 @@ export default class CreepAction implements ICreepAction {
 	public creep: Creep;
 	public renewStation: Spawn;
 	public governor: CreepGovernor;
-
+	public fleeRange: number = 5;
 	public _minLifeBeforeNeedsRenew: number = Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
 
 	public setCreep(creep: Creep) {
@@ -40,8 +40,11 @@ export default class CreepAction implements ICreepAction {
 	public setGovernor(governor: CreepGovernor): void {
 		this.governor = governor;
 	}
-	public roomCallback = function (roomName: string): CostMatrix {
+	public roomCallback = function (roomName: string): CostMatrix | boolean {
 		try {
+			if (roomName === "W4N43") {
+				return false;
+			}
 			let room = RoomManager.getRoomByName(roomName);
 			if (!room) {
 				return;
@@ -80,19 +83,31 @@ export default class CreepAction implements ICreepAction {
 
 	public flee(): boolean {
 		if (this.creep.room.hostileCreeps.length > 0) {
-			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
+			let fleeRange = this.fleeRange;
+			// let targets = this.creep.room.hostileCreeps.filter((c: Creep) => this.creep.pos.getRangeTo(c) <= this.fleeRange);
+			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, fleeRange);
 			if (targets.length > 0) {
-				let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 6}; });
-				let path = PathFinder.search(this.creep.pos, goals, {
-					flee: true,
-					maxRooms: 2,
-					plainCost: 2,
-					swampCost: 10,
-					maxOps: 500,
-					roomCallback: this.roomCallback,
+				let minRange = fleeRange;
+				targets.forEach((c: Creep) => {
+					let rangeToTarget = this.creep.pos.getRangeTo(c);
+					if (rangeToTarget < minRange) {
+						minRange = rangeToTarget;
+					}
 				});
-				this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
-				this.creep.say("FLEE!");
+				this.creep.say(minRange.toString());
+				if (minRange < fleeRange) {
+					let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: fleeRange}; });
+					let path = PathFinder.search(this.creep.pos, goals, {
+						flee: true,
+						maxRooms: 2,
+						plainCost: 2,
+						swampCost: 10,
+						maxOps: 500,
+						roomCallback: this.roomCallback,
+					});
+					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
+					this.creep.say("FLEE!");
+				}
 				return false;
 			}
 		}
@@ -176,9 +191,9 @@ export default class CreepAction implements ICreepAction {
 			this.creep.moveTo(<RoomPosition> target, {reusePath: 25});
 		}
 	}
-	public findNewPath(target: RoomObject | RoomPosition, memoryName: string = "targetPath", move: boolean = true): boolean {
+	public findNewPath(target: RoomObject | RoomPosition, memoryName: string = "targetPath", move: boolean = true, range: number = 1): boolean {
 		let pos: RoomPosition = (target instanceof RoomObject) ? target.pos : target;
-		let path = this.findPathFinderPath(this.createPathFinderMap(pos));
+		let path = this.findPathFinderPath(this.createPathFinderMap(pos, range));
 		if (!!path) {
 			this.creep.memory[memoryName] = path;
 			if (move) {
@@ -275,7 +290,7 @@ export default class CreepAction implements ICreepAction {
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			maxOps: 3000,
+			maxOps: 2500,
 			plainCost: plainCost,
 			swampCost: swampCost,
 			roomCallback: this.roomCallback,
@@ -333,7 +348,8 @@ export default class CreepAction implements ICreepAction {
 					return true;
 				}
 			} catch (e) {
-				throw new Error(`creepAction.ExpireCreep: ${e.message}`);
+				console.log(`creepAction.ExpireCreep: ${e.message}`);
+				return false;
 			}
 		}
 		return false;

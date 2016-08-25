@@ -50,8 +50,10 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 			}
 			let target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
 			if (!!target) {
-				if (this.creep.build(target) === ERR_NOT_IN_RANGE) {
+				if (!this.creep.pos.isNearTo(target.pos)) {
 					this.moveTo(target.pos);
+				} else {
+					this.creep.build(target);
 				}
 			} else {
 				delete this.creep.memory.target;

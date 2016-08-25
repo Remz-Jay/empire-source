@@ -55,8 +55,10 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
 			return;
 		}
-		if (this.tryHarvest() === ERR_NOT_IN_RANGE) {
-			this.moveTo([{pos: this.source.pos, range: 0}]);
+		if (!this.creep.pos.isNearTo(this.source.pos)) {
+			this.moveTo(this.source.pos);
+		} else {
+			this.tryHarvest();
 		}
 	}
 	public tryEnergyDropOff(): number {
@@ -64,18 +66,26 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public moveToDropEnergy(): void {
-		let status = this.tryEnergyDropOff();
-		switch (status) {
-			case OK:
-				break;
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.container.pos);
-				break;
-			case ERR_FULL:
-				this.repairInfra(1);
-				break;
-			default:
-				console.log(`harvester energyDropOff error ${status}`);
+		if (!this.creep.pos.isNearTo(this.container.pos)) {
+			this.moveTo(this.container.pos);
+		} else if (this.creep.carry.energy > 0) {
+			let status = this.tryEnergyDropOff();
+			switch (status) {
+				case OK:
+					break;
+				case ERR_NOT_IN_RANGE:
+					this.moveTo(this.container.pos);
+					break;
+				case ERR_FULL:
+					this.repairInfra(1);
+					break;
+				case ERR_INVALID_TARGET:
+					delete this.creep.memory.container;
+					delete this.creep.memory.source;
+					break;
+				default:
+					console.log(`harvester energyDropOff error ${status}`);
+			}
 		}
 	}
 

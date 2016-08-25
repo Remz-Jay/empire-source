@@ -18,6 +18,7 @@ import SentinelGovernor from "../warfare/governors/sentinel";
 import Terminator from "../warfare/roles/terminator";
 import ASMRaiderGovernor from "./governors/raider";
 import ASMRaider from "./roles/raider";
+import FasterminatorGovernor from "../warfare/governors/fasterminator";
 
 function initMemory(): void {
 	if (!Memory.assimilation) {
@@ -37,13 +38,13 @@ let goHome: boolean;
 function setup() {
 	initMemory();
 	Game.assman = {
-		add(roomName: string, claim: boolean = false, homeRoomName?: string) {
+		add(roomName: string, claim: boolean = false, hasController = true, homeRoomName?: string) {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				Memory.assimilation.targets.push(roomName);
 				if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
-					getConfigForRemoteTarget(roomName, claim, homeRoomName);
+					getConfigForRemoteTarget(roomName, claim, hasController, homeRoomName);
 				} else {
-					getConfigForRemoteTarget(roomName, claim);
+					getConfigForRemoteTarget(roomName, claim, hasController);
 				}
 				console.log(`Added ${roomName} for assimilation.`);
 			} else {
@@ -73,7 +74,7 @@ function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
 		},
 	});
 }
-function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false, homeRoomName?: string): RemoteRoomConfig {
+function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false, hasController = true, homeRoomName?: string): RemoteRoomConfig {
 	if (!!Memory.assimilation.config[remoteRoomName]) {
 		return Memory.assimilation.config[remoteRoomName];
 	} else {
@@ -106,6 +107,7 @@ function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false
 			homeDistance: distance,
 			route: optimalRoute,
 			claim: claim,
+			hasController: hasController,
 		};
 		Memory.assimilation.config[remoteRoomName] = roomConfig;
 		return roomConfig;
@@ -274,6 +276,37 @@ function manageDefenders(roomName: string, limit: number = 0) {
 	}
 }
 
+function manageSourceKeepers(roomName: string, limit: number = 0) {
+	let governor = new FasterminatorGovernor(homeRoom, config);
+	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === FasterminatorGovernor.ROLE.toUpperCase()
+	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
+	if (creepsInRole.length > 0) {
+		_.each(creepsInRole, function (creep: Creep) {
+			if (!creep.spawning) {
+				let role: Terminator = new Terminator();
+				role.setCreep(<Creep> creep);
+				role.setGovernor(governor);
+				role.action();
+				if (creep.ticksToLive < 200 && (creepsInRole.length === governor.getCreepLimit()) && !isSpawning) {
+					// Do a preemptive spawn if this creep is about to expire.
+					isSpawning = true;
+					// TODO: might wanna remove the true here later
+					let status = createCreep(governor.getCreepConfig(), true);
+					if (_.isNumber(status)) {
+						console.log("manageDefenders.preempt-spawn", Config.translateErrorCode(status));
+					} else {
+						console.log("manageDefenders.preempt-spawn", status);
+					}
+				}
+			}
+		}, this);
+	}
+	if (creepsInRole.length < limit && !isSpawning) {
+		isSpawning = true;
+		createCreep(governor.getCreepConfig(), true);
+	}
+}
+
 function manageMules(containers: StructureContainer[]) {
 	if (containers.length > 0) {
 		// we need mules
@@ -326,10 +359,13 @@ export function govern(): void {
 		try {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				config = getConfigForRemoteTarget(roomName);
+				config.hasController = _.get(config, "hasController", true);
 				homeRoom = RoomManager.getRoomByName(config.homeRoom);
 				targetRoom = RoomManager.getRoomByName(roomName);
 				isSpawning = false;
 				goHome = false;
+
+				// Fridge Raider Override.
 				if (roomName === "W3N42") {
 					try {
 						manageRaiders(roomName);
@@ -338,7 +374,9 @@ export function govern(): void {
 					}
 					return;
 				}
-				if (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1) {
+
+				// Only manage claim in rooms with a controller (not in SK rooms).
+				if (config.hasController && (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1)) {
 					try {
 						manageClaim(roomName, config.claim);
 					} catch (e) {
@@ -347,7 +385,7 @@ export function govern(): void {
 				}
 				let vision: boolean = false;
 				if (!!targetRoom) {
-					if (targetRoom.hostileCreeps.length > 1) {
+					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
 						goHome = true;
 						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
 					}
@@ -358,7 +396,7 @@ export function govern(): void {
 						let containers = manageContainers();
 						if (containers.length > 0) {
 							if (config.claim) {
-								manageHarvest(containers);
+								// manageHarvest(containers);
 								// manageMules(containers);
 							} else {
 								manageHarvest(containers);
@@ -366,7 +404,7 @@ export function govern(): void {
 							}
 						}
 						if (config.claim) {
-							// manageConstructions(1);
+							manageConstructions(0);
 						} else {
 							manageConstructions(1);
 						}
@@ -379,17 +417,23 @@ export function govern(): void {
 				}
 				try {
 					if (goHome) {
-						// manageDefenders(roomName, targetRoom.hostileCreeps.length);
-						manageDefenders(roomName, 2);
+						manageSourceKeepers(roomName, 2);
+						manageDefenders(roomName, 0);
 					} else {
-						manageDefenders(roomName, 1);
+						if (config.claim) {
+							manageDefenders(roomName, 0);
+						} else if (!config.hasController) {
+							manageSourceKeepers(roomName, 1);
+						} else {
+							manageDefenders(roomName, 1);
+						}
 					}
 				} catch (e) {
 					throw new Error("manageDefenders." + (<Error> e).message);
 				}
 			}
 		} catch (e) {
-			throw new Error("YOLO." + (<Error> e).message);
+			throw new Error(`ERROR :: ASM in room ${roomName}: ${e.message}`);
 		}
 	}, this);
 }

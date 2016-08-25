@@ -99,7 +99,7 @@ export function governCreeps(room: Room): CreepStats {
 					+ "]"
 				);
 			}
-			if (numCreeps < creepLimit && !isSpawning) {
+			if (numCreeps < creepLimit && !isSpawning && room.mySpawns.length > 0) {
 				let config: CreepConfiguration = governor.getCreepConfig();
 				if (!_.isNumber(this.createCreep(room, config))) {
 					isSpawning = true;

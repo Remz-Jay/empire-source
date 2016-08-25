@@ -19,6 +19,12 @@ let roomCallback = function (roomName: string): CostMatrix {
 		room.allCreeps.forEach(function (creep: Creep) {
 			matrix.set(creep.pos.x, creep.pos.y, 10);
 		});
+		room.hostileStructures.forEach(function (s: Structure) {
+			matrix.set(s.pos.x, s.pos.y, 50);
+		});
+		room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL).forEach((s: Structure) => {
+			matrix.set(s.pos.x, s.pos.y, 50);
+		});
 		for (let i = 1; i < 50; i++) {
 			matrix.set(0, i, 50);
 		}
@@ -299,7 +305,11 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 				|| c.getActiveBodyparts(HEAL) > 0,
 		});
 		if (!!hostile) {
-			return hostile;
+			if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(FIND_SOURCES, 5).length === 0) {
+				return undefined;
+			} else {
+				return hostile;
+			}
 		} else {
 			// Return worker creeps instead.
 			hostile = this.creep.pos.findClosestByPath<Creep>(this.creep.room.hostileCreeps, {
@@ -352,7 +362,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			});
 			if (!!hostile) {
 				return hostile;
-			} else if (!this.isMyRoom(this.creep.room.name)) {
+			} else if (!this.isMyRoom(this.creep.room.name) && !!this.creep.room.controller) {
 				structurePriorities = [
 					STRUCTURE_CONTAINER,
 				];
@@ -363,13 +373,13 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 				}, this);
 				if (!!hostile) {
 					return hostile;
-				} else {
+				} /*else {
 					hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.allStructures, {
 						filter: (s: Structure) => s.structureType === STRUCTURE_WALL
 						|| s.structureType === STRUCTURE_CONTAINER,
 						costCallback: this.roomCallback,
 					});
-				}
+				}*/
 			}
 			if (!!hostile) {
 				return hostile;

@@ -357,10 +357,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	};
 
 	public action(): boolean {
-		if (super.action()) {
-			this.muleLogic();
-		}
+		this.pickupResourcesInRange();
+		this.muleLogic();
 		return true;
 	}
-
 }

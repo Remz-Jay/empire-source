@@ -171,7 +171,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 						} else {
 							delete this.creep.memory.targetPath;
 							this.creep.memory.pathTTL = 1;
-							if (!this.findNewPath(target)) {
+							if (!this.findNewPath(target, "targetPath", true, 3)) {
 								this.creep.say("HALP!");
 							}
 						}
@@ -179,7 +179,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 						this.creep.memory.target = target.id;
 						this.creep.memory.pathTTL = 1;
 						delete this.creep.memory.targetPath;
-						if (!this.findNewPath(target)) {
+						if (!this.findNewPath(target, "targetPath", true, 3)) {
 							this.creep.say("HALP!");
 						}
 					}
@@ -223,13 +223,13 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 					if (this.heal()) {
 						delete this.creep.memory.waitForHealth;
-						if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+						if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 							this.creep.memory.inCombat = true;
 						} else {
 							delete this.creep.memory.inCombat;
 						}
 					} else {
-						if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+						if (!this.rangedAttack(true) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 							this.creep.memory.inCombat = true;
 						} else {
 							delete this.creep.memory.inCombat;

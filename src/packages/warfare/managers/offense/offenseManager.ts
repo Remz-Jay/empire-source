@@ -47,7 +47,7 @@ let squadConfig = {
 		{
 			"governor": FasterminatorGovernor,
 			"role": Terminator,
-			"maxCreeps": 0,
+			"maxCreeps": 1,
 		},
 	],
 	wait: false,
@@ -136,9 +136,8 @@ let schmoopPositions: RoomPosition[] = [
 ];
 
 let assaultPositions: RoomPosition[] = [
-	new RoomPosition(18, 40, "W4N42"),
-	new RoomPosition(46, 31, "W5N42"),
-].reverse();
+	new RoomPosition(48, 17, "W7N42"),
+];
 
 let positions: RoomPosition[] = [
 	new RoomPosition(14, 2, "W3N42"),
@@ -380,6 +379,9 @@ export function govern(): void {
 					break;
 				case "W6N44":
 					manageSquad(roomName, artilleryConfig, helpPositions);
+					break;
+				case "W7N42":
+					manageSquad(roomName, squadConfig, assaultPositions);
 					break;
 				default:
 					manageSquad(roomName, squadConfig, positions);

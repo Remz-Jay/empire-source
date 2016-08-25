@@ -17,6 +17,32 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 		this.containers = containers;
 	}
 
+	public getBody() {
+		let hasController = _.get(this.config, "hasController", true);
+		if (!hasController) {
+			this.bodyPart = [WORK, WORK, MOVE, MOVE];
+			let body: string[] = [CARRY, MOVE];
+			for (let i = 0; i < 4; i++) {
+				body = body.concat(this.bodyPart);
+			}
+			return AssimilationCreepGovernor.sortBodyParts(body);
+		}
+		let numParts = _.floor(this.room.energyCapacityAvailable / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		if (numParts < 1) {
+			numParts = 1;
+		}
+		if (numParts > this.maxParts) {
+			numParts = this.maxParts;
+		}
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return AssimilationCreepGovernor.sortBodyParts(body);
+	}
+
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
 		let name: string = null;

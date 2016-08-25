@@ -55,6 +55,7 @@ declare interface RemoteRoomConfig {
 	homeDistance: number;
 	route: findRouteArray;
 	claim?: boolean;
+	hasController?: boolean;
 }
 
 declare interface RemoteCreepProperties extends CreepProperties {

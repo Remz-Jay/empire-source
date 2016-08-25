@@ -13,8 +13,8 @@ import * as AssimilationManager from "./packages/assimilation/assimilationManage
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 
 delete Memory.log;
-
-Profiler.enable();
+console.log(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`);
+// Profiler.enable();
 Profiler.registerObject(StatsManager, "StatsManager");
 Profiler.registerObject(RoomManager, "RoomManager");
 Profiler.registerObject(CreepManager, "CreepManager");

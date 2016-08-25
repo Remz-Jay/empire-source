@@ -92,7 +92,7 @@ Room.prototype.getCreepMatrix = function () {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
 			this.myCreeps.forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 15);
+				costMatrix.set(creep.pos.x, creep.pos.y, 40);
 			});
 			this.hostileCreeps.forEach(function (creep: Creep) {
 				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);

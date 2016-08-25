@@ -3,8 +3,8 @@
  * @type {boolean}
  */
 export const VERBOSE: boolean = false;
-export const CREEPSTATS: boolean = false;
-export const ROOMSTATS: boolean = false;
+export const CREEPSTATS: boolean = true;
+export const ROOMSTATS: boolean = true;
 /**
  * For extra chatty output.
  * @type {boolean}
