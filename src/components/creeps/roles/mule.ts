@@ -140,10 +140,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (!this.creep.memory.target) {
 			// find a nearby link first, if storage isn't close
 			if (!!this.creep.room.storage && this.creep.carry.energy > 0 && this.creep.pos.getRangeTo(this.creep.room.storage) > 9) {
-				let target: StructureLink[] = this.creep.pos.findInRange(FIND_STRUCTURES, 10, {
-					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK
-					&& s.energy < s.energyCapacity,
-				}) as StructureLink[];
+				let target: StructureLink[] = this.creep.room.myStructures.filter((s: StructureLink) => s.structureType === STRUCTURE_LINK
+					&& s.energy < s.energyCapacity
+					&& s.pos.inRangeTo(this.creep.pos, 10)
+				) as StructureLink[];
 				if (!!target && target.length > 0) {
 					this.creep.memory.target = target[0].id;
 				} else {
@@ -342,12 +342,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					}
 				}, this);
 			}
-			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-				filter: (s: StructureContainer) => {
-					return s.structureType === STRUCTURE_CONTAINER
-						&& _.sum(s.store) > 50;
-				},
-			});
+			targets = this.creep.room.allStructures.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+				&& _.sum(s.store) > 50
+				&& s.pos.isNearTo(this.creep.pos)
+			);
 			if (targets.length > 0) {
 				_.each(targets, function (t: StructureContainer) {
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {

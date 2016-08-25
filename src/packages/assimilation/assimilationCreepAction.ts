@@ -26,12 +26,11 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			if (!!this.creep.memory.repairtarget) {
 				target = Game.getObjectById<Structure>(this.creep.memory.repairtarget);
 			} else {
-				let targets = this.creep.pos.findInRange<Structure>(FIND_STRUCTURES, 1, {
-					filter: (s: Structure) => (
-						s.structureType === STRUCTURE_ROAD
-						|| s.structureType === STRUCTURE_CONTAINER
-					) && s.hits < (s.hitsMax * modifier),
-				});
+				let targets = this.creep.room.allStructures.filter((s: Structure) =>
+					(s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER)
+					&& s.hits < (s.hitsMax * modifier)
+					&& s.pos.isNearTo(this.creep.pos)
+				);
 				if (targets.length > 0) {
 					this.creep.memory.repairtarget = targets[0].id;
 					target = targets[0];

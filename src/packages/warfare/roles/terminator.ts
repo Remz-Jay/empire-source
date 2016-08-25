@@ -58,7 +58,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			this.moveUsingPositions();
 		}
 		if (!this.checkTough()) {
-			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
+			let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0) {
 				let goals = _.map(targets, function (t: Creep) {
 					return {pos: t.pos, range: 4};
@@ -81,10 +81,10 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 	}
 
 	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2, {
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
-			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
-		});
+		let targets = this.creep.room.hostileCreeps.filter(
+			(c: Creep) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
+			&& c.pos.inRangeTo(this.creep.pos, 2)
+		);
 		if (targets.length > 0) {
 			let goals = _.map(targets, function (t: Creep) {
 				return {pos: t.pos, range: 3};

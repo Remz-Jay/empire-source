@@ -42,10 +42,10 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	public dumpAtStorageOrLink() {
 		if (!this.creep.memory.target) {
 			// find a nearby link first, if storage isn't close
-			if (!!this.storage && this.creep.carry.energy > 0 && this.creep.pos.getRangeTo(this.storage) > 9) {
-				let target: StructureLink[] = this.creep.pos.findInRange(FIND_STRUCTURES, 15, {
-					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK,
-				}) as StructureLink[];
+			if (!!this.storage && this.creep.carry.energy > 0 && !this.creep.pos.inRangeTo(this.storage.pos, 9)) {
+				let target: StructureLink[] = this.creep.room.myStructures.filter((s: StructureLink) => s.structureType === STRUCTURE_LINK
+					&& s.pos.inRangeTo(this.creep.pos, 15)
+				) as StructureLink[];
 				if (!!target && target.length > 0) {
 					this.creep.memory.target = target[0].id;
 				} else {

@@ -162,9 +162,9 @@ function manageClaim(roomName: string, claim: boolean = false) {
 function manageContainers(): StructureContainer[] {
 	let allContainers: StructureContainer[] = [];
 	_.each(SourceManager.sources, function(source: Source) {
-		let containers = source.pos.findInRange<StructureContainer>(FIND_STRUCTURES, 1, {
-			filter: (structure: Structure) => structure.structureType === STRUCTURE_CONTAINER,
-		});
+		let containers = targetRoom.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER
+			&& s.pos.isNearTo(source.pos)
+		) as StructureContainer[];
 		if (containers.length < 1) {
 			// No containers yet. See if we're constructing one.
 			let sites = source.pos.findInRange(FIND_CONSTRUCTION_SITES, 1, {

@@ -30,7 +30,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		}
 	}
 	public findSourceNearContainer(c: StructureContainer): Source {
-		let sources = c.pos.findInRange<Source>(FIND_SOURCES, 1);
+		let sources = c.room.sources.filter((s: Source) => s.pos.isNearTo(c));
 		return sources[0];
 	}
 	public isBagFull(): boolean {

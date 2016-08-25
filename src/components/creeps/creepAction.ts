@@ -84,8 +84,7 @@ export default class CreepAction implements ICreepAction {
 	public flee(): boolean {
 		if (this.creep.room.hostileCreeps.length > 0) {
 			let fleeRange = this.fleeRange;
-			// let targets = this.creep.room.hostileCreeps.filter((c: Creep) => this.creep.pos.getRangeTo(c) <= this.fleeRange);
-			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, fleeRange);
+			let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, fleeRange));
 			if (targets.length > 0) {
 				let minRange = fleeRange;
 				targets.forEach((c: Creep) => {
@@ -313,18 +312,12 @@ export default class CreepAction implements ICreepAction {
 					}
 				}, this);
 			}
-			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-				filter: (s: StructureContainer) => {
-					return s.structureType === STRUCTURE_CONTAINER
-						&& s.store[RESOURCE_ENERGY] > 0;
-				},
-			});
+			targets = this.creep.room.allStructures.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+				&& s.store.energy > 0
+				&& s.pos.isNearTo(this.creep.pos)
+			);
 			if (targets.length > 0) {
-				_.each(targets, function (t) {
-					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						this.creep.withdraw(t, RESOURCE_ENERGY);
-					}
-				}, this);
+				this.creep.withdraw(targets.pop() as StructureContainer, RESOURCE_ENERGY);
 			}
 		}
 	};
