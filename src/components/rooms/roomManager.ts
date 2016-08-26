@@ -52,6 +52,7 @@ export function governRooms(): void {
 	let CpuRoles = 0;
 	let CpuCreeps = 0;
 	let CpuLabs = 0;
+	let allCreeps: any[] = [];
 	for (let roomName in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		let room = getRoomByName(roomName);
@@ -120,11 +121,36 @@ export function governRooms(): void {
 				let statObject: CreepStats = CreepManager.governCreeps(room);
 				CpuRoles += statObject.roles;
 				CpuCreeps += statObject.creeps;
+				allCreeps.push(statObject.perRole);
 			} catch (e) {
 				console.log (`ERROR :: Running Creeps for room ${room.name} : ${e.message}`);
 			}
 		}
 	}
+	try {
+		let unifiedObject: any = {};
+		allCreeps.forEach((x: any) => { // Room
+			_.forOwn(x, (y: any, key: string) => { // Role
+				if (!!unifiedObject[key]) {
+					unifiedObject[key].numCreeps += y.numCreeps;
+					unifiedObject[key].cpu += y.cpu;
+				} else {
+					unifiedObject[key] = {
+						numCreeps: y.numCreeps,
+						cpu: y.cpu,
+					};
+				}
+			});
+		});
+		_.forOwn(unifiedObject, (x: any, key: string) => {
+			StatsManager.addStat(`cpu.perrole.${key}.cpu`, x.cpu);
+			StatsManager.addStat(`cpu.perrole.${key}.creeps`, x.numCreeps);
+			StatsManager.addStat(`cpu.perrole.${key}.cpupercreep`, x.cpu / x.numCreeps);
+		});
+	} catch (e) {
+		console.log(`ERROR :: PerRole Stats: ${e.message}`);
+	}
+
 	StatsManager.addStat("cpu.roominit", CpuRoomInit);
 	StatsManager.addStat("cpu.towers", CpuTowers);
 	StatsManager.addStat("cpu.links", CpuLinks);

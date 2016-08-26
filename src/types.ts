@@ -9,6 +9,7 @@ declare type findRouteArray = findRouteRoute[];
 declare interface CreepStats  {
 	roles: number;
 	creeps: number;
+	perRole: any;
 }
 
 declare interface CreepConfiguration {

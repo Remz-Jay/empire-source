@@ -77,6 +77,7 @@ export function createCreep(room: Room, config: CreepConfiguration): string|numb
 export function governCreeps(room: Room): CreepStats {
 	let CpuRoles = 0;
 	let CpuCreeps = 0;
+	let CpuPerRole: any = {};
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
@@ -122,10 +123,12 @@ export function governCreeps(room: Room): CreepStats {
 					}
 				}
 			}, this);
-			CpuCreeps += Game.cpu.getUsed() - CpuBeforeCreeps;
+			let temp = Game.cpu.getUsed() - CpuBeforeCreeps;
+			CpuPerRole[creepRole] = {numCreeps: creepsInRole.length, cpu: temp};
+			CpuCreeps += temp;
 		}
 	}
-	return {roles: CpuRoles, creeps: CpuCreeps};
+	return {roles: CpuRoles, creeps: CpuCreeps, perRole: CpuPerRole};
 }
 
 function _loadCreepNames(): void {
