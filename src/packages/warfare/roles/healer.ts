@@ -71,6 +71,7 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
 			this.creep.move(this.creep.pos.getDirectionTo(pos));
 			delete this.creep.memory.targetPath;
 			return false;

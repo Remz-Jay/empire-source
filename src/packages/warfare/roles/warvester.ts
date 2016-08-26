@@ -1,7 +1,7 @@
 import * as RoomManager from "../../../components/rooms/roomManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface IDismantler {
+export interface IWarvester {
 	action(): boolean;
 }
 
@@ -32,9 +32,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 	}
 };
 
-export default class Dismantler extends WarfareCreepAction implements IDismantler {
-
-	public hardPath: boolean = true;
+export default class Warvester extends WarfareCreepAction implements IWarvester {
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
 		super.setCreep(creep, positions);
@@ -74,21 +72,45 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
+			console.log(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
 			this.creep.move(this.creep.pos.getDirectionTo(pos));
 			return false;
 		}
 		return true;
 	}
 
-	public dismantle(): boolean {
+	public isBagEmpty(): boolean {
+		delete this.creep.memory.bagFull;
+		return (this.creep.carry.energy === 0);
+	}
+
+	public isBagFull(): boolean {
+		return (_.sum(this.creep.carry) === this.creep.carryCapacity) ? true : false;
+	}
+
+	public warvest(): boolean {
 		if (!this.positions) {
 			return false;
 		}
-		if (this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-			let structures  = this.creep.room.lookForAt<Structure>(LOOK_STRUCTURES, this.positions[this.positionIterator]);
-			if (structures.length) {
-				this.creep.dismantle(structures[0]);
+		if (!this.isBagFull()) {
+			if (this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+				let mineral = this.creep.room.lookForAt<Mineral>(LOOK_MINERALS, this.positions[this.positionIterator]);
+				if (mineral.length > 0) {
+					this.creep.say("H");
+					this.creep.harvest(mineral[0]);
+					return false;
+				} else {
+					return true;
+				}
+			}
+			// TODO: Flexibilize this condition
+		} else if (this.isBagFull() && this.positionIterator === 6 && this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+			this.positionIterator = this.creep.memory.positionIterator = 7;
+		} else if (this.creep.pos.isNearTo(this.creep.room.terminal)) {
+			let status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
+			if (status === OK) {
+				this.creep.say("Dump");
+				this.positionIterator = this.creep.memory.positionIterator = 0;
 				return false;
 			}
 		}
@@ -96,34 +118,39 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	}
 
 	public move(): boolean {
-		if (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
-			return;
-		} else {
-			if (!this.positions) {
-				return false;
-			}
-			if (this.positionIterator < this.positions.length) {
-				if (!this.creep.pos.isEqualTo(this.positions[this.positionIterator])) {
-					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
-					this.moveTo(pfg);
-				} else {
-					this.positionIterator = ++this.creep.memory.positionIterator;
-					return this.move();
-				}
-				return true;
-			}
+		if (!this.positions) {
 			return false;
 		}
+		if (this.positionIterator < this.positions.length) {
+			if (!this.creep.pos.isEqualTo(this.positions[this.positionIterator])) {
+				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
+				this.creep.say(pfg[0].pos.x + "," + pfg[0].pos.y + "," + pfg[0].range);
+				this.moveTo(pfg);
+			} else {
+				this.positionIterator = ++this.creep.memory.positionIterator;
+				return this.move();
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public action(): boolean {
 		if (this.creep.hits === this.creep.hitsMax && !!this.creep.memory.waitForHealth) {
 			delete this.creep.memory.waitForHealth;
 		}
+/*		if (this.creep.room.name === this.creep.memory.homeRoom) {
+			if (this.creep.ticksToLive < 550) {
+				this.creep.memory.hasRenewed = false;
+			}
+			if (!this.renewCreep()) {
+				return false;
+			}
+		}*/
 		if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
 			this.moveToTargetRoom();
 		} else {
-			if (this.dismantle()) {
+			if (this.warvest()) {
 				this.move();
 			}
 		}

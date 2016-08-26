@@ -93,6 +93,7 @@ declare interface Memory {
 	log: {
 		creeps: string[];
 		rooms: string[];
+		move: string[];
 	};
 	stats: {
 		[name: string]: any;

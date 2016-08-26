@@ -13,15 +13,22 @@ import * as AssimilationManager from "./packages/assimilation/assimilationManage
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 
 delete Memory.log;
+
 console.log(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`);
 // Profiler.enable();
+
+/*
 Profiler.registerObject(StatsManager, "StatsManager");
 Profiler.registerObject(RoomManager, "RoomManager");
 Profiler.registerObject(CreepManager, "CreepManager");
 Profiler.registerObject(AssimilationManager, "AssimilationManager");
 Profiler.registerObject(OffenseManager, "OffenseManager");
+*/
 
 StatsManager.init();
+
+let showLogCreep: boolean = true;
+let showLogMove: boolean = false;
 
 export function loop() {
 	Profiler.wrap(function () {
@@ -54,10 +61,16 @@ export function loop() {
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}
-
-		Memory.log.creeps.forEach((message: String, index: number) => {
-			console.log("log.creeps", message);
-		});
+		if (showLogCreep) {
+			Memory.log.creeps.forEach((message: String, index: number) => {
+				console.log("log.creeps", message);
+			});
+		}
+		if (showLogMove) {
+			Memory.log.move.forEach((message: String, index: number) => {
+				console.log("log.move", message);
+			});
+		}
 		delete Memory.log;
 
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));

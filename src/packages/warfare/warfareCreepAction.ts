@@ -1,6 +1,6 @@
-import * as RoomManager from "../../components/rooms/roomManager";
 import CreepAction from "../../components/creeps/creepAction";
 import WarriorGovernor from "./governors/warrior";
+// import * as RoomManager from "../../components/rooms/roomManager";
 
 export interface IWFCreepAction {
 	wait: boolean;
@@ -9,7 +9,7 @@ export interface IWFCreepAction {
 	moveToTargetRoom(): void;
 }
 
-let roomCallback = function (roomName: string): CostMatrix {
+/*let roomCallback = function (roomName: string): CostMatrix {
 	try {
 		let room = RoomManager.getRoomByName(roomName);
 		if (!room) {
@@ -42,7 +42,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 		console.log(JSON.stringify(e), "WarfareCreepAction.roomCallback", roomName);
 		return new PathFinder.CostMatrix();
 	}
-};
+};*/
 
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
 	public squad: Creep[] = [];
@@ -174,32 +174,38 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			this.creep.heal(this.creep);
 			return false;
 		} else {
-			let targets = this.creep.room.myCreeps.filter(
-				(c: Creep) => c.hits < c.hitsMax && c.pos.isNearTo(this.creep));
-			if (targets.length > 0) {
-				let target = this.getPriorityCreep(targets, reverse);
-				this.creep.heal(target);
-				return false;
+			if (this.creep.room.myCreeps.length > 1) { // Is it just me up in here?
+				let targets = this.creep.room.myCreeps.filter(
+					(c: Creep) => c.hits < c.hitsMax && c.pos.isNearTo(this.creep));
+				if (targets.length > 0) {
+					let target = this.getPriorityCreep(targets, reverse);
+					this.creep.heal(target);
+					return false;
+				}
 			}
 		}
 		return true;
 	}
 	public attack(): boolean {
-		let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.isNearTo(this.creep));
-		if (targets.length > 0) {
-			let target = this.getPriorityCreep(targets);
-			this.creep.attack(target);
-			return false;
+		if (this.creep.room.hostileCreeps.length > 0) {
+			let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.isNearTo(this.creep));
+			if (targets.length > 0) {
+				let target = this.getPriorityCreep(targets);
+				this.creep.attack(target);
+				return false;
+			}
 		}
 		return true;
 	}
 
 	public attackEnemyStructure(): boolean {
-		let targets: Structure[]  = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.isNearTo(this.creep));
-		if (targets.length > 0 ) {
-			let target = this.getPriorityStructure(targets);
-			this.creep.attack(target);
-			return false;
+		if (this.creep.room.hostileStructures.length > 0) {
+			let targets: Structure[]  = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.isNearTo(this.creep));
+			if (targets.length > 0 ) {
+				let target = this.getPriorityStructure(targets);
+				this.creep.attack(target);
+				return false;
+			}
 		}
 		return true;
 	}
@@ -208,42 +214,48 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		if (this.isMyRoom(this.creep.room.name)) {
 			return true;
 		}
-		let targets = this.creep.room.allStructures.filter((s: Structure) =>
-			(s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
-			&& s.pos.isNearTo(this.creep)
-		);
-		if (targets.length > 0 ) {
-			let target = this.getPriorityStructure(targets);
-			this.creep.attack(target);
-			return false;
+		if (this.creep.room.allStructures.length > 0) {
+			let targets = this.creep.room.allStructures.filter((s: Structure) =>
+				(s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
+				&& s.pos.isNearTo(this.creep)
+			);
+			if (targets.length > 0 ) {
+				let target = this.getPriorityStructure(targets);
+				this.creep.attack(target);
+				return false;
+			}
 		}
 		return true;
 	}
 	public rangedAttack(doMass: boolean = true): boolean {
-		let targets: Creep[] = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3));
-		if (targets.length > 0) {
-			if (doMass && targets.length > 1) {
-				this.creep.rangedMassAttack();
-				return false;
-			} else {
-				let target = this.getPriorityCreep(targets);
-				this.creep.rangedAttack(target);
-				return false;
+		if (this.creep.room.hostileCreeps.length > 0) {
+			let targets: Creep[] = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3));
+			if (targets.length > 0) {
+				if (doMass && targets.length > 1) {
+					this.creep.rangedMassAttack();
+					return false;
+				} else {
+					let target = this.getPriorityCreep(targets);
+					this.creep.rangedAttack(target);
+					return false;
+				}
 			}
 		}
 		return true;
 	}
 
 	public rangedStructureAttack(): boolean {
-		let targets: Structure[] = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.inRangeTo(this.creep.pos, 3));
-		if (targets.length > 0) {
-			if (targets.length > 1) {
-				this.creep.rangedMassAttack();
-				return false;
-			} else {
-				let target = this.getPriorityStructure(targets);
-				this.creep.rangedAttack(target);
-				return false;
+		if (this.creep.room.hostileStructures.length > 0) {
+			let targets: Structure[] = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.inRangeTo(this.creep.pos, 3));
+			if (targets.length > 0) {
+				if (targets.length > 1) {
+					this.creep.rangedMassAttack();
+					return false;
+				} else {
+					let target = this.getPriorityStructure(targets);
+					this.creep.rangedAttack(target);
+					return false;
+				}
 			}
 		}
 		return true;
@@ -253,82 +265,86 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		if (this.isMyRoom(this.creep.room.name) || !this.creep.room.controller) {
 			return true;
 		}
-		let targets = this.creep.room.allStructures.filter(
-			(s: Structure) => (s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
-			&& s.pos.inRangeTo(this.creep.pos, 3)
-		);
-		if (targets.length > 0 ) {
-			let target = this.getPriorityStructure(targets);
-			this.creep.rangedAttack(target);
-			return false;
+		if (this.creep.room.allStructures.length > 0) {
+			let targets = this.creep.room.allStructures.filter(
+				(s: Structure) => (s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
+				&& s.pos.inRangeTo(this.creep.pos, 3)
+			);
+			if (targets.length > 0 ) {
+				let target = this.getPriorityStructure(targets);
+				this.creep.rangedAttack(target);
+				return false;
+			}
 		}
 		return true;
 	}
 
 	public rangedHeal(): boolean {
-		let targets = this.creep.room.myCreeps.filter((c: Creep) => c.hits < c.hitsMax && c.pos.inRangeTo(this.creep.pos, 3));
-		if (targets.length > 0) {
-			let target = this.getPriorityCreep(targets);
-			this.creep.rangedHeal(target);
-			return false;
+		if (this.creep.room.myCreeps.length > 1) {
+			let targets = this.creep.room.myCreeps.filter((c: Creep) => c.hits < c.hitsMax && c.pos.inRangeTo(this.creep.pos, 3));
+			if (targets.length > 0) {
+				let target = this.getPriorityCreep(targets);
+				this.creep.rangedHeal(target);
+				return false;
+			}
 		}
 		return true;
 	}
 
 	public findHealTarget(): Creep {
-		let wounded = this.creep.pos.findClosestByPath<Creep>(this.creep.room.myCreeps, {
-			maxRooms: 1,
-			costCallback: roomCallback,
-			filter: (c: Creep) => c.hits < c.hitsMax,
-		});
-		if (!!wounded) {
-			return wounded;
+		if (this.creep.room.myCreeps.length > 1) {
+			let wounded = this.creep.pos.findClosestByRange<Creep>(this.creep.room.myCreeps, {
+				filter: (c: Creep) => c.hits < c.hitsMax,
+			});
+			if (!!wounded) {
+				return wounded;
+			}
 		}
+		return undefined;
 	}
 	public findTarget(): Creep {
-		// Prioritize Hostiles with offensive capabilities.
-		let hostile = this.creep.pos.findClosestByPath<Creep>(this.creep.room.hostileCreeps, {
-			maxRooms: 1,
-			costCallback: roomCallback,
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
+		if (this.creep.room.hostileCreeps.length > 0) {
+			// Prioritize Hostiles with offensive capabilities.
+			let hostile = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps, {
+				filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
 				|| c.getActiveBodyparts(RANGED_ATTACK) > 0
 				|| c.getActiveBodyparts(HEAL) > 0,
-		});
-		if (!!hostile) {
-			if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(FIND_SOURCES, 5).length === 0) {
-				return undefined;
-			} else {
-				return hostile;
-			}
-		} else {
-			// Return worker creeps instead.
-			hostile = this.creep.pos.findClosestByPath<Creep>(this.creep.room.hostileCreeps, {
-				maxRooms: 1,
-				costCallback: roomCallback,
 			});
 			if (!!hostile) {
-				return hostile;
+				if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(FIND_SOURCES, 5).length === 0) {
+					return undefined;
+				} else {
+					return hostile;
+				}
+			} else {
+				// Return worker creeps instead.
+				hostile = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps);
+				if (!!hostile) {
+					return hostile;
+				}
 			}
 		}
 		return undefined;
 	}
 
 	public findHostileStructure(structureType: string): Structure {
-		let hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.hostileStructures, {
-			maxRooms: 1,
-			costCallback: roomCallback,
-			filter: (c: Structure) => c.structureType === structureType,
-		});
-		return (!!hostile) ? hostile : undefined;
+		if (this.creep.room.hostileStructures.length > 0) {
+			let hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.hostileStructures, {
+				filter: (c: Structure) => c.structureType === structureType,
+			});
+			return (!!hostile) ? hostile : undefined;
+		}
+		return undefined;
 	}
 
 	public findPublicStructure(structureType: string): Structure {
-		let hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.allStructures, {
-			maxRooms: 1,
-			costCallback: roomCallback,
-			filter: (c: Structure) => c.structureType === structureType,
-		});
-		return (!!hostile) ? hostile : undefined;
+		if (this.creep.room.allStructures.length > 0) {
+			let hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.allStructures, {
+				filter: (c: Structure) => c.structureType === structureType,
+			});
+			return (!!hostile) ? hostile : undefined;
+		}
+		return undefined;
 	}
 
 	public findTargetStructure(): Structure {
@@ -346,10 +362,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return hostile;
 		} else {
 			// Any odd structure will do.
-			hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.hostileStructures, {
-				maxRooms: 1,
-				costCallback: roomCallback,
-			});
+			hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.hostileStructures);
 			if (!!hostile) {
 				return hostile;
 			} else if (!this.isMyRoom(this.creep.room.name) && !!this.creep.room.controller) {

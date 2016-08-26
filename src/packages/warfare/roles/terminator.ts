@@ -71,6 +71,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					roomCallback: roomCallback,
 				});
 				let pos = path.path[0];
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(pos));
 				this.creep.memory.waitForHealth = true;
 				delete this.creep.memory.targetPath;
@@ -97,6 +98,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
 			this.creep.move(this.creep.pos.getDirectionTo(pos));
 			delete this.creep.memory.targetPath;
 			return false;
@@ -109,28 +111,15 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			return;
 		}
 		if (!this.moveUsingPositions()) {
-			let target: Creep | Structure = undefined;
+			let target: Creep | Structure;
 			if (!this.noTarget && !this.creep.memory.target) {
-				target = this.findTarget();
+				target = this.findTarget() || this.findHealTarget() || this.findTargetStructure() || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.targetPath;
 				} else {
-					target = this.findHealTarget();
-					if (!!target) {
-						this.creep.memory.target = target.id;
-						delete this.creep.memory.targetPath;
-					} else {
-						target = this.findTargetStructure();
-						if (!!target) {
-							this.creep.memory.target = target.id;
-							delete this.creep.memory.targetPath;
-						} else {
-							delete this.creep.memory.target;
-							delete this.creep.memory.targetPath;
-							this.waitAtFlag(this.creep.memory.config.targetRoom);
-						}
-					}
+					delete this.creep.memory.target;
+					delete this.creep.memory.targetPath;
 				}
 			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
@@ -142,7 +131,6 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					} else {
 						delete this.creep.memory.target;
 						delete this.creep.memory.targetPath;
-						this.waitAtFlag(this.creep.memory.config.targetRoom);
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
@@ -156,18 +144,19 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			}
 			// Just moveTo when we're safely behind walls
 			if (!!target && !this.hardPath) {
-				this.moveTo(target.pos);
+				// this.moveTo(target.pos);
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - noHardPath #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(target));
 				return;
 			}
 
 			// Otherwise, use a pathFinder path to get there.
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				if (this.creep.pos.getRangeTo(target) > 3) { // move closer if we're out of RANGED_ATTACK range.
+				if (!this.creep.pos.inRangeTo(target.pos, 3)) { // move closer if we're out of RANGED_ATTACK range.
 					if (!!this.creep.memory.targetPath) {
 						if (!this.creep.memory.pathTTL || this.creep.memory.pathTTL < 5) {
 							let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? this.creep.memory.pathTTL + 1 : 1;
+							this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? ++this.creep.memory.pathTTL : 1;
 							this.moveByPath(path, target);
 						} else {
 							delete this.creep.memory.targetPath;
@@ -177,7 +166,6 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 							}
 						}
 					} else {
-						this.creep.memory.target = target.id;
 						this.creep.memory.pathTTL = 1;
 						delete this.creep.memory.targetPath;
 						if (!this.findNewPath(target, "targetPath", true, 3)) {
@@ -196,10 +184,13 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 						&& (s.pos.findInRange(FIND_SOURCES, 5).length > 0)
 					);
 					if (lairs.length > 0) {
-						if (this.creep.pos.getRangeTo(lairs[0].pos) > 5) {
-							this.moveTo([{pos: lairs[0].pos, range: 5}]);
+						if (!this.creep.pos.inRangeTo(lairs[0].pos, 4)) {
+							this.moveTo([{pos: lairs[0].pos, range: 4}]);
 						} else {
-							this.creep.say("Come out!", true);
+							// this.creep.cancelOrder("move");
+							if (Game.time % _.random(3, 6) === 0) {
+								this.creep.say("Come out!", true);
+							}
 						}
 					} else {
 						delete this.creep.memory.targetPath;

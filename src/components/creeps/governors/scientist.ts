@@ -9,7 +9,7 @@ export default class ScientistGovernor extends CreepGovernor implements ICreepGo
 
 	public bodyPart = [CARRY, MOVE];
 	public maxCreeps = 1;
-	public maxParts = 2;
+	public maxParts = 4;
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

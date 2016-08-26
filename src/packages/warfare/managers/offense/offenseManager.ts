@@ -4,12 +4,14 @@ import * as RoomManager from "../../../../components/rooms/roomManager";
 
 import WarfareCreepAction from "../../warfareCreepAction";
 
-import FastankGovernor from "../../governors/fastank";
-import TankGovernor from "../../governors/tank";
-import Tank from "../../roles/tank";
-
 import FasterminatorGovernor from "../../governors/fasterminator";
 import Terminator from "../../roles/terminator";
+import WarvesterGovernor from "../../governors/warvester";
+import Warvester from "../../roles/warvester";
+
+/*import FastankGovernor from "../../governors/fastank";
+import TankGovernor from "../../governors/tank";
+import Tank from "../../roles/tank";
 
 import HealerGovernor from "../../governors/healer";
 import Healer from "../../roles/healer";
@@ -17,7 +19,7 @@ import Healer from "../../roles/healer";
 import DismantlerGovernor from "../../governors/dismantler";
 import Dismantler from "../../roles/dismantler";
 
-/*import WarriorGovernor from "../../governors/warrior";
+import WarriorGovernor from "../../governors/warrior";
 import RangerGovernor from "../../governors/ranger";
 import HealerGovernor from "../../governors/healer";
 import Warrior from "../../roles/warrior";
@@ -26,8 +28,7 @@ import Healer from "../../roles/healer";
 import TerminatorGovernor from "../../governors/terminator";
 
 import ScoutGovernor from "../../governors/scout";
-import Scout from "../../roles/scout";
-*/
+import Scout from "../../roles/scout";*/
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -42,6 +43,17 @@ let config: RemoteRoomConfig;
 let homeRoom: Room;
 let targetRoom: Room;
 
+let warvestConfig = {
+	roles: [
+		{
+			"governor": WarvesterGovernor,
+			"role": Warvester,
+			"maxCreeps": 0,
+		},
+	],
+	wait: false,
+};
+
 let squadConfig = {
 	roles: [
 		{
@@ -53,7 +65,7 @@ let squadConfig = {
 	wait: false,
 };
 
-let dismantleConfig = {
+/*let dismantleConfig = {
 	roles: [
 		{
 			"governor": DismantlerGovernor,
@@ -62,7 +74,7 @@ let dismantleConfig = {
 		},
 	],
 	wait: false,
-};
+};*/
 
 let sqibConfig = {
 	roles: [
@@ -86,7 +98,7 @@ let artilleryConfig = {
 	wait: false,
 };
 
-let assaultConfig = {
+/*let assaultConfig = {
 	roles: [
 		{
 			"governor": FastankGovernor,
@@ -105,16 +117,33 @@ let assaultConfig = {
 		},
 	],
 	wait: false,
-};
+};*/
+
+let warvestPositions: RoomPosition[] = [
+	new RoomPosition(48, 46, "W7N44"),
+	new RoomPosition(19, 48, "W6N44"),
+	new RoomPosition(48, 44, "W6N44"),
+	new RoomPosition(2, 26, "W5N44"),
+	new RoomPosition(22, 9, "W5N44"),
+	new RoomPosition(12, 33, "W5N45"),
+	new RoomPosition(10, 17, "W5N45"), // X Source
+	new RoomPosition(12, 33, "W5N45"),
+	new RoomPosition(22, 9, "W5N44"),
+	new RoomPosition(2, 26, "W5N44"),
+	new RoomPosition(48, 44, "W6N44"),
+	new RoomPosition(19, 48, "W6N44"),
+	new RoomPosition(48, 46, "W7N44"),
+	new RoomPosition(31, 28, "W7N44"), // Terminal
+];
 
 let helpPositions: RoomPosition[] = [
 	new RoomPosition(47, 43, "W7N44"),
 	new RoomPosition(9, 41, "W6N44"),
 ];
 
-let dismantlePositions: RoomPosition[] = [
+/*let dismantlePositions: RoomPosition[] = [
 	new RoomPosition(46, 31, "W5N42"),
-/*	new RoomPosition(2, 28, "W4N42"),
+/!*	new RoomPosition(2, 28, "W4N42"),
 	new RoomPosition(2, 29, "W4N42"),
 	new RoomPosition(2, 30, "W4N42"),
 	new RoomPosition(2, 31, "W4N42"),
@@ -122,10 +151,10 @@ let dismantlePositions: RoomPosition[] = [
 	new RoomPosition(2, 33, "W4N42"),
 	new RoomPosition(2, 34, "W4N42"),
 	new RoomPosition(5, 32, "W4N42"),
-	new RoomPosition(5, 33, "W4N42"),*/
+	new RoomPosition(5, 33, "W4N42"),*!/
 	new RoomPosition(16, 21, "W3N42"),
+];*/
 
-];
 let schmoopPositions: RoomPosition[] = [
 	new RoomPosition(33, 11, "W6N40"),
 	new RoomPosition(40, 6, "W3N40"),
@@ -374,14 +403,14 @@ export function govern(): void {
 				case "W3N42": // Kov Satellite
 					manageSquad(roomName, sqibConfig, schmoopPositions);
 					break;
-				case "W3N42": // 10CPU Main
-					manageSquad(roomName, dismantleConfig, dismantlePositions);
-					break;
 				case "W6N44":
 					manageSquad(roomName, artilleryConfig, helpPositions);
 					break;
 				case "W7N42":
 					manageSquad(roomName, squadConfig, assaultPositions);
+					break;
+				case "W5N45":
+					manageSquad(roomName, warvestConfig, warvestPositions);
 					break;
 				default:
 					manageSquad(roomName, squadConfig, positions);

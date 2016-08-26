@@ -34,15 +34,17 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		return sources[0];
 	}
 	public isBagFull(): boolean {
-		return (this.creep.carry.energy === this.creep.carryCapacity);
+		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
 	}
 
 	public tryHarvest(): number {
-		let targets: Structure[] = this.creep.room.containers.filter(
-			(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-		);
-		if (targets.length > 0) {
-			this.creep.transfer(targets[0], RESOURCE_ENERGY);
+		if (Game.time % 2 === 0) {
+			let targets: Structure[] = this.creep.room.containers.filter(
+				(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+			);
+			if (targets.length > 0) {
+				this.creep.transfer(targets[0], RESOURCE_ENERGY);
+			}
 		}
 		return this.creep.harvest(this.source);
 	}

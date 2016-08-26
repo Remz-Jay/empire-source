@@ -26,34 +26,36 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	}
 
 	public assignNewTarget(blackList: string[] = []): boolean {
-		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
-			filter: (structure: EnergyStructure) => ( blackList.indexOf(structure.id) === -1 &&
-				(
-					(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
-					|| ((structure.structureType === STRUCTURE_TOWER || structure.structureType === STRUCTURE_SPAWN)
-					&& structure.energy < (structure.energyCapacity * 0.8))
+		if (this.creep.room.myStructures.length > 0) {
+			let structs: OwnedStructure[] = this.creep.room.myStructures.filter((structure: EnergyStructure) =>
+				( blackList.indexOf(structure.id) === -1 &&
+					(
+						(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
+						|| ((structure.structureType === STRUCTURE_TOWER || structure.structureType === STRUCTURE_SPAWN)
+						&& structure.energy < (structure.energyCapacity * 0.8))
+					)
 				)
-			),
-		});
-		if (!!target) {
-			let taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
+			);
+			let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByRange(structs);
+			if (!!target) {
+				let taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
 				&& (!!c.memory.target && c.memory.target === target.id));
-			if (!!taken && taken.length > 0) {
-				blackList.push(target.id);
-				return this.assignNewTarget(blackList);
-			} else {
-				this.targetEnergyDropOff = target;
-				this.creep.memory.target_energy_dropoff_id = target.id;
-				return true;
+				if (!!taken && taken.length > 0) {
+					blackList.push(target.id);
+					return this.assignNewTarget(blackList);
+				} else {
+					this.targetEnergyDropOff = target;
+					this.creep.memory.target_energy_dropoff_id = target.id;
+					return true;
+				}
 			}
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	public isBagEmpty(): boolean {
-		return (this.creep.carry.energy === 0);
+		return (_.sum(this.creep.carry) === 0);
 	}
 
 	public moveToCollectEnergy(): void {
@@ -69,29 +71,33 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	}
 
 	public scanForTargets(blackList: string[] = []): Structure {
-		let target: EnergyStructure = this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
-			filter: (structure: EnergyStructure) => (
+		if (this.creep.room.myStructures.length > 0) {
+			let structs = this.creep.room.myStructures.filter((structure: EnergyStructure) => (
 				blackList.indexOf(structure.id) === -1 && (
 					(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
 					|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.75))
 					|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.85))
 				)
-			),
-			costCallback: this.roomCallback,
-		}) as EnergyStructure;
-		if (!!target) {
-			let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
+			));
+			let target: EnergyStructure = this.creep.pos.findClosestByPath(structs, {
+				algorithm: "astar",
+				maxRooms: 1,
+				maxOps: 500,
+				costCallback: this.roomCallback,
+			}) as EnergyStructure;
+			if (!!target) {
+				let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
 				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
 				&& (!!c.memory.target && c.memory.target === target.id));
-			if (!!taken && taken.length > 0) {
-				blackList.push(target.id);
-				return this.scanForTargets(blackList);
-			} else {
-				return target;
+				if (!!taken && taken.length > 0) {
+					blackList.push(target.id);
+					return this.scanForTargets(blackList);
+				} else {
+					return target;
+				}
 			}
-		} else {
-			return undefined;
 		}
+		return undefined;
 	};
 
 	public dumpRoutine(target: Structure): void {
@@ -139,7 +145,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	public dumpAtStorage(): void {
 		if (!this.creep.memory.target) {
 			// find a nearby link first, if storage isn't close
-			if (!!this.creep.room.storage && this.creep.carry.energy > 0 && this.creep.pos.getRangeTo(this.creep.room.storage) > 9) {
+			if (!!this.creep.room.storage && this.creep.carry.energy > 0 && !this.creep.pos.inRangeTo(this.creep.room.storage.pos, 9)) {
 				let target: StructureLink[] = this.creep.room.myStructures.filter((s: StructureLink) => s.structureType === STRUCTURE_LINK
 					&& s.energy < s.energyCapacity
 					&& s.pos.inRangeTo(this.creep.pos, 10)
@@ -153,9 +159,12 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.creep.memory.target = this.creep.room.storage.id;
 			} else {
 				// last resort; just return energy to the nearest container.
-				let target: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.containers, {
-					filter: (structure: StructureContainer) => structure.structureType === STRUCTURE_CONTAINER
-					&& _.sum(structure.store) < structure.storeCapacity,
+				let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
+				structure.structureType === STRUCTURE_CONTAINER && _.sum(structure.store) < structure.storeCapacity);
+				let target: StructureContainer = this.creep.pos.findClosestByPath(structs, {
+					algorithm: "astar",
+					maxRooms: 1,
+					maxOps: 500,
 					costCallback: this.roomCallback,
 				}) as StructureContainer;
 				if (!!target) {
@@ -176,18 +185,24 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 
 	public setSource(blackList: string[] = []): void {
 		// Get energy from containers
-		let source: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
-			filter: (structure: StructureContainer) => blackList.indexOf(structure.id) === -1 &&
-			structure.structureType === STRUCTURE_CONTAINER &&
-			structure.store[RESOURCE_ENERGY] > 300,
+		let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
+		blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
+		&& structure.store[RESOURCE_ENERGY] > 300);
+		let source: StructureContainer = this.creep.pos.findClosestByPath(structs, {
+			algorithm: "astar",
+			maxRooms: 1,
+			maxOps: 500,
 			costCallback: this.roomCallback,
 		}) as StructureContainer;
 		if (!source) {
 			// No energy in containers found. Get some minerals instead
-			source = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
-				filter: (structure: StructureContainer) => blackList.indexOf(structure.id) === -1 &&
-				structure.structureType === STRUCTURE_CONTAINER &&
-				_.sum(structure.store) > 400,
+			structs = this.creep.room.containers.filter((structure: StructureContainer) =>
+			blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
+			&& _.sum(structure.store) > 400);
+			source = this.creep.pos.findClosestByPath(structs, {
+				algorithm: "astar",
+				maxRooms: 1,
+				maxOps: 500,
 				costCallback: this.roomCallback,
 			}) as StructureContainer;
 			if (!!source) {
@@ -259,7 +274,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.dumpAtStorage();
 			} else {
 				// return to duty when able
-				let target = this.scanForTargets();
+				let target: Structure = undefined;
+				if (Game.time % 5 === 0) {
+					target = this.scanForTargets();
+				}
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.idle;
@@ -269,7 +287,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
 						let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, {
 							filter: (r: Resource) => r.amount > 100,
+							algorithm: "astar",
 							maxRooms: 1,
+							maxOps: 500,
 							costCallback: this.roomCallback,
 						}) as Resource;
 						if (!!target) {
@@ -302,7 +322,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 						if (!this.creep.memory.mineralType) {
 							this.creep.memory.mineralType = RESOURCE_ENERGY;
 						}
-						let status = this.creep.withdraw(source, this.creep.memory.mineralType, (this.creep.carryCapacity - _.sum(this.creep.carry)));
+						let status = this.creep.withdraw(source, this.creep.memory.mineralType);
 						switch (status) {
 							case ERR_NOT_ENOUGH_RESOURCES:
 							case ERR_INVALID_TARGET:
@@ -334,29 +354,33 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 
 	public pickupResourcesInRange(): void {
 		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-			let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
+			let p = this.creep.pos;
+			let targets = this.creep.room.lookForAtArea(LOOK_RESOURCES, p.y - 1, p.x - 1, p.y + 1, p.x + 1, true) as LookAtResultWithPos[];
+			// let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						this.creep.pickup(t);
+						this.creep.pickup(t.resource);
 					}
 				}, this);
 			}
-			targets = this.creep.room.allStructures.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
-				&& _.sum(s.store) > 50
-				&& s.pos.isNearTo(this.creep.pos)
-			);
-			if (targets.length > 0) {
-				_.each(targets, function (t: StructureContainer) {
-					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						if (t.store.energy > 50) {
-							this.creep.withdraw(t, RESOURCE_ENERGY);
-						} else {
-							let x: string = this.getMineralTypeFromStore(t);
-							this.creep.withdraw(t, x);
+			if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+				let containers = this.creep.room.allStructures.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+					&& _.sum(s.store) > 50
+					&& s.pos.isNearTo(this.creep.pos)
+				);
+				if (containers.length > 0) {
+					_.each(containers, function (t: StructureContainer) {
+						if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+							if (t.store.energy > 50) {
+								this.creep.withdraw(t, RESOURCE_ENERGY);
+							} else {
+								let x: string = this.getMineralTypeFromStore(t);
+								this.creep.withdraw(t, x);
+							}
 						}
-					}
-				}, this);
+					}, this);
+				}
 			}
 		}
 	};

@@ -459,6 +459,7 @@ export function govern(): void {
 							manageSourceKeepers(roomName, 1);
 						} else {
 							manageDefenders(roomName, 1);
+							manageSourceKeepers(roomName, 0);
 						}
 					}
 				} catch (e) {

@@ -231,11 +231,13 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 							console.log(`Unhandled ERR in RoleHarvester.source.harvest: ${status}`);
 					}
 				}
-				let targets: Structure[] = this.creep.room.containers.filter(
-					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-				);
-				if (targets.length > 0) {
-					this.creep.transfer(targets[0], RESOURCE_ENERGY);
+				if (Game.time % 2 === 0) {
+					let targets: Structure[] = this.creep.room.containers.filter(
+						(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+					);
+					if (targets.length > 0) {
+						this.creep.transfer(targets[0], RESOURCE_ENERGY);
+					}
 				}
 			} else {
 				delete this.creep.memory.source;

@@ -49,6 +49,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 					roomCallback: roomCallback,
 				});
 				let pos = path.path[0];
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(pos));
 				this.creep.memory.waitForHealth = true;
 				delete this.creep.memory.targetPath;
@@ -72,6 +73,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
 			this.creep.move(this.creep.pos.getDirectionTo(pos));
 			delete this.creep.memory.targetPath;
 			return false;

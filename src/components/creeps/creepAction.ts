@@ -32,7 +32,7 @@ export default class CreepAction implements ICreepAction {
 	public governor: CreepGovernor;
 	public fleeRange: number = 5;
 	public _minLifeBeforeNeedsRenew: number = Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
-
+	public moveIterator: number = 0;
 	public setCreep(creep: Creep) {
 		this.creep = creep;
 	}
@@ -63,18 +63,22 @@ export default class CreepAction implements ICreepAction {
 	 */
 	public nextStepIntoRoom(): boolean {
 		if (this.creep.pos.x === 0) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(RIGHT);
 			return false;
 		}
 		if (this.creep.pos.x === 49) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(LEFT);
 			return false;
 		}
 		if (this.creep.pos.y === 0) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(BOTTOM);
 			return false;
 		}
 		if (this.creep.pos.y === 49) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(TOP);
 			return false;
 		}
@@ -104,8 +108,11 @@ export default class CreepAction implements ICreepAction {
 						maxOps: 500,
 						roomCallback: this.roomCallback,
 					});
+					Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - flee #${++this.moveIterator}`);
 					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
 					this.creep.say("FLEE!");
+				} else {
+					this.creep.cancelOrder("move");
 				}
 				return false;
 			}
@@ -164,6 +171,7 @@ export default class CreepAction implements ICreepAction {
 				pos = path.shift();
 			}
 			if (this.creep.pos.isNearTo(pos)) {
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveTo #${++this.moveIterator}`);
 				let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
 				if (status === OK) {
 					this.creep.memory.lastPosition = this.creep.pos;
