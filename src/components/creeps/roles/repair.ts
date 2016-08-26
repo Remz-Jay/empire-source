@@ -98,7 +98,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 						&& s.pos.inRangeTo(this.creep.pos, 3)
 					);
 					if (movingTargets.length) {
-						this.creep.repair(_.sortBy(movingTargets, ["hits"]).pop());
+						this.creep.repair(_.sortBy(movingTargets, "hits").shift());
 					}
 				} else {
 					let status = this.creep.repair(target);

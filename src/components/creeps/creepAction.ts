@@ -289,7 +289,7 @@ export default class CreepAction implements ICreepAction {
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			maxOps: 2500,
+			maxOps: 1750,
 			plainCost: plainCost,
 			swampCost: swampCost,
 			roomCallback: this.roomCallback,
