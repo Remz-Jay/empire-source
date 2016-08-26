@@ -330,15 +330,21 @@
               "show": true
             }
           ]
-        },
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "title": "New row",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "panels": [
         {
-          "aliasColors": {
-            "Energy": "#6ED0E0",
-            "Hostiles": "#890F02"
-          },
+          "aliasColors": {},
           "bars": false,
           "datasource": "${DS_LOCALGRAPHITE}",
-          "decimals": null,
+          "decimals": 1,
           "editable": true,
           "error": false,
           "fill": 1,
@@ -348,12 +354,12 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 65,
+          "id": 83,
           "isNew": true,
           "legend": {
             "alignAsTable": true,
-            "avg": false,
-            "current": true,
+            "avg": true,
+            "current": false,
             "max": false,
             "min": false,
             "rightSide": true,
@@ -369,36 +375,29 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "seriesOverrides": [
-            {
-              "alias": "Hostiles",
-              "yaxis": 2
-            }
-          ],
+          "seriesOverrides": [],
           "span": 4,
-          "stack": false,
+          "stack": true,
           "steppedLine": false,
           "targets": [
             {
+              "hide": false,
               "refId": "A",
-              "target": "alias(stats.gauges.offense.W4N42.energy, 'Energy')"
+              "target": "aliasByNode(sortByTotal(movingAverage(stats.gauges.cpu.perrole.*.cpupercreep, '10min')), 4)"
             },
             {
+              "hide": true,
               "refId": "B",
-              "target": "alias(stats.gauges.offense.W4N42.towerEnergy, 'TowerEnergy')"
-            },
-            {
-              "refId": "C",
-              "target": "alias(stats.gauges.offense.W4N42.hostiles, 'Hostiles')"
+              "target": "aliasByNode(movingAverage(stats.gauges.cpu.perrole.*.creeps, '10min'), 4)"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Assault",
+          "title": "CPU per Role",
           "tooltip": {
             "msResolution": false,
             "shared": true,
-            "sort": 0,
+            "sort": 1,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -411,7 +410,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": 0,
               "show": true
             },
             {
@@ -419,13 +418,178 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": 0,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_LOCALGRAPHITE}",
+          "decimals": 0,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 84,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "hide": false,
+              "refId": "A",
+              "target": "aliasByNode(sortByTotal(movingAverage(stats.gauges.cpu.perrole.*.creeps, '10min')), 4)"
+            },
+            {
+              "hide": true,
+              "refId": "B",
+              "target": "aliasByNode(movingAverage(stats.gauges.cpu.perrole.*.creeps, '10min'), 4)"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Creeps per Role",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 1,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_LOCALGRAPHITE}",
+          "decimals": 1,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 85,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": false,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "hide": false,
+              "refId": "A",
+              "target": "aliasByNode(sortByTotal(movingAverage(stats.gauges.cpu.perrole.*.cpu, '10min')), 4)"
+            },
+            {
+              "hide": true,
+              "refId": "B",
+              "target": "aliasByNode(movingAverage(stats.gauges.cpu.perrole.*.creeps, '10min'), 4)"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Total CPU per Role",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 1,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": 0,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": 0,
               "show": true
             }
           ]
         }
-      ],
-      "title": "New row"
+      ]
     },
     {
       "collapse": false,
@@ -597,11 +761,11 @@
           "targets": [
             {
               "refId": "A",
-              "target": "aliasByNode(sortByMaxima(stats.gauges.room.$rooms.creeps), 3)"
+              "target": "aliasByNode(movingAverage(sortByMaxima(stats.gauges.room.$rooms.creeps), '10min'), 3)"
             },
             {
               "refId": "B",
-              "target": "aliasByNode(stats.gauges.reservedRoom.$reservedrooms.creeps, 3)"
+              "target": "aliasByNode(movingAverage(stats.gauges.reservedRoom.$reservedrooms.creeps, '10min'), 3)"
             },
             {
               "refId": "C",
@@ -610,7 +774,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Creeps",
+          "title": "Creeps per Room",
           "tooltip": {
             "msResolution": false,
             "shared": true,
@@ -644,6 +808,7 @@
           "aliasColors": {},
           "bars": false,
           "datasource": "${DS_LOCALGRAPHITE}",
+          "decimals": 0,
           "editable": true,
           "error": false,
           "fill": 5,
@@ -659,6 +824,8 @@
             "alignAsTable": true,
             "avg": false,
             "current": true,
+            "hideEmpty": false,
+            "hideZero": false,
             "max": false,
             "min": false,
             "rightSide": true,
@@ -669,7 +836,7 @@
           "lines": true,
           "linewidth": 2,
           "links": [],
-          "nullPointMode": "null as zero",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -680,8 +847,13 @@
           "steppedLine": false,
           "targets": [
             {
+              "hide": true,
               "refId": "A",
               "target": "sortByMaxima(aliasSub(stats.gauges.room.$rooms.storage.resources.*, 'stats.gauges.room.(.*).storage.resources.(.*)', '\\1 \\2'))"
+            },
+            {
+              "refId": "B",
+              "target": "sortByMaxima(aliasSub(stats.gauges.room.$rooms.storage.resources.energy, 'stats.gauges.room.(.*).storage.resources.(.*)', '\\1 \\2'))"
             }
           ],
           "timeFrom": null,
@@ -1230,6 +1402,87 @@
             "thresholdLabels": false,
             "thresholdMarkers": true
           },
+          "id": 72,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 1,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [
+            {
+              "hide": false,
+              "refId": "A",
+              "target": "asPercent(stats.gauges.cpu.labs, #B)"
+            },
+            {
+              "hide": true,
+              "refId": "B",
+              "target": "stats.gauges.cpu.limit"
+            }
+          ],
+          "thresholds": "80,90",
+          "title": "Labs",
+          "type": "singlestat",
+          "valueFontSize": "100%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": true,
+          "colorValue": false,
+          "colors": [
+            "rgba(27, 101, 24, 0.97)",
+            "rgba(136, 74, 22, 0.89)",
+            "rgba(182, 42, 42, 0.9)"
+          ],
+          "datasource": "${DS_LOCALGRAPHITE}",
+          "decimals": 0,
+          "editable": true,
+          "error": false,
+          "format": "percent",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
           "id": 20,
           "interval": null,
           "links": [],
@@ -1391,80 +1644,6 @@
             "thresholdLabels": false,
             "thresholdMarkers": true
           },
-          "id": 25,
-          "interval": null,
-          "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
-          "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "span": 1,
-          "sparkline": {
-            "fillColor": "rgba(2, 102, 114, 0.55)",
-            "full": false,
-            "lineColor": "rgb(64, 106, 252)",
-            "show": true
-          },
-          "targets": [
-            {
-              "refId": "A",
-              "target": "stats.gauges.cpu.bucket"
-            }
-          ],
-          "thresholds": "5000,1000",
-          "title": "Bucket",
-          "type": "singlestat",
-          "valueFontSize": "80%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
-        },
-        {
-          "cacheTimeout": null,
-          "colorBackground": true,
-          "colorValue": false,
-          "colors": [
-            "rgba(184, 41, 41, 0.9)",
-            "rgba(152, 84, 27, 0.89)",
-            "rgba(16, 69, 14, 0.97)"
-          ],
-          "datasource": "${DS_LOCALGRAPHITE}",
-          "editable": true,
-          "error": false,
-          "format": "none",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
-          },
           "id": 44,
           "interval": null,
           "links": [],
@@ -1508,6 +1687,80 @@
           ],
           "thresholds": "300,150",
           "title": "Tick Limit",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": true,
+          "colorValue": false,
+          "colors": [
+            "rgba(184, 41, 41, 0.9)",
+            "rgba(152, 84, 27, 0.89)",
+            "rgba(16, 69, 14, 0.97)"
+          ],
+          "datasource": "${DS_LOCALGRAPHITE}",
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 25,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 1,
+          "sparkline": {
+            "fillColor": "rgba(2, 102, 114, 0.55)",
+            "full": false,
+            "lineColor": "rgb(64, 106, 252)",
+            "show": true
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "target": "stats.gauges.cpu.bucket"
+            }
+          ],
+          "thresholds": "5000,1000",
+          "title": "Bucket",
           "type": "singlestat",
           "valueFontSize": "80%",
           "valueMaps": [
@@ -1578,7 +1831,7 @@
               "to": "null"
             }
           ],
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "span": 2,
           "sparkline": {
@@ -1662,7 +1915,7 @@
           "points": false,
           "renderer": "flot",
           "repeat": null,
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "seriesOverrides": [
             {
@@ -1782,7 +2035,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "seriesOverrides": [],
           "span": 3,
@@ -1881,7 +2134,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "seriesOverrides": [
             {
@@ -2005,7 +2258,7 @@
               "to": "null"
             }
           ],
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "span": 2,
           "sparkline": {
@@ -2065,7 +2318,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "seriesOverrides": [],
           "span": 3,
@@ -2154,7 +2407,7 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "repeatIteration": 1471483151106,
+          "repeatIteration": 1472169304474,
           "scopedVars": {},
           "seriesOverrides": [
             {
@@ -2226,7 +2479,7 @@
     }
   ],
   "time": {
-    "from": "now-3h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -2300,7 +2553,7 @@
   },
   "refresh": "15s",
   "schemaVersion": 12,
-  "version": 34,
+  "version": 50,
   "links": [],
   "gnetId": null
 }
