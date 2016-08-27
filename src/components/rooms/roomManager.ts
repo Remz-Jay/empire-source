@@ -102,13 +102,15 @@ export function governRooms(): void {
 				try {
 					if (!!Game.flags[room.name + "_LR"]) {
 						let flag = Game.flags[room.name + "_LR"];
-						let reaction = Config.labColors.resource(flag.color, flag.secondaryColor);
-						let reagents = Config.findReagents(reaction);
-						let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount > 0).pop();
-						let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount > 0).pop();
-						if (!!inLab1 && !!inLab2) {
-							let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
-							labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
+						if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
+							let reaction = Config.labColors.resource(flag.color, flag.secondaryColor);
+							let reagents = Config.findReagents(reaction);
+							let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount > 0).pop();
+							let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount > 0).pop();
+							if (!!inLab1 && !!inLab2) {
+								let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
+								labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
+							}
 						}
 					}
 				} catch (e) {

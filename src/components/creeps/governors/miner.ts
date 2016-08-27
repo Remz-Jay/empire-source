@@ -8,7 +8,7 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 	public static ROLE: string = "Miner";
 
 	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];
-	public maxParts: number = 3;
+	public maxParts: number = 5;
 	public maxCreeps: number = 1;
 
 	public getCreepConfig(): CreepConfiguration {

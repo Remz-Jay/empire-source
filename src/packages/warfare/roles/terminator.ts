@@ -152,7 +152,8 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 
 			// Otherwise, use a pathFinder path to get there.
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				if (!this.creep.pos.inRangeTo(target.pos, 3)) { // move closer if we're out of RANGED_ATTACK range.
+				let range = (target instanceof Creep && target.my) ? 1 : 3;
+				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					if (!!this.creep.memory.targetPath) {
 						if (!this.creep.memory.pathTTL || this.creep.memory.pathTTL < 5) {
 							let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
@@ -161,14 +162,14 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 						} else {
 							delete this.creep.memory.targetPath;
 							this.creep.memory.pathTTL = 1;
-							if (!this.findNewPath(target, "targetPath", true, 3)) {
+							if (!this.findNewPath(target, "targetPath", true, range)) {
 								this.creep.say("HALP!");
 							}
 						}
 					} else {
 						this.creep.memory.pathTTL = 1;
 						delete this.creep.memory.targetPath;
-						if (!this.findNewPath(target, "targetPath", true, 3)) {
+						if (!this.findNewPath(target, "targetPath", true, range)) {
 							this.creep.say("HALP!");
 						}
 					}

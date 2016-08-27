@@ -88,12 +88,17 @@ declare interface SquadConfig {
 }
 
 declare interface Memory {
+	showTransactions: boolean;
+	showLogCreep: boolean;
+	showLogMove: boolean;
+	showLogAsm: boolean;
 	assimilation?: AssimilationObject;
 	offense?: OffenseObject;
 	log: {
 		creeps: string[];
 		rooms: string[];
 		move: string[];
+		asm: string[];
 	};
 	stats: {
 		[name: string]: any;

@@ -85,7 +85,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		if (!this.creep.pos.isNearTo(this.targetMineralSource.pos)) {
 			this.moveTo(this.targetMineralSource.pos);
 		} else {
-			if (this.tryMining() === OK) {
+			if (this.tryMining() === OK && Game.time % 3 === 0) {
 				let targets: Structure[] = this.creep.room.containers.filter(
 					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
 				);

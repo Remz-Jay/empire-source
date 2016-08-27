@@ -305,11 +305,12 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public findTarget(): Creep {
 		if (this.creep.room.hostileCreeps.length > 0) {
 			// Prioritize Hostiles with offensive capabilities.
-			let hostile = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps, {
-				filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
+			let hostiles = this.creep.room.hostileCreeps.filter((c: Creep) =>
+				c.getActiveBodyparts(ATTACK) > 0
 				|| c.getActiveBodyparts(RANGED_ATTACK) > 0
-				|| c.getActiveBodyparts(HEAL) > 0,
-			});
+				|| c.getActiveBodyparts(HEAL) > 0
+			);
+			let hostile = this.creep.pos.findClosestByRange<Creep>(hostiles);
 			if (!!hostile) {
 				if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(FIND_SOURCES, 5).length === 0) {
 					return undefined;
@@ -329,9 +330,8 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 
 	public findHostileStructure(structureType: string): Structure {
 		if (this.creep.room.hostileStructures.length > 0) {
-			let hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.hostileStructures, {
-				filter: (c: Structure) => c.structureType === structureType,
-			});
+			let hostiles = this.creep.room.hostileStructures.filter((c: Structure) => c.structureType === structureType);
+			let hostile = this.creep.pos.findClosestByRange<Structure>(hostiles);
 			return (!!hostile) ? hostile : undefined;
 		}
 		return undefined;
@@ -339,9 +339,8 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 
 	public findPublicStructure(structureType: string): Structure {
 		if (this.creep.room.allStructures.length > 0) {
-			let hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.allStructures, {
-				filter: (c: Structure) => c.structureType === structureType,
-			});
+			let hostiles = this.creep.room.allStructures.filter((c: Structure) => c.structureType === structureType);
+			let hostile = this.creep.pos.findClosestByRange<Structure>(hostiles);
 			return (!!hostile) ? hostile : undefined;
 		}
 		return undefined;

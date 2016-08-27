@@ -7,6 +7,7 @@ export function loadMemory(): void {
 			creeps: [],
 			rooms: [],
 			move: [],
+			asm: [],
 		};
 	}
 }

@@ -135,7 +135,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public balanceTerminal(): boolean {
-		if (!this.terminal || !this.creep.pos.isNearTo(this.terminal)) {
+		if (!this.terminal || !this.creep.pos.isNearTo(this.terminal) || !this.creep.pos.isNearTo(this.storage)) {
 			return false;
 		}
 

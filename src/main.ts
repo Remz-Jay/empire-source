@@ -27,12 +27,8 @@ Profiler.registerObject(OffenseManager, "OffenseManager");
 
 StatsManager.init();
 
-let showLogCreep: boolean = true;
-let showLogMove: boolean = false;
-
 export function loop() {
 	Profiler.wrap(function () {
-		console.log();
 		console.log();
 		PathFinder.use(true);
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
@@ -61,19 +57,36 @@ export function loop() {
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}
-		if (showLogCreep) {
+		if (!!Memory.showLogCreep) {
 			Memory.log.creeps.forEach((message: String, index: number) => {
 				console.log("log.creeps", message);
 			});
 		}
-		if (showLogMove) {
+		if (!!Memory.showLogMove) {
 			Memory.log.move.forEach((message: String, index: number) => {
 				console.log("log.move", message);
 			});
 		}
+		if (!!Memory.showLogAsm) {
+			Memory.log.asm.forEach((message: String, index: number) => {
+				console.log("log.ASM", message);
+			});
+		}
 		delete Memory.log;
-
+		if (!!Memory.showTransactions && Game.cpu.getUsed() < Game.cpu.limit) {
+			console.log();
+			console.log(`Incoming Transactions:`);
+			_.take(Game.market.incomingTransactions, 5).forEach((t: Transaction) => {
+				console.log(t.sender.username, t.resourceType, t.amount, t.from, t.to, t.description);
+			});
+			console.log();
+			console.log(`Outgoing Transactions:`);
+			_.take(Game.market.outgoingTransactions, 5).forEach((t: Transaction) => {
+				console.log(t.recipient.username, t.resourceType, t.amount, t.from, t.to, t.description);
+			});
+		}
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
+		console.log();
 		console.log(`End of tick ${Game.time}.\t`
 			+ `GCL:${Game.gcl.level}@${perc}%\t`
 			+ `CPU:${_.ceil(Game.cpu.getUsed())}/${Game.cpu.limit}\t`
