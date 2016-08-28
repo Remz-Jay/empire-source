@@ -97,27 +97,30 @@ export function governRooms(): void {
 			}
 			CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
 
-			let CpuBeforeLabs = Game.cpu.getUsed();
-			if (room.myLabs.length > 2) {
-				try {
-					if (!!Game.flags[room.name + "_LR"]) {
-						let flag = Game.flags[room.name + "_LR"];
-						if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
-							let reaction = Config.labColors.resource(flag.color, flag.secondaryColor);
-							let reagents = Config.findReagents(reaction);
-							let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount > 0).pop();
-							let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount > 0).pop();
-							if (!!inLab1 && !!inLab2) {
-								let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
-								labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
+			if (Game.cpu.getUsed() < Game.cpu.limit) {
+				let CpuBeforeLabs = Game.cpu.getUsed();
+				if (room.myLabs.length > 2) {
+					try {
+						if (!!Game.flags[room.name + "_LR"]) {
+							let flag = Game.flags[room.name + "_LR"];
+							if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
+								let reaction = Config.labColors.resource(flag.color, flag.secondaryColor);
+								let reagents = Config.findReagents(reaction);
+								let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount > 0).pop();
+								let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount > 0).pop();
+								if (!!inLab1 && !!inLab2) {
+									let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
+									labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
+								}
 							}
 						}
+					} catch (e) {
+						console.log(`ERROR :: RoomManager.runLabs: ${e.message}`);
 					}
-				} catch (e) {
-					console.log(`ERROR :: RoomManager.runLabs: ${e.message}`);
 				}
+				CpuLabs += (Game.cpu.getUsed() - CpuBeforeLabs);
 			}
-			CpuLabs += (Game.cpu.getUsed() - CpuBeforeLabs);
+
 			// run the creeps in this room
 			try {
 				let statObject: CreepStats = CreepManager.governCreeps(room);

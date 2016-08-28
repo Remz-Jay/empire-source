@@ -6,12 +6,14 @@ interface Room {
 	allCreeps: Creep[];
 	myCreeps: Creep[];
 	hostileCreeps: Creep[];
+	alliedCreeps: Creep[];
 	numberOfCreeps: number;
 	allStructures: Structure[];
 	myStructures: OwnedStructure[];
 	hostileStructures: OwnedStructure[];
 	mySpawns: StructureSpawn[];
 	myLabs: StructureLab[];
+	boostLabs: StructureLab[];
 	allConstructionSites: ConstructionSite[];
 	myConstructionSites: ConstructionSite[];
 	sources: Source[];
@@ -31,12 +33,14 @@ interface Room {
 	getAllCreeps(): Creep[];
 	getMyCreeps(): Creep[];
 	getHostileCreeps(): Creep[];
+	getAlliedCreeps(): Creep[];
 	getNumberOfCreepsInRoom(): number;
 	getAllStructures(): Structure[];
 	getMyStructures(): OwnedStructure[];
 	getHostileStructures(): OwnedStructure[];
 	getMySpawns(): StructureSpawn[];
 	getMyLabs(): StructureLab[];
+	getBoostLabs(): StructureLab[];
 	getFreeSpawn(): StructureSpawn;
 	getAllConstructionSites(): ConstructionSite[];
 	getMyConstructionSites(): ConstructionSite[];
@@ -191,6 +195,14 @@ Room.prototype.getMyCreeps = function(): Creep[] {
 Room.prototype.getHostileCreeps = function(): Creep[] {
 	return this.allCreeps.filter((c: Creep) => !c.my);
 };
+Room.prototype.getAlliedCreeps = function(): Creep[] {
+	let alliedPlayers: string[] = [
+		"TranceCake",
+	];
+	let allies: Creep[] = this.hostileCreeps.filter((c: Creep) => alliedPlayers.indexOf(c.owner.username) !== -1);
+	allies.forEach((c: Creep) => this.hostileCreeps = _.pull(this.hostileCreeps, c));
+	return allies;
+};
 Room.prototype.getNumberOfCreepsInRoom = function(): number {
 	return this.myCreeps.length;
 };
@@ -214,13 +226,31 @@ Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
 };
 Room.prototype.getHostileStructures = function (): OwnedStructure[] {
-	return this.allStructures.filter((s: OwnedStructure) => s.hasOwnProperty("my") && s.my === false);
+	return this.allStructures.filter((s: OwnedStructure) =>
+	undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
 };
 Room.prototype.getMyLabs = function(): StructureLab[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LAB);
+};
+Room.prototype.getBoostLabs = function(): StructureLab[] {
+	let boostLabs: StructureLab[] = [];
+	this.myLabs.forEach((l: StructureLab) => {
+		let flag = l.pos.lookFor<Flag>(LOOK_FLAGS).shift();
+		if (!!flag && flag.name.indexOf("_B") !== -1) {
+			boostLabs.push(l);
+			// console.log(`Room.prototype.getBoostLabs found ${flag.name} as boostLab in ${this.name}`, this.myLabs.length, boostLabs.length);
+		}
+	});
+	if (boostLabs.length > 0) {
+		boostLabs.forEach((l: StructureLab) => this.myLabs = _.pull(this.myLabs, l));
+/*		this.myLabs.forEach((ml: StructureLab) => console.log(ml.id));
+		console.log("------------------");
+		boostLabs.forEach((bl: StructureLab) => console.log(bl.id));*/
+	}
+	return boostLabs;
 };
 Room.prototype.getFreeSpawn = function(): StructureSpawn {
 	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || _.sample(this.mySpawns);
@@ -278,25 +308,29 @@ Room.prototype.addProperties = function () {
 	}
 
 	delete this.memory.creepMatrix;
-	this.allStructures = this.getAllStructures();
-	this.allCreeps = this.getAllCreeps();
+
+	this.allStructures =        this.getAllStructures();
+	this.allCreeps =            this.getAllCreeps();
 	this.allConstructionSites = this.getAllConstructionSites();
-	this.minerals = this.getMinerals();
-	this.sources = this.getSources();
+	this.minerals =             this.getMinerals();
+	this.sources =              this.getSources();
 
-	this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
-	this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
-	this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
-	this.myLabs = (!!this.controller && !!this.controller.my) ? this.getMyLabs() : [];
+	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
+	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
+	this.myLabs =               (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyLabs() : [];
+	this.boostLabs =            (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getBoostLabs() : [];
 
-	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
-	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
-	this.hostileCreeps = (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
+	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
+	this.numberOfCreeps =       (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
+	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
+	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
+	this.alliedCreeps =         (this.hostileCreeps.length > 0) ? this.getAlliedCreeps() : [];
 
-	this.myConstructionSites = (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
+	this.myConstructionSites =  (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
 
-	this.containers = (this.allStructures.length > 0) ? this.getContainers() : [];
+	this.containers =           (this.allStructures.length > 0) ? this.getContainers() : [];
 	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
-	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
-	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
+	this.energyInContainers =   (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
+	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
 };

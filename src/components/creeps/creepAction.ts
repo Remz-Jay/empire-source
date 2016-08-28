@@ -288,6 +288,12 @@ export default class CreepAction implements ICreepAction {
 	};
 
 	public findPathFinderPath(goal: PathFinderGoal): RoomPosition[] {
+		let maxOps = 3000;
+		if (Game.cpu.getUsed() > (Game.cpu.limit)) {
+			maxOps = 500;
+		} else if (Game.cpu.getUsed() > (Game.cpu.limit * 0.8)) {
+			maxOps = 1000;
+		}
 		let plainCost = 2;
 		let swampCost = 6;
 		if (_.sum(this.creep.carry) > (this.creep.carryCapacity / 2)) {
@@ -297,7 +303,7 @@ export default class CreepAction implements ICreepAction {
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
-			maxOps: 1750,
+			maxOps: maxOps,
 			plainCost: plainCost,
 			swampCost: swampCost,
 			roomCallback: this.roomCallback,

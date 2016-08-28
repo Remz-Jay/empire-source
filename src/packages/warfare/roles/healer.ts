@@ -35,11 +35,17 @@ let roomCallback = function (roomName: string): CostMatrix {
 export default class Healer extends WarfareCreepAction implements IHealer {
 
 	public hardPath: boolean = false;
+	public boosts: string[] = [
+		RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, // +300% heal and rangedHeal effectiveness
+		RESOURCE_ZYNTHIUM_ALKALIDE, // +200% fatigue decrease speed
+	];
 
 	public setCreep(creep: Creep, positions: RoomPosition[]) {
-		let posarr = positions.slice(); // Need a copy, or pop() and splice() will modify the original.
+		// We require the next bit to have the healer stand at one checkpoint behind the rest.
+/*		let posarr = positions.slice(); // Need a copy, or pop() and splice() will modify the original.
 		posarr.splice(-1, 1); // Remove the last position, because it's in hostile territory.
-		super.setCreep(creep, posarr);
+		super.setCreep(creep, posarr);*/
+		super.setCreep(creep, positions);
 	}
 
 	public moveToHeal(): boolean {
@@ -80,9 +86,6 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 	}
 
 	public move() {
-		if (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
-			return;
-		}
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure = undefined;
 			if (!this.creep.memory.target) {
@@ -152,6 +155,14 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				}
 			} else {
 				delete this.creep.memory.targetPath;
+				let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {filter: (c: Creep) => c.id !== this.creep.id});
+				if (!!closest && !this.creep.pos.isNearTo(closest)) {
+					this.creep.moveTo(closest);
+				} else {
+					if (Game.time % 6 === 0) {
+						this.creep.say("BOO!", true);
+					}
+				}
 			}
 		}
 	}
@@ -163,7 +174,9 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 		if (this.heal(true)) { // Reverse targeting for Tanks.
 			this.rangedHeal();
 		}
-		this.move();
+		if (this.getBoosted()) {
+			this.move();
+		}
 		return true;
 	}
 }

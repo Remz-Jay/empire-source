@@ -10,17 +10,41 @@ StructureLink.prototype.run = function () {
 		if (this.pos.isNearTo(storage)) {
 			if (this.energy >= calcTotal(400)) {
 				let receivers = this.room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LINK && s.id !== this.id);
-				_.each(receivers, function (r: StructureLink) {
-					if (r.energy < 400 && this.cooldown === 0) {
-						this.transferEnergy(r, (calcTotal(400 - r.energy)));
+				receivers.forEach((r: StructureLink) => {
+					let transferValue: number = 400;
+					let flags = r.pos.lookFor<Flag>(LOOK_FLAGS);
+					if (flags.length > 0) {
+						let flag = flags.shift();
+						if (flag.color === COLOR_BLUE) { // IN link
+							transferValue = 0;
+						} else if (flag.color === COLOR_RED) { // OUT link
+							transferValue = 800;
+						}
 					}
-				}, this);
+					if (r.energy < transferValue) {
+						transferValue = calcTotal(transferValue - r.energy);
+						if (this.energy < transferValue) {
+							transferValue = this.energy;
+						}
+						this.transferEnergy(r, transferValue);
+					}
+				});
 			}
 		} else {
-			if (this.energy >= 600) {
+			let transferValue: number = 400;
+			let flags = this.pos.lookFor(LOOK_FLAGS);
+			if (flags.length > 0) {
+				let flag = flags.shift();
+				if (flag.color === COLOR_BLUE) { // IN link
+					transferValue = 800;
+				} else if (flag.color === COLOR_RED) { // OUT link
+					transferValue = 0;
+				}
+			}
+			if (this.energy > (this.energyCapacity - transferValue)) {
 				let storageLink = this.room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(storage))[0] as StructureLink;
 				let canReceive = storageLink.energyCapacity - storageLink.energy;
-				let toSend = this.energy - 400;
+				let toSend = this.energy - (this.energyCapacity - transferValue);
 				if (toSend > canReceive) {
 					toSend = canReceive;
 				}

@@ -7,8 +7,8 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 	public static MINRCL: number = Config.MINRCL_REPAIR;
 	public static ROLE: string = "Repair";
 
-	public bodyPart = [CARRY, CARRY, WORK, MOVE, MOVE, MOVE];
-	public maxParts = 4;
+	public bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
+	public maxParts = 8;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

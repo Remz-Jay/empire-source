@@ -7,9 +7,9 @@ export default class HealerGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = Config.MINRCL_WF_HEALER;
 	public static ROLE: string = "Healer";
 
-	public maxParts = 10;
+	public maxParts = 5;
 	public maxCreeps = 2;
-	public bodyPart = [HEAL, HEAL, MOVE, MOVE];
+	public bodyPart = [HEAL, HEAL, HEAL, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

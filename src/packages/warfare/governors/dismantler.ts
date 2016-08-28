@@ -7,11 +7,11 @@ export default class DismantlerGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "Dismantler";
 
-	public maxParts = 25;
+	public maxParts = 20;
 	public maxCreeps = 2;
-	public bodyPart = [WORK, WORK, MOVE];
-	public toughPart = [TOUGH, TOUGH, MOVE];
-	public basePart = [TOUGH, TOUGH, MOVE];
+	public bodyPart = [WORK, WORK, WORK, MOVE];
+	public toughPart = [TOUGH, TOUGH, TOUGH, MOVE];
+	public basePart = [TOUGH, TOUGH, TOUGH, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

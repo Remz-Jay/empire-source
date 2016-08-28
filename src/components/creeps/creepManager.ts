@@ -81,7 +81,7 @@ export function governCreeps(room: Room): CreepStats {
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
-		if (room.controller.level >= prioritizedGovernors[index].MINRCL) {
+		if (room.controller.level >= prioritizedGovernors[index].MINRCL && Game.cpu.getUsed() < Game.cpu.limit) {
 			let CpuBeforeRoles = Game.cpu.getUsed();
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;

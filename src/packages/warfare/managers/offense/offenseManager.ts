@@ -9,12 +9,14 @@ import Terminator from "../../roles/terminator";
 import WarvesterGovernor from "../../governors/warvester";
 import Warvester from "../../roles/warvester";
 
+import HealerGovernor from "../../governors/healer";
+import Healer from "../../roles/healer";
+import DismantlerGovernor from "../../governors/dismantler";
+import Dismantler from "../../roles/dismantler";
+
 /*import FastankGovernor from "../../governors/fastank";
 import TankGovernor from "../../governors/tank";
 import Tank from "../../roles/tank";
-
-import HealerGovernor from "../../governors/healer";
-import Healer from "../../roles/healer";
 
 import DismantlerGovernor from "../../governors/dismantler";
 import Dismantler from "../../roles/dismantler";
@@ -42,6 +44,22 @@ function initMemory(): void {
 let config: RemoteRoomConfig;
 let homeRoom: Room;
 let targetRoom: Room;
+
+let healTestConfig = {
+	roles: [
+		{
+			"governor": HealerGovernor,
+			"role": Healer,
+			"maxCreeps": 0,
+		},
+		{
+			"governor": DismantlerGovernor,
+			"role": Dismantler,
+			"maxCreeps": 0,
+		},
+	],
+	wait: false,
+};
 
 let warvestConfig = {
 	roles: [
@@ -136,9 +154,19 @@ let warvestPositions: RoomPosition[] = [
 	new RoomPosition(31, 28, "W7N44"), // Terminal
 ];
 
+let healTestPositions: RoomPosition[] = [
+	new RoomPosition(30, 3, "W2N43"),
+	new RoomPosition(29, 47, "W2N44"),
+	new RoomPosition(39, 28, "W2N44"),
+	new RoomPosition(14, 27, "W2N44"), // Rampart
+	new RoomPosition(9, 25, "W2N44"), // Tower
+	new RoomPosition(8, 20, "W2N44"), // Spawn
+];
+
 let helpPositions: RoomPosition[] = [
 	new RoomPosition(47, 43, "W7N44"),
 	new RoomPosition(9, 41, "W6N44"),
+
 ];
 
 /*let dismantlePositions: RoomPosition[] = [
@@ -411,6 +439,9 @@ export function govern(): void {
 					break;
 				case "W5N45":
 					manageSquad(roomName, warvestConfig, warvestPositions);
+					break;
+				case "W2N44": // DrakeShady
+					manageSquad(roomName, healTestConfig, healTestPositions);
 					break;
 				default:
 					manageSquad(roomName, squadConfig, positions);

@@ -48,6 +48,8 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public squad: Creep[] = [];
 	public squadSize: number = 0;
 	public wait: boolean = false;
+	public boosts: string[] = [];
+	public hasBoosts: string[] = [];
 	protected positions: RoomPosition[];
 	protected positionIterator: number;
 
@@ -58,6 +60,10 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			this.creep.memory.positionIterator = 0;
 		}
 		this.positionIterator = this.creep.memory.positionIterator;
+		if (!this.creep.memory.hasBoosts) {
+			this.creep.memory.hasBoosts = [];
+		}
+		this.hasBoosts = this.creep.memory.hasBoosts;
 	}
 
 	public isMyRoom(roomName: string) {
@@ -73,6 +79,39 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			Game.rooms[roomName].controller.reservation &&
 			Game.rooms[roomName].controller.reservation.username === username;
 		return (isMyRoom || isMyReservedRoom) ? true : false;
+	}
+
+	public getBoosted(): boolean {
+		if (this.boosts.length < 1) {
+			return true;
+		}
+		let todo: string[] = _.difference(this.boosts, this.hasBoosts);
+		if (todo.length < 1) {
+			return true;
+		}
+		let boost = todo.shift();
+		// find a lab that supplies this resource
+		let lab = this.creep.room.boostLabs.filter((l: StructureLab) => l.mineralType === boost && l.mineralAmount >= 30).shift();
+		if (!!lab) {
+			// move to it
+			if (!this.creep.pos.isNearTo(lab)) {
+				this.moveTo(lab.pos);
+				return false;
+			} else {
+				// boost it
+				let status = lab.boostCreep(this.creep);
+				if (status === OK || status === ERR_NOT_ENOUGH_RESOURCES || status === ERR_NOT_FOUND) {
+					// mark it as done.
+					this.creep.say("F\u00C6\u00C6LG\u00D8\u00D8\u00D0!", true);
+					this.creep.memory.hasBoosts.push(boost);
+					this.creep.memory.isBoosted = true; // prevent renew while passing spawns.
+				} else {
+					this.creep.say(status.toString());
+				}
+			}
+			return false;
+		}
+		return true;
 	}
 
 	public moveUsingPositions(): boolean {
@@ -174,8 +213,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			this.creep.heal(this.creep);
 			return false;
 		} else {
-			if (this.creep.room.myCreeps.length > 1) { // Is it just me up in here?
-				let targets = this.creep.room.myCreeps.filter(
+			let friendlies = _.union(this.creep.room.myCreeps, this.creep.room.alliedCreeps);
+			if (friendlies.length > 1) { // Is it just me up in here?
+				let targets = friendlies.filter(
 					(c: Creep) => c.hits < c.hitsMax && c.pos.isNearTo(this.creep));
 				if (targets.length > 0) {
 					let target = this.getPriorityCreep(targets, reverse);
@@ -280,8 +320,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public rangedHeal(): boolean {
-		if (this.creep.room.myCreeps.length > 1) {
-			let targets = this.creep.room.myCreeps.filter((c: Creep) => c.hits < c.hitsMax && c.pos.inRangeTo(this.creep.pos, 3));
+		let friendlies = _.union(this.creep.room.myCreeps, this.creep.room.alliedCreeps);
+		if (friendlies.length > 1) { // Is it just me up in here?
+			let targets = friendlies.filter((c: Creep) => c.hits < c.hitsMax && c.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0) {
 				let target = this.getPriorityCreep(targets);
 				this.creep.rangedHeal(target);
@@ -375,13 +416,15 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 				}, this);
 				if (!!hostile) {
 					return hostile;
-				} /*else {
+				} else if (!!this.creep.room.controller && !!this.creep.room.controller.owner && this.creep.room.controller.my === false) {
 					hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.allStructures, {
-						filter: (s: Structure) => s.structureType === STRUCTURE_WALL
-						|| s.structureType === STRUCTURE_CONTAINER,
+						filter: (s: Structure) =>
+							// s.structureType === STRUCTURE_WALL
+							s.structureType === STRUCTURE_ROAD
+							|| s.structureType === STRUCTURE_CONTAINER,
 						costCallback: this.roomCallback,
 					});
-				}*/
+				}
 			}
 			if (!!hostile) {
 				return hostile;

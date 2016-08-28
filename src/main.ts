@@ -29,7 +29,6 @@ StatsManager.init();
 
 export function loop() {
 	Profiler.wrap(function () {
-		console.log();
 		PathFinder.use(true);
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
@@ -43,11 +42,6 @@ export function loop() {
 		StatsManager.addStat("cpu.init", CpuInit);
 
 		try {
-			RoomManager.governRooms();
-		} catch (e) {
-			console.log("RoomManager Exception", (<Error> e).message);
-		}
-		try {
 			AssimilationManager.govern();
 		} catch (e) {
 			console.log("AssimilationManager Exception", (<Error> e).message);
@@ -57,6 +51,12 @@ export function loop() {
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}
+		try {
+			RoomManager.governRooms();
+		} catch (e) {
+			console.log("RoomManager Exception", (<Error> e).message);
+		}
+
 		if (!!Memory.showLogCreep) {
 			Memory.log.creeps.forEach((message: String, index: number) => {
 				console.log("log.creeps", message);
@@ -86,7 +86,6 @@ export function loop() {
 			});
 		}
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
-		console.log();
 		console.log(`End of tick ${Game.time}.\t`
 			+ `GCL:${Game.gcl.level}@${perc}%\t`
 			+ `CPU:${_.ceil(Game.cpu.getUsed())}/${Game.cpu.limit}\t`

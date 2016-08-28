@@ -6,8 +6,6 @@ export interface IMule {
 	targetEnergySource: Spawn | Structure;
 
 	isBagEmpty(): boolean;
-	tryCollectEnergy(): number;
-	moveToCollectEnergy(): void;
 	assignNewTarget(): boolean;
 
 	action(): boolean;
@@ -58,27 +56,22 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		return (_.sum(this.creep.carry) === 0);
 	}
 
-	public moveToCollectEnergy(): void {
-		if (!this.creep.pos.isNearTo(this.targetEnergySource.pos)) {
-			this.moveTo(this.targetEnergySource.pos);
-		} else {
-			this.tryCollectEnergy();
-		}
+	public isBagFull(): boolean {
+		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
 	}
 
-	public tryCollectEnergy(): number {
-		return this.creep.withdraw(this.targetEnergySource, RESOURCE_ENERGY);
+	public getTargetList(blackList: string[] = []): Structure[] {
+		return this.creep.room.myStructures.filter((structure: EnergyStructure) => (
+			blackList.indexOf(structure.id) === -1 && (
+				(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
+				|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.75))
+				|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.85))
+			)
+		));
 	}
-
 	public scanForTargets(blackList: string[] = []): Structure {
 		if (this.creep.room.myStructures.length > 0) {
-			let structs = this.creep.room.myStructures.filter((structure: EnergyStructure) => (
-				blackList.indexOf(structure.id) === -1 && (
-					(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
-					|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.75))
-					|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.85))
-				)
-			));
+			let structs = this.getTargetList(blackList);
 			let target: EnergyStructure = this.creep.pos.findClosestByPath(structs, {
 				algorithm: "astar",
 				maxRooms: 1,
@@ -128,14 +121,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			switch (status) {
 				case ERR_FULL:
 				case ERR_NOT_ENOUGH_RESOURCES:
-					if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
-						delete this.creep.memory.target;
-						// We're empty, drop from idle to pick up new stuff to haul.
-						delete this.creep.memory.idle;
-						this.muleLogic();
-					}
-					break;
 				case OK:
+					delete this.creep.memory.target;
 					break;
 				default:
 					console.log(`Status ${status} not defined for RoleMule.dump`);
@@ -183,22 +170,22 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		}
 	};
 
-	public setSource(blackList: string[] = []): void {
+	public setSource(idle: boolean = false, blackList: string[] = [], retry: boolean = false): void {
 		// Get energy from containers
 		let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
 		blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
-		&& structure.store[RESOURCE_ENERGY] > 300);
+		&& structure.store[RESOURCE_ENERGY] >= (this.creep.carryCapacity - _.sum(this.creep.carry)));
 		let source: StructureContainer = this.creep.pos.findClosestByPath(structs, {
 			algorithm: "astar",
 			maxRooms: 1,
 			maxOps: 500,
 			costCallback: this.roomCallback,
 		}) as StructureContainer;
-		if (!source) {
+		if (!source && idle) {
 			// No energy in containers found. Get some minerals instead
 			structs = this.creep.room.containers.filter((structure: StructureContainer) =>
 			blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
-			&& _.sum(structure.store) > 400);
+			&& _.sum(structure.store) >= (this.creep.carryCapacity - _.sum(this.creep.carry)) / 2);
 			source = this.creep.pos.findClosestByPath(structs, {
 				algorithm: "astar",
 				maxRooms: 1,
@@ -218,28 +205,29 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				&& (!!c.memory.source && c.memory.source === source.id));
 			if (!!taken && taken.length > 0) {
 				blackList.push(source.id);
-				this.setSource(blackList);
+				this.setSource(idle, blackList);
 			} else {
 				this.creep.memory.source = source.id;
 			}
 		} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
-			if (!!this.scanForTargets()) { // Only collect from the storage if we have targets that require energy.
+			if (this.getTargetList(blackList).length > 0) { // Only collect from the storage if we have targets that require energy.
 				this.creep.memory.source = this.creep.room.storage.id;
 				this.creep.memory.mineralType = RESOURCE_ENERGY;
+			} else if (!retry) {
+				this.setSource(true, blackList, true);
 			}
 		}
 	}
 
 	public muleLogic(): void {
-		if (!!this.creep.memory.dumping && _.sum(this.creep.carry) === 0) {
+		if (!!this.creep.memory.dumping && this.isBagEmpty()) {
 			delete this.creep.memory.dumping;
 			delete this.creep.memory.target;
 			delete this.creep.memory.source;
 			delete this.creep.memory.idle;
 			this.creep.say("M:COL");
 		}
-		if (!this.creep.memory.dumping && !this.creep.memory.idle &&
-			_.sum(this.creep.carry) === this.creep.carryCapacity) {
+		if (!this.creep.memory.dumping && !this.creep.memory.idle && this.isBagFull()) {
 			this.creep.memory.dumping = true;
 			delete this.creep.memory.target;
 			delete this.creep.memory.source;
@@ -269,13 +257,13 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.dumpRoutine(target);
 			}
 		} else if (!!this.creep.memory.idle) {
-			if (_.sum(this.creep.carry) > 0 && this.creep.carry.energy === 0) {
+			if (_.sum(this.creep.carry) > this.creep.carry.energy) {
 				// We're carrying Minerals. Drop them off first before returning to duty.
 				this.dumpAtStorage();
 			} else {
 				// return to duty when able
 				let target: Structure = undefined;
-				if (Game.time % 5 === 0) {
+				if (this.creep.carry.energy > 100 && Game.time % 5 === 0) {
 					target = this.scanForTargets();
 				}
 				if (!!target) {
@@ -299,8 +287,21 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 								this.creep.pickup(target);
 							}
 						} else {
-							// No dropped energy found, proceed to offload at Storage.
-							this.dumpAtStorage();
+							if (!this.creep.memory.source) {
+								this.setSource(true);
+							}
+							if (!!this.creep.memory.source) {
+								let source = Game.getObjectById(this.creep.memory.source);
+								if (!!source && source instanceof Structure) { // Sources aren't structures
+									this.collectFromSource(source);
+								} else {
+									delete this.creep.memory.source;
+									delete this.creep.memory.mineralType;
+								}
+							} else {
+								// No sources found, proceed to offload at Storage.
+								this.dumpAtStorage();
+							}
 						}
 					} else {
 						// We're full. Go dump at a Storage.
@@ -315,28 +316,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			if (!!this.creep.memory.source) {
 				let source = Game.getObjectById(this.creep.memory.source);
 				if (source instanceof Structure) { // Sources aren't structures
-					if (!this.creep.pos.isNearTo(source)) {
-						this.creep.memory.source = source.id;
-						this.moveTo(source.pos);
-					} else {
-						if (!this.creep.memory.mineralType) {
-							this.creep.memory.mineralType = RESOURCE_ENERGY;
-						}
-						let status = this.creep.withdraw(source, this.creep.memory.mineralType);
-						switch (status) {
-							case ERR_NOT_ENOUGH_RESOURCES:
-							case ERR_INVALID_TARGET:
-							case ERR_NOT_OWNER:
-							case ERR_FULL:
-								delete this.creep.memory.source;
-								this.setSource();
-								break;
-							case OK:
-								break;
-							default:
-								console.log(`Unhandled ERR in RoleMule.source.container: ${status}`);
-						}
-					}
+					this.collectFromSource(source);
 				} else {
 					delete this.creep.memory.source;
 					delete this.creep.memory.mineralType;
@@ -351,6 +331,32 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			}
 		}
 	};
+
+	public collectFromSource(source: Structure) {
+		if (!this.creep.pos.isNearTo(source)) {
+			this.creep.memory.source = source.id;
+			this.moveTo(source.pos);
+		} else {
+			if (!this.creep.memory.mineralType) {
+				this.creep.memory.mineralType = RESOURCE_ENERGY;
+			}
+			let status = this.creep.withdraw(source, this.creep.memory.mineralType);
+			switch (status) {
+				case ERR_NOT_ENOUGH_RESOURCES:
+				case ERR_INVALID_TARGET:
+				case ERR_NOT_OWNER:
+					delete this.creep.memory.source;
+					this.setSource();
+					break;
+				case ERR_FULL:
+				case OK:
+					delete this.creep.memory.source;
+					break;
+				default:
+					console.log(`Unhandled ERR in RoleMule.source.container: ${status}`);
+			}
+		}
+	}
 
 	public pickupResourcesInRange(): void {
 		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {

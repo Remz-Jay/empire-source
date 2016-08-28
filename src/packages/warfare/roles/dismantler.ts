@@ -33,8 +33,12 @@ let roomCallback = function (roomName: string): CostMatrix {
 };
 
 export default class Dismantler extends WarfareCreepAction implements IDismantler {
-
+	public hasHealer: boolean = true;
 	public hardPath: boolean = true;
+	public boosts: string[] = [
+		RESOURCE_ZYNTHIUM_ALKALIDE, // +200% fatigue decrease speed
+		RESOURCE_CATALYZED_ZYNTHIUM_ACID, // +300% dismantle effectiveness
+	];
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
 		super.setCreep(creep, positions);
@@ -85,10 +89,25 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 		if (!this.positions) {
 			return false;
 		}
-		if (this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+		if (this.positionIterator < this.positions.length && this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
 			let structures  = this.creep.room.lookForAt<Structure>(LOOK_STRUCTURES, this.positions[this.positionIterator]);
 			if (structures.length) {
 				this.creep.dismantle(structures[0]);
+				return false;
+			}
+		} else if (this.positionIterator >= this.positions.length) {
+			let target = this.findTargetStructure();
+			if (!!target) {
+				if (!this.creep.pos.isNearTo(target)) {
+					this.creep.moveTo(target);
+				} else {
+					this.creep.dismantle(target);
+					if (Game.time % 6 === 0) {
+						this.creep.say("OM NOM", true);
+					} else if (Game.time % 6 === 1) {
+						this.creep.say("NOM!", true);
+					}
+				}
 				return false;
 			}
 		}
@@ -96,15 +115,15 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	}
 
 	public move(): boolean {
-		if (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
+		if (!this.hasHealer && (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth)) {
 			return;
 		} else {
 			if (!this.positions) {
 				return false;
 			}
 			if (this.positionIterator < this.positions.length) {
-				if (!this.creep.pos.isEqualTo(this.positions[this.positionIterator])) {
-					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
+				if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 1);
 					this.moveTo(pfg);
 				} else {
 					this.positionIterator = ++this.creep.memory.positionIterator;
@@ -117,11 +136,14 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	}
 
 	public action(): boolean {
+		if (this.creep.room.name === this.creep.memory.homeRoom && !this.getBoosted()) {
+			return false;
+		}
 		if (this.creep.hits === this.creep.hitsMax && !!this.creep.memory.waitForHealth) {
 			delete this.creep.memory.waitForHealth;
 		}
 		if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
-			this.moveToTargetRoom();
+				this.moveToTargetRoom();
 		} else {
 			if (this.dismantle()) {
 				this.move();
