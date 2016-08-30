@@ -193,7 +193,7 @@ Room.prototype.getMyCreeps = function(): Creep[] {
 	return this.allCreeps.filter((c: Creep) => !!c.my);
 };
 Room.prototype.getHostileCreeps = function(): Creep[] {
-	return this.allCreeps.filter((c: Creep) => !c.my);
+	return _.difference<Creep>(this.allCreeps, this.myCreeps);
 };
 Room.prototype.getAlliedCreeps = function(): Creep[] {
 	let alliedPlayers: string[] = [
@@ -230,7 +230,13 @@ Room.prototype.getHostileStructures = function (): OwnedStructure[] {
 	undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
-	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+	let spawns = this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+	spawns.forEach((s: StructureSpawn) => {
+		if (!!s.spawning) {
+			s.isBusy = true;
+		}
+	});
+	return spawns;
 };
 Room.prototype.getMyLabs = function(): StructureLab[] {
 	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LAB);
@@ -323,7 +329,6 @@ Room.prototype.addProperties = function () {
 
 	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
 	this.numberOfCreeps =       (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
-	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
 	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
 	this.alliedCreeps =         (this.hostileCreeps.length > 0) ? this.getAlliedCreeps() : [];
 

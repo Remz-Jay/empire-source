@@ -1,10 +1,9 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as Config from "../../../config/config";
 
 export default class ScientistGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_SCIENTIST;
-	public static MINRCL: number = Config.MINRCL_SCIENTIST;
+	public static PRIORITY: number = global.PRIORITY_SCIENTIST;
+	public static MINRCL: number = global.MINRCL_SCIENTIST;
 	public static ROLE: string = "Scientist";
 
 	public bodyPart = [CARRY, MOVE];

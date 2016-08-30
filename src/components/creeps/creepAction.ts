@@ -1,4 +1,3 @@
-import * as Config from "../../config/config";
 import * as RoomManager from "../rooms/roomManager";
 import List = _.List;
 import CreepGovernor from "./creepGovernor";
@@ -31,7 +30,7 @@ export default class CreepAction implements ICreepAction {
 	public renewStation: Spawn;
 	public governor: CreepGovernor;
 	public fleeRange: number = 5;
-	public _minLifeBeforeNeedsRenew: number = Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
+	public _minLifeBeforeNeedsRenew: number = global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
 	public moveIterator: number = 0;
 	public setCreep(creep: Creep) {
 		this.creep = creep;
@@ -361,7 +360,7 @@ export default class CreepAction implements ICreepAction {
 		}
 		return false;
 	};
-	public renewCreep(max: number = Config.MAX_TTL): boolean {
+	public renewCreep(max: number = global.MAX_TTL): boolean {
 		let homeRoom = RoomManager.getRoomByName(this.creep.memory.homeRoom);
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
 			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)

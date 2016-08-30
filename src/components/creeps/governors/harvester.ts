@@ -1,11 +1,10 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
 import * as SourceManager from "../../sources/sourceManager";
-import * as Config from "../../../config/config";
 
 export default class HarvesterGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_HARVESTER;
-	public static MINRCL: number = Config.MINRCL_HARVESTER;
+	public static PRIORITY: number = global.PRIORITY_HARVESTER;
+	public static MINRCL: number = global.MINRCL_HARVESTER;
 	public static ROLE: string = "Harvester";
 
 	public emergency: boolean = SourceManager.isEmergency() || (this.getNumberOfCreepsInRole() < (this.getCreepLimit() / 2));

@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_HARVESTER;
-	public static MINRCL: number = Config.MINRCL_ASM_HARVESTER;
+	public static PRIORITY: number = global.PRIORITY_ASM_HARVESTER;
+	public static MINRCL: number = global.MINRCL_ASM_HARVESTER;
 	public static ROLE: string = "ASMHarvester";
 
 	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];

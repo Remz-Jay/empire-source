@@ -5,6 +5,7 @@ declare type EnergyStructure = Extension | Spawn | Tower;
 declare type StorageStructure = StructureStorage | StructureContainer | StructureTerminal;
 declare type findRouteRoute = {exit: string; room: string; }
 declare type findRouteArray = findRouteRoute[];
+declare var global: any;
 
 declare interface CreepStats  {
 	roles: number;

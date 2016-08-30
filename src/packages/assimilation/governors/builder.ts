@@ -1,11 +1,10 @@
-import * as Config from "../../../config/config";
 import * as RoomManager from "../../../components/rooms/roomManager";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_BUILDER;
-	public static MINRCL: number = Config.MINRCL_ASM_BUILDER;
+	public static PRIORITY: number = global.PRIORITY_ASM_BUILDER;
+	public static MINRCL: number = global.MINRCL_ASM_BUILDER;
 	public static ROLE: string = "ASMBuilder";
 
 	public maxParts = 8;

@@ -139,14 +139,14 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		if (this.creep.hits === this.creep.hitsMax && !!this.creep.memory.waitForHealth) {
 			delete this.creep.memory.waitForHealth;
 		}
-/*		if (this.creep.room.name === this.creep.memory.homeRoom) {
+		if (this.creep.room.name === this.creep.memory.homeRoom && this.isBagEmpty()) {
 			if (this.creep.ticksToLive < 550) {
 				this.creep.memory.hasRenewed = false;
 			}
 			if (!this.renewCreep()) {
 				return false;
 			}
-		}*/
+		}
 		if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
 			this.moveToTargetRoom();
 		} else {

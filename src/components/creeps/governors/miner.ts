@@ -1,10 +1,9 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as Config from "../../../config/config";
 
 export default class MinerGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_MINER;
-	public static MINRCL: number = Config.MINRCL_MINER;
+	public static PRIORITY: number = global.PRIORITY_MINER;
+	public static MINRCL: number = global.MINRCL_MINER;
 	public static ROLE: string = "Miner";
 
 	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];

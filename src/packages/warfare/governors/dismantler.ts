@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import WarfareCreepGovernor from "../warfareCreepGovernor";
 
 export default class DismantlerGovernor extends WarfareCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_WF_WARRIOR;
-	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "Dismantler";
 
 	public maxParts = 20;
@@ -38,13 +37,14 @@ export default class DismantlerGovernor extends WarfareCreepGovernor {
 				body = body.concat(this.bodyPart);
 			}
 		}
+		/*
 		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
 		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
 		for (let i = 0; i < numTough; i ++) {
 			if (body.length + this.toughPart.length <= 50) {
 				body = body.concat(this.toughPart);
 			}
-		}
+		}*/
 		return WarfareCreepGovernor.sortBodyParts(body);
 	}
 

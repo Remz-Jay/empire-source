@@ -1,5 +1,3 @@
-import * as Config from "./../../config/config";
-
 export let sources: ISource[];
 export let sourceCount: number;
 export let sourceRoom: Room;
@@ -20,10 +18,10 @@ export function load(room: Room) {
 	sourceRoom = room;
 	sources = sourceRoom.sources;
 	sourceCount = _.size(sources);
-	if (Config.VERBOSE) {
+	if (global.VERBOSE) {
 		console.log("[SourceManager] " + sourceCount + " sources in room.");
 	}
-	blacklistSources(Config.BLACKLIST_SOURCES);
+	blacklistSources(global.BLACKLIST_SOURCES);
 	initMemory(room);
 	_.each(sources, function (s: ISource) {
 		s.memory = s.room.memory.sources[s.id];
@@ -40,7 +38,7 @@ export function blacklistSources(sourceIds: string[]): boolean {
 			id: s,
 		});
 		if (removed.length > 0) {
-			if (Config.VERBOSE) {
+			if (global.VERBOSE) {
 				console.log(`Removed source ${removed[0].id} from sources. ${sources.length} remain.`);
 			}
 		}
@@ -55,7 +53,7 @@ export function findAvailableHarvester(s: Source) {
 
 export function updateHarvesterPreference() {
 	_.each(sources, function (s: ISource) {
-		for (let i = 1; i <= Config.MAX_HARVESTERS_PER_SOURCE; i++) {
+		for (let i = 1; i <= global.MAX_HARVESTERS_PER_SOURCE; i++) {
 			if (i > getMaxHarvestersPerSource() || i > getMiningSlots(s).length) {
 				if (!s.memory[`preferredHarvester${i}`]) {
 					let preferredHarvester: string = s.memory[`preferredHarvester${i}`];
@@ -111,7 +109,7 @@ export function getMaxHarvestersPerSource(): number {
 		max = 2;
 	}
 	if (capacity < 600 || isEmergency()) {
-		max = Config.MAX_HARVESTERS_PER_SOURCE;
+		max = global.MAX_HARVESTERS_PER_SOURCE;
 	}
 	max = 1;
 	return max;

@@ -1,5 +1,4 @@
 import CreepAction, {ICreepAction} from "../creepAction";
-import * as Config from "../../../config/config";
 
 export interface ILinker {
 	action(): boolean;
@@ -170,7 +169,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		let done: boolean = false;
-		Config.RESOURCE_TYPES.forEach((r: string) => {
+		global.RESOURCE_TYPES.forEach((r: string) => {
 			if (done) {
 				return;
 			}

@@ -1,4 +1,3 @@
-import * as Config from "./../../config/config";
 import CreepAction from "./creepAction";
 import CreepGovernor from "./creepGovernor";
 import Harvester from "./roles/harvester";
@@ -50,7 +49,7 @@ export function loadCreeps(): void {
 
 	_loadCreepNames();
 
-	if (Config.DEBUG) {
+	if (global.DEBUG) {
 		console.log(creepCount + " creeps found in the playground.");
 	}
 }
@@ -60,7 +59,7 @@ export function createCreep(room: Room, config: CreepConfiguration): string|numb
 		let status: number | string = spawn.canCreateCreep(config.body, config.name);
 		if (status === OK) {
 			status = spawn.createCreepWhenIdle(config.body, config.name, config.properties);
-			if (Config.VERBOSE) {
+			if (global.VERBOSE) {
 				if (_.isNumber(status)) {
 					console.log(`Unable to create ${config.properties.role} Creep (${status})`);
 				} else {
@@ -91,7 +90,7 @@ export function governCreeps(room: Room): CreepStats {
 			let creepLimit: number = governor.getCreepLimit();
 			let body: string[] = governor.getBody();
 			let requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
-			if (Config.CREEPSTATS) {
+			if (global.CREEPSTATS) {
 				console.log(
 					_.padLeft(creepRole, 9) + ":\t" + numCreeps
 					+ " (max:" + creepLimit

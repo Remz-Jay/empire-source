@@ -1,11 +1,10 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as Config from "../../../config/config";
 
 export default class BuilderGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_BUILDER;
+	public static PRIORITY: number = global.PRIORITY_BUILDER;
 	public static ROLE: string = "Builder";
-	public static MINRCL: number = Config.MINRCL_BUILDER;
+	public static MINRCL: number = global.MINRCL_BUILDER;
 
 	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
 	public maxParts: number = 5;

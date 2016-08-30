@@ -5,7 +5,7 @@ export interface IHealer {
 	action(): boolean;
 }
 
-let roomCallback = function (roomName: string): CostMatrix {
+/*let roomCallback = function (roomName: string): CostMatrix {
 	try {
 		let room = RoomManager.getRoomByName(roomName);
 		if (!room) {
@@ -30,14 +30,14 @@ let roomCallback = function (roomName: string): CostMatrix {
 		console.log(JSON.stringify(e), "Terminator.roomCallback", roomName);
 		return new PathFinder.CostMatrix();
 	}
-};
+};*/
 
 export default class Healer extends WarfareCreepAction implements IHealer {
 
 	public hardPath: boolean = false;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, // +300% heal and rangedHeal effectiveness
-		RESOURCE_ZYNTHIUM_ALKALIDE, // +200% fatigue decrease speed
+		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
 	];
 
 	public setCreep(creep: Creep, positions: RoomPosition[]) {
@@ -74,7 +74,7 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				maxRooms: 1,
 				plainCost: 2,
 				swampCost: 10,
-				roomCallback: roomCallback,
+				roomCallback: this.roomCallback,
 			});
 			let pos = path.path[0];
 			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
@@ -93,10 +93,6 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.targetPath;
-				} else {
-					delete this.creep.memory.target;
-					delete this.creep.memory.targetPath;
-					this.creep.memory.positionIterator--;
 				}
 			} else {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
@@ -105,10 +101,6 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 					if (!!target) {
 						this.creep.memory.target = target.id;
 						delete this.creep.memory.targetPath;
-					} else {
-						delete this.creep.memory.target;
-						delete this.creep.memory.targetPath;
-						this.creep.memory.positionIterator--;
 					}
 				}
 			}
@@ -155,13 +147,13 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				}
 			} else {
 				delete this.creep.memory.targetPath;
-				let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {filter: (c: Creep) => c.id !== this.creep.id});
+				let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) < 5});
 				if (!!closest && !this.creep.pos.isNearTo(closest)) {
+					// get in range
 					this.creep.moveTo(closest);
-				} else {
-					if (Game.time % 6 === 0) {
-						this.creep.say("BOO!", true);
-					}
+				} else if (!!closest) {
+					// stay in range
+					this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
 				}
 			}
 		}

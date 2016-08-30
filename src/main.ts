@@ -1,3 +1,4 @@
+import "./config/config";
 import "./prototypes/room";
 import "./prototypes/link";
 import "./prototypes/tower";
@@ -14,7 +15,7 @@ import * as OffenseManager from "./packages/warfare/managers/offense/offenseMana
 
 delete Memory.log;
 
-console.log(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`);
+console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
 // Profiler.enable();
 
 /*
@@ -86,10 +87,13 @@ export function loop() {
 			});
 		}
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
+		let cpuUsed = _.ceil(Game.cpu.getUsed());
+		let cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";
+		let bucketColor = (Game.cpu.bucket > 9000) ? "LightGreen" : "Tomato";
 		console.log(`End of tick ${Game.time}.\t`
-			+ `GCL:${Game.gcl.level}@${perc}%\t`
-			+ `CPU:${_.ceil(Game.cpu.getUsed())}/${Game.cpu.limit}\t`
-			+ `RES:${Game.cpu.tickLimit}/${Game.cpu.bucket}`);
-		StatsManager.addStat("cpu.getUsed", Game.cpu.getUsed());
+			+ global.colorWrap(`GCL:${Game.gcl.level}@${perc}%\t`, "DodgerBlue")
+			+ global.colorWrap(`CPU:${cpuUsed}/${Game.cpu.limit}\t`, cpuColor)
+			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${Game.cpu.bucket}`, bucketColor));
+		StatsManager.addStat("cpu.getUsed", cpuUsed);
 	});
 }

@@ -1,4 +1,3 @@
-import * as Config from "../../config/config";
 import * as SourceManager from "../../components/sources/sourceManager";
 import * as RoomManager from "../../components/rooms/roomManager";
 import * as StatsManager from "../../shared/statsManager";
@@ -125,7 +124,7 @@ function createCreep(creepConfig: CreepConfiguration, priority: boolean = false)
 		} else {
 			status = spawn.createCreepWhenIdle(creepConfig.body, creepConfig.name, creepConfig.properties);
 		}
-		if (Config.VERBOSE) {
+		if (global.VERBOSE) {
 			if (_.isNumber(status)) {
 				console.log(`Unable to create ${creepConfig.properties.role} Creep (${status})`);
 			} else {
@@ -250,7 +249,7 @@ function manageHarvest(containers: StructureContainer[]) {
 						isSpawning = true;
 						let status = createCreep(governor.getCreepConfig());
 						if (_.isNumber(status)) {
-							console.log("manageHarvesters.preempt-spawn", Config.translateErrorCode(status));
+							console.log("manageHarvesters.preempt-spawn", global.translateErrorCode(status));
 						} else {
 							console.log("manageHarvesters.preempt-spawn", status);
 						}
@@ -284,7 +283,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 					// TODO: might wanna remove the true here later
 					let status = createCreep(governor.getCreepConfig(), true);
 					if (_.isNumber(status)) {
-						console.log("manageDefenders.preempt-spawn", Config.translateErrorCode(status));
+						console.log("manageDefenders.preempt-spawn", global.translateErrorCode(status));
 					} else {
 						console.log("manageDefenders.preempt-spawn", status);
 					}
@@ -320,7 +319,7 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 					// TODO: might wanna remove the true here later
 					let status = createCreep(governor.getCreepConfig(), true);
 					if (_.isNumber(status)) {
-						console.log("manageDefenders.preempt-spawn", Config.translateErrorCode(status));
+						console.log("manageDefenders.preempt-spawn", global.translateErrorCode(status));
 					} else {
 						console.log("manageDefenders.preempt-spawn", status);
 					}
@@ -419,6 +418,9 @@ export function govern(): void {
 				let vision: boolean = false;
 				if (!!targetRoom) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
+						goHome = true;
+						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
+					} else if (config.hasController && targetRoom.hostileCreeps.length > 0 && targetRoom.hostileCreeps[0].owner.username === "Tharit") {
 						goHome = true;
 						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
 					}

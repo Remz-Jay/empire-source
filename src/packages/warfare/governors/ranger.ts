@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import WarfareCreepGovernor from "../warfareCreepGovernor";
 
 export default class RangerGovernor extends WarfareCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_WF_RANGER;
-	public static MINRCL: number = Config.MINRCL_WF_RANGER;
+	public static PRIORITY: number = global.PRIORITY_WF_RANGER;
+	public static MINRCL: number = global.MINRCL_WF_RANGER;
 	public static ROLE: string = "Ranger";
 
 	public maxParts = 10;

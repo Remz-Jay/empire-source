@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ASMRaiderGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_MULE;
-	public static MINRCL: number = Config.MINRCL_ASM_MULE;
+	public static PRIORITY: number = global.PRIORITY_ASM_MULE;
+	public static MINRCL: number = global.MINRCL_ASM_MULE;
 	public static ROLE: string = "ASMRaider";
 
 	public bodyPart: string[] = [CARRY, MOVE];

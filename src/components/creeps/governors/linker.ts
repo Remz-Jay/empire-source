@@ -1,10 +1,9 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as Config from "../../../config/config";
 
 export default class LinkerGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_LINKER;
-	public static MINRCL: number = Config.MINRCL_LINKER;
+	public static PRIORITY: number = global.PRIORITY_LINKER;
+	public static MINRCL: number = global.MINRCL_LINKER;
 	public static ROLE: string = "Linker";
 
 	public bodyPart = [CARRY, MOVE];

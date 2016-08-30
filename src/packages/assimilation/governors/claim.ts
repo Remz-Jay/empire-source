@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ClaimGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_CLAIM;
-	public static MINRCL: number = Config.MINRCL_ASM_CLAIM;
+	public static PRIORITY: number = global.PRIORITY_ASM_CLAIM;
+	public static MINRCL: number = global.MINRCL_ASM_CLAIM;
 	public static ROLE: string = "Claim";
 
 	public claim: boolean = false;

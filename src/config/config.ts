@@ -2,18 +2,18 @@
  * Enable this if you want a lot of text to be logged to console.
  * @type {boolean}
  */
-export const VERBOSE: boolean = false;
-export const CREEPSTATS: boolean = false;
-export const ROOMSTATS: boolean = false;
+global.VERBOSE = false;
+global.CREEPSTATS = false;
+global.ROOMSTATS = false;
 /**
  * For extra chatty output.
  * @type {boolean}
  */
-export const DEBUG: boolean = false;
+global.DEBUG = false;
 /**
  * @type {number}
  */
-export const MAX_HARVESTERS_PER_SOURCE: number = 3;
+global.MAX_HARVESTERS_PER_SOURCE = 3;
 
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
@@ -21,76 +21,76 @@ export const MAX_HARVESTERS_PER_SOURCE: number = 3;
  * So it doesn't cover all Screeps.
  * @type {number}
  */
-export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
-export const MAX_TTL = 1400;
+global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 200;
+global.MAX_TTL = 1400;
 
 /**
  * Priorities for Regular Room Creeps
  * @type {number}
  */
-export const PRIORITY_CREEP: number         = -1;
-export const PRIORITY_HARVESTER: number     = 10;
-export const PRIORITY_MULE: number          = 20;
-export const PRIORITY_UPGRADER: number      = 30;
-export const PRIORITY_LINKER: number        = 40;
-export const PRIORITY_MINER: number         = 50;
-export const PRIORITY_REPAIR: number        = 60;
-export const PRIORITY_BUILDER: number       = 70;
-export const PRIORITY_SCIENTIST: number     = 80;
+global.PRIORITY_CREEP           = -1;
+global.PRIORITY_HARVESTER       = 10;
+global.PRIORITY_MULE            = 20;
+global.PRIORITY_UPGRADER        = 30;
+global.PRIORITY_LINKER          = 40;
+global.PRIORITY_MINER           = 50;
+global.PRIORITY_REPAIR          = 60;
+global.PRIORITY_BUILDER         = 70;
+global.PRIORITY_SCIENTIST       = 80;
 
 /**
  * Priorities for Assimilation Package Creeps
  * @type {number}
  */
-export const PRIORITY_ASM_CLAIM: number     = 10;
-export const PRIORITY_ASM_HARVESTER: number = 20;
-export const PRIORITY_ASM_MULE: number      = 30;
-export const PRIORITY_ASM_BUILDER: number   = 40;
+global.PRIORITY_ASM_CLAIM       = 10;
+global.PRIORITY_ASM_HARVESTER   = 20;
+global.PRIORITY_ASM_MULE        = 30;
+global.PRIORITY_ASM_BUILDER     = 40;
 
 /**
  * Priorities for Warfare Package Creeps
  * @type {number}
  */
-export const PRIORITY_WF_WARRIOR: number    = 10;
-export const PRIORITY_WF_RANGER: number     = 20;
-export const PRIORITY_WF_HEALER: number     = 30;
+global.PRIORITY_WF_WARRIOR      = 10;
+global.PRIORITY_WF_RANGER       = 20;
+global.PRIORITY_WF_HEALER       = 30;
 
 /**
  * Minimum homeRoom RCL values for Regular Room Creeps
  * @type {number}
  */
-export const MINRCL_CREEP: number           = 0;
-export const MINRCL_BUILDER: number         = 1;
-export const MINRCL_HARVESTER: number       = 1;
-export const MINRCL_MULE: number            = 1;
-export const MINRCL_UPGRADER: number        = 1;
-export const MINRCL_LINKER: number          = 5;
-export const MINRCL_REPAIR: number          = 2;
-export const MINRCL_MINER: number           = 6;
-export const MINRCL_SCIENTIST: number       = 6;
+global.MINRCL_CREEP             = 0;
+global.MINRCL_BUILDER           = 1;
+global.MINRCL_HARVESTER         = 1;
+global.MINRCL_MULE              = 1;
+global.MINRCL_UPGRADER          = 1;
+global.MINRCL_LINKER            = 5;
+global.MINRCL_REPAIR            = 2;
+global.MINRCL_MINER             = 6;
+global.MINRCL_SCIENTIST         = 6;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps
  * @type {number}
  */
-export const MINRCL_ASM_CLAIM: number       = 4;
-export const MINRCL_ASM_HARVESTER: number   = 4;
-export const MINRCL_ASM_MULE: number        = 4;
-export const MINRCL_ASM_BUILDER: number     = 4;
+global.MINRCL_ASM_CLAIM         = 4;
+global.MINRCL_ASM_HARVESTER     = 4;
+global.MINRCL_ASM_MULE          = 4;
+global.MINRCL_ASM_BUILDER       = 4;
 
 /**
  * Minimum homeRoom RCL values for Warfare Package Creeps
  * @type {number}
  */
-export const MINRCL_WF_WARRIOR: number      = 4;
-export const MINRCL_WF_RANGER: number       = 4;
-export const MINRCL_WF_HEALER: number       = 4;
+global.MINRCL_WF_WARRIOR        = 4;
+global.MINRCL_WF_RANGER         = 4;
+global.MINRCL_WF_HEALER         = 4;
 
-export const BLACKLIST_SOURCES: string[] = [
+global.BLACKLIST_SOURCES = [
 	"af8ce260e6f676ef1f544211",
 ];
 
-export function translateErrorCode(errorCode: number): string {
+global.translateErrorCode = function(errorCode: number): string {
 	switch (errorCode) {
 		case OK:
 			return "OK";
@@ -129,8 +129,9 @@ export function translateErrorCode(errorCode: number): string {
 		default:
 			return "Unknown Error Code.";
 	}
-}
-export const RESOURCE_TYPES: string[] = [
+};
+
+global.RESOURCE_TYPES = [
 	RESOURCE_HYDROGEN,
 	RESOURCE_OXYGEN,
 	RESOURCE_UTRIUM,
@@ -180,7 +181,7 @@ export const RESOURCE_TYPES: string[] = [
 
 // Taken from:
 // https://github.com/Sriep/screeps/blob/d307ac0e2ebf6b7c8ac1f0033baeed9679baa4da/building/lab.colours.js
-export const labColors = {
+global.labColors = {
 	RESOURCE_ENERGY : { color : COLOR_WHITE , secondaryColor : COLOR_WHITE },
 	RESOURCE_POWER : { color : COLOR_RED , secondaryColor : COLOR_RED },
 
@@ -235,7 +236,7 @@ export const labColors = {
 	},
 };
 
-export const findReagents = function(reaction: string): string[] {
+global.findReagents = function(reaction: string): string[] {
 	let reagents: string[] = undefined;
 	_.forOwn(REACTIONS, (v1, k1) => {
 		_.forOwn(v1, (v2, k2) => {
@@ -245,4 +246,23 @@ export const findReagents = function(reaction: string): string[] {
 		});
 	});
 	return reagents;
+};
+
+global.getTowerRange = function(roomName: string): number {
+	switch (roomName) {
+		case "W6N42":
+			return 21;
+		case "W5N42":
+			return 25;
+		case "W7N44":
+			return 19;
+		case "W7N45":
+			return 7;
+		default:
+			return 30;
+	}
+}
+
+global.colorWrap = function(text: string, color: string) {
+	return `<font color="${color}">${text}</font>`;
 };

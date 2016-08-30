@@ -1,4 +1,3 @@
-import * as Config from "./../../config/config";
 import * as CreepManager from "./../creeps/creepManager";
 import * as SourceManager from "./../sources/sourceManager";
 import * as WallManager from "../walls/wallManager";
@@ -18,7 +17,7 @@ export function loadRooms() {
 	});
 	_loadRoomNames();
 
-	if (Config.VERBOSE) {
+	if (global.VERBOSE) {
 		let count = _.size(rooms);
 		console.log(count + " rooms found.");
 	}
@@ -63,7 +62,11 @@ export function governRooms(): void {
 			RampartManager.adjustStrength();
 			if (room.mySpawns.length > 0) {
 				room.mySpawns.forEach(function (s: StructureSpawn) {
-					s.renewCreeps();
+					if (!!s.spawning) {
+						s.isBusy = true;
+					} else {
+						s.renewCreeps();
+					}
 				});
 				SourceManager.load(room);
 				SourceManager.updateHarvesterPreference();
@@ -72,12 +75,31 @@ export function governRooms(): void {
 			if (room.controller.level > 1 && room.numberOfCreeps < 5) {
 				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
 			}
-			if (Config.ROOMSTATS) {
+			if (global.ROOMSTATS) {
 				// this is one of our controlled rooms
 				console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
 					`${room.energyInContainers}/${room.containerCapacityAvailable} (${room.energyPercentage}%) in storage.` +
 					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
 				);
+			}
+			if (room.hostileCreeps.length > 0 && room.hostileCreeps[0].owner.username === "Tharit") {
+				if (!Memory.offense.config[room.name]) {
+					let sourceRoom: string;
+					switch (room.name) {
+						case "W7N44":
+						case "W7N45":
+							sourceRoom = "W7N44";
+							break;
+						case "W6N45":
+						case "W5N45":
+							sourceRoom = "W6N45";
+							break;
+						default:
+							sourceRoom = "W7N44";
+					}
+					Game.offense.add(room.name, sourceRoom);
+					Game.notify(`Better wake up, ${room.name} is under attack by Tharit.`);
+				}
 			}
 			CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
@@ -104,8 +126,8 @@ export function governRooms(): void {
 						if (!!Game.flags[room.name + "_LR"]) {
 							let flag = Game.flags[room.name + "_LR"];
 							if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
-								let reaction = Config.labColors.resource(flag.color, flag.secondaryColor);
-								let reagents = Config.findReagents(reaction);
+								let reaction = global.labColors.resource(flag.color, flag.secondaryColor);
+								let reagents = global.findReagents(reaction);
 								let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount > 0).pop();
 								let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount > 0).pop();
 								if (!!inLab1 && !!inLab2) {

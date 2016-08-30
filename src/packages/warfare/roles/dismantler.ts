@@ -36,7 +36,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	public hasHealer: boolean = true;
 	public hardPath: boolean = true;
 	public boosts: string[] = [
-		RESOURCE_ZYNTHIUM_ALKALIDE, // +200% fatigue decrease speed
+		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
 		RESOURCE_CATALYZED_ZYNTHIUM_ACID, // +300% dismantle effectiveness
 	];
 

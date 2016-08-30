@@ -1,14 +1,13 @@
-import * as Config from "../../../config/config";
 import WarfareCreepGovernor from "../warfareCreepGovernor";
 
 export default class HealerGovernor extends WarfareCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_WF_HEALER;
-	public static MINRCL: number = Config.MINRCL_WF_HEALER;
+	public static PRIORITY: number = global.PRIORITY_WF_HEALER;
+	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "Healer";
 
-	public maxParts = 5;
-	public maxCreeps = 2;
+	public maxParts = 6;
+	public maxCreeps = 3;
 	public bodyPart = [HEAL, HEAL, HEAL, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {

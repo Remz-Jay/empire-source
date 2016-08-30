@@ -1,14 +1,13 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as Config from "../../../config/config";
 
 export default class RepairGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_REPAIR;
-	public static MINRCL: number = Config.MINRCL_REPAIR;
+	public static PRIORITY: number = global.PRIORITY_REPAIR;
+	public static MINRCL: number = global.MINRCL_REPAIR;
 	public static ROLE: string = "Repair";
 
 	public bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
-	public maxParts = 8;
+	public maxParts = 4;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

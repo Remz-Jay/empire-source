@@ -1,10 +1,9 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as Config from "../../../config/config";
 
 export default class MuleGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_MULE;
-	public static MINRCL: number = Config.MINRCL_MULE;
+	public static PRIORITY: number = global.PRIORITY_MULE;
+	public static MINRCL: number = global.MINRCL_MULE;
 	public static ROLE: string = "Mule";
 
 	public bodyPart = [CARRY, MOVE];
@@ -24,9 +23,9 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	}
 
 	public getBody(): string[] {
-		if (this.room.controller.level >= 7) {
+/*		if (this.room.controller.level >= 7) {
 			this.maxParts = 12;
-		}
+		}*/
 		let numParts: number;
 		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
 			numParts = _.floor((this.room.energyCapacityAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
