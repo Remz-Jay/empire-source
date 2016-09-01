@@ -2,6 +2,9 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export default class Tank extends WarfareCreepAction {
 
+	public boosts: string[] = [
+		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
+	];
 	private idle: boolean;
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
@@ -16,15 +19,16 @@ export default class Tank extends WarfareCreepAction {
 				tough += part.hits;
 			}
 		});
-		return (tough > 50) ? true : false;
+		return (tough > 3500);
 	}
 
 	public moveToHeal(): boolean {
 		if (!this.checkTough() || this.creep.memory.waitForHealth) {
 			this.creep.memory.waitForHealth = true;
 			this.creep.memory.positionIterator = this.positionIterator = (this.positions.length - 2);
-			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				this.moveTo(this.positions[this.positionIterator]);
+			if (!this.creep.pos.isEqualTo(this.positions[this.positionIterator])) {
+				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
+				this.moveTo(pfg);
 			}
 			return false;
 		}
@@ -65,7 +69,8 @@ export default class Tank extends WarfareCreepAction {
 		if (!this.moveToHeal() || !!this.creep.memory.waitForHealth) {
 			return;
 		}
-		if (!this.moveUsingPositions() && this.idle) {
+		this.moveUsingPositions();
+		/*if (!this.moveUsingPositions() && this.idle) {
 			let target: Creep | Structure = this.findTarget();
 			if (!!target) {
 				if (!this.creep.memory.target || target.id !== this.creep.memory.target) {
@@ -85,7 +90,7 @@ export default class Tank extends WarfareCreepAction {
 					this.creep.say("IDLE!");
 				}
 			}
-		}
+		}*/
 	}
 
 	public action(): boolean {
@@ -96,12 +101,11 @@ export default class Tank extends WarfareCreepAction {
 		if (this.creep.hits === this.creep.hitsMax && !!this.creep.memory.waitForHealth) {
 			delete this.creep.memory.waitForHealth;
 		}
-		if (this.attack()) {
-			if (this.attackEnemyStructure()) {
-				if (this.attackPublicStructure()) {
-					this.idle = true;
-				}
+		if (this.creep.room.name === this.creep.memory.homeRoom) {
+			if (this.getBoosted()) {
+				this.move();
 			}
+			return true;
 		}
 		this.move();
 		return true;

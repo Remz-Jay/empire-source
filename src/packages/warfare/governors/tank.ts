@@ -7,9 +7,9 @@ export default class TankGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "Tank";
 
-	public maxParts = 5;
+	public maxParts = 10;
 	public maxCreeps = 2;
-	public bodyPart = [TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE];
+	public bodyPart = [TOUGH, TOUGH, TOUGH, TOUGH, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

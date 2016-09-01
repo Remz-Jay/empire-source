@@ -1,30 +1,31 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as SpawnManager from "../../spawns/spawnManager";
-import * as Config from "../../../config/config";
 
 export default class MuleGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_MULE;
-	public static MINRCL: number = Config.MINRCL_MULE;
+	public static PRIORITY: number = global.PRIORITY_MULE;
+	public static MINRCL: number = global.MINRCL_MULE;
 	public static ROLE: string = "Mule";
 
 	public bodyPart = [CARRY, MOVE];
-	public maxParts = 15;
+	public maxParts = 16;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
 		let name: string = null;
+		let spawn = this.room.getFreeSpawn();
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().name,
 			role: MuleGovernor.ROLE,
 			target_controller_id: this.room.controller.id,
-			target_energy_source_id: SpawnManager.getFirstSpawn().id,
+			target_energy_source_id: spawn.id,
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
 
 	public getBody(): string[] {
+/*		if (this.room.controller.level >= 7) {
+			this.maxParts = 12;
+		}*/
 		let numParts: number;
 		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
 			numParts = _.floor((this.room.energyCapacityAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
@@ -47,6 +48,9 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	}
 
 	public getCreepLimit(): number {
+		if (this.room.controller.level >= 7) {
+			++this.maxCreeps;
+		}
 		if (this.room.containers.length > 0) {
 			if (this.getCreepsInRole().length < 1 || (this.room.energyInContainers + this.room.energyAvailable)  < (this.room.energyCapacityAvailable * 0.8)) {
 				this.emergency = true;

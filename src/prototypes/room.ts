@@ -1,20 +1,22 @@
-import List = _.List;
-
 interface Room {
-	containers: List<Structure>;
+	containers: Structure[];
 	containerCapacityAvailable: number;
 	energyInContainers: number;
 	energyPercentage: number;
 	allCreeps: Creep[];
 	myCreeps: Creep[];
 	hostileCreeps: Creep[];
+	alliedCreeps: Creep[];
 	numberOfCreeps: number;
 	allStructures: Structure[];
 	myStructures: OwnedStructure[];
 	hostileStructures: OwnedStructure[];
 	mySpawns: StructureSpawn[];
+	myLabs: StructureLab[];
+	boostLabs: StructureLab[];
 	allConstructionSites: ConstructionSite[];
 	myConstructionSites: ConstructionSite[];
+	sources: Source[];
 	minerals: Mineral[];
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
@@ -24,20 +26,25 @@ interface Room {
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
 	getCostMatrix(): CostMatrix;
-	getContainers(): List<Structure>;
+	getContainers(): Structure[];
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
 	getEnergyPercentage(): number;
 	getAllCreeps(): Creep[];
 	getMyCreeps(): Creep[];
 	getHostileCreeps(): Creep[];
+	getAlliedCreeps(): Creep[];
 	getNumberOfCreepsInRoom(): number;
 	getAllStructures(): Structure[];
 	getMyStructures(): OwnedStructure[];
 	getHostileStructures(): OwnedStructure[];
 	getMySpawns(): StructureSpawn[];
+	getMyLabs(): StructureLab[];
+	getBoostLabs(): StructureLab[];
+	getFreeSpawn(): StructureSpawn;
 	getAllConstructionSites(): ConstructionSite[];
 	getMyConstructionSites(): ConstructionSite[];
+	getSources(): Source[];
 	getMinerals(): Mineral[];
 	addProperties(): void;
 	reloadCache(): void;
@@ -88,8 +95,11 @@ Room.prototype.getCreepMatrix = function () {
 		} else {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
-			this.allCreeps.forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 100);
+			this.myCreeps.forEach(function (creep: Creep) {
+				costMatrix.set(creep.pos.x, creep.pos.y, 40);
+			});
+			this.hostileCreeps.forEach(function (creep: Creep) {
+				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
 			this.setCreepMatrix(costMatrix);
@@ -105,15 +115,19 @@ Room.prototype.getCreepMatrix = function () {
 Room.prototype.getCostMatrix = function () {
 	this.roomConfig = {
 		W7N44: [
-			{x: 27, y: 30, w: 20}, // container next to extension, keep free for mule to deliver energy.
+			{x: 27, y: 30, w: 9}, // container next to extension, keep free for mule to deliver energy.
 		],
 		W6N42: [
-			{x: 11, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
-			{x: 12, y: 19, w: 20}, // Narrow Path near Controller, route to W7N42
+			{x: 11, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
+			{x: 12, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
+			{x: 25, y: 5, w: 9}, // Narrow Path near upper Source in the corner.
 		],
 		W5N42: [
-			{x: 37, y: 24, w: 20}, // Narrow Path in the tower bulwark
-			{x: 38, y: 25, w: 20}, // Narrow Path in the tower bulwark
+			{x: 37, y: 24, w: 9}, // Narrow Path in the tower bulwark
+			{x: 38, y: 25, w: 9}, // Narrow Path in the tower bulwark
+			{x: 43, y: 22, w: 9}, // Narrow Path, route to W4N42
+			{x: 43, y: 23, w: 9}, // Narrow Path, route to W4N42
+			{x: 43, y: 24, w: 9}, // Narrow Path, route to W4N42
 		],
 	};
 	try {
@@ -133,7 +147,12 @@ Room.prototype.getCostMatrix = function () {
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
 				}
 			});
-			this.allConstructionSites.forEach(function (site: ConstructionSite) {
+			this.allStructures.forEach((s: OwnedStructure) => {
+				if (s.structureType === STRUCTURE_RAMPART && !s.my) {
+					costs.set(s.pos.x, s.pos.y, 0xff);
+				}
+			});
+			this.allConstructionSites.filter((cs: ConstructionSite) => cs.my).forEach(function (site: ConstructionSite) {
 				costs.set(site.pos.x, site.pos.y, 100);
 			});
 			_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
@@ -147,7 +166,7 @@ Room.prototype.getCostMatrix = function () {
 	}
 };
 
-Room.prototype.getContainers = function (): List<Structure> {
+Room.prototype.getContainers = function (): Structure[] {
 	return this.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE);
 };
 Room.prototype.getContainerCapacityAvailable = function () {
@@ -174,7 +193,15 @@ Room.prototype.getMyCreeps = function(): Creep[] {
 	return this.allCreeps.filter((c: Creep) => !!c.my);
 };
 Room.prototype.getHostileCreeps = function(): Creep[] {
-	return this.allCreeps.filter((c: Creep) => !c.my);
+	return _.difference<Creep>(this.allCreeps, this.myCreeps);
+};
+Room.prototype.getAlliedCreeps = function(): Creep[] {
+	let alliedPlayers: string[] = [
+		"TranceCake",
+	];
+	let allies: Creep[] = this.hostileCreeps.filter((c: Creep) => alliedPlayers.indexOf(c.owner.username) !== -1);
+	allies.forEach((c: Creep) => this.hostileCreeps = _.pull(this.hostileCreeps, c));
+	return allies;
 };
 Room.prototype.getNumberOfCreepsInRoom = function(): number {
 	return this.myCreeps.length;
@@ -182,7 +209,12 @@ Room.prototype.getNumberOfCreepsInRoom = function(): number {
 Room.prototype.getAllStructures = function(): Structure[] {
 	let allStructures: Structure[] = [];
 	if (!!this.memory.allStructures && _.isArray(this.memory.allStructures)) {
-		this.memory.allStructures.forEach((s: string) => allStructures.push(Game.getObjectById<Structure>(s)));
+		this.memory.allStructures.forEach((s: string) => {
+			let st = Game.getObjectById<Structure>(s);
+			if (!!st) {
+				allStructures.push(st);
+			}
+		});
 	} else {
 		allStructures = this.find(FIND_STRUCTURES) as Structure[];
 		this.memory.allStructures = [];
@@ -193,17 +225,51 @@ Room.prototype.getAllStructures = function(): Structure[] {
 Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
 };
-// TODO: This might be buggy with Neutral structures, which aren't OwnedStructures and don't have a .my parameter..
 Room.prototype.getHostileStructures = function (): OwnedStructure[] {
-	return this.allStructures.filter((s: OwnedStructure) => !s.my);
+	return this.allStructures.filter((s: OwnedStructure) =>
+	undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
-	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+	let spawns = this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+	spawns.forEach((s: StructureSpawn) => {
+		if (!!s.spawning) {
+			s.isBusy = true;
+		}
+	});
+	return spawns;
+};
+Room.prototype.getMyLabs = function(): StructureLab[] {
+	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LAB);
+};
+Room.prototype.getBoostLabs = function(): StructureLab[] {
+	let boostLabs: StructureLab[] = [];
+	this.myLabs.forEach((l: StructureLab) => {
+		let flag = l.pos.lookFor<Flag>(LOOK_FLAGS).shift();
+		if (!!flag && flag.name.indexOf("_B") !== -1) {
+			boostLabs.push(l);
+			// console.log(`Room.prototype.getBoostLabs found ${flag.name} as boostLab in ${this.name}`, this.myLabs.length, boostLabs.length);
+		}
+	});
+	if (boostLabs.length > 0) {
+		boostLabs.forEach((l: StructureLab) => this.myLabs = _.pull(this.myLabs, l));
+/*		this.myLabs.forEach((ml: StructureLab) => console.log(ml.id));
+		console.log("------------------");
+		boostLabs.forEach((bl: StructureLab) => console.log(bl.id));*/
+	}
+	return boostLabs;
+};
+Room.prototype.getFreeSpawn = function(): StructureSpawn {
+	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || _.sample(this.mySpawns);
 };
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	let allConstructionSites: ConstructionSite[] = [];
 	if (!!this.memory.allConstructionSites && _.isArray(this.memory.allConstructionSites)) {
-		this.memory.allConstructionSites.forEach((s: string) => allConstructionSites.push(Game.getObjectById<ConstructionSite>(s)));
+		this.memory.allConstructionSites.forEach((s: string) => {
+			let cs = Game.getObjectById<ConstructionSite>(s);
+			if (!!cs) {
+				allConstructionSites.push(cs);
+			}
+		});
 	} else {
 		allConstructionSites = this.find(FIND_CONSTRUCTION_SITES) as ConstructionSite[];
 		this.memory.allConstructionSites = [];
@@ -225,78 +291,51 @@ Room.prototype.getMinerals = function(): Mineral[] {
 	}
 	return allMinerals;
 };
-Room.prototype.addProperties = function () {
-	switch (Game.time % 8) {
-		case 0:
-			delete this.memory.allStructures;
-			break;
-		case 2:
-			delete this.memory.allConstructionSites;
-			break;
-		case 4:
-			// TODO: Might have to split this to creep every tick and cost every n ticks.
-			delete this.memory.costMatrix;
-			break;
-		case 6:
-			delete this.memory.allMinerals;
-			break;
-		default:
-			// do nothing.
+Room.prototype.getSources = function(): Source[] {
+	let allSources: Source[] = [];
+	if (!!this.memory.allSources && _.isArray(this.memory.allSources)) {
+		this.memory.allSources.forEach((s: string) => allSources.push(Game.getObjectById<Source>(s)));
+	} else {
+		allSources = this.find(FIND_SOURCES) as Source[];
+		this.memory.allSources = [];
+		allSources.forEach((s: Source) => this.memory.allSources.push(s.id));
 	}
-	delete this.memory.creepMatrix;
-	this.allStructures = this.getAllStructures();
-	this.allCreeps = this.getAllCreeps();
-	this.allConstructionSites = this.getAllConstructionSites();
-	this.minerals = this.getMinerals();
-
-	this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
-	this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
-	this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
-
-	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
-	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
-	this.hostileCreeps = (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
-
-	this.myConstructionSites = (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
-
-	this.containers = (this.allStructures.length > 0) ? this.getContainers() : [];
-	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
-	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
-	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
+	return allSources;
 };
-
-Room.prototype.reloadCache = function(): void {
-	switch (Game.time % 4) {
-		case 0:
-			delete this.memory.allStructures;
-			this.allStructures = this.getAllStructures();
-			this.myStructures = (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
-			this.mySpawns = (!!this.controller && !!this.controller.my) ? this.getMySpawns() : [];
-			this.hostileStructures = (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
-			this.containers = (this.allStructures.length > 0) ? this.getContainers() : [];
-			break;
-		case 1:
-			delete this.memory.allConstructionSites;
-			this.allConstructionSites = this.getAllConstructionSites();
-			this.myConstructionSites = (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
-			break;
-		case 2:
-			// TODO: Might have to split this to creep every tick and cost every n ticks.
-			this.expireMatrices();
-			break;
-		case 3:
-			delete this.memory.allMinerals;
-			this.minerals = this.getMinerals();
-			break;
-		default:
-			throw new Error("Room.prototype.ModuloException");
+Room.prototype.addProperties = function () {
+	if (Game.time % 100 === 0) {
+		delete this.memory.allSources;
+		delete this.memory.allMinerals;
 	}
-	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
-	this.energyInContainers = (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
-	this.energyPercentage = (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
+	if (Game.time % 10 === 0) {
+		delete this.memory.allStructures;
+		delete this.memory.allConstructionSites;
+		delete this.memory.costMatrix;
+	}
 
-	this.allCreeps = this.getAllCreeps();
-	this.myCreeps = (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
-	this.numberOfCreeps = (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
-	this.hostileCreeps = (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
+	delete this.memory.creepMatrix;
+
+	this.allStructures =        this.getAllStructures();
+	this.allCreeps =            this.getAllCreeps();
+	this.allConstructionSites = this.getAllConstructionSites();
+	this.minerals =             this.getMinerals();
+	this.sources =              this.getSources();
+
+	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
+	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
+	this.myLabs =               (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyLabs() : [];
+	this.boostLabs =            (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getBoostLabs() : [];
+
+	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
+	this.numberOfCreeps =       (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
+	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
+	this.alliedCreeps =         (this.hostileCreeps.length > 0) ? this.getAlliedCreeps() : [];
+
+	this.myConstructionSites =  (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
+
+	this.containers =           (this.allStructures.length > 0) ? this.getContainers() : [];
+	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
+	this.energyInContainers =   (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
+	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
 };

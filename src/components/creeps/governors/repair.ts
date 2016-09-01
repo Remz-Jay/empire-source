@@ -29,7 +29,7 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 		if (this.room.controller.level < 5) {
 			num = 1;
 		} else {
-			num = _.floor(this.room.energyInContainers / 100000);
+			num = _.floor(this.room.energyInContainers / 250000);
 		}
 
 		return (num > 0) ? num : 0;
