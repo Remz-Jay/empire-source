@@ -24,10 +24,11 @@ export default class Ranger extends WarfareCreepAction implements IRanger {
 				if (!!targets && targets.length > 2) {
 					this.creep.rangedMassAttack();
 				} else {
-					let closestHostile = this.creep.pos.findClosestByPath<Structure>(FIND_HOSTILE_STRUCTURES, {
+					let closestHostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.hostileStructures, {
 						filter: (s: Structure) => s.structureType === STRUCTURE_EXTENSION
 						|| s.structureType === STRUCTURE_SPAWN
 						|| s.structureType === STRUCTURE_TOWER,
+						costCallback: this.roomCallback,
 					});
 					if (!!closestHostile) {
 						if (this.creep.rangedAttack(closestHostile) === ERR_NOT_IN_RANGE) {

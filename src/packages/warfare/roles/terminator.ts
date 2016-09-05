@@ -35,6 +35,8 @@ let roomCallback = function (roomName: string): CostMatrix {
 export default class Terminator extends WarfareCreepAction implements ITerminator {
 
 	public hardPath: boolean = true;
+	public noTarget: boolean = false;
+	public sourceKeeperDuty: boolean = false;
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
 		super.setCreep(creep, positions);
@@ -47,12 +49,16 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				tough += part.hits;
 			}
 		});
-		return (tough > 50) ? true : false;
+		return (tough > 50);
 	}
 
 	public moveToHeal(): boolean {
+		if (this.creep.getActiveBodyparts(RANGED_ATTACK) < 3) {
+			this.positionIterator = this.creep.memory.positionIterator = 0;
+			this.moveUsingPositions();
+		}
 		if (!this.checkTough()) {
-			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
+			let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0) {
 				let goals = _.map(targets, function (t: Creep) {
 					return {pos: t.pos, range: 4};
@@ -61,10 +67,11 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					flee: true,
 					maxRooms: 1,
 					plainCost: 2,
-					swampCost: 6,
+					swampCost: 15,
 					roomCallback: roomCallback,
 				});
 				let pos = path.path[0];
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(pos));
 				this.creep.memory.waitForHealth = true;
 				delete this.creep.memory.targetPath;
@@ -75,10 +82,10 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 	}
 
 	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2, {
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
-			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
-		});
+		let targets = this.creep.room.hostileCreeps.filter(
+			(c: Creep) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
+			&& c.pos.inRangeTo(this.creep.pos, 2)
+		);
 		if (targets.length > 0) {
 			let goals = _.map(targets, function (t: Creep) {
 				return {pos: t.pos, range: 3};
@@ -87,10 +94,11 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				flee: true,
 				maxRooms: 1,
 				plainCost: 2,
-				swampCost: 6,
+				swampCost: 15,
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
 			this.creep.move(this.creep.pos.getDirectionTo(pos));
 			delete this.creep.memory.targetPath;
 			return false;
@@ -103,30 +111,17 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			return;
 		}
 		if (!this.moveUsingPositions()) {
-			let target: Creep | Structure = undefined;
-			if (!this.creep.memory.target) {
-				target = this.findTarget();
+			let target: Creep | Structure;
+			if (!this.noTarget && !this.creep.memory.target) {
+				target = this.findTarget() || this.findHealTarget() || this.findTargetStructure() || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.targetPath;
 				} else {
-					target = this.findHealTarget();
-					if (!!target) {
-						this.creep.memory.target = target.id;
-						delete this.creep.memory.targetPath;
-					} else {
-						target = this.findTargetStructure();
-						if (!!target) {
-							this.creep.memory.target = target.id;
-							delete this.creep.memory.targetPath;
-						} else {
-							delete this.creep.memory.target;
-							delete this.creep.memory.targetPath;
-							this.waitAtFlag(this.creep.memory.config.targetRoom);
-						}
-					}
+					delete this.creep.memory.target;
+					delete this.creep.memory.targetPath;
 				}
-			} else {
+			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
 					target = this.findTarget();
@@ -136,7 +131,6 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					} else {
 						delete this.creep.memory.target;
 						delete this.creep.memory.targetPath;
-						this.waitAtFlag(this.creep.memory.config.targetRoom);
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
@@ -150,31 +144,32 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			}
 			// Just moveTo when we're safely behind walls
 			if (!!target && !this.hardPath) {
-				this.moveTo(target.pos);
+				// this.moveTo(target.pos);
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - noHardPath #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(target));
 				return;
 			}
 
 			// Otherwise, use a pathFinder path to get there.
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				if (this.creep.pos.getRangeTo(target) > 3) { // move closer if we're out of RANGED_ATTACK range.
+				let range = (target instanceof Creep && target.my) ? 1 : 3;
+				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					if (!!this.creep.memory.targetPath) {
 						if (!this.creep.memory.pathTTL || this.creep.memory.pathTTL < 5) {
 							let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? this.creep.memory.pathTTL + 1 : 1;
+							this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? ++this.creep.memory.pathTTL : 1;
 							this.moveByPath(path, target);
 						} else {
 							delete this.creep.memory.targetPath;
 							this.creep.memory.pathTTL = 1;
-							if (!this.findNewPath(target)) {
+							if (!this.findNewPath(target, "targetPath", true, range)) {
 								this.creep.say("HALP!");
 							}
 						}
 					} else {
-						this.creep.memory.target = target.id;
 						this.creep.memory.pathTTL = 1;
 						delete this.creep.memory.targetPath;
-						if (!this.findNewPath(target)) {
+						if (!this.findNewPath(target, "targetPath", true, range)) {
 							this.creep.say("HALP!");
 						}
 					}
@@ -183,7 +178,29 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					delete this.creep.memory.targetPath;
 				}
 			} else {
-				delete this.creep.memory.targetPath;
+				if (this.sourceKeeperDuty) {
+					let lairs = this.creep.room.allStructures.filter(
+						(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
+						&& s.ticksToSpawn < 50
+						&& (s.pos.findInRange(FIND_SOURCES, 5).length > 0)
+					);
+					if (lairs.length > 0) {
+						if (!this.creep.pos.inRangeTo(lairs[0].pos, 4)) {
+							this.moveTo([{pos: lairs[0].pos, range: 4}]);
+						} else {
+							// this.creep.cancelOrder("move");
+							if (Game.time % _.random(3, 6) === 0) {
+								this.creep.say("Come out!", true);
+							}
+						}
+					} else {
+						delete this.creep.memory.targetPath;
+						this.waitAtFlag(this.creep.memory.config.targetRoom);
+					}
+				} else {
+					delete this.creep.memory.targetPath;
+					this.waitAtFlag(this.creep.memory.config.targetRoom);
+				}
 			}
 		}
 	}
@@ -200,7 +217,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			flag.pos.x + 1,
 			true // returns a LookAtResultWithPos[]
 		) as LookAtResultWithPos[];
-		return (lookResults.length === this.squadSize) ? true : false;
+		return (lookResults.length === this.squadSize);
 	}
 	public action(): boolean {
 		// if (!!this.creep.memory.inCombat || super.renewCreep()) {
@@ -217,15 +234,13 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 					if (this.heal()) {
 						delete this.creep.memory.waitForHealth;
-						if (this.rangedHeal()) {
-							if (!this.rangedAttack() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
-								this.creep.memory.inCombat = true;
-							} else {
-								delete this.creep.memory.inCombat;
-							}
+						if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+							this.creep.memory.inCombat = true;
+						} else {
+							delete this.creep.memory.inCombat;
 						}
 					} else {
-						if (!this.rangedAttack() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+						if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 							this.creep.memory.inCombat = true;
 						} else {
 							delete this.creep.memory.inCombat;

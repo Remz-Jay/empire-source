@@ -15,6 +15,70 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		super.setCreep(creep);
 	}
 
+	public isTaken(target: Structure) {
+		let taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
+		&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
+		&& (!!c.memory.target && c.memory.target === target.id));
+		return (!!taken && taken.length > 0) ? true : false;
+	}
+
+	public findNewTarget(blackList: string[] = []): Structure {
+		let target: Structure = undefined;
+		// See if any owned buildings are damaged.
+		if (this.creep.room.myStructures.length > 0) {
+			let targets = this.creep.room.myStructures.filter((s: OwnedStructure) =>
+				blackList.indexOf(s.id) === -1
+				&& s.hits < (s.hitsMax * this.myStructureMultiplier)
+				&& s.structureType !== STRUCTURE_RAMPART
+			);
+			if (targets.length > 0) {
+				target = _.sortBy(targets, "hits").shift();
+				if (this.isTaken(target)) {
+					blackList.push(target.id);
+					return this.findNewTarget(blackList);
+				}
+			}
+		}
+		// No? Try to repair a neutral structure instead.
+		if (!target) {
+			let targets = this.creep.room.allStructures.filter((s: Structure) =>
+				blackList.indexOf(s.id) === -1
+				&& s.hits < (s.hitsMax * this.publicStructureMultiplier) &&
+				(   s.structureType === STRUCTURE_ROAD ||
+					s.structureType === STRUCTURE_CONTAINER ||
+					s.structureType === STRUCTURE_STORAGE
+				)
+			);
+			if (targets.length > 0) {
+				target = _.sortBy(targets, "hits").shift();
+				if (this.isTaken(target)) {
+					blackList.push(target.id);
+					return this.findNewTarget(blackList);
+				}
+			}
+		}
+		// Still nothing? Fortify Ramparts and Walls if we have spare energy.
+		if (!target && this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
+			let avgRampart = RampartManager.getAverageStrength();
+			let avgWall = WallManager.getAverageStrength();
+			if (avgWall < avgRampart) {
+				target = WallManager.getWeakestWall();
+			} else {
+				let rampart = RampartManager.getWeakestRampart();
+				if (
+					blackList.indexOf(rampart.id) === -1
+					&& (rampart.hits < RampartManager.getAverageStrength() && rampart.hits < WallManager.getAverageStrength())
+					|| rampart.hits < (rampart.hitsMax * 0.1)
+				) {
+					target = rampart;
+				} else {
+					target = WallManager.getWeakestWall();
+				}
+			}
+		}
+		return target;
+	}
+
 	public repairLogic() {
 		if (this.creep.memory.repairing && this.creep.carry.energy === 0) {
 			delete this.creep.memory.repairing;
@@ -31,49 +95,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 
 		if (!!this.creep.memory.repairing) {
 			if (!this.creep.memory.target) {
-				// See if any owned buildings are damaged.
-				let target: Structure = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-					filter: (structure: Structure) => {
-						return (
-							structure.hits < (structure.hitsMax * this.myStructureMultiplier) &&
-							structure.structureType !== STRUCTURE_RAMPART
-						);
-					},
-				}) as Structure;
-				// No? Try to repair a neutral structure instead.
-				if (!target) {
-					target = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
-						filter: (structure: Structure) => {
-							return (
-								structure.hits < (structure.hitsMax * this.publicStructureMultiplier) &&
-								(   structure.structureType === STRUCTURE_ROAD ||
-									structure.structureType === STRUCTURE_CONTAINER ||
-									structure.structureType === STRUCTURE_STORAGE
-								)
-							);
-						},
-					}) as Structure;
-				}
-				// Still nothing? Fortify Ramparts and Walls if we have spare energy.
-				if (this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
-					if (!target) {
-						target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-							filter: (structure: Structure) => {
-								return (
-									(
-										(structure.hits <  RampartManager.getAverageStrength()
-											&& structure.hits < WallManager.getAverageStrength())
-											|| structure.hits < structure.hitsMax * 0.1
-									) &&
-									structure.structureType === STRUCTURE_RAMPART
-								);
-							},
-						}) as Structure;
-						if (!target) {
-							target = WallManager.getWeakestWall();
-						}
-					}
-				}
+				let target = this.findNewTarget();
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
@@ -96,25 +118,33 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 				if (target.hits === target.hitsMax) {
 					delete this.creep.memory.target;
 				}
-				let status = this.creep.repair(target);
-				switch (status) {
-					case OK:
-						break;
-					case ERR_BUSY:
-					case ERR_INVALID_TARGET:
-					case ERR_NOT_OWNER:
-						delete this.creep.memory.target;
-						break;
-					case ERR_NOT_ENOUGH_RESOURCES:
-						delete this.creep.memory.target;
-						delete this.creep.memory.repairing;
-						break;
-					case ERR_NOT_IN_RANGE:
-						this.moveTo(target.pos);
-						break;
-					case ERR_NO_BODYPART:
-					default:
-						console.log("repairBot.repair.status: this should not happen");
+				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
+					this.moveTo(target.pos);
+					let movingTargets = this.creep.room.allStructures.filter((s: Structure) => s.hits < (s.hitsMax * 0.91)
+						&& s.pos.inRangeTo(this.creep.pos, 3)
+					);
+					if (movingTargets.length) {
+						this.creep.repair(_.sortBy(movingTargets, "hits").shift());
+					}
+				} else {
+					let status = this.creep.repair(target);
+					switch (status) {
+						case OK:
+							break;
+						case ERR_BUSY:
+						case ERR_INVALID_TARGET:
+						case ERR_NOT_OWNER:
+							delete this.creep.memory.target;
+							break;
+						case ERR_NOT_ENOUGH_RESOURCES:
+							delete this.creep.memory.target;
+							delete this.creep.memory.repairing;
+							break;
+						case ERR_NOT_IN_RANGE:
+						case ERR_NO_BODYPART:
+						default:
+							console.log("repairBot.repair.status: this should not happen");
+					}
 				}
 			} else {
 				delete this.creep.memory.target;

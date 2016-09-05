@@ -6,6 +6,8 @@ export function loadMemory(): void {
 		this.memory.log = {
 			creeps: [],
 			rooms: [],
+			move: [],
+			asm: [],
 		};
 	}
 }

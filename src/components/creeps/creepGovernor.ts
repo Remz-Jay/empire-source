@@ -1,5 +1,3 @@
-import * as Config from "../../config/config";
-
 export interface CreepGovernorConstructor {
 	new (room: Room): ICreepGovernor;
 }
@@ -16,8 +14,8 @@ export interface ICreepGovernor {
 }
 
 export default class CreepGovernor implements ICreepGovernor {
-	public static MINRCL: number = Config.MINRCL_CREEP;
-	public static PRIORITY: number = Config.PRIORITY_CREEP;
+	public static MINRCL: number = global.MINRCL_CREEP;
+	public static PRIORITY: number = global.PRIORITY_CREEP;
 	public static ROLE: string = "Creep";
 	public static calculateRequiredEnergy(body: string[]): number {
 		let cost = 0;
@@ -85,7 +83,7 @@ export default class CreepGovernor implements ICreepGovernor {
 		this.room = room;
 	}
 	public getCreepConfig(): CreepConfiguration {
-		return {body: [], name: "", properties: {role: null, homeRoom: null, homeSpawn: null}};
+		return {body: [], name: "", properties: {role: null, homeRoom: null}};
 	}
 
 	public getCreepLimit(): number {

@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_MULE;
-	public static MINRCL: number = Config.MINRCL_ASM_MULE;
+	public static PRIORITY: number = global.PRIORITY_ASM_MULE;
+	public static MINRCL: number = global.MINRCL_ASM_MULE;
 	public static ROLE: string = "ASMMule";
 
 	public bodyPart: string[] = [CARRY, MOVE];
@@ -12,8 +11,8 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	public maxCreeps: number = 1;
 	public containers: StructureContainer[] = [];
 
-	constructor(homeRoom: Room, homeSpawn: Spawn, config: RemoteRoomConfig, containers: StructureContainer[]) {
-		super(homeRoom, homeSpawn, config);
+	constructor(homeRoom: Room, config: RemoteRoomConfig, containers: StructureContainer[]) {
+		super(homeRoom, config);
 		this.containers = containers;
 	}
 
@@ -39,7 +38,6 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: ASMMuleGovernor.ROLE,
 			config: this.config,
 			container: this.checkContainerAssignment(),
@@ -66,6 +64,9 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 	public getCreepLimit(): number {
 		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
+		if (this.config.targetRoom === "W7N42") {
+			multiplier = 1;
+		}
 		return this.containers.length * multiplier;
 	}
 }

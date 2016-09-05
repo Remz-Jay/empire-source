@@ -1,23 +1,20 @@
 import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
-import * as SpawnManager from "../../spawns/spawnManager";
-import * as Config from "../../../config/config";
 
 export default class LinkerGovernor extends CreepGovernor implements ICreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_LINKER;
-	public static MINRCL: number = Config.MINRCL_LINKER;
+	public static PRIORITY: number = global.PRIORITY_LINKER;
+	public static MINRCL: number = global.MINRCL_LINKER;
 	public static ROLE: string = "Linker";
 
 	public bodyPart = [CARRY, MOVE];
 	public maxCreeps = 1;
-	public maxParts = 8;
+	public maxParts = 9;
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
 		let name: string = null;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: SpawnManager.getFirstSpawn().name,
 			role: LinkerGovernor.ROLE,
 			target_link_id: this.getStorageLink().id,
 			target_storage_id: this.room.storage.id,

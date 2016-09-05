@@ -2,92 +2,106 @@
  * Enable this if you want a lot of text to be logged to console.
  * @type {boolean}
  */
-export const VERBOSE: boolean = false;
-
+global.VERBOSE = false;
+global.CREEPSTATS = false;
+global.ROOMSTATS = false;
 /**
  * For extra chatty output.
  * @type {boolean}
  */
-export const DEBUG: boolean = false;
+global.DEBUG = false;
 /**
  * @type {number}
  */
-export const MAX_HARVESTERS_PER_SOURCE: number = 3;
+global.MAX_HARVESTERS_PER_SOURCE = 3;
 
+/**
+ * The maximum number of resources (per type) stored in terminals
+ * @type {number}
+ */
+global.TERMINAL_MAX = 25000;
+
+/**
+ * The minumum amount of energy a Storage should contain before performing aux tasks.
+ * @type {number}
+ */
+global.STORAGE_MIN = 100000;
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
  * This is only default value, that don't have to be used.
  * So it doesn't cover all Screeps.
  * @type {number}
  */
-export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number = 200;
-export const MAX_TTL = 1400;
+global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 200;
+global.MAX_TTL = 1400;
 
 /**
  * Priorities for Regular Room Creeps
  * @type {number}
  */
-export const PRIORITY_CREEP: number = -1;
-export const PRIORITY_BUILDER: number = 30;
-export const PRIORITY_HARVESTER: number = 10;
-export const PRIORITY_MULE: number = 15;
-export const PRIORITY_UPGRADER: number = 20;
-export const PRIORITY_LINKER: number = 30;
-export const PRIORITY_REPAIR: number = 40;
-export const PRIORITY_MINER: number = 35;
+global.PRIORITY_CREEP           = -1;
+global.PRIORITY_HARVESTER       = 10;
+global.PRIORITY_MULE            = 20;
+global.PRIORITY_UPGRADER        = 30;
+global.PRIORITY_LINKER          = 40;
+global.PRIORITY_MINER           = 50;
+global.PRIORITY_REPAIR          = 60;
+global.PRIORITY_BUILDER         = 70;
+global.PRIORITY_SCIENTIST       = 80;
 
 /**
  * Priorities for Assimilation Package Creeps
  * @type {number}
  */
-export const PRIORITY_ASM_CLAIM: number = 10;
-export const PRIORITY_ASM_HARVESTER: number = 20;
-export const PRIORITY_ASM_MULE: number = 30;
-export const PRIORITY_ASM_BUILDER: number = 40;
+global.PRIORITY_ASM_CLAIM       = 10;
+global.PRIORITY_ASM_HARVESTER   = 20;
+global.PRIORITY_ASM_MULE        = 30;
+global.PRIORITY_ASM_BUILDER     = 40;
 
 /**
  * Priorities for Warfare Package Creeps
  * @type {number}
  */
-export const PRIORITY_WF_WARRIOR: number = 10;
-export const PRIORITY_WF_RANGER: number = 20;
-export const PRIORITY_WF_HEALER: number = 30;
+global.PRIORITY_WF_WARRIOR      = 10;
+global.PRIORITY_WF_RANGER       = 20;
+global.PRIORITY_WF_HEALER       = 30;
 
 /**
  * Minimum homeRoom RCL values for Regular Room Creeps
  * @type {number}
  */
-export const MINRCL_CREEP: number = 0;
-export const MINRCL_BUILDER: number = 1;
-export const MINRCL_HARVESTER: number = 1;
-export const MINRCL_MULE: number = 1;
-export const MINRCL_UPGRADER: number = 1;
-export const MINRCL_LINKER: number = 5;
-export const MINRCL_REPAIR: number = 2;
-export const MINRCL_MINER: number = 8;
+global.MINRCL_CREEP             = 0;
+global.MINRCL_BUILDER           = 1;
+global.MINRCL_HARVESTER         = 1;
+global.MINRCL_MULE              = 1;
+global.MINRCL_UPGRADER          = 1;
+global.MINRCL_LINKER            = 5;
+global.MINRCL_REPAIR            = 2;
+global.MINRCL_MINER             = 6;
+global.MINRCL_SCIENTIST         = 6;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps
  * @type {number}
  */
-export const MINRCL_ASM_CLAIM: number = 4;
-export const MINRCL_ASM_HARVESTER: number = 4;
-export const MINRCL_ASM_MULE: number = 4;
-export const MINRCL_ASM_BUILDER: number = 4;
+global.MINRCL_ASM_CLAIM         = 4;
+global.MINRCL_ASM_HARVESTER     = 4;
+global.MINRCL_ASM_MULE          = 4;
+global.MINRCL_ASM_BUILDER       = 4;
 
 /**
  * Minimum homeRoom RCL values for Warfare Package Creeps
  * @type {number}
  */
-export const MINRCL_WF_WARRIOR: number = 4;
-export const MINRCL_WF_RANGER: number = 4;
-export const MINRCL_WF_HEALER: number = 4;
+global.MINRCL_WF_WARRIOR        = 4;
+global.MINRCL_WF_RANGER         = 4;
+global.MINRCL_WF_HEALER         = 4;
 
-export const BLACKLIST_SOURCES: string[] = [
+global.BLACKLIST_SOURCES = [
 	"af8ce260e6f676ef1f544211",
 ];
 
-export function translateErrorCode(errorCode: number): string {
+global.translateErrorCode = function(errorCode: number): string {
 	switch (errorCode) {
 		case OK:
 			return "OK";
@@ -126,4 +140,153 @@ export function translateErrorCode(errorCode: number): string {
 		default:
 			return "Unknown Error Code.";
 	}
+};
+
+global.RESOURCE_TYPES = [
+	RESOURCE_HYDROGEN,
+	RESOURCE_OXYGEN,
+	RESOURCE_UTRIUM,
+	RESOURCE_LEMERGIUM,
+	RESOURCE_KEANIUM,
+	RESOURCE_ZYNTHIUM,
+	RESOURCE_CATALYST,
+	RESOURCE_GHODIUM,
+
+	RESOURCE_HYDROXIDE,
+	RESOURCE_ZYNTHIUM_KEANITE,
+	RESOURCE_UTRIUM_LEMERGITE,
+
+	RESOURCE_UTRIUM_HYDRIDE,
+	RESOURCE_UTRIUM_OXIDE,
+	RESOURCE_KEANIUM_HYDRIDE,
+	RESOURCE_KEANIUM_OXIDE,
+	RESOURCE_LEMERGIUM_HYDRIDE,
+	RESOURCE_LEMERGIUM_OXIDE,
+	RESOURCE_ZYNTHIUM_HYDRIDE,
+	RESOURCE_ZYNTHIUM_OXIDE,
+	RESOURCE_GHODIUM_HYDRIDE,
+	RESOURCE_GHODIUM_OXIDE,
+
+	RESOURCE_UTRIUM_ACID,
+	RESOURCE_UTRIUM_ALKALIDE,
+	RESOURCE_KEANIUM_ACID,
+	RESOURCE_KEANIUM_ALKALIDE,
+	RESOURCE_LEMERGIUM_ACID,
+	RESOURCE_LEMERGIUM_ALKALIDE,
+	RESOURCE_ZYNTHIUM_ACID,
+	RESOURCE_ZYNTHIUM_ALKALIDE,
+	RESOURCE_GHODIUM_ACID,
+	RESOURCE_GHODIUM_ALKALIDE,
+
+	RESOURCE_CATALYZED_UTRIUM_ACID,
+	RESOURCE_CATALYZED_UTRIUM_ALKALIDE,
+	RESOURCE_CATALYZED_KEANIUM_ACID,
+	RESOURCE_CATALYZED_KEANIUM_ALKALIDE,
+	RESOURCE_CATALYZED_LEMERGIUM_ACID,
+	RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE,
+	RESOURCE_CATALYZED_ZYNTHIUM_ACID,
+	RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,
+	RESOURCE_CATALYZED_GHODIUM_ACID,
+	RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
+];
+global.tradeTreshold = function(resourceType: string) {
+	switch (resourceType) {
+		case RESOURCE_ENERGY:
+			return 0.15;
+		case RESOURCE_ZYNTHIUM:
+			return 1.2;
+		case RESOURCE_OXYGEN:
+			return 0.7;
+		case RESOURCE_HYDROGEN:
+			return 0.7;
+		default:
+			return undefined;
+	}
+};
+// Taken from:
+// https://github.com/Sriep/screeps/blob/d307ac0e2ebf6b7c8ac1f0033baeed9679baa4da/building/lab.colours.js
+global.labColors = {
+	RESOURCE_ENERGY : { color : COLOR_WHITE , secondaryColor : COLOR_WHITE },
+	RESOURCE_POWER : { color : COLOR_RED , secondaryColor : COLOR_RED },
+
+	RESOURCE_HYDROGEN : { color : COLOR_GREY , secondaryColor : COLOR_WHITE },
+	RESOURCE_OXYGEN : { color :  COLOR_YELLOW, secondaryColor : COLOR_WHITE },
+	RESOURCE_UTRIUM : { color : COLOR_BLUE , secondaryColor : COLOR_WHITE },
+	RESOURCE_KEANIUM : { color : COLOR_PURPLE , secondaryColor : COLOR_WHITE },
+	RESOURCE_LEMERGIUM : { color : COLOR_GREEN , secondaryColor : COLOR_WHITE },
+	RESOURCE_ZYNTHIUM : { color : COLOR_ORANGE , secondaryColor : COLOR_WHITE },
+	RESOURCE_CATALYST : { color : COLOR_RED , secondaryColor : COLOR_WHITE },
+	RESOURCE_GHODIUM : { color : COLOR_BROWN , secondaryColor : COLOR_WHITE },
+
+	RESOURCE_HYDROXIDE : { color : COLOR_CYAN , secondaryColor : COLOR_WHITE },
+	RESOURCE_ZYNTHIUM_KEANITE : { color : COLOR_ORANGE , secondaryColor : COLOR_PURPLE },
+	RESOURCE_UTRIUM_LEMERGITE : { color : COLOR_BLUE , secondaryColor : COLOR_GREEN },
+
+	RESOURCE_UTRIUM_HYDRIDE : { color : COLOR_BLUE , secondaryColor : COLOR_GREY },
+	RESOURCE_UTRIUM_OXIDE : { color : COLOR_BLUE , secondaryColor : COLOR_YELLOW },
+	RESOURCE_KEANIUM_HYDRIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_GREY },
+	RESOURCE_KEANIUM_OXIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_YELLOW },
+	RESOURCE_LEMERGIUM_HYDRIDE : { color : COLOR_GREEN , secondaryColor : COLOR_GREY },
+	RESOURCE_LEMERGIUM_OXIDE : { color : COLOR_GREEN , secondaryColor : COLOR_YELLOW },
+	RESOURCE_ZYNTHIUM_HYDRIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_GREY },
+	RESOURCE_ZYNTHIUM_OXIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_YELLOW },
+	RESOURCE_GHODIUM_HYDRIDE : { color : COLOR_BROWN , secondaryColor : COLOR_GREY },
+	RESOURCE_GHODIUM_OXIDE : { color : COLOR_BROWN  , secondaryColor : COLOR_YELLOW },
+
+	RESOURCE_UTRIUM_ACID : { color : COLOR_BLUE , secondaryColor : COLOR_ORANGE },
+	RESOURCE_UTRIUM_ALKALIDE : { color : COLOR_BLUE , secondaryColor : COLOR_CYAN },
+	RESOURCE_KEANIUM_ACID : { color : COLOR_PURPLE , secondaryColor : COLOR_ORANGE },
+	RESOURCE_KEANIUM_ALKALIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_CYAN },
+	RESOURCE_LEMERGIUM_ACID : { color : COLOR_GREEN , secondaryColor : COLOR_ORANGE },
+	RESOURCE_LEMERGIUM_ALKALIDE : { color : COLOR_GREEN , secondaryColor : COLOR_CYAN },
+	RESOURCE_ZYNTHIUM_ACID : { color : COLOR_ORANGE , secondaryColor : COLOR_ORANGE },
+	RESOURCE_ZYNTHIUM_ALKALIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_CYAN },
+	RESOURCE_GHODIUM_ACID : { color : COLOR_BROWN , secondaryColor : COLOR_ORANGE },
+	RESOURCE_GHODIUM_ALKALIDE : { color : COLOR_BROWN , secondaryColor : COLOR_CYAN },
+
+	RESOURCE_CATALYZED_UTRIUM_ACID : { color : COLOR_BLUE , secondaryColor : COLOR_RED },
+	RESOURCE_CATALYZED_UTRIUM_ALKALIDE : { color : COLOR_BLUE , secondaryColor : COLOR_BLUE },
+	RESOURCE_CATALYZED_KEANIUM_ACID : { color : COLOR_PURPLE , secondaryColor : COLOR_RED },
+	RESOURCE_CATALYZED_KEANIUM_ALKALIDE : { color :  COLOR_PURPLE, secondaryColor : COLOR_BLUE },
+	RESOURCE_CATALYZED_LEMERGIUM_ACID : { color : COLOR_GREEN , secondaryColor : COLOR_RED },
+	RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE : { color : COLOR_GREEN , secondaryColor : COLOR_BLUE },
+	RESOURCE_CATALYZED_ZYNTHIUM_ACID : { color : COLOR_ORANGE , secondaryColor : COLOR_RED },
+	RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_BLUE },
+	RESOURCE_CATALYZED_GHODIUM_ACID : { color : COLOR_BROWN , secondaryColor : COLOR_RED },
+	RESOURCE_CATALYZED_GHODIUM_ALKALIDE : { color : COLOR_BROWN , secondaryColor :  COLOR_BLUE },
+
+	resource(color: number, secondaryColor: number) {
+		return eval(_.findKey(this, { color : color, secondaryColor })); // tslint:disable-line
+	},
+};
+
+global.findReagents = function(reaction: string): string[] {
+	let reagents: string[] = undefined;
+	_.forOwn(REACTIONS, (v1, k1) => {
+		_.forOwn(v1, (v2, k2) => {
+			if (v2 === reaction) {
+				reagents = [k1, k2];
+			}
+		});
+	});
+	return reagents;
+};
+
+global.getTowerRange = function(roomName: string): number {
+	switch (roomName) {
+		case "W6N42":
+			return 21;
+		case "W5N42":
+			return 25;
+		case "W7N44":
+			return 19;
+		case "W7N45":
+			return 7;
+		default:
+			return 30;
+	}
+}
+
+global.colorWrap = function(text: string, color: string) {
+	return `<font color="${color}">${text}</font>`;
 };

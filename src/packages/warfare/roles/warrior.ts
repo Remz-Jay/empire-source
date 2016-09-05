@@ -16,10 +16,11 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 				this.moveTo(closestHostile.pos);
 			}
 		} else {
-			closestHostile = this.creep.pos.findClosestByPath<Structure>(FIND_HOSTILE_STRUCTURES, {
+			closestHostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.hostileStructures, {
 				filter: (s: Structure) => s.structureType === STRUCTURE_EXTENSION
 				|| s.structureType === STRUCTURE_SPAWN
 				|| s.structureType === STRUCTURE_TOWER,
+				costCallback: this.roomCallback,
 			});
 			if (!!closestHostile) {
 				if (this.creep.attack(closestHostile) === ERR_NOT_IN_RANGE) {

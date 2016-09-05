@@ -5,10 +5,12 @@ declare type EnergyStructure = Extension | Spawn | Tower;
 declare type StorageStructure = StructureStorage | StructureContainer | StructureTerminal;
 declare type findRouteRoute = {exit: string; room: string; }
 declare type findRouteArray = findRouteRoute[];
+declare var global: any;
 
 declare interface CreepStats  {
 	roles: number;
 	creeps: number;
+	perRole: any;
 }
 
 declare interface CreepConfiguration {
@@ -19,7 +21,6 @@ declare interface CreepConfiguration {
 declare interface CreepProperties {
 	role: string;
 	homeRoom: string;
-	homeSpawn: string;
 	targetRoom?: string;
 	target_link_id?: string;
 	target_storage_id?: string;
@@ -56,6 +57,7 @@ declare interface RemoteRoomConfig {
 	homeDistance: number;
 	route: findRouteArray;
 	claim?: boolean;
+	hasController?: boolean;
 }
 
 declare interface RemoteCreepProperties extends CreepProperties {
@@ -87,11 +89,17 @@ declare interface SquadConfig {
 }
 
 declare interface Memory {
+	showTransactions: boolean;
+	showLogCreep: boolean;
+	showLogMove: boolean;
+	showLogAsm: boolean;
 	assimilation?: AssimilationObject;
 	offense?: OffenseObject;
 	log: {
 		creeps: string[];
 		rooms: string[];
+		move: string[];
+		asm: string[];
 	};
 	stats: {
 		[name: string]: any;

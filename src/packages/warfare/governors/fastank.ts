@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import WarfareCreepGovernor from "../warfareCreepGovernor";
 
 export default class FastankGovernor extends WarfareCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_WF_WARRIOR;
-	public static MINRCL: number = Config.MINRCL_WF_WARRIOR;
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "Fastank";
 
 	public maxParts = 20;
@@ -18,7 +17,6 @@ export default class FastankGovernor extends WarfareCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: FastankGovernor.ROLE,
 			config: this.config,
 		};

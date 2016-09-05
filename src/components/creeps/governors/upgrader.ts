@@ -24,14 +24,14 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getCreepLimit(): number {
-		if (this.room.name === "W5N42") {
+		if (this.room.name === "W5N42" || this.room.name === "W7N45") {
 			return 2;
 		}
 		let num: number;
 		if (this.room.controller.level > 4) {
 			num = _.floor(this.room.energyInContainers / 200000);
 		} else if (this.room.controller.level < 5) {
-			num = 2;
+			num = 3;
 		} else {
 			num = this.maxCreeps;
 		}

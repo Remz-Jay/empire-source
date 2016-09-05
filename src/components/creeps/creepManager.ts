@@ -1,5 +1,3 @@
-import * as Config from "./../../config/config";
-import * as SpawnManager from "./../spawns/spawnManager";
 import CreepAction from "./creepAction";
 import CreepGovernor from "./creepGovernor";
 import Harvester from "./roles/harvester";
@@ -16,6 +14,8 @@ import Repair from "./roles/repair";
 import RepairGovernor from "./governors/repair";
 import Miner from "./roles/miner";
 import MinerGovernor from "./governors/miner";
+import Scientist from "./roles/scientist";
+import ScientistGovernor from "./governors/scientist";
 
 export let creeps: { [creepName: string]: Creep };
 export let creepNames: string[] = [];
@@ -29,6 +29,7 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Linker: Linker,
 	Repair: Repair,
 	Miner: Miner,
+	Scientist: Scientist,
 };
 
 let governors: {[key: string]: typeof CreepGovernor } = {
@@ -39,6 +40,7 @@ let governors: {[key: string]: typeof CreepGovernor } = {
 	MuleGovernor: MuleGovernor,
 	RepairGovernor: RepairGovernor,
 	MinerGovernor: MinerGovernor,
+	ScientistGovernor: ScientistGovernor,
 };
 
 export function loadCreeps(): void {
@@ -47,34 +49,38 @@ export function loadCreeps(): void {
 
 	_loadCreepNames();
 
-	if (Config.DEBUG) {
+	if (global.DEBUG) {
 		console.log(creepCount + " creeps found in the playground.");
 	}
 }
-export function createCreep(config: CreepConfiguration): string|number {
-	let spawn = SpawnManager.getFirstSpawn();
-	let status: number | string = spawn.canCreateCreep(config.body, config.name);
-	if (status === OK) {
-		status = spawn.createCreepWhenIdle(config.body, config.name, config.properties);
-
-		if (Config.VERBOSE) {
-			if (_.isNumber(status)) {
-				console.log(`Unable to create ${config.properties.role} Creep (${status})`);
-			} else {
-				console.log(`Started creating new ${config.properties.role} Creep ${status}`);
+export function createCreep(room: Room, config: CreepConfiguration): string|number {
+	let spawn = room.getFreeSpawn();
+	if (!!spawn) {
+		let status: number | string = spawn.canCreateCreep(config.body, config.name);
+		if (status === OK) {
+			status = spawn.createCreepWhenIdle(config.body, config.name, config.properties);
+			if (global.VERBOSE) {
+				if (_.isNumber(status)) {
+					console.log(`Unable to create ${config.properties.role} Creep (${status})`);
+				} else {
+					console.log(`Started creating new ${config.properties.role} Creep ${status}`);
+				}
 			}
 		}
+		return status;
+	} else {
+		return ERR_BUSY;
 	}
-	return status;
 }
 
 export function governCreeps(room: Room): CreepStats {
 	let CpuRoles = 0;
 	let CpuCreeps = 0;
+	let CpuPerRole: any = {};
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
-		if (room.controller.level >= prioritizedGovernors[index].MINRCL) {
+		if (room.controller.level >= prioritizedGovernors[index].MINRCL && Game.cpu.getUsed() < Game.cpu.limit) {
 			let CpuBeforeRoles = Game.cpu.getUsed();
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;
@@ -84,19 +90,18 @@ export function governCreeps(room: Room): CreepStats {
 			let creepLimit: number = governor.getCreepLimit();
 			let body: string[] = governor.getBody();
 			let requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
-			console.log(
-				_.padLeft(creepRole, 9) + ":\t" + numCreeps
-				+ " (max:" + creepLimit
-				+ ")\t\t(" + _.padLeft(requiredEnergy.toString(), 4)
-				+ ") [" + body
-				+ "]"
-			);
-			if (Config.VERBOSE) {
-				console.log(`${creepRole}: ${numCreeps}/${creepLimit}`);
+			if (global.CREEPSTATS) {
+				console.log(
+					_.padLeft(creepRole, 9) + ":\t" + numCreeps
+					+ " (max:" + creepLimit
+					+ ")\t\t(" + _.padLeft(requiredEnergy.toString(), 4)
+					+ ") [" + body
+					+ "]"
+				);
 			}
-			if (numCreeps < creepLimit && !isSpawning) {
+			if (numCreeps < creepLimit && !isSpawning && room.mySpawns.length > 0) {
 				let config: CreepConfiguration = governor.getCreepConfig();
-				if (!_.isNumber(this.createCreep(config))) {
+				if (!_.isNumber(this.createCreep(room, config))) {
 					isSpawning = true;
 				} else if (governor.emergency) {
 					isSpawning = true; // prevent spawning of other roles until the emergency is over.
@@ -108,15 +113,21 @@ export function governCreeps(room: Room): CreepStats {
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
 					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
-					role.setCreep(<Creep> creep);
-					role.setGovernor(governor);
-					role.action();
+					try {
+						role.setCreep(<Creep> creep);
+						role.setGovernor(governor);
+						role.action();
+					} catch (e) {
+						console.log(`ERROR :: ${creepRole}: ${e.message}`);
+					}
 				}
 			}, this);
-			CpuCreeps += Game.cpu.getUsed() - CpuBeforeCreeps;
+			let temp = Game.cpu.getUsed() - CpuBeforeCreeps;
+			CpuPerRole[creepRole] = {numCreeps: creepsInRole.length, cpu: temp};
+			CpuCreeps += temp;
 		}
 	}
-	return {roles: CpuRoles, creeps: CpuCreeps};
+	return {roles: CpuRoles, creeps: CpuCreeps, perRole: CpuPerRole};
 }
 
 function _loadCreepNames(): void {

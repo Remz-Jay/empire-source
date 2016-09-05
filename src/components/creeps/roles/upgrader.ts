@@ -35,8 +35,10 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	}
 
 	public moveToCollectEnergy(): void {
-		if (this.tryCollectEnergy() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetEnergySource.pos)) {
 			this.moveTo(this.targetEnergySource.pos);
+		} else {
+			this.tryCollectEnergy();
 		}
 	}
 
@@ -45,15 +47,10 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	}
 
 	public moveToController(): void {
-		let status: number = this.tryUpgrading();
-		switch (status) {
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetController.pos);
-				break;
-			case OK:
-				break;
-			default:
-				console.log(`Upgrader error ${status}`);
+		if (!this.creep.pos.inRangeTo(this.targetController.pos, 3)) {
+			this.moveTo(this.targetController.pos);
+		} else {
+			this.tryUpgrading();
 		}
 	}
 
@@ -75,6 +72,19 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 				this.creep.upgradeController(target);
 			} else {
 				this.creep.upgradeController(target);
+				if (Game.time % _.random(0, 27) === 0 ) {
+					this.creep.say("_/=\\\u0CA0_", true);
+				}
+			}
+			if (this.creep.carry.energy < 50) {
+				// see if we can get some from a nearby link
+				let target = this.creep.room.myStructures.filter((l: StructureLink) => l.structureType === STRUCTURE_LINK
+					&& l.energy > 0
+					&& l.pos.isNearTo(this.creep.pos)
+				);
+				if (!!target) {
+					this.creep.withdraw(target.shift(), RESOURCE_ENERGY);
+				}
 			}
 		} else {
 			this.harvestFromContainersAndSources();

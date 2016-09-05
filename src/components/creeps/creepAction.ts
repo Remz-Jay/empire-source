@@ -1,4 +1,3 @@
-import * as Config from "../../config/config";
 import * as RoomManager from "../rooms/roomManager";
 import List = _.List;
 import CreepGovernor from "./creepGovernor";
@@ -16,8 +15,6 @@ export interface ICreepAction {
 	moveTo(target: RoomPosition|PathFinderGoal): string | number;
 
 	needsRenew(): boolean;
-	tryRenew(): number;
-	moveToRenew(): void;
 	pickupResourcesInRange(): void;
 	nextStepIntoRoom(): boolean;
 
@@ -28,36 +25,35 @@ export interface ICreepAction {
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 }
 
-let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = RoomManager.getRoomByName(roomName);
-		if (!room) {
-			return;
-		}
-		return room.getCreepMatrix();
-	} catch (e) {
-		console.log(e.message, "creepAction.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-
-};
-
 export default class CreepAction implements ICreepAction {
 	public creep: Creep;
 	public renewStation: Spawn;
 	public governor: CreepGovernor;
-
-	public _minLifeBeforeNeedsRenew: number = Config.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
-
+	public fleeRange: number = 5;
+	public _minLifeBeforeNeedsRenew: number = global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
+	public moveIterator: number = 0;
 	public setCreep(creep: Creep) {
 		this.creep = creep;
-		this.renewStation = Game.getObjectById<Spawn>(this.creep.memory.homeSpawn);
 	}
 
 	public setGovernor(governor: CreepGovernor): void {
 		this.governor = governor;
 	}
-
+	public roomCallback = function (roomName: string): CostMatrix | boolean {
+		try {
+			if (roomName === "W4N43") {
+				return false;
+			}
+			let room = RoomManager.getRoomByName(roomName);
+			if (!room) {
+				return;
+			}
+			return room.getCreepMatrix();
+		} catch (e) {
+			console.log(e.message, "creepAction.roomCallback", roomName);
+			return new PathFinder.CostMatrix();
+		}
+	};
 	/**
 	 * If we're on an EXIT_, make sure we do one step into the room before continuing
 	 * To avoid room switching.
@@ -66,18 +62,22 @@ export default class CreepAction implements ICreepAction {
 	 */
 	public nextStepIntoRoom(): boolean {
 		if (this.creep.pos.x === 0) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(RIGHT);
 			return false;
 		}
 		if (this.creep.pos.x === 49) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(LEFT);
 			return false;
 		}
 		if (this.creep.pos.y === 0) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(BOTTOM);
 			return false;
 		}
 		if (this.creep.pos.y === 49) {
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
 			this.creep.move(TOP);
 			return false;
 		}
@@ -85,19 +85,36 @@ export default class CreepAction implements ICreepAction {
 	};
 
 	public flee(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 4);
-		if (targets.length > 0) {
-			let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: 5}; });
-			let path = PathFinder.search(this.creep.pos, goals, {
-				flee: true,
-				maxRooms: 2,
-				plainCost: 2,
-				swampCost: 6,
-				roomCallback: roomCallback,
-			});
-			this.creep.moveByPath(path.path);
-			this.creep.say("FLEE!");
-			return false;
+		if (this.creep.room.hostileCreeps.length > 0) {
+			let fleeRange = this.fleeRange;
+			let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, fleeRange));
+			if (targets.length > 0) {
+				let minRange = fleeRange;
+				targets.forEach((c: Creep) => {
+					let rangeToTarget = this.creep.pos.getRangeTo(c);
+					if (rangeToTarget < minRange) {
+						minRange = rangeToTarget;
+					}
+				});
+				this.creep.say(minRange.toString());
+				if (minRange < fleeRange) {
+					let goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: fleeRange}; });
+					let path = PathFinder.search(this.creep.pos, goals, {
+						flee: true,
+						maxRooms: 2,
+						plainCost: 2,
+						swampCost: 10,
+						maxOps: 500,
+						roomCallback: this.roomCallback,
+					});
+					Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - flee #${++this.moveIterator}`);
+					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
+					this.creep.say("FLEE!");
+				} else {
+					this.creep.cancelOrder("move");
+				}
+				return false;
+			}
 		}
 		return true;
 	}
@@ -112,34 +129,64 @@ export default class CreepAction implements ICreepAction {
 		return retVal;
 	}
 
-	public moveTo(target: RoomPosition|PathFinderGoal): string | number {
+	public moveTo(target: RoomPosition|PathFinderGoal, retry: boolean = false): string | number {
 		try {
 			let pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
 			let path: RoomPosition[] = [];
 			if (!!this.creep.memory.pfg && this.comparePfg(pfg, this.creep.memory.pfg) && !!this.creep.memory.pfgPath) {
 				path = this.deserializePathFinderPath(this.creep.memory.pfgPath);
-				console.log("creepAction.moveTo.CachedPath");
 			} else {
 				path = this.findPathFinderPath(pfg);
-				if (!!path) {
+				if (!!path && path.length) {
 					this.creep.memory.pfg = pfg;
 					this.creep.memory.pfgPath = path;
 				} else {
+					this.creep.memory.pfgPath = undefined;
 					return ERR_NOT_FOUND;
 				}
 			}
-			if (path.length > 0) {
-				let status = this.creep.move(this.creep.pos.getDirectionTo(path.shift()));
+			if (path.length < 1) {
+				this.creep.memory.pfgPath = undefined;
+				return ERR_NOT_FOUND;
+			}
+			if (!!this.creep.memory.lastPosition) {
+				let lp = this.creep.memory.lastPosition;
+				if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
+					this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
+					if (this.creep.memory.stuckTicks > 2) {
+						Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
+							+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
+						this.creep.memory.stuckTicks = undefined;
+						this.creep.memory.lastPosition = undefined;
+						this.creep.memory.pfgPath = undefined;
+						return (retry) ? ERR_NOT_FOUND : this.moveTo(pfg, true);
+					}
+				} else {
+					delete this.creep.memory.stuckTicks;
+				}
+			}
+			let pos = path.shift();
+			if (this.creep.pos.isEqualTo(pos)) {
+				pos = path.shift();
+			}
+			if (this.creep.pos.isNearTo(pos)) {
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveTo #${++this.moveIterator}`);
+				let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
 				if (status === OK) {
+					this.creep.memory.lastPosition = this.creep.pos;
 					this.creep.memory.pfgPath = path;
-				} else if (status === ERR_NOT_FOUND) {
-					delete this.creep.memory.pfgPath;
-					return this.moveTo(pfg);
+				} else if (status === ERR_TIRED) {
+					// Delete the lastPosition, because the creep hasn't moved due to it being tired. No need to recalculate route now.
+					this.creep.memory.lastPosition = undefined;
+					this.creep.memory.stuckTicks = undefined;
 				}
 				return status;
 			} else {
-				delete this.creep.memory.pfgPath;
-				return this.moveTo(pfg);
+				console.log(`${this.creep.memory.role} ${this.creep.room.name} Went off path, recalculating`);
+				this.creep.memory.stuckTicks = undefined;
+				this.creep.memory.lastPosition = undefined;
+				this.creep.memory.pfgPath = undefined;
+				return (retry) ? ERR_NOT_FOUND : this.moveTo(pfg, true);
 			}
 		} catch (e) {
 			console.log(e.message, JSON.stringify(target), "creepAction.moveTo");
@@ -150,9 +197,9 @@ export default class CreepAction implements ICreepAction {
 			this.creep.moveTo(<RoomPosition> target, {reusePath: 25});
 		}
 	}
-	public findNewPath(target: RoomObject | RoomPosition, memoryName: string = "targetPath", move: boolean = true): boolean {
+	public findNewPath(target: RoomObject | RoomPosition, memoryName: string = "targetPath", move: boolean = true, range: number = 1): boolean {
 		let pos: RoomPosition = (target instanceof RoomObject) ? target.pos : target;
-		let path = this.findPathFinderPath(this.createPathFinderMap(pos));
+		let path = this.findPathFinderPath(this.createPathFinderMap(pos, range));
 		if (!!path) {
 			this.creep.memory[memoryName] = path;
 			if (move) {
@@ -168,8 +215,8 @@ export default class CreepAction implements ICreepAction {
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
 				if (this.creep.memory.stuckTicks > 1) {
-					Memory.log.creeps.push(this.creep.name + " (" + this.creep.memory.role + ") is stuck at "
-						+ JSON.stringify(lp) + "for " + this.creep.memory.stuckTicks + ". Recalculating route.");
+					Memory.log.creeps.push(`moveByPath: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
+						+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
 					delete this.creep.memory.stuckTicks;
 					delete this.creep.memory.lastPosition;
 					// TODO: Figure out this recursive mess..
@@ -217,16 +264,6 @@ export default class CreepAction implements ICreepAction {
 		return (this.creep.ticksToLive < this._minLifeBeforeNeedsRenew);
 	}
 
-	public tryRenew(): number {
-		return this.renewStation.renewCreep(this.creep);
-	}
-
-	public moveToRenew(): void {
-		if (this.tryRenew() === ERR_NOT_IN_RANGE) {
-			this.moveTo(this.renewStation.pos);
-		}
-	}
-
 	public createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number = 1): PathFinderGoal {
 		let goalsList: List<RoomPosition>;
 		if (!_.isArray(goals)) {
@@ -250,21 +287,28 @@ export default class CreepAction implements ICreepAction {
 	};
 
 	public findPathFinderPath(goal: PathFinderGoal): RoomPosition[] {
-		let plainCost = 3;
+		let maxOps = 3000;
+		if (Game.cpu.getUsed() > (Game.cpu.limit)) {
+			maxOps = 500;
+		} else if (Game.cpu.getUsed() > (Game.cpu.limit * 0.8)) {
+			maxOps = 1000;
+		}
+		let plainCost = 2;
 		let swampCost = 6;
 		if (_.sum(this.creep.carry) > (this.creep.carryCapacity / 2)) {
-			plainCost = 5;
+			plainCost = 2;
 			swampCost = 10;
 		}
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
+			maxOps: maxOps,
 			plainCost: plainCost,
 			swampCost: swampCost,
-			roomCallback: roomCallback,
+			roomCallback: this.roomCallback,
 		});
 		if (path.path.length < 1) {
-			// We"re near the target.
+			// We're near the target.
 			return undefined;
 		} else {
 			return path.path;
@@ -281,25 +325,19 @@ export default class CreepAction implements ICreepAction {
 					}
 				}, this);
 			}
-			targets = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-				filter: (s: StructureContainer) => {
-					return s.structureType === STRUCTURE_CONTAINER
-						&& s.store[RESOURCE_ENERGY] > 0;
-				},
-			});
+			targets = this.creep.room.allStructures.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+				&& s.store.energy > 0
+				&& s.pos.isNearTo(this.creep.pos)
+			);
 			if (targets.length > 0) {
-				_.each(targets, function (t) {
-					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						this.creep.withdraw(t, RESOURCE_ENERGY);
-					}
-				}, this);
+				this.creep.withdraw(targets.pop() as StructureContainer, RESOURCE_ENERGY);
 			}
 		}
 	};
 
 	public expireCreep(): boolean {
 		// see if an upgrade for this creep is available
-		if (!!this.creep.memory.homeRoom && !!this.creep.memory.homeSpawn) {
+		if (!!this.creep.memory.homeRoom) {
 			try {
 				let room = RoomManager.getRoomByName(this.creep.memory.homeRoom);
 				let x: number = this.governor.getNumberOfCreepsInRole();
@@ -316,12 +354,13 @@ export default class CreepAction implements ICreepAction {
 					return true;
 				}
 			} catch (e) {
-				throw new Error(`creepAction.ExpireCreep: ${e.message}`);
+				console.log(`creepAction.ExpireCreep: ${e.message}`);
+				return false;
 			}
 		}
 		return false;
 	};
-	public renewCreep(max: number = Config.MAX_TTL): boolean {
+	public renewCreep(max: number = global.MAX_TTL): boolean {
 		let homeRoom = RoomManager.getRoomByName(this.creep.memory.homeRoom);
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
 			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
@@ -329,34 +368,37 @@ export default class CreepAction implements ICreepAction {
 			Memory.log.creeps.push("Not renewing creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
 				+ homeRoom.name + " due to emergency energy level " + (homeRoom.energyAvailable));
 			this.creep.memory.hasRenewed = true;
+			delete this.creep.memory.renewStation;
 			return true;
 		}
 		if (this.creep.ticksToLive < 250) {
 			this.creep.memory.hasRenewed = false;
 		}
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false) {
-			let spawns: Spawn[] = homeRoom.mySpawns;
-			let renewStation: Spawn;
-			if (spawns.length > 0) {
-				// if(spawns.length > 0 && this.creep.room.controller.level > 1 && UtilCreep.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))
-				// < this.creep.room.energyCapacityAvailable){
-				renewStation = spawns[0];
-				// } else {
-				//    renewStation = (undefined === this.creep.memory.homeSpawn) ? Game.spawns["Bastion"] : Game.spawns[this.creep.memory.homeSpawn];
-				// }
+			let renewStation: StructureSpawn;
+			if (!this.creep.memory.renewStation) {
+				renewStation = this.creep.pos.findClosestByPath(homeRoom.mySpawns, {
+					algorithm: "astar",
+					ignoreCreeps: true,
+					costCallback: this.roomCallback,
+					maxOps: 1000,
+					maxRooms: 6,
+				});
+				if (!renewStation) {
+					console.log("renewCreep.NO_PATH_FOUND");
+					renewStation = homeRoom.getFreeSpawn();
+				}
+				this.creep.memory.renewStation = renewStation.id;
 			} else {
-				renewStation = (!this.creep.memory.homeSpawn) ? homeRoom.find<Spawn>(FIND_MY_SPAWNS)[0] : Game.spawns[this.creep.memory.homeSpawn];
+				renewStation = Game.getObjectById<StructureSpawn>(this.creep.memory.renewStation);
 			}
 			if (!this.creep.pos.isNearTo(renewStation)) {
 				Memory.log.creeps.push(`${_.padRight(this.creep.name, 10)}\t${_.padRight(this.creep.memory.role, 10)}\t${_.padRight(this.creep.ticksToLive.toString(), 4)}`
-				+ `is moving to ${renewStation.name} for renew.`);
-				if (!this.creep.memory.renewPath) {
-					this.findNewPath(renewStation, "renewPath");
-				} else {
-					let path = this.deserializePathFinderPath(this.creep.memory.renewPath);
-					this.moveByPath(path, renewStation, "renewPath");
-				}
+				+ ` is moving to ${renewStation.name} for renew.`);
+				this.moveTo(renewStation.pos);
 			} else {
+				delete this.creep.memory.pfg;
+				delete this.creep.memory.pfgPath;
 				if (this.expireCreep()) {
 					renewStation.recycleCreep(this.creep);
 				} else {
@@ -367,6 +409,7 @@ export default class CreepAction implements ICreepAction {
 					}
 					if (this.creep.ticksToLive > max) {
 						this.creep.memory.hasRenewed = true;
+						delete this.creep.memory.renewStation;
 						delete this.creep.memory.renewPath;
 					}
 				}
@@ -380,26 +423,37 @@ export default class CreepAction implements ICreepAction {
 	public harvestFromContainersAndSources() {
 		if (!this.creep.memory.source) {
 			// Prefer energy from containers
-			let source: Structure | Source = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+			let source: Structure | Source = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
 				filter: (structure: StorageStructure | StructureLink) => (structure.structureType === STRUCTURE_CONTAINER
 					|| structure.structureType === STRUCTURE_STORAGE
 					|| structure.structureType === STRUCTURE_LINK
 				) && (
 					((structure instanceof StructureContainer || structure instanceof StructureStorage)
 					&& !!structure.store && structure.store[RESOURCE_ENERGY] > (this.creep.carryCapacity - _.sum(this.creep.carry))) // containers and storage
-					|| (structure instanceof StructureLink && !!structure.energy && structure.energy > (this.creep.carryCapacity - _.sum(this.creep.carry))) // links
+					|| (structure instanceof StructureLink && !!structure.energy && structure.energy >= (this.creep.carryCapacity - _.sum(this.creep.carry))) // links
 				),
 				maxRooms: 1,
+				algorithm: "astar",
+				ignoreCreeps: true,
+				costCallback: this.roomCallback,
+				maxOps: 1000,
 			}) as StorageStructure | StructureLink;
 			// Go to source otherwise
 			if (!source) {
-				source = this.creep.pos.findClosestByPath(FIND_MY_SPAWNS, {
-					filter: (structure: Spawn) => structure.energy === structure.energyCapacity
-					&& structure.room.name === this.creep.room.name,
+				source = this.creep.pos.findClosestByPath(this.creep.room.mySpawns, {
+					filter: (structure: Spawn) => structure.energy === structure.energyCapacity,
+					algorithm: "astar",
+					ignoreCreeps: true,
+					costCallback: this.roomCallback,
+					maxOps: 1000,
 				}) as Spawn;
 				if (!source) {
-					source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
+					source = this.creep.pos.findClosestByPath(this.creep.room.sources, {
 						filter: (source: Source) => (source.energy > 100) || source.ticksToRegeneration < 30,
+						algorithm: "astar",
+						costCallback: this.roomCallback,
+						maxOps: 1000,
+						maxRooms: 6,
 					}) as Source;
 				}
 			}
@@ -410,38 +464,40 @@ export default class CreepAction implements ICreepAction {
 		if (!!this.creep.memory.source) {
 			let source: Structure | Source = Game.getObjectById(this.creep.memory.source) as Structure | Source;
 			if (source instanceof Structure) { // Sources aren't structures
-				let status = this.creep.withdraw(source, RESOURCE_ENERGY);
-				switch (status) {
-					case ERR_NOT_ENOUGH_RESOURCES:
-					case ERR_INVALID_TARGET:
-					case ERR_NOT_OWNER:
-					case ERR_FULL:
-						delete this.creep.memory.source;
-						break;
-					case ERR_NOT_IN_RANGE:
-						this.moveTo(source.pos);
-						break;
-					case OK:
-						break;
-					default:
-						throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+				if (!this.creep.pos.isNearTo(source)) {
+					this.moveTo(source.pos);
+				} else {
+					let status = this.creep.withdraw(source, RESOURCE_ENERGY);
+					switch (status) {
+						case ERR_NOT_ENOUGH_RESOURCES:
+						case ERR_INVALID_TARGET:
+						case ERR_NOT_OWNER:
+						case ERR_FULL:
+							delete this.creep.memory.source;
+							break;
+						case OK:
+							break;
+						default:
+							throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+					}
 				}
 			} else {
-				let status = this.creep.harvest(source);
-				switch (status) {
-					case ERR_NOT_ENOUGH_RESOURCES:
-					case ERR_INVALID_TARGET:
-					case ERR_NOT_OWNER:
-					case ERR_FULL:
-						delete this.creep.memory.source;
-						break;
-					case ERR_NOT_IN_RANGE:
-						this.moveTo(source.pos);
-						break;
-					case OK:
-						break;
-					default:
-						throw new Error(`Unhandled ERR in creep.source.harvest: ${status}`);
+				if (!this.creep.pos.isNearTo(source)) {
+					this.moveTo(source.pos);
+				} else {
+					let status = this.creep.harvest(source);
+					switch (status) {
+						case ERR_NOT_ENOUGH_RESOURCES:
+						case ERR_INVALID_TARGET:
+						case ERR_NOT_OWNER:
+						case ERR_FULL:
+							delete this.creep.memory.source;
+							break;
+						case OK:
+							break;
+						default:
+							throw new Error(`Unhandled ERR in creep.source.harvest: ${status}`);
+					}
 				}
 			}
 		}
@@ -449,9 +505,6 @@ export default class CreepAction implements ICreepAction {
 
 	public action(): boolean {
 		this.pickupResourcesInRange();
-		if (!this.renewCreep()) {
-			return false;
-		}
-		return true;
+		return this.renewCreep();
 	}
 }

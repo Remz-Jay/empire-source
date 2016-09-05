@@ -28,7 +28,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	}
 
 	public assignNewTarget(): boolean {
-		let target: ConstructionSite = <ConstructionSite> this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+		let target: ConstructionSite = <ConstructionSite> this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+			costCallback: this.roomCallback,
+		});
 		if (target != null) {
 			this.targetConstructionSite = target;
 			this.creep.memory.target_construction_site_id = target.id;
@@ -47,8 +49,10 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	}
 
 	public moveToCollectEnergy(): void {
-		if (this.tryCollectEnergy() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetEnergySource)) {
 			this.moveTo(this.targetEnergySource.pos);
+		} else {
+			this.tryCollectEnergy();
 		}
 	}
 
@@ -57,18 +61,19 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	}
 
 	public moveToConstructionSite(): void {
-		let status: number = this.tryBuilding();
-		switch (status) {
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetConstructionSite.pos);
-				break;
-			case ERR_INVALID_TARGET:
-				this.assignNewTarget();
-				break;
-			case OK:
-				break;
-			default:
-				console.log(`Builder error ${status}`);
+		if (!this.creep.pos.inRangeTo(this.targetConstructionSite.pos, 3)) {
+			this.moveTo(this.targetConstructionSite.pos);
+		} else {
+			let status: number = this.tryBuilding();
+			switch (status) {
+				case ERR_INVALID_TARGET:
+					this.assignNewTarget();
+					break;
+				case OK:
+					break;
+				default:
+					console.log(`Builder error ${status}`);
+			}
 		}
 	}
 
@@ -92,7 +97,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 
 		if (this.creep.memory.building) {
 			if (!this.creep.memory.target) {
-				let target: ConstructionSite = this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES) as ConstructionSite;
+				let target: ConstructionSite = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+					costCallback: this.roomCallback,
+				}) as ConstructionSite;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
@@ -107,15 +114,19 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			}
 			let target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
 			if (!!target) {
-				if (this.creep.build(target) === ERR_NOT_IN_RANGE) {
+				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 					this.moveTo(target.pos);
+				} else {
+					this.creep.build(target);
 				}
 			} else {
 				delete this.creep.memory.target;
 			}
 		} else if (this.creep.memory.idle) {
 			// scan for sites and return to active duty when found
-			let target = this.creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES) as ConstructionSite;
+			let target = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+				costCallback: this.roomCallback,
+			}) as ConstructionSite;
 			if (!!target) {
 				this.creep.memory.target = target.id;
 				delete this.creep.memory.idle;
@@ -126,17 +137,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 				this.creep.memory.idle = true;
 				delete this.creep.memory.target;
 				delete this.creep.memory.source;
-				let spawn = this.creep.pos.findClosestByRange(FIND_MY_SPAWNS) as Spawn;
+				let spawn = this.creep.pos.findClosestByPath(this.creep.room.mySpawns) as Spawn;
 				if (this.creep.pos.isNearTo(spawn)) {
 					this.creep.memory.role = "Repair";
-					if (this.creep.carry.energy > 0) {
-						this.creep.transfer(spawn, RESOURCE_ENERGY);
-					} else {
-						// spawn.recycleCreep(this.creep);
-						// this.creep.memory.homeRoom = this.creep.room.name;
-						this.creep.memory.role = "Repair";
-						// this.creep.memory.homeSpawn = this.creep.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS);
-					}
 				} else {
 					this.moveTo(spawn.pos);
 				}
@@ -145,15 +148,17 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		} else {
 			if (!this.creep.memory.source) {
 				// Prefer energy from containers
-				let source: Source | StorageStructure = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+				let source: Source | StorageStructure = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
 					filter: (structure: StorageStructure) => ((structure instanceof StructureContainer
 					|| structure instanceof StructureStorage) && structure.store[RESOURCE_ENERGY] > 100)
 					|| (structure instanceof StructureSpawn && structure.energy  >= (structure.energyCapacity * 0.8)),
+					costCallback: this.roomCallback,
 				}) as StorageStructure;
 				// Go to source otherwise
 				if (!source) {
-					source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
+					source = this.creep.pos.findClosestByPath(this.creep.room.sources, {
 						filter: (source: Source) => (source.energy > 100) || source.ticksToRegeneration < 30,
+						costCallback: this.roomCallback,
 					}) as Source;
 				}
 				if (!!source) {
@@ -163,38 +168,40 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			if (!!this.creep.memory.source) {
 				let source: RoomObject = Game.getObjectById(this.creep.memory.source) as RoomObject;
 				if (source instanceof Structure) { // Sources aren't structures
-					let status = this.creep.withdraw(source, RESOURCE_ENERGY);
-					switch (status) {
-						case ERR_NOT_ENOUGH_RESOURCES:
-						case ERR_INVALID_TARGET:
-						case ERR_NOT_OWNER:
-						case ERR_FULL:
-							delete this.creep.memory.source;
-							break;
-						case ERR_NOT_IN_RANGE:
-							this.moveTo(source.pos);
-							break;
-						case OK:
-							break;
-						default:
-							console.log(`Unhandled ERR in builder.source.container: ${status}`);
+					if (!this.creep.pos.isNearTo(source)) {
+						this.moveTo(source.pos);
+					} else {
+						let status = this.creep.withdraw(source, RESOURCE_ENERGY);
+						switch (status) {
+							case ERR_NOT_ENOUGH_RESOURCES:
+							case ERR_INVALID_TARGET:
+							case ERR_NOT_OWNER:
+							case ERR_FULL:
+								delete this.creep.memory.source;
+								break;
+							case OK:
+								break;
+							default:
+								console.log(`Unhandled ERR in builder.source.container: ${status}`);
+						}
 					}
 				} else {
-					let status = this.creep.harvest(source as Source);
-					switch (status) {
-						case ERR_NOT_ENOUGH_RESOURCES:
-						case ERR_INVALID_TARGET:
-						case ERR_NOT_OWNER:
-						case ERR_FULL:
-							delete this.creep.memory.source;
-							break;
-						case ERR_NOT_IN_RANGE:
-							this.moveTo(source.pos);
-							break;
-						case OK:
-							break;
-						default:
-							console.log(`Unhandled ERR in builder.source.harvest: ${status}`);
+					if (!this.creep.pos.isNearTo(source)) {
+						this.moveTo(source.pos);
+					} else {
+						let status = this.creep.harvest(source as Source);
+						switch (status) {
+							case ERR_NOT_ENOUGH_RESOURCES:
+							case ERR_INVALID_TARGET:
+							case ERR_NOT_OWNER:
+							case ERR_FULL:
+								delete this.creep.memory.source;
+								break;
+							case OK:
+								break;
+							default:
+								console.log(`Unhandled ERR in builder.source.harvest: ${status}`);
+						}
 					}
 				}
 			} else {

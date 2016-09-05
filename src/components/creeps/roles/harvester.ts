@@ -29,12 +29,13 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public assignNewSource(): boolean {
-		let target: Source = <Source> this.creep.pos.findClosestByPath(FIND_SOURCES, {
+		let target: Source = <Source> this.creep.pos.findClosestByPath(this.creep.room.sources, {
 			filter: (source: Source) => {
 				return (
 					_.includes(SourceManager.sources, source)
 				);
 			},
+			costCallback: this.roomCallback,
 		});
 		if (target) {
 			this.targetSource = target;
@@ -46,7 +47,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public assignNewDropOff(): boolean {
-		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
 			filter: (structure: EnergyStructure) => {
 				return (
 						structure.structureType === STRUCTURE_EXTENSION ||
@@ -56,6 +57,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						// structure.structureType === STRUCTURE_STORAGE
 					) && structure.energy < structure.energyCapacity;
 			},
+			costCallback: this.roomCallback,
 		});
 		if (target != null) {
 			this.targetEnergyDropOff = target;
@@ -75,17 +77,10 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public moveToHarvest(): void {
-		if (this.tryHarvest() === ERR_NOT_IN_RANGE) {
-			if (!this.creep.memory.targetPath) {
-				if (!this.findNewPath(this.targetSource)) {
-					this.creep.say("HALP!");
-				}
-			} else {
-				let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-				this.moveByPath(path, this.targetSource);
-			}
+		if (!this.creep.pos.isNearTo(this.targetSource.pos)) {
+			this.moveTo(this.targetSource.pos);
 		} else {
-			delete this.creep.memory.targetPath;
+			this.tryHarvest();
 		}
 	}
 
@@ -94,21 +89,19 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public moveToDropEnergy(): void {
-		let status = this.tryEnergyDropOff();
-		switch (status) {
-			case OK:
-				break;
-			case ERR_NOT_IN_RANGE:
-				this.moveTo(this.targetEnergyDropOff.pos);
-				break;
-			case ERR_FULL:
-				this.assignNewDropOff();
-				break;
-			default:
-				console.log(`harvester energyDropOff error ${status}`);
-		}
-		if (this.tryEnergyDropOff() === ERR_NOT_IN_RANGE) {
+		if (!this.creep.pos.isNearTo(this.targetEnergyDropOff.pos)) {
 			this.moveTo(this.targetEnergyDropOff.pos);
+		} else {
+			let status = this.tryEnergyDropOff();
+			switch (status) {
+				case OK:
+					break;
+				case ERR_FULL:
+					this.assignNewDropOff();
+					break;
+				default:
+					console.log(`harvester energyDropOff error ${status}`);
+			}
 		}
 	}
 
@@ -128,15 +121,16 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		if (this.creep.memory.dumping) {
 			if (!this.creep.memory.target) {
 				// Containers are nearby, fill them first.
-				let target: Structure = this.creep.pos.findClosestByPath(FIND_STRUCTURES, {
+				let target: Structure = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
 					filter: (structure: StructureContainer) => {
 						return structure.structureType === STRUCTURE_CONTAINER &&
 							_.sum(structure.store) < structure.storeCapacity;
 					},
+					costCallback: this.roomCallback,
 				}) as StructureContainer;
 				// If all containers are full, move directly to an owned structure.
 				if (!target) {
-					target = this.creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+					target = this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
 						filter: (structure: EnergyStructure) => {
 							return (
 									structure.structureType === STRUCTURE_EXTENSION ||
@@ -144,6 +138,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 									structure.structureType === STRUCTURE_TOWER
 								) && structure.energy < structure.energyCapacity;
 						},
+						costCallback: this.roomCallback,
 					}) as EnergyStructure;
 				}
 				if (!!target) {
@@ -161,23 +156,26 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 					case STRUCTURE_SPAWN:
 					case STRUCTURE_TOWER:
 					case STRUCTURE_CONTAINER:
-						let status = this.creep.transfer(target, RESOURCE_ENERGY);
-						switch (status) {
-							case ERR_NOT_IN_RANGE:
-								this.moveTo(target.pos);
-								break;
-							case ERR_FULL:
-								delete this.creep.memory.target;
-								break;
-							case OK:
-								break;
-							default:
-								console.log(`Status ${status} not defined for RoleHarvester..dump.spawn`);
+						if (!this.creep.pos.isNearTo(target)) {
+							this.moveTo(target.pos);
+						} else {
+							let status = this.creep.transfer(target, RESOURCE_ENERGY);
+							switch (status) {
+								case ERR_FULL:
+									delete this.creep.memory.target;
+									break;
+								case OK:
+									break;
+								default:
+									console.log(`Status ${status} not defined for RoleHarvester..dump.spawn`);
+							}
 						}
 						break;
 					case STRUCTURE_CONTROLLER:
-						if (this.creep.upgradeController(target as StructureController) === ERR_NOT_IN_RANGE) {
+						if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 							this.moveTo(target.pos);
+						} else {
+							this.creep.upgradeController(target as StructureController);
 						}
 						break;
 					default:
@@ -190,8 +188,9 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 				if (!!this.creep.memory.preferredSource) {
 					source = Game.getObjectById(this.creep.memory.preferredSource) as Source;
 				} else {
-					source = this.creep.pos.findClosestByPath(FIND_SOURCES, {
+					source = this.creep.pos.findClosestByPath(this.creep.room.sources, {
 						filter: (source: Source) => (source.energy >= 100) || source.ticksToRegeneration < 60,
+						costCallback: this.roomCallback,
 					}) as Source;
 				}
 				if (!!source) {
@@ -200,61 +199,45 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 			}
 			if (!!this.creep.memory.source) {
 				let source: Source = Game.getObjectById(this.creep.memory.source) as Source;
-				let status = this.creep.harvest(source);
-				switch (status) {
-					case ERR_NOT_ENOUGH_RESOURCES:
-					case ERR_INVALID_TARGET:
-						if (source.ticksToRegeneration < 60 || source.id === this.creep.memory.preferredSource) {
-							if (this.creep.pos.getRangeTo(source) > 1) {
-								if (!this.creep.memory.targetPath) {
-									if (!this.findNewPath(source)) {
-										this.creep.say("HALP!");
-									}
-								} else {
-									let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-									this.moveByPath(path, source);
+				if (!this.creep.pos.isNearTo(source)) {
+					this.moveTo(source.pos);
+				} else {
+					let status = this.creep.harvest(source);
+					switch (status) {
+						case ERR_NOT_ENOUGH_RESOURCES:
+						case ERR_INVALID_TARGET:
+							if (source.ticksToRegeneration < 60 || source.id === this.creep.memory.preferredSource) {
+								if (this.creep.pos.getRangeTo(source) > 1) {
+									this.moveTo(source.pos);
 								}
+								break;
+							}
+						case ERR_NOT_OWNER:
+						case ERR_FULL:
+							// Dump first before harvesting again.
+							if (this.creep.carry.energy !== 0) {
+								this.creep.memory.dumping = true;
+								delete this.creep.memory.target;
+								delete this.creep.memory.source;
+								this.creep.say("H:DIST");
+							} else {
+								delete this.creep.memory.source;
+								this.creep.say("H:NEWSRC");
 							}
 							break;
-						}
-					case ERR_NOT_OWNER:
-					case ERR_FULL:
-						delete this.creep.memory.targetPath;
-						// Dump first before harvesting again.
-						if (this.creep.carry.energy !== 0) {
-							this.creep.memory.dumping = true;
-							delete this.creep.memory.target;
-							delete this.creep.memory.source;
-							this.creep.say("H:DIST");
-						} else {
-							delete this.creep.memory.source;
-							this.creep.say("H:NEWSRC");
-						}
-						break;
-					case ERR_NOT_IN_RANGE:
-						if (!this.creep.memory.targetPath) {
-							if (!this.findNewPath(source)) {
-								this.creep.say("HALP!");
-							}
-						} else {
-							let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.moveByPath(path, source);
-						}
-						break;
-					case OK:
-						delete this.creep.memory.targetPath;
-						break;
-					default:
-						console.log(`Unhandled ERR in RoleHarvester.source.harvest: ${status}`);
+						case OK:
+							break;
+						default:
+							console.log(`Unhandled ERR in RoleHarvester.source.harvest: ${status}`);
+					}
 				}
-				let targets: StructureContainer[] = this.creep.pos.findInRange(FIND_STRUCTURES, 1, {
-					filter: function (s: StructureContainer) {
-						return s.structureType === STRUCTURE_CONTAINER &&
-							_.sum(s.store) < s.storeCapacity;
-					},
-				}) as StructureContainer[];
-				if (targets.length > 0) {
-					this.creep.transfer(targets[0], RESOURCE_ENERGY);
+				if (Game.time % 2 === 0) {
+					let targets: Structure[] = this.creep.room.containers.filter(
+						(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+					);
+					if (targets.length > 0) {
+						this.creep.transfer(targets[0], RESOURCE_ENERGY);
+					}
 				}
 			} else {
 				delete this.creep.memory.source;

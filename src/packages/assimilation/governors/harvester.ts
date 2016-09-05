@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_HARVESTER;
-	public static MINRCL: number = Config.MINRCL_ASM_HARVESTER;
+	public static PRIORITY: number = global.PRIORITY_ASM_HARVESTER;
+	public static MINRCL: number = global.MINRCL_ASM_HARVESTER;
 	public static ROLE: string = "ASMHarvester";
 
 	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];
@@ -12,9 +11,36 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	public maxCreeps: number = 1;
 	public containers: StructureContainer[] = [];
 
-	constructor(homeRoom: Room, homeSpawn: Spawn, config: RemoteRoomConfig, containers: StructureContainer[]) {
-		super(homeRoom, homeSpawn, config);
+	constructor(homeRoom: Room, config: RemoteRoomConfig, containers: StructureContainer[]) {
+		super(homeRoom, config);
 		this.containers = containers;
+	}
+
+	public getBody() {
+		let hasController = _.get(this.config, "hasController", true);
+		let hasClaim = _.get(this.config, "claim", false);
+		if (!hasController || hasClaim) {
+			this.bodyPart = [WORK, WORK, MOVE, MOVE];
+			let body: string[] = [CARRY, MOVE];
+			for (let i = 0; i < 4; i++) {
+				body = body.concat(this.bodyPart);
+			}
+			return AssimilationCreepGovernor.sortBodyParts(body);
+		}
+		let numParts = _.floor(this.room.energyCapacityAvailable / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		if (numParts < 1) {
+			numParts = 1;
+		}
+		if (numParts > this.maxParts) {
+			numParts = this.maxParts;
+		}
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return AssimilationCreepGovernor.sortBodyParts(body);
 	}
 
 	public getCreepConfig(): CreepConfiguration {
@@ -22,7 +48,6 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: ASMHarvesterGovernor.ROLE,
 			config: this.config,
 			container: this.checkContainerAssignment(),
@@ -42,12 +67,13 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 
 	public checkAssignedHarvester(c: StructureContainer): Creep {
 		let harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === ASMHarvesterGovernor.ROLE.toUpperCase());
-		return _.find(harvesters, function (h: Creep) {
-			return (!!h.memory.container) && c.id === h.memory.container;
-		});
+		return harvesters.find((h: Creep) => (!!h.memory.container) && c.id === h.memory.container);
 	}
 
 	public getCreepLimit(): number {
+		if (this.config.targetRoom === "W6N49") {
+			return 0;
+		}
 		return this.containers.length;
 	}
 }

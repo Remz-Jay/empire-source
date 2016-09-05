@@ -1,10 +1,9 @@
-import * as Config from "../../../config/config";
 import AssimilationCreepGovernor from "../assimilationCreepGovernor";
 
 export default class ClaimGovernor extends AssimilationCreepGovernor {
 
-	public static PRIORITY: number = Config.PRIORITY_ASM_CLAIM;
-	public static MINRCL: number = Config.MINRCL_ASM_CLAIM;
+	public static PRIORITY: number = global.PRIORITY_ASM_CLAIM;
+	public static MINRCL: number = global.MINRCL_ASM_CLAIM;
 	public static ROLE: string = "Claim";
 
 	public claim: boolean = false;
@@ -12,8 +11,8 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 	public maxCreeps = 1;
 	public bodyPart = [CLAIM, MOVE];
 
-	constructor(homeRoom: Room, homeSpawn: Spawn, config: RemoteRoomConfig, claim: boolean = false) {
-		super(homeRoom, homeSpawn, config);
+	constructor(homeRoom: Room, config: RemoteRoomConfig, claim: boolean = false) {
+		super(homeRoom, config);
 		this.claim = claim;
 	}
 
@@ -22,7 +21,6 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 		let name: string = null;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
-			homeSpawn: this.spawn.name,
 			role: ClaimGovernor.ROLE,
 			config: this.config,
 		};
@@ -31,7 +29,10 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 
 	public getBody() {
 		if (this.claim) {
-			return  AssimilationCreepGovernor.sortBodyParts([CLAIM, TOUGH, MOVE, MOVE, MOVE, MOVE]);
+			return  AssimilationCreepGovernor.sortBodyParts([TOUGH, TOUGH,
+				MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+				MOVE, MOVE, CLAIM,
+			]);
 		}
 		let numParts = _.floor(this.room.energyCapacityAvailable / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
 		if (numParts < 1) {

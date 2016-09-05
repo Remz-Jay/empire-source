@@ -31,7 +31,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 				tough += part.hits;
 			}
 		});
-		return (tough > 50) ? true : false;
+		return (tough > 50);
 	}
 
 	public moveToHeal(): boolean {
@@ -45,10 +45,11 @@ export default class Scout extends WarfareCreepAction implements IScout {
 					flee: true,
 					maxRooms: 1,
 					plainCost: 2,
-					swampCost: 6,
+					swampCost: 10,
 					roomCallback: roomCallback,
 				});
 				let pos = path.path[0];
+				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(pos));
 				this.creep.memory.waitForHealth = true;
 				delete this.creep.memory.targetPath;
@@ -68,10 +69,11 @@ export default class Scout extends WarfareCreepAction implements IScout {
 				flee: true,
 				maxRooms: 1,
 				plainCost: 2,
-				swampCost: 6,
+				swampCost: 10,
 				roomCallback: roomCallback,
 			});
 			let pos = path.path[0];
+			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
 			this.creep.move(this.creep.pos.getDirectionTo(pos));
 			delete this.creep.memory.targetPath;
 			return false;
@@ -141,7 +143,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 			flag.pos.x + 1,
 			true // returns a LookAtResultWithPos[]
 		) as LookAtResultWithPos[];
-		return (lookResults.length === this.squadSize) ? true : false;
+		return (lookResults.length === this.squadSize);
 	}
 	public action(): boolean {
 		if (!!this.creep.memory.inCombat || super.renewCreep()) {
