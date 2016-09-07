@@ -19,7 +19,7 @@ global.MAX_HARVESTERS_PER_SOURCE = 3;
  * The maximum number of resources (per type) stored in terminals
  * @type {number}
  */
-global.TERMINAL_MAX = 25000;
+global.TERMINAL_MAX = 20000;
 
 /**
  * The minumum amount of energy a Storage should contain before performing aux tasks.
@@ -282,6 +282,8 @@ global.getTowerRange = function(roomName: string): number {
 			return 19;
 		case "W7N45":
 			return 7;
+/*		case "W6N49":
+			return 20;*/
 		default:
 			return 30;
 	}

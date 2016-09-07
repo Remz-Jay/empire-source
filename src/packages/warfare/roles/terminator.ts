@@ -219,6 +219,24 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 		) as LookAtResultWithPos[];
 		return (lookResults.length === this.squadSize);
 	}
+
+	public rotation(): void {
+		// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
+		if (this.heal()) {
+			delete this.creep.memory.waitForHealth;
+			if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+				this.creep.memory.inCombat = true;
+			} else {
+				delete this.creep.memory.inCombat;
+			}
+		} else {
+			if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+				this.creep.memory.inCombat = true;
+			} else {
+				delete this.creep.memory.inCombat;
+			}
+		}
+	}
 	public action(): boolean {
 		// if (!!this.creep.memory.inCombat || super.renewCreep()) {
 		let blob = true;
@@ -228,24 +246,11 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 				this.creep.memory.squadComplete = this.isSquadComplete();
 			} else {
 				if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
+					this.rotation();
 					this.moveToTargetRoom();
 				} else {
-					this.nextStepIntoRoom();
-					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
-					if (this.heal()) {
-						delete this.creep.memory.waitForHealth;
-						if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
-							this.creep.memory.inCombat = true;
-						} else {
-							delete this.creep.memory.inCombat;
-						}
-					} else {
-						if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
-							this.creep.memory.inCombat = true;
-						} else {
-							delete this.creep.memory.inCombat;
-						}
-					}
+					// this.nextStepIntoRoom();
+					this.rotation();
 					this.move();
 				}
 			}

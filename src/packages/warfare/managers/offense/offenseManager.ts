@@ -321,7 +321,7 @@ let warvestConfig = {
 		{
 			"governor": WarvesterGovernor,
 			"role": Warvester,
-			"maxCreeps": 0,
+			"maxCreeps": 2,
 		},
 	],
 	wait: false,

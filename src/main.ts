@@ -13,6 +13,7 @@ import * as RoomManager from "./components/rooms/roomManager";
 import * as CreepManager from "./components/creeps/creepManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
+import * as MarketManager from "./components/market/marketManager";
 
 delete Memory.log;
 
@@ -57,6 +58,11 @@ export function loop() {
 			RoomManager.governRooms();
 		} catch (e) {
 			console.log("RoomManager Exception", (<Error> e).message);
+		}
+		try {
+			MarketManager.governMarket();
+		} catch (e) {
+			console.log("MarketManager Exception", (<Error> e).message);
 		}
 
 		if (!!Memory.showLogCreep) {

@@ -457,6 +457,7 @@ export function govern(): void {
 					} else {
 						if (config.claim) {
 							manageDefenders(roomName, 1);
+							manageSourceKeepers(roomName, 0);
 						} else if (!config.hasController) {
 							manageSourceKeepers(roomName, 1);
 						} else {

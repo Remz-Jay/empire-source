@@ -113,7 +113,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 
 				if (!!this.inLab1.mineralType && this.inLab1.mineralType !== reagents[0]) {
 					return this.cleanUp(this.inLab1);
-				} else if (!!this.terminal.store[reagents[0]] && this.terminal.store[reagents[0]] >= (this.creep.carryCapacity)) {
+				} else if (!!this.terminal.store[reagents[0]] && this.terminal.store[reagents[0]] > 0) {
 					if (this.inLab1.mineralCapacity - this.inLab1.mineralAmount >= this.creep.carryCapacity) {
 						this.creep.memory.targetId = this.inLab1.id;
 						this.creep.memory.mode = MODE.MINERALIZE;
@@ -125,7 +125,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 
 				if (!!this.inLab2.mineralType && this.inLab2.mineralType !== reagents[1]) {
 					return this.cleanUp(this.inLab2);
-				} else if (!!this.terminal.store[reagents[1]] && this.terminal.store[reagents[1]] >= (this.creep.carryCapacity)) {
+				} else if (!!this.terminal.store[reagents[1]] && this.terminal.store[reagents[1]] > 0) {
 					if (this.inLab2.mineralCapacity - this.inLab2.mineralAmount >= this.creep.carryCapacity) {
 						this.creep.memory.targetId = this.inLab2.id;
 						this.creep.memory.mode = MODE.MINERALIZE;
