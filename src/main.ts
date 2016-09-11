@@ -10,7 +10,6 @@ import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
 
 import * as RoomManager from "./components/rooms/roomManager";
-import * as CreepManager from "./components/creeps/creepManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
@@ -36,11 +35,12 @@ export function loop() {
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
-		CreepManager.loadCreeps();
 		let CpuInit = Game.cpu.getUsed();
 
 		let cpuBeforeStats = Game.cpu.getUsed();
-		StatsManager.runBuiltinStats();
+		// let runExpensive = (Game.time % 5 === 0) ? true : false;
+		let runExpensive = true;
+		StatsManager.runBuiltinStats(runExpensive);
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
 		StatsManager.addStat("cpu.init", CpuInit);
 
@@ -81,24 +81,6 @@ export function loop() {
 			});
 		}
 		delete Memory.log;
-		if (!!Memory.showTransactions && Game.cpu.getUsed() < Game.cpu.limit) {
-			console.log();
-			console.log(`Incoming Transactions:`);
-			_.take(Game.market.incomingTransactions, 5).forEach((t: Transaction) => {
-				t = _.defaults<Transaction>(t, {
-					sender: {username: "NPC" },
-				});
-				console.log(t.sender.username, t.resourceType, t.amount, t.from, t.to, t.description);
-			});
-			console.log();
-			console.log(`Outgoing Transactions:`);
-			_.take(Game.market.outgoingTransactions, 5).forEach((t: Transaction) => {
-				_.defaults<Transaction>(t, {
-					recipient: {username: "NPC" },
-				});
-				console.log(t.recipient.username, t.resourceType, t.amount, t.from, t.to, t.description);
-			});
-		}
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 		let cpuUsed = _.ceil(Game.cpu.getUsed());
 		let cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";

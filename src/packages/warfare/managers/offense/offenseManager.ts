@@ -16,25 +16,6 @@ import DismantlerGovernor from "../../governors/dismantler";
 import Dismantler from "../../roles/dismantler";
 import WarArcherGovernor from "../../governors/wararcher";
 import WarArcher from "../../roles/wararcher";
-import TankGovernor from "../../governors/tank";
-import Tank from "../../roles/tank";
-
-/*import FastankGovernor from "../../governors/fastank";
-
-
-import DismantlerGovernor from "../../governors/dismantler";
-import Dismantler from "../../roles/dismantler";
-
-import WarriorGovernor from "../../governors/warrior";
-import RangerGovernor from "../../governors/ranger";
-import HealerGovernor from "../../governors/healer";
-import Warrior from "../../roles/warrior";
-import Ranger from "../../roles/ranger";
-import Healer from "../../roles/healer";
-import TerminatorGovernor from "../../governors/terminator";
-
-import ScoutGovernor from "../../governors/scout";
-import Scout from "../../roles/scout";*/
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -88,40 +69,24 @@ let W4N47Positions: RoomPosition[] = [
 	new RoomPosition(25, 46, "W4N46"),
 	new RoomPosition(36, 3, "W4N46"),
 	new RoomPosition(30, 30, "W4N47"),
-	// new RoomPosition(12, 29, "W4N48"),
-	// new RoomPosition(45, 17, "W4N48"),
-	// new RoomPosition(3, 18, "W3N48"),
-	// new RoomPosition(5, 47, "W3N48"),
-	// new RoomPosition(4, 6, "W3N47"),
-	// new RoomPosition(33, 30, "W4N47"),
+];
+let W9N48Positions: RoomPosition[] = [
+	new RoomPosition(16, 1, "W9N47"),
+	new RoomPosition(16, 47, "W9N48"),
+	new RoomPosition(23, 27, "W9N48"),
+	new RoomPosition(27, 19, "W9N48"),
 ];
 let W9N49Positions: RoomPosition[] = [
 	new RoomPosition(30, 7, "W9N45"),
 	new RoomPosition(6, 2, "W8N46"),
 	new RoomPosition(18, 2, "W8N47"),
 	new RoomPosition(8, 8, "W8N48"),
-	// new RoomPosition(30, 7, "W9N48"),
 	new RoomPosition(12, 46, "W8N49"),
-	// new RoomPosition(45, 19, "W9N49"),
 	new RoomPosition(20, 31, "W7N49"),
-	// new RoomPosition(21, 2, "W7N48"),
-	// new RoomPosition(4, 28, "W6N49"),
-	// new RoomPosition(2, 18, "W8N49"),
-	// new RoomPosition(45, 19, "W9N49"),
-	// new RoomPosition(28, 22, "W9N49"),
 ];
 let W9N49Positions2: RoomPosition[] = [
 	new RoomPosition(27, 16, "W7N43"),
 ].concat(W9N49Positions);
-
-let W9N49Positions3: RoomPosition[] = [
-	new RoomPosition(30, 7, "W9N45"),
-	new RoomPosition(6, 2, "W8N46"),
-	new RoomPosition(18, 2, "W8N47"),
-	new RoomPosition(8, 8, "W8N48"),
-	new RoomPosition(2, 18, "W8N49"),
-	new RoomPosition(20, 31, "W7N49"),
-];
 
 let W9N45Positions: RoomPosition[] = [
 	new RoomPosition(35, 6, "W8N44"), // 0
@@ -138,53 +103,10 @@ let W9N45Positions: RoomPosition[] = [
 	new RoomPosition(18, 3, "W8N47"),
 	new RoomPosition(15, 17, "W8N48"),
 	new RoomPosition(3, 10, "W8N48"),
-	/* new RoomPosition(19, 23, "W7N47"),
-	 new RoomPosition(23, 30, "W7N47"),
-	 new RoomPosition(38, 25, "W7N47"),
-	 new RoomPosition(36, 25, "W7N47"),
-	 new RoomPosition(17, 2, "W8N47"),
-	 new RoomPosition(17, 2, "W8N47"), //16
-	 new RoomPosition(16, 47, "W8N48"),*/
-	// new RoomPosition(15, 17, "W7N47"),
-];
-let W9N45Positions2: RoomPosition[] = [
-	new RoomPosition(35, 6, "W8N44"), // 0
-	new RoomPosition(1, 9, "W8N45"), // 1
-	new RoomPosition(47, 9, "W9N45"), // 2
-	new RoomPosition(28, 22, "W9N45"), // 3
-	/*new RoomPosition(42, 19, "W9N45"),
-
-	new RoomPosition(46, 39, "W9N46"),
-	new RoomPosition(12, 33, "W8N46"),
-	new RoomPosition(6, 2, "W8N46"),
-	new RoomPosition(6, 47, "W8N47"),
-
-	new RoomPosition(24, 39, "W8N47"),
-	new RoomPosition(48, 13, "W8N47"),
-	new RoomPosition(4, 13, "W7N47"),
-
-	new RoomPosition(19, 23, "W7N47"),
-	new RoomPosition(23, 30, "W7N47"),
-	new RoomPosition(38, 25, "W7N47"),
-	new RoomPosition(36, 25, "W7N47"),
-	new RoomPosition(17, 2, "W8N47"),
-	new RoomPosition(17, 2, "W8N47"), //16
-	new RoomPosition(16, 47, "W8N48"),*/
-	// new RoomPosition(15, 17, "W7N47"),
 ];
 let W9N43Positions: RoomPosition[] = [
 	new RoomPosition(45, 16, "W9N43"),
 ];
-/*let W9N44Positions: RoomPosition[] = [
-	new RoomPosition(34, 23, "W7N43"),
-	new RoomPosition(35, 6, "W8N44"),
-	new RoomPosition(45, 14, "W9N44"),
-	new RoomPosition(42, 19, "W9N45"),
-	new RoomPosition(46, 39, "W9N46"),
-	new RoomPosition(12, 33, "W8N46"),
-	new RoomPosition(6, 2, "W8N46"),
-	new RoomPosition(6, 47, "W8N47"),
-];*/
 let W8N45Positions: RoomPosition[] = [
 	new RoomPosition(34, 23, "W7N43"),
 	new RoomPosition(35, 6, "W8N44"),
@@ -213,15 +135,10 @@ let W7N47Positions: RoomPosition[] =
 	W7N46Positions.concat([
 		new RoomPosition(35, 2, "W7N47"),
 		new RoomPosition(34, 47, "W7N48"),
-		new RoomPosition(45, 17, "W7N47"),
-		new RoomPosition(12, 6, "W6N47"),
-		new RoomPosition(19, 1, "W6N48"),
-		new RoomPosition(47, 16, "W6N49"),
-		new RoomPosition(48, 26, "W5N49"),
-		new RoomPosition(46, 30, "W4N49"),
-		new RoomPosition(13, 29, "W3N49"),
-		new RoomPosition(21, 48, "W7N49"),
-		new RoomPosition(21, 2, "W7N48"),
+		new RoomPosition(3, 11, "W8N48"),
+		new RoomPosition(46, 17, "W6N49"),
+		new RoomPosition(14, 47, "W3N49"),
+		new RoomPosition(28, 12, "W3N49"),
 	]);
 let W8N46Positions: RoomPosition[] = W7N46Positions.concat([
 	new RoomPosition(46, 18, "W8N46"),
@@ -237,35 +154,6 @@ let defenderConfig = {
 	],
 	wait: false,
 };
-let bashConfig = {
-	roles: [
-		{
-			"governor": WarArcherGovernor,
-			"role": WarArcher,
-			"maxCreeps": 0,
-		},
-		{
-			"governor": HealerGovernor,
-			"role": Healer,
-			"maxCreeps": 0,
-		},
-		{
-			"governor": DismantlerGovernor,
-			"role": Dismantler,
-			"maxCreeps": 1,
-		},
-	],
-	wait: false,
-};
-let bashPositions: RoomPosition[] = [
-	new RoomPosition(1, 36, "W7N43"),
-	new RoomPosition(11, 1, "W8N43"),
-	new RoomPosition(1, 35, "W8N44"),
-	new RoomPosition(1, 7, "W9N44"),
-	new RoomPosition(43, 1, "W10N44"),
-	new RoomPosition(38, 12, "W10N49"),
-	new RoomPosition(2, 29, "W9N49"),
-];
 let warArcherConfig = {
 	roles: [
 		{
@@ -276,31 +164,11 @@ let warArcherConfig = {
 	],
 	wait: false,
 };
-let healTest2Config = {
-	roles: [
-		{
-			"governor": HealerGovernor,
-			"role": Healer,
-			"maxCreeps": 0,
-		},
-		{
-			"governor": DismantlerGovernor,
-			"role": Dismantler,
-			"maxCreeps": 0,
-		},
-		{
-			"governor": FasterminatorGovernor,
-			"role": WarArcher,
-			"maxCreeps": 0,
-		},
-	],
-	wait: false,
-};
 let healTestConfig = {
 	roles: [
 		{
-			"governor": TankGovernor,
-			"role": Tank,
+			"governor": WarArcherGovernor,
+			"role": WarArcher,
 			"maxCreeps": 0,
 		},
 		{
@@ -525,22 +393,14 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 	let creeps = loadCreeps(targetRoomName, sq);
 	// TODO: Make the squad wait for the last spawning member.
 	let squadSize = _.sum(sq.roles, "maxCreeps");
-	let wait: boolean = false;
-	if (sq.wait && creeps.length < squadSize) {
-		wait = true;
-	}
 	_.each(sq.roles, function(squadRole) {
 		let governor = new squadRole.governor(homeRoom, config);
 		let creepsInRole = _.filter(creeps, (c: Creep) => c.memory.role === squadRole.governor.ROLE);
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
-				if (!sq.wait) {
-					c.memory.squadComplete = true;
-				}
 				let role: WarfareCreepAction = new squadRole.role();
 				role.setCreep(<Creep> c, targetPositions);
-				role.wait = wait;
 				role.squad = creeps;
 				role.squadSize = squadSize;
 				if (resetIterator) {
@@ -620,11 +480,11 @@ export function govern(): void {
 				case "W9N49": // Tharit 7 left
 					manageSquad(roomName, warArcherConfig, W9N49Positions2);
 					break;
-/*				case "W9N50": // Tharit 7 left healers and dismantle
-					manageSquad(roomName, healTestConfig, W9N49Positions2);
-					break;*/
 				case "W4N47": // Thart Right 6
 					manageSquad(roomName, warArcherConfig, W4N47Positions);
+					break;
+				case "W9N48":
+					manageSquad(roomName, warArcherConfig, W9N48Positions);
 					break;
 				case "W7N47":
 					manageSquad(roomName, healTestConfig, W7N47Positions);

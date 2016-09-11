@@ -5,18 +5,12 @@ import * as RampartManager from "../ramparts/rampartManager";
 import * as StatsManager from "../../shared/statsManager";
 
 export let rooms: { [roomName: string]: Room };
-export let costMatrices: { [roomName: string]: CostMatrix };
-export let roomNames: string[] = [];
-
 export function loadRooms() {
 	rooms = {};
-	costMatrices = {};
 	_.each(Game.rooms, function(r: Room) {
 		r.addProperties();
 		rooms[r.name] = r;
 	});
-	_loadRoomNames();
-
 	if (global.VERBOSE) {
 		let count = _.size(rooms);
 		console.log(count + " rooms found.");
@@ -33,14 +27,6 @@ export function getRoomByName(roomName: string): Room {
 		return r;
 	}  else {
 		return undefined;
-	}
-}
-
-function _loadRoomNames() {
-	for (let roomName in rooms) {
-		if (rooms.hasOwnProperty(roomName)) {
-			roomNames.push(roomName);
-		}
 	}
 }
 

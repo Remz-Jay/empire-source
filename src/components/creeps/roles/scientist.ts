@@ -203,6 +203,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				let mineralType = global.labColors.resource(flag.color, flag.secondaryColor);
 				if (lab.mineralAmount > 0 && lab.mineralType !== mineralType) {
 					this.cleanUp(lab);
+					return true;
 				} else if (lab.mineralAmount <= (lab.mineralCapacity - this.creep.carryCapacity) && this.terminal.store[mineralType] >= this.creep.carryCapacity) {
 					this.creep.say(mineralType);
 					this.creep.memory.targetId = lab.id;
@@ -261,24 +262,32 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			if (!!t) {
 				this.creep.memory.targetId = t.id;
 				this.creep.memory.mode = MODE.ENERGIZE;
-				this.creep.memory.moveToId = this.terminal.id;
 				return true;
 			}
-		} else if (this.mode === MODE.ENERGIZE && !!this.creep.memory.targetId && this.isBagEmpty() && this.creep.pos.isNearTo(this.terminal)) {
-			if (this.creep.withdraw(this.terminal, RESOURCE_ENERGY) === OK) {
-				this.creep.memory.moveToId = this.creep.memory.targetId;
+		} else if (this.mode === MODE.ENERGIZE && !!this.creep.memory.targetId && this.isBagEmpty()) {
+			if (this.creep.pos.isNearTo(this.terminal)) {
+				if (this.creep.withdraw(this.terminal, RESOURCE_ENERGY) === OK) {
+					this.creep.memory.moveToId = this.creep.memory.targetId;
+					return true;
+				}
+			} else {
+				this.creep.memory.moveToId = this.terminal.id;
 				return true;
 			}
 		} else if (this.mode === MODE.ENERGIZE && !!this.creep.memory.targetId && !this.isBagEmpty()) {
 			let t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, RESOURCE_ENERGY) === OK) {
+					// this.creep.say(t.id.substr(t.id.length - 5));
 					this.creep.say("\u2614Energize!", true);
 					delete this.creep.memory.moveToId;
 					delete this.creep.memory.targetId;
 					this.creep.memory.mode = MODE.IDLE;
-					return this.energize();
+					return true;
 				}
+			} else {
+				this.creep.memory.moveToId = t.id;
+				return true;
 			}
 		}
 		return false;

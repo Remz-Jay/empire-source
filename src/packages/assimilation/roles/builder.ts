@@ -51,7 +51,7 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 			let target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
 			if (!!target) {
 				if (!this.creep.pos.isNearTo(target.pos)) {
-					this.repairInfra();
+					this.passingRepair();
 					this.moveTo(target.pos);
 				} else {
 					this.creep.build(target);
@@ -174,9 +174,11 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 				this.moveToTargetRoom();
 			}
 		} else {
-			this.nextStepIntoRoom();
-			this.pickupResourcesInRange();
-			this.builderLogic();
+			if (this.flee()) {
+				this.nextStepIntoRoom();
+				this.pickupResourcesInRange();
+				this.builderLogic();
+			}
 		}
 		return true;
 	}

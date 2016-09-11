@@ -17,6 +17,9 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		} else {
 			this.storage = Game.getObjectById<StructureStorage>(this.creep.memory.storage);
 		}
+		if (!this.container) {
+			this.creep.suicide();
+		}
 	}
 
 	public isBagEmpty(): boolean {
@@ -41,13 +44,14 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public dumpAtStorageOrLink() {
 		if (!this.creep.memory.target) {
-			// find a nearby link first, if storage isn't close
-			if (!!this.storage && this.creep.carry.energy > 0 && !this.creep.pos.inRangeTo(this.storage.pos, 9)) {
-				let target: StructureLink[] = this.creep.room.myStructures.filter((s: StructureLink) => s.structureType === STRUCTURE_LINK
-					&& s.pos.inRangeTo(this.creep.pos, 15)
-				) as StructureLink[];
-				if (!!target && target.length > 0) {
-					this.creep.memory.target = target[0].id;
+			// find a link that's closer than storage
+			if (!!this.storage && this.creep.carry.energy > 0) {
+				let storageRange = this.creep.pos.getRangeTo(this.storage.pos);
+				let target: OwnedStructure = this.creep.pos.findClosestByRange<OwnedStructure>(
+					this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_LINK && s.pos.getRangeTo(this.creep.pos) < storageRange)
+				);
+				if (!!target) {
+					this.creep.memory.target = target.id;
 				} else {
 					this.creep.memory.target = this.storage.id;
 				}
@@ -122,15 +126,42 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			}
 		}
 	};
+	public collectFromDrops(): boolean {
+		if (this.container.store.energy >= (this.creep.carryCapacity - _.sum(this.creep.carry))) {
+			return true;
+		}
+		let p: RoomPosition = this.container.pos;
+		let resources = this.creep.room.lookForAtArea(LOOK_RESOURCES, p.y - 15, p.x - 15, p.y + 15, p.x + 15, true) as LookAtResultWithPos[];
+		if (resources.length > 0) {
+			let r = resources[0];
+			let rpos = new RoomPosition(r.x, r.y, this.creep.room.name);
+			if (!this.creep.pos.isNearTo(rpos)) {
+				this.moveTo(rpos);
+			} else {
+				this.creep.pickup(r.resource);
+			}
+			return false;
+		}
+		return true;
+	}
 
 	public collectFromContainer() {
-		if (!this.creep.memory.mineralType) {
-			this.creep.memory.mineralType = RESOURCE_ENERGY;
-		}
-		if (!this.creep.pos.isNearTo(this.container.pos)) {
-			this.moveTo(this.container.pos);
-		} else {
-			this.creep.withdraw(this.container, this.creep.memory.mineralType);
+		if (this.collectFromDrops()) {
+			if (!this.creep.pos.isNearTo(this.container.pos)) {
+				this.moveTo(this.container.pos);
+			} else {
+				let drops = this.container.pos.lookFor(LOOK_RESOURCES);
+				if (drops.length > 0) {
+					_.forEach(drops, (drop: Resource) => {
+						this.creep.pickup(drop);
+					});
+				} else {
+					this.creep.withdraw(this.container, this.getMineralTypeFromStore(this.container));
+				}
+				if (this.creep.pos.isEqualTo(this.container.pos)) {
+					this.moveTo(this.storage.pos);
+				}
+			}
 		}
 	}
 
@@ -140,6 +171,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				if (this.isBagEmpty()) {
 					this.moveToTargetRoom();
 				} else {
+					this.passingRepair();
 					if (!!this.creep.memory.resetTarget) {
 						delete this.creep.memory.resetTarget;
 						delete this.creep.memory.target;
@@ -155,8 +187,9 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 					}
 				}
 			} else {
-				this.pickupResourcesInRange();
-				if (this.isBagFull() && this.repairInfra()) {
+				this.pickupResourcesInRange(true);
+				if (this.isBagFull()) {
+					this.passingRepair();
 					this.creep.memory.resetTarget = true;
 					this.dumpRoutine(this.storage);
 				} else if (!this.isBagFull()) {

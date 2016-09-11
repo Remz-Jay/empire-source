@@ -192,54 +192,34 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			}
 		}
 	}
-	public isSquadComplete(): boolean {
-		if (this.squad.length < this.squadSize) {
-			return false;
-		}
-		let flag = Game.flags[this.creep.memory.homeRoom];
-		let lookResults: LookAtResultWithPos[] = flag.room.lookForAtArea(
-			LOOK_CREEPS,
-			flag.pos.y - 1,
-			flag.pos.x - 1,
-			flag.pos.y + 1,
-			flag.pos.x + 1,
-			true // returns a LookAtResultWithPos[]
-		) as LookAtResultWithPos[];
-		return (lookResults.length === this.squadSize);
-	}
 	public action(): boolean {
 		// if (!!this.creep.memory.inCombat || super.renewCreep()) {
 		let blob = true;
 		if (blob) {
-			if ((this.wait && !this.creep.memory.squadComplete) || !this.creep.memory.squadComplete) {
-				this.waitAtFlag(this.creep.memory.homeRoom);
-				this.creep.memory.squadComplete = this.isSquadComplete();
-			} else {
-				if (this.creep.room.name === this.creep.memory.homeRoom) {
-					if (this.getBoosted()) {
-						this.move();
-					}
-				} else if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
-					this.moveToTargetRoom();
-				} else {
-					// this.nextStepIntoRoom();
-					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
-					if (this.heal()) {
-						delete this.creep.memory.waitForHealth;
-						if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
-							this.creep.memory.inCombat = true;
-						} else {
-							delete this.creep.memory.inCombat;
-						}
-					} else {
-						if (!this.rangedAttack(true) || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
-							this.creep.memory.inCombat = true;
-						} else {
-							delete this.creep.memory.inCombat;
-						}
-					}
+			if (this.creep.room.name === this.creep.memory.homeRoom) {
+				if (this.getBoosted()) {
 					this.move();
 				}
+			} else if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
+				this.moveToTargetRoom();
+			} else {
+				// this.nextStepIntoRoom();
+				// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
+				if (this.heal()) {
+					delete this.creep.memory.waitForHealth;
+					if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
+						this.creep.memory.inCombat = true;
+					} else {
+						delete this.creep.memory.inCombat;
+					}
+				} else {
+					if (!this.rangedAttack(true) || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
+						this.creep.memory.inCombat = true;
+					} else {
+						delete this.creep.memory.inCombat;
+					}
+				}
+				this.move();
 			}
 		} else {
 			if (!!this.creep.memory.lastHealth && this.creep.memory.lastHealth > this.creep.hits) {

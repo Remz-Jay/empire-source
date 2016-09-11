@@ -14,7 +14,7 @@ export default class Claim extends ASMCreepAction implements IClaim {
 	}
 
 	public assimilateRoom() {
-		this.nextStepIntoRoom();
+		// this.nextStepIntoRoom();
 		if (!this.creep.pos.isNearTo(this.creep.room.controller)) {
 			this.moveTo(this.creep.room.controller.pos);
 		} else {

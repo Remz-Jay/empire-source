@@ -204,22 +204,6 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			}
 		}
 	}
-	public isSquadComplete(): boolean {
-		if (this.squad.length < this.squadSize) {
-			return false;
-		}
-		let flag = Game.flags[this.creep.memory.homeRoom];
-		let lookResults: LookAtResultWithPos[] = flag.room.lookForAtArea(
-			LOOK_CREEPS,
-			flag.pos.y - 1,
-			flag.pos.x - 1,
-			flag.pos.y + 1,
-			flag.pos.x + 1,
-			true // returns a LookAtResultWithPos[]
-		) as LookAtResultWithPos[];
-		return (lookResults.length === this.squadSize);
-	}
-
 	public rotation(): void {
 		// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 		if (this.heal()) {
@@ -241,18 +225,13 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 		// if (!!this.creep.memory.inCombat || super.renewCreep()) {
 		let blob = true;
 		if (blob) {
-			if ((this.wait && !this.creep.memory.squadComplete) || !this.creep.memory.squadComplete) {
-				this.waitAtFlag(this.creep.memory.homeRoom);
-				this.creep.memory.squadComplete = this.isSquadComplete();
+			if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
+				this.rotation();
+				this.moveToTargetRoom();
 			} else {
-				if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
-					this.rotation();
-					this.moveToTargetRoom();
-				} else {
-					// this.nextStepIntoRoom();
-					this.rotation();
-					this.move();
-				}
+				// this.nextStepIntoRoom();
+				this.rotation();
+				this.move();
 			}
 		} else {
 			if (!!this.creep.memory.lastHealth && this.creep.memory.lastHealth > this.creep.hits) {

@@ -17,10 +17,6 @@ import MinerGovernor from "./governors/miner";
 import Scientist from "./roles/scientist";
 import ScientistGovernor from "./governors/scientist";
 
-export let creeps: { [creepName: string]: Creep };
-export let creepNames: string[] = [];
-export let creepCount: number;
-
 let roles: {[key: string]: typeof CreepAction } = {
 	Builder: Builder,
 	Harvester: Harvester,
@@ -43,16 +39,6 @@ let governors: {[key: string]: typeof CreepGovernor } = {
 	ScientistGovernor: ScientistGovernor,
 };
 
-export function loadCreeps(): void {
-	creeps = Game.creeps;
-	creepCount = _.size(creeps);
-
-	_loadCreepNames();
-
-	if (global.DEBUG) {
-		console.log(creepCount + " creeps found in the playground.");
-	}
-}
 export function createCreep(room: Room, config: CreepConfiguration): string|number {
 	let spawn = room.getFreeSpawn();
 	if (!!spawn) {
@@ -80,7 +66,7 @@ export function governCreeps(room: Room): CreepStats {
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
-		if (room.controller.level >= prioritizedGovernors[index].MINRCL && Game.cpu.getUsed() < Game.cpu.limit) {
+		if (room.controller.level >= prioritizedGovernors[index].MINRCL && (Game.cpu.bucket > 8000 || Game.cpu.getUsed() < Game.cpu.limit)) {
 			let CpuBeforeRoles = Game.cpu.getUsed();
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;
@@ -128,12 +114,4 @@ export function governCreeps(room: Room): CreepStats {
 		}
 	}
 	return {roles: CpuRoles, creeps: CpuCreeps, perRole: CpuPerRole};
-}
-
-function _loadCreepNames(): void {
-	for (let creepName in creeps) {
-		if (creeps.hasOwnProperty(creepName)) {
-			creepNames.push(creepName);
-		}
-	}
 }

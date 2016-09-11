@@ -50,7 +50,7 @@ export function flattenObject(ob: any): any {
 	return toReturn;
 }
 
-export function runBuiltinStats() {
+export function runBuiltinStats(runExpensive: boolean = false) {
 
 	clean();
 	let stats: StatsObject = {
@@ -102,7 +102,9 @@ export function runBuiltinStats() {
 				mineralAmount: 0,
 				mineralType: "",
 			});
-			this.roomExpensive(stats, room);
+			if (runExpensive) {
+				this.roomExpensive(stats, room);
+			}
 		} else {
 			// this is my room. Put it in rooms.
 			if (!stats.rooms[room.name]) {
@@ -170,7 +172,9 @@ export function runBuiltinStats() {
 					}
 				}
 			}
-			this.roomExpensive(stats, room);
+			if (runExpensive) {
+				this.roomExpensive(stats, room);
+			}
 		}
 	});
 

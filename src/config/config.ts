@@ -287,7 +287,7 @@ global.getTowerRange = function(roomName: string): number {
 		default:
 			return 30;
 	}
-}
+};
 
 global.colorWrap = function(text: string, color: string) {
 	return `<font color="${color}">${text}</font>`;

@@ -6,8 +6,9 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	public static MINRCL: number = global.MINRCL_ASM_HARVESTER;
 	public static ROLE: string = "ASMHarvester";
 
-	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];
-	public maxParts: number = 4;
+	public basePart: string[] = [CARRY, CARRY, MOVE];
+	public bodyPart: string[] = [WORK, WORK, MOVE];
+	public maxParts: number = 3;
 	public maxCreeps: number = 1;
 	public containers: StructureContainer[] = [];
 
@@ -27,14 +28,16 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 			}
 			return AssimilationCreepGovernor.sortBodyParts(body);
 		}
-		let numParts = _.floor(this.room.energyCapacityAvailable / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
-		if (numParts < 1) {
-			numParts = 1;
-		}
+		let numParts: number = _.floor(
+				(this.room.energyCapacityAvailable - AssimilationCreepGovernor.calculateRequiredEnergy(this.basePart)) /
+				AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
 		if (numParts > this.maxParts) {
 			numParts = this.maxParts;
 		}
-		let body: string[] = [];
+		if (numParts < 1) {
+			numParts = 1;
+		}
+		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
 				body = body.concat(this.bodyPart);
