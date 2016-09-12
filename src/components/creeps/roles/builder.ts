@@ -25,13 +25,16 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 
 		this.targetConstructionSite = Game.getObjectById<ConstructionSite>(this.creep.memory.target_construction_site_id);
 		this.targetEnergySource = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_source_id);
+		if (!this.targetConstructionSite) {
+			this.assignNewTarget();
+		}
 	}
 
 	public assignNewTarget(): boolean {
 		let target: ConstructionSite = <ConstructionSite> this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
 			costCallback: this.roomCallback,
 		});
-		if (target != null) {
+		if (!!target) {
 			this.targetConstructionSite = target;
 			this.creep.memory.target_construction_site_id = target.id;
 			return true;

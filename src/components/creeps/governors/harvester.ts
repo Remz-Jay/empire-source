@@ -13,6 +13,9 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	public maxParts: number = 3;
 
 	public getBody() {
+		if (this.room.energyCapacityAvailable < 400) {
+			return CreepGovernor.sortBodyParts([WORK, WORK, CARRY, MOVE]);
+		}
 		let numParts: number;
 		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
 			numParts = _.floor(

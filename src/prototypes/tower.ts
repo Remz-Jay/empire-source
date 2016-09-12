@@ -24,12 +24,13 @@ StructureTower.prototype.run = function () {
 		if (damagedCreeps.length > 0) {
 			this.heal(_.sortBy(damagedCreeps, "hits").shift());
 		} else {
+			let minHits: number = this.room.controller.level * 20000;
 			let damagedStructures = this.room.allStructures.filter((structure: OwnedStructure) =>
 				structure.hits < (structure.hitsMax * 0.8) &&
 				(
 					(structure.structureType !== STRUCTURE_RAMPART && structure.structureType !== STRUCTURE_WALL)
-					|| (structure.structureType === STRUCTURE_RAMPART && structure.my && structure.hits < 2500)
-					|| (structure.structureType === STRUCTURE_WALL && structure.hits < 2500)
+					|| (structure.structureType === STRUCTURE_RAMPART && structure.my && structure.hits < minHits)
+					|| (structure.structureType === STRUCTURE_WALL && structure.hits < minHits)
 				),
 			);
 			if (damagedStructures.length > 0) {

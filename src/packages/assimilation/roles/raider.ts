@@ -39,13 +39,14 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 
 	public dumpAtStorageOrLink() {
 		if (!this.creep.memory.target) {
-			// find a nearby link first, if storage isn't close
-			if (!!this.storage && this.creep.carry.energy > 0 && this.creep.pos.getRangeTo(this.storage) > 9) {
-				let target: StructureLink[] = this.creep.pos.findInRange(FIND_STRUCTURES, 15, {
-					filter: (s: StructureLink) => s.structureType === STRUCTURE_LINK,
-				}) as StructureLink[];
-				if (!!target && target.length > 0) {
-					this.creep.memory.target = target[0].id;
+			// find a link that's closer than storage
+			if (!!this.storage && this.creep.carry.energy > 0) {
+				let storageRange = this.creep.pos.getRangeTo(this.storage.pos);
+				let target: OwnedStructure = this.creep.pos.findClosestByRange<OwnedStructure>(
+					this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_LINK && s.pos.getRangeTo(this.creep.pos) < storageRange)
+				);
+				if (!!target) {
+					this.creep.memory.target = target.id;
 				} else {
 					this.creep.memory.target = this.storage.id;
 				}
@@ -100,9 +101,7 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 			}
 			switch (status) {
 				case ERR_FULL:
-					let containers = this.creep.pos.findInRange<StorageStructure>(FIND_STRUCTURES, 1, {
-						filter: (s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE,
-					});
+					let containers = this.creep.room.containers.filter((c: StorageStructure) => c.pos.isNearTo(this.creep.pos));
 					if (containers.length > 0) {
 						this.creep.transfer(containers[0], RESOURCE_ENERGY);
 					}

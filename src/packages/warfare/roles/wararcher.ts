@@ -1,4 +1,3 @@
-import * as RoomManager from "../../../components/rooms/roomManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarArcher {
@@ -7,7 +6,7 @@ export interface IWarArcher {
 
 let roomCallback = function (roomName: string): CostMatrix {
 	try {
-		let room = RoomManager.getRoomByName(roomName);
+		let room = Game.rooms[roomName];
 		if (!room) {
 			return;
 		}

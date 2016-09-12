@@ -10,6 +10,11 @@ export function loadMemory(): void {
 			asm: [],
 		};
 	}
+	if (!this.memory.config) {
+		this.memory.config = {
+			Wall: [],
+		};
+	}
 }
 
 export function cleanMemory(): void {

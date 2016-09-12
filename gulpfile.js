@@ -112,7 +112,7 @@ gulp.task('compile-flattened', gulp.series(
         throw new PluginError("gulp-typescript", "failed to compile: not executing further tasks");
     },
     function flatten() {
-        return gulp.src('dist/tmp/src/**/*.js')
+        return gulp.src('dist/tmp/**/*.js')
             .pipe(gulpDotFlatten(0))
             .pipe(gulp.dest('dist/' + buildTarget));
     }

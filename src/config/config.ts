@@ -88,9 +88,9 @@ global.MINRCL_HARVESTER         = 1;
 global.MINRCL_MULE              = 1;
 global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
-global.MINRCL_REPAIR            = 2;
+global.MINRCL_REPAIR            = 3;
 global.MINRCL_MINER             = 6;
-global.MINRCL_SCIENTIST         = 6;
+global.MINRCL_SCIENTIST         = 9;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps
@@ -111,6 +111,7 @@ global.MINRCL_WF_HEALER         = 4;
 
 global.BLACKLIST_SOURCES = [
 	"af8ce260e6f676ef1f544211",
+	"cb21e118236d8b2a3f28404d",
 ];
 
 global.translateErrorCode = function(errorCode: number): string {

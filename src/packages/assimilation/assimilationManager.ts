@@ -1,5 +1,4 @@
 import * as SourceManager from "../../components/sources/sourceManager";
-import * as RoomManager from "../../components/rooms/roomManager";
 import * as StatsManager from "../../shared/statsManager";
 
 import ClaimGovernor from "./governors/claim";
@@ -183,9 +182,16 @@ function manageContainers(): StructureContainer[] {
 		) as StructureContainer[];
 		if (containers.length < 1) {
 			// No containers yet. See if we're constructing one.
-			let sites = source.pos.findInRange(FIND_CONSTRUCTION_SITES, 1, {
-				filter: (site: ConstructionSite) => site.my && site.structureType === STRUCTURE_CONTAINER,
-			});
+			let p = source.pos;
+			let lookResults = source.room.lookForAtArea(LOOK_CONSTRUCTION_SITES, p.y - 1, p.x - 1, p.y + 1, p.x + 1, true) as LookAtResultWithPos[];
+			let sites: ConstructionSite[] = [];
+			if (lookResults.length > 0) {
+				_.forEach(lookResults, (cs: LookAtResultWithPos) => {
+					if (!!cs.constructionSite.my && cs.constructionSite.structureType === STRUCTURE_CONTAINER) {
+						sites.push(cs.constructionSite);
+					}
+				});
+			}
 			if (sites.length < 1) {
 				// Nope, prepare one.
 				let slots = SourceManager.getMiningSlots(source);
@@ -392,8 +398,8 @@ export function govern(): void {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				config = getConfigForRemoteTarget(roomName);
 				config.hasController = _.get(config, "hasController", true);
-				homeRoom = RoomManager.getRoomByName(config.homeRoom);
-				targetRoom = RoomManager.getRoomByName(roomName);
+				homeRoom = Game.rooms[config.homeRoom];
+				targetRoom = Game.rooms[roomName];
 				isSpawning = false;
 				goHome = false;
 
@@ -416,11 +422,8 @@ export function govern(): void {
 					}
 				}
 				let vision: boolean = false;
-				if (!!targetRoom) {
+				if (!!targetRoom && (!config.hasController || Game.cpu.getUsed() < Game.cpu.limit)) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
-						goHome = true;
-						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
-					} else if (config.hasController && targetRoom.hostileCreeps.length > 0 && targetRoom.hostileCreeps[0].owner.username === "Tharit") {
 						goHome = true;
 						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
 					}
@@ -453,7 +456,7 @@ export function govern(): void {
 					}
 					try {
 						if (config.claim) {
-							manageConstructions(3);
+							manageConstructions(0);
 						} else if (!config.hasController) {
 							manageConstructions(3);
 						} else {

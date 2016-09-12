@@ -34,7 +34,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 		if (this.room.controller.level > 4) {
 			num = _.floor(this.room.energyInContainers / 200000);
 		} else if (this.room.controller.level < 5) {
-			num = 3;
+			num = 5;
 		} else {
 			num = this.maxCreeps;
 		}
@@ -47,6 +47,9 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public getBody() {
 		if (this.room.controller.level === 8) {
 			this.maxParts = 5;
+		}
+		if (this.room.controller.level < 4) {
+			this.bodyPart = [CARRY, WORK, MOVE];
 		}
 /*		if (this.room.name === "W7N45") {
 			this.bodyPart = [CARRY, MOVE, CARRY, MOVE, WORK, MOVE, WORK, MOVE];

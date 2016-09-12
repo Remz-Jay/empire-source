@@ -55,18 +55,9 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public assignNewDropOff(): boolean {
-		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
-			filter: (structure: StorageStructure) => {
-				return (
-						structure.structureType === STRUCTURE_CONTAINER ||
-						structure.structureType === STRUCTURE_STORAGE
-					) && _.sum(structure.store) < structure.storeCapacity;
-			},
-			costCallback: this.roomCallback,
-		});
-		if (target != null) {
-			this.targetMineralDropOff = target;
-			this.creep.memory.target_energy_dropoff_id = target.id;
+		if (_.sum(this.creep.room.storage.store) < this.creep.room.storage.storeCapacity) {
+			this.targetMineralDropOff = this.creep.room.storage;
+			this.creep.memory.target_energy_dropoff_id = this.creep.room.storage.id;
 			return true;
 		} else {
 			return false;
@@ -78,23 +69,26 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public tryMining(): number {
-		return this.creep.harvest(this.targetMineralSource);
+		if (_.sum(this.creep.carry) > (this.creep.carryCapacity * 0.9)) {
+			let targets: Structure[] = this.creep.room.containers.filter(
+				(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+			);
+			if (targets.length > 0) {
+				this.creep.transfer(targets[0], this.getMineralTypeFromStore(this.creep));
+			}
+		}
+		if (this.targetMineralSource.mineralAmount > 0) {
+			return this.creep.harvest(this.targetMineralSource);
+		} else {
+			return ERR_NOT_ENOUGH_RESOURCES;
+		}
 	}
 
 	public moveToMine(): void {
 		if (!this.creep.pos.isNearTo(this.targetMineralSource.pos)) {
 			this.moveTo(this.targetMineralSource.pos);
 		} else {
-			if (this.tryMining() === OK && Game.time % 3 === 0) {
-				let targets: Structure[] = this.creep.room.containers.filter(
-					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-				);
-				if (targets.length > 0) {
-					this.targetMineralDropOff = targets[0];
-					this.creep.memory.target_energy_dropoff_id = targets[0].id;
-					this.tryMineralDropOff();
-				}
-			}
+			this.tryMining();
 		}
 	}
 

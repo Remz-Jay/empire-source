@@ -1,4 +1,3 @@
-import * as RoomManager from "../../../components/rooms/roomManager";
 import * as WallManager from "../../../components/walls/wallManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
@@ -8,7 +7,7 @@ export interface IDismantler {
 
 let roomCallback = function (roomName: string): CostMatrix {
 	try {
-		let room = RoomManager.getRoomByName(roomName);
+		let room = Game.rooms[roomName];
 		if (!room) {
 			return;
 		}

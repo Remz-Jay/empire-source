@@ -49,29 +49,6 @@ interface Room {
 	addProperties(): void;
 	reloadCache(): void;
 }
-Room.prototype.getReservedRoom = function () {
-	if (!!this.memory.reservedRoom && !!Game.rooms[this.memory.reservedRoom]) {
-		return Game.rooms[this.memory.reservedRoom];
-	} else {
-		return undefined;
-	}
-};
-
-Room.prototype.getReservedRoomName = function () {
-	if (!!this.memory.reservedRoom) {
-		return this.memory.reservedRoom;
-	} else {
-		return undefined;
-	}
-};
-
-Room.prototype.setReservedRoom = function (roomName) {
-	if (_.isString(roomName)) {
-		this.memory.reservedRoom = roomName;
-	} else if (roomName instanceof Room) {
-		this.memory.reservedRoom = roomName.name;
-	}
-};
 
 Room.prototype.setCostMatrix = function (costMatrix) {
 	this.memory.costMatrix = costMatrix.serialize();
@@ -79,11 +56,6 @@ Room.prototype.setCostMatrix = function (costMatrix) {
 
 Room.prototype.setCreepMatrix = function (costMatrix) {
 	this.memory.creepMatrix = costMatrix.serialize();
-};
-
-Room.prototype.expireMatrices = function () {
-	delete this.memory.creepMatrix;
-	delete this.memory.costMatrix;
 };
 
 Room.prototype.getCreepMatrix = function () {

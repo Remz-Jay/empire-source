@@ -66,8 +66,13 @@ export function governCreeps(room: Room): CreepStats {
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
-		if (room.controller.level >= prioritizedGovernors[index].MINRCL
-			&& (prioritizedGovernors[index].PRIORITY < global.PRIORITY_TRESHOLD) || (Game.cpu.bucket > global.BUCKET_MIN || Game.cpu.getUsed() < Game.cpu.limit)) {
+		if (room.controller.level >= prioritizedGovernors[index].MINRCL // Skip roles that aren't meant for this RCL
+			&& (
+				prioritizedGovernors[index].PRIORITY < global.PRIORITY_TRESHOLD // Always execute roles that have priority
+				|| Game.cpu.bucket > global.BUCKET_MIN // Execute auxiliary roles when bucket allows for it
+				|| Game.cpu.getUsed() < Game.cpu.limit // Execute auxiliary roles when we have spare cycles this tick.
+			)
+		) {
 			let CpuBeforeRoles = Game.cpu.getUsed();
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;
@@ -75,9 +80,10 @@ export function governCreeps(room: Room): CreepStats {
 			&& creep.memory.homeRoom === room.name);
 			let numCreeps: number = creepsInRole.length;
 			let creepLimit: number = governor.getCreepLimit();
-			let body: string[] = governor.getBody();
-			let requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
+
 			if (global.CREEPSTATS) {
+				let body: string[] = governor.getBody();
+				let requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
 				console.log(
 					_.padLeft(creepRole, 9) + ":\t" + numCreeps
 					+ " (max:" + creepLimit

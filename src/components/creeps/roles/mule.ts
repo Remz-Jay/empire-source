@@ -394,7 +394,6 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
 			let p = this.creep.pos;
 			let targets = this.creep.room.lookForAtArea(LOOK_RESOURCES, p.y - 1, p.x - 1, p.y + 1, p.x + 1, true) as LookAtResultWithPos[];
-			// let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {

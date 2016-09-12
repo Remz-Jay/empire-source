@@ -35,14 +35,14 @@ export function loop() {
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
-		let CpuInit = Game.cpu.getUsed();
+/*		let CpuInit = Game.cpu.getUsed();
 
 		let cpuBeforeStats = Game.cpu.getUsed();
 		// let runExpensive = (Game.time % 5 === 0) ? true : false;
 		let runExpensive = true;
 		StatsManager.runBuiltinStats(runExpensive);
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
-		StatsManager.addStat("cpu.init", CpuInit);
+		StatsManager.addStat("cpu.init", CpuInit);*/
 
 		try {
 			AssimilationManager.govern();
@@ -65,7 +65,7 @@ export function loop() {
 			console.log("MarketManager Exception", (<Error> e).message);
 		}
 
-		if (!!Memory.showLogCreep) {
+/*		if (!!Memory.showLogCreep) {
 			Memory.log.creeps.forEach((message: String, index: number) => {
 				console.log("log.creeps", message);
 			});
@@ -79,17 +79,19 @@ export function loop() {
 			Memory.log.asm.forEach((message: String, index: number) => {
 				console.log("log.ASM", message);
 			});
-		}
+		}*/
 		delete Memory.log;
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 		let cpuUsed = _.ceil(Game.cpu.getUsed());
 		let cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";
 		let bucketColor = (Game.cpu.bucket > 9000) ? "LightGreen" : "Tomato";
+		let bucket = Game.cpu.bucket || 0;
+		let credits = Game.market.credits || 0; // Sim doesn't have this.
 		console.log(`End of tick ${Game.time}.\t`
 			+ global.colorWrap(`GCL:${Game.gcl.level}@${perc}%\t`, "DodgerBlue")
 			+ global.colorWrap(`CPU:${cpuUsed}/${Game.cpu.limit}\t`, cpuColor)
-			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${Game.cpu.bucket.toLocaleString()}\t`, bucketColor)
-			+ global.colorWrap(`MKT:${Game.market.credits.toLocaleString()}`, "CornflowerBlue")
+			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${bucket.toLocaleString()}\t`, bucketColor)
+			+ global.colorWrap(`MKT:${credits.toLocaleString()}`, "CornflowerBlue")
 		);
 		StatsManager.addStat("cpu.getUsed", cpuUsed);
 	});

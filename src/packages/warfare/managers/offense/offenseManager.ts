@@ -1,6 +1,4 @@
 import * as StatsManager from "../../../../shared/statsManager";
-import * as RoomManager from "../../../../components/rooms/roomManager";
-
 import WarfareCreepAction from "../../warfareCreepAction";
 
 import SentinelGovernor from "../../governors/sentinel";
@@ -435,8 +433,8 @@ export function govern(): void {
 	_.each(Memory.offense.targets, function(roomName) {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);
-			homeRoom = RoomManager.getRoomByName(config.homeRoom);
-			targetRoom = RoomManager.getRoomByName(roomName);
+			homeRoom = Game.rooms[config.homeRoom];
+			targetRoom = Game.rooms[roomName];
 			switch (roomName) {
 				case "W5N43": // Dummy for Kov Main secondary force
 					manageSquad(roomName, sqibConfig, assaultPositions);

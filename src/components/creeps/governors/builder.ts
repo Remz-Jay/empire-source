@@ -8,6 +8,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 
 	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
 	public maxParts: number = 5;
+	public maxCreeps: number = 1;
 
 	constructor(room: Room) {
 		super(room);
@@ -20,24 +21,14 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: BuilderGovernor.ROLE,
-			target_construction_site_id: Object.keys(Game.constructionSites)[0],
+			target_construction_site_id: this.room.myConstructionSites[0].id,
 			target_energy_source_id: spawn.id,
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
 
 	public getCreepLimit(): number {
-		let sites = _.filter(Game.constructionSites, function (cs) {
-			return cs.pos.roomName === this.room.name;
-		}, this);
-		if (sites.length > 0) {
-			if (this.room.controller.level > 5) {
-				return (_.floor(sites.length / 4) >= 1 ) ? _.floor(sites.length / 4) : 1;
-			} else {
-				return 1;
-			}
-		} else {
-			return 0;
-		}
+		let sites = this.room.myConstructionSites;
+		return (sites.length > 0) ? 1 : 0;
 	}
 }

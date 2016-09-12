@@ -1,4 +1,3 @@
-import * as RoomManager from "../rooms/roomManager";
 import List = _.List;
 import CreepGovernor from "./creepGovernor";
 export interface ICreepAction {
@@ -44,7 +43,7 @@ export default class CreepAction implements ICreepAction {
 			if (roomName === "W4N43") {
 				return false;
 			}
-			let room = RoomManager.getRoomByName(roomName);
+			let room = Game.rooms[roomName];
 			if (!room) {
 				return;
 			}
@@ -59,7 +58,7 @@ export default class CreepAction implements ICreepAction {
 			if (roomName === "W4N43") {
 				return false;
 			}
-			let room = RoomManager.getRoomByName(roomName);
+			let room = Game.rooms[roomName];
 			if (!room) {
 				return;
 			}
@@ -74,7 +73,7 @@ export default class CreepAction implements ICreepAction {
 			if (roomName === "W4N43") {
 				return false;
 			}
-			let room = RoomManager.getRoomByName(roomName);
+			let room = Game.rooms[roomName];
 			if (!room) {
 				return;
 			}
@@ -364,23 +363,21 @@ export default class CreepAction implements ICreepAction {
 			return path.path;
 		}
 	};
-
 	public pickupResourcesInRange(skipContainers: boolean = false): void {
 		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-			let targets = this.creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
+			let p = this.creep.pos;
+			let targets = this.creep.room.lookForAtArea(LOOK_RESOURCES, p.y - 1, p.x - 1, p.y + 1, p.x + 1, true) as LookAtResultWithPos[];
 			if (targets.length > 0) {
-				_.each(targets, function (t) {
-					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						this.creep.pickup(t);
-					}
-				}, this);
+				this.creep.pickup(targets[0].resource);
 			} else if (!skipContainers) {
-				targets = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
-					&& s.store.energy > 0
-					&& s.pos.isNearTo(this.creep.pos)
-				);
-				if (targets.length > 0) {
-					this.creep.withdraw(targets.pop() as StructureContainer, RESOURCE_ENERGY);
+				if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+					let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+						&& s.store.energy > 0
+						&& s.pos.isNearTo(this.creep.pos)
+					);
+					if (containers.length > 0) {
+						this.creep.withdraw(containers[0], RESOURCE_ENERGY);
+					}
 				}
 			}
 		}
@@ -390,7 +387,7 @@ export default class CreepAction implements ICreepAction {
 		// see if an upgrade for this creep is available
 		if (!!this.creep.memory.homeRoom) {
 			try {
-				let room = RoomManager.getRoomByName(this.creep.memory.homeRoom);
+				let room = Game.rooms[this.creep.memory.homeRoom];
 				let x: number = this.governor.getNumberOfCreepsInRole();
 				if (x > this.governor.getCreepLimit()) {
 					Memory.log.creeps.push("Expiring creep " + this.creep.name + " (" + this.creep.memory.role + ") in room "
@@ -412,7 +409,7 @@ export default class CreepAction implements ICreepAction {
 		return false;
 	};
 	public renewCreep(max: number = global.MAX_TTL): boolean {
-		let homeRoom = RoomManager.getRoomByName(this.creep.memory.homeRoom);
+		let homeRoom = Game.rooms[this.creep.memory.homeRoom];
 		if (this.creep.memory.hasRenewed !== undefined && this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
 			&& (((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
 			|| homeRoom.energyAvailable < 300)) {
