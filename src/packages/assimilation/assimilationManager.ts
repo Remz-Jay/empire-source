@@ -437,7 +437,7 @@ export function govern(): void {
 						}
 						if (containers.length > 0) {
 							if (config.claim) {
-								manageHarvest(containers);
+								// manageHarvest(containers);
 								// manageMules(containers);
 							} else {
 								manageHarvest(containers);
