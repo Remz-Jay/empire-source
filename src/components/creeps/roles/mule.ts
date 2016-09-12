@@ -210,7 +210,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.creep.memory.source = source.id;
 			}
 		} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
-			if (this.getTargetList(blackList).length > 0) { // Only collect from the storage if we have targets that require energy.
+			if (!idle) { // Only collect from the storage if we have targets that require energy.
 				this.creep.memory.source = this.creep.room.storage.id;
 				this.creep.memory.mineralType = RESOURCE_ENERGY;
 			} else if (!retry) {
@@ -263,17 +263,18 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			} else {
 				// return to duty when able
 				let target: Structure = undefined;
-				if (this.creep.carry.energy > 100 && Game.time % 5 === 0) {
+				if (Game.time % 3 === 0) {
 					target = this.scanForTargets();
 				}
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.idle;
 					this.creep.memory.dumping = true;
+					this.muleLogic();
 				} else {
 					// scan for dropped energy if we have room
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, {
+						let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
 							filter: (r: Resource) => r.amount > 100,
 							algorithm: "astar",
 							maxRooms: 1,
@@ -298,9 +299,14 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 									delete this.creep.memory.source;
 									delete this.creep.memory.mineralType;
 								}
-							} else {
+							} else if (_.sum(this.creep.carry) > 0) {
 								// No sources found, proceed to offload at Storage.
 								this.dumpAtStorage();
+							} else {
+								let flag = this.creep.room.find<Flag>(FIND_FLAGS, {filter: (f: Flag) => f.name === this.creep.room.name});
+								if (flag.length > 0) {
+									this.moveTo(flag.pop().pos);
+								}
 							}
 						}
 					} else {
@@ -327,6 +333,25 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					this.creep.memory.dumping = true;
 				} else {
 					this.creep.say("DRY");
+					let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+						filter: (r: Resource) => r.amount > 100,
+						algorithm: "astar",
+						maxRooms: 1,
+						maxOps: 500,
+						costCallback: this.roomCallback,
+					}) as Resource;
+					if (!!target) {
+						if (!this.creep.pos.isNearTo(target)) {
+							this.moveTo(target.pos);
+						} else {
+							this.creep.pickup(target);
+						}
+					} else {
+						let flag = this.creep.room.find<Flag>(FIND_FLAGS, {filter: (f: Flag) => f.name === this.creep.room.name});
+						if (flag.length > 0) {
+							this.moveTo(flag.pop().pos);
+						}
+					}
 				}
 			}
 		}
@@ -340,20 +365,27 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			if (!this.creep.memory.mineralType) {
 				this.creep.memory.mineralType = RESOURCE_ENERGY;
 			}
-			let status = this.creep.withdraw(source, this.creep.memory.mineralType);
-			switch (status) {
-				case ERR_NOT_ENOUGH_RESOURCES:
-				case ERR_INVALID_TARGET:
-				case ERR_NOT_OWNER:
-					delete this.creep.memory.source;
-					this.setSource();
-					break;
-				case ERR_FULL:
-				case OK:
-					delete this.creep.memory.source;
-					break;
-				default:
-					console.log(`Unhandled ERR in RoleMule.source.container: ${status}`);
+			let drops = source.pos.lookFor(LOOK_RESOURCES);
+			if (drops.length > 0) {
+				_.forEach(drops, (drop: Resource) => {
+					this.creep.pickup(drop);
+				});
+			} else {
+				let status = this.creep.withdraw(source, this.creep.memory.mineralType);
+				switch (status) {
+					case ERR_NOT_ENOUGH_RESOURCES:
+					case ERR_INVALID_TARGET:
+					case ERR_NOT_OWNER:
+						delete this.creep.memory.source;
+						this.setSource();
+						break;
+					case ERR_FULL:
+					case OK:
+						delete this.creep.memory.source;
+						break;
+					default:
+						console.log(`Unhandled ERR in RoleMule.source.container: ${status}`);
+				}
 			}
 		}
 	}
@@ -371,21 +403,18 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				}, this);
 			}
 			if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-				let containers = this.creep.room.allStructures.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+				let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
 					&& _.sum(s.store) > 50
 					&& s.pos.isNearTo(this.creep.pos)
-				);
+				) as StructureContainer[];
 				if (containers.length > 0) {
-					_.each(containers, function (t: StructureContainer) {
-						if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-							if (t.store.energy > 50) {
-								this.creep.withdraw(t, RESOURCE_ENERGY);
-							} else {
-								let x: string = this.getMineralTypeFromStore(t);
-								this.creep.withdraw(t, x);
-							}
-						}
-					}, this);
+					let t = containers.shift();
+					if (t.store.energy > 50) {
+						this.creep.withdraw(t, RESOURCE_ENERGY);
+					} else {
+						let x: string = this.getMineralTypeFromStore(t);
+						this.creep.withdraw(t, x);
+					}
 				}
 			}
 		}

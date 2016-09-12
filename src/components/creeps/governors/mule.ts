@@ -7,7 +7,7 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	public static ROLE: string = "Mule";
 
 	public bodyPart = [CARRY, MOVE];
-	public maxParts = 20;
+	public maxParts = 16;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -59,7 +59,10 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 			if (this.maxCreeps > this.room.containers.length) {
 				this.maxCreeps = this.room.containers.length;
 			}
-			return (this.room.controller.level < 3) ? 1 : this.maxCreeps;
+			if (this.room.name === "W6N49") {
+				return 3;
+			}
+			return (this.room.controller.level < 3) ? 3 : this.maxCreeps;
 		} else {
 			return 0;
 		}

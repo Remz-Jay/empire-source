@@ -6,7 +6,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public static MINRCL: number = global.MINRCL_UPGRADER;
 	public static ROLE: string = "Upgrader";
 
-	public maxParts = 6;
+	public maxParts = 8;
 	public maxCreeps = 2;
 	public bodyPart = [CARRY, MOVE, WORK, WORK, WORK, MOVE];
 
@@ -24,11 +24,17 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getCreepLimit(): number {
+		if (this.room.controller.level === 8) {
+			return 1;
+		}
+		if (this.room.name === "W6N49" || this.room.name === "W6N42") {
+			return 2;
+		}
 		let num: number;
 		if (this.room.controller.level > 4) {
 			num = _.floor(this.room.energyInContainers / 200000);
 		} else if (this.room.controller.level < 5) {
-			num = 2;
+			num = 3;
 		} else {
 			num = this.maxCreeps;
 		}
@@ -39,8 +45,12 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getBody() {
-/*		if (this.room.name === "W7N44") {
-			this.maxParts = 2;
+		if (this.room.controller.level === 8) {
+			this.maxParts = 5;
+		}
+/*		if (this.room.name === "W7N45") {
+			this.bodyPart = [CARRY, MOVE, CARRY, MOVE, WORK, MOVE, WORK, MOVE];
+			this.maxParts = 1;
 		}*/
 		return super.getBody();
 	}

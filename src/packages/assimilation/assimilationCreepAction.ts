@@ -19,6 +19,14 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			return false;
 		}
 	}
+	public passingRepair(): void {
+		if (this.creep.carry.energy > 0) {
+			let lookTargets = this.creep.pos.lookFor(LOOK_STRUCTURES).filter((s: Structure) => s.hits < s.hitsMax) as Structure[];
+			if (lookTargets.length > 0) {
+				this.creep.repair(lookTargets.shift());
+			}
+		}
+	}
 
 	public repairInfra(modifier: number = 0.3): boolean {
 		if (this.creep.carry.energy > 0 ) {
@@ -26,14 +34,18 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			if (!!this.creep.memory.repairtarget) {
 				target = Game.getObjectById<Structure>(this.creep.memory.repairtarget);
 			} else {
-				let targets = this.creep.room.allStructures.filter((s: Structure) =>
-					(s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER)
-					&& s.hits < (s.hitsMax * modifier)
-					&& s.pos.isNearTo(this.creep.pos)
-				);
-				if (targets.length > 0) {
-					this.creep.memory.repairtarget = targets[0].id;
-					target = targets[0];
+				let p = this.creep.pos;
+				let lookTargets = this.creep.room.lookForAtArea(LOOK_STRUCTURES, p.y - 1, p.x - 1, p.y + 1, p.x + 1, true) as LookAtResultWithPos[];
+				_.forEach(lookTargets, (l: LookAtResultWithPos) => {
+					let s = l.structure;
+					if ((s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER) && s.hits < (s.hitsMax * modifier)) {
+						if (!target || target.hits > s.hits) {
+							target = s;
+						}
+					}
+				});
+				if (!!target) {
+					this.creep.memory.repairtarget = target.id;
 				} else {
 					return true;
 				}
@@ -42,7 +54,7 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			if (top > 1.0) {
 				top = 1;
 			}
-			if (target.hits < target.hitsMax * top) {
+			if (!!target && target.hits < target.hitsMax * top) {
 				let status = this.creep.repair(target);
 				if (status !== OK) {
 					delete this.creep.memory.repairtarget;

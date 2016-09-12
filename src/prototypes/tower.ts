@@ -28,8 +28,8 @@ StructureTower.prototype.run = function () {
 				structure.hits < (structure.hitsMax * 0.8) &&
 				(
 					(structure.structureType !== STRUCTURE_RAMPART && structure.structureType !== STRUCTURE_WALL)
-					|| (structure.structureType === STRUCTURE_RAMPART && structure.my && structure.hits < 150000)
-					|| (structure.structureType === STRUCTURE_WALL && structure.hits < 200000)
+					|| (structure.structureType === STRUCTURE_RAMPART && structure.my && structure.hits < 2500)
+					|| (structure.structureType === STRUCTURE_WALL && structure.hits < 2500)
 				),
 			);
 			if (damagedStructures.length > 0) {

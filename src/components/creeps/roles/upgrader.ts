@@ -76,6 +76,16 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 					this.creep.say("_/=\\\u0CA0_", true);
 				}
 			}
+			if (this.creep.carry.energy < 50) {
+				// see if we can get some from a nearby link
+				let target = this.creep.room.myStructures.filter((l: StructureLink) => l.structureType === STRUCTURE_LINK
+					&& l.energy > 0
+					&& l.pos.isNearTo(this.creep.pos)
+				);
+				if (!!target) {
+					this.creep.withdraw(target.shift(), RESOURCE_ENERGY);
+				}
+			}
 		} else {
 			this.harvestFromContainersAndSources();
 		}

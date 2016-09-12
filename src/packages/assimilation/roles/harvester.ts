@@ -38,15 +38,22 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public tryHarvest(): number {
-		if (Game.time % 2 === 0) {
-			let targets: Structure[] = this.creep.room.containers.filter(
-				(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-			);
-			if (targets.length > 0) {
-				this.creep.transfer(targets[0], RESOURCE_ENERGY);
+		if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && this.container.hits < this.container.hitsMax) {
+			return this.creep.repair(this.container);
+		} else if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
+			if (this.creep.pos.isNearTo(this.container.pos)) {
+				if (_.sum(this.container.store) < this.container.storeCapacity) {
+					this.creep.transfer(this.container, RESOURCE_ENERGY);
+				} else {
+					this.creep.drop(RESOURCE_ENERGY);
+				}
 			}
 		}
-		return this.creep.harvest(this.source);
+		if (this.source.energy > 0) {
+			return this.creep.harvest(this.source);
+		} else {
+			return ERR_NOT_ENOUGH_RESOURCES;
+		}
 	}
 
 	public moveToHarvest(): void {
@@ -54,10 +61,19 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
 			return;
 		}
-		if (!this.creep.pos.isNearTo(this.source.pos)) {
-			this.moveTo(this.source.pos);
+		if (!!this.container) {
+			if (!this.creep.pos.isEqualTo(this.container.pos)) {
+				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.container.pos, 0);
+				this.moveTo(pfg);
+			} else {
+				this.tryHarvest();
+			}
 		} else {
-			this.tryHarvest();
+			if (!this.creep.pos.isNearTo(this.source.pos)) {
+				this.moveTo(this.source.pos);
+			} else {
+				this.tryHarvest();
+			}
 		}
 	}
 	public tryEnergyDropOff(): number {
@@ -73,7 +89,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 				case OK:
 					break;
 				case ERR_FULL:
-					this.repairInfra(1);
+					this.creep.drop(RESOURCE_ENERGY);
 					break;
 				case ERR_INVALID_TARGET:
 					delete this.creep.memory.container;
@@ -90,7 +106,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				this.moveToTargetRoom();
 			} else {
-				this.nextStepIntoRoom();
+				// this.nextStepIntoRoom();
 				if (this.isBagFull()) {
 					this.moveToDropEnergy();
 				} else {

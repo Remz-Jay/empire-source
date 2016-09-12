@@ -199,44 +199,70 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 			}
 			if (!!this.creep.memory.source) {
 				let source: Source = Game.getObjectById(this.creep.memory.source) as Source;
-				if (!this.creep.pos.isNearTo(source)) {
-					this.moveTo(source.pos);
+				let container: StructureContainer;
+				if (!!this.creep.memory[`cont_${this.creep.memory.source}`]) {
+					container = Game.getObjectById(this.creep.memory[`cont_${this.creep.memory.source}`]) as StructureContainer;
+					if (!container) {
+						delete this.creep.memory[`cont_${this.creep.memory.source}`];
+					}
 				} else {
-					let status = this.creep.harvest(source);
-					switch (status) {
-						case ERR_NOT_ENOUGH_RESOURCES:
-						case ERR_INVALID_TARGET:
-							if (source.ticksToRegeneration < 60 || source.id === this.creep.memory.preferredSource) {
-								if (this.creep.pos.getRangeTo(source) > 1) {
-									this.moveTo(source.pos);
-								}
-								break;
+					let spos = source.pos;
+					let lr = this.creep.room.lookForAtArea(LOOK_STRUCTURES, spos.y - 1, spos.x - 1, spos.y + 1, spos.x + 1, true) as LookAtResultWithPos[];
+					if (lr.length > 0) {
+						_.forEach(lr, (r: LookAtResultWithPos) => {
+							if (r.structure.structureType === STRUCTURE_CONTAINER) {
+								container = r.structure as StructureContainer;
+								this.creep.memory[`cont_${this.creep.memory.source}`] = r.structure.id;
 							}
-						case ERR_NOT_OWNER:
-						case ERR_FULL:
-							// Dump first before harvesting again.
-							if (this.creep.carry.energy !== 0) {
-								this.creep.memory.dumping = true;
-								delete this.creep.memory.target;
-								delete this.creep.memory.source;
-								this.creep.say("H:DIST");
-							} else {
-								delete this.creep.memory.source;
-								this.creep.say("H:NEWSRC");
-							}
-							break;
-						case OK:
-							break;
-						default:
-							console.log(`Unhandled ERR in RoleHarvester.source.harvest: ${status}`);
+						});
 					}
 				}
-				if (Game.time % 2 === 0) {
-					let targets: Structure[] = this.creep.room.containers.filter(
-						(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-					);
-					if (targets.length > 0) {
-						this.creep.transfer(targets[0], RESOURCE_ENERGY);
+				if (!!container && !this.creep.pos.isEqualTo(container.pos)) {
+					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> container.pos, 0);
+					this.moveTo(pfg);
+				} else if (!this.creep.pos.isNearTo(source)) {
+					this.moveTo(source.pos);
+				} else {
+					if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && container.hits < container.hitsMax) {
+						return this.creep.repair(container);
+					} else if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
+						if (this.creep.pos.isNearTo(container.pos)) {
+							if (_.sum(container.store) < container.storeCapacity) {
+								this.creep.transfer(container, RESOURCE_ENERGY);
+							} else {
+								this.creep.drop(RESOURCE_ENERGY);
+							}
+						}
+					}
+					if (source.energy > 0) {
+						let status = this.creep.harvest(source);
+						switch (status) {
+							case ERR_NOT_ENOUGH_RESOURCES:
+							case ERR_INVALID_TARGET:
+								if (source.ticksToRegeneration < 60 || source.id === this.creep.memory.preferredSource) {
+									if (this.creep.pos.getRangeTo(source) > 1) {
+										this.moveTo(source.pos);
+									}
+									break;
+								}
+							case ERR_NOT_OWNER:
+							case ERR_FULL:
+								// Dump first before harvesting again.
+								if (this.creep.carry.energy !== 0) {
+									this.creep.memory.dumping = true;
+									delete this.creep.memory.target;
+									delete this.creep.memory.source;
+									this.creep.say("H:DIST");
+								} else {
+									delete this.creep.memory.source;
+									this.creep.say("H:NEWSRC");
+								}
+								break;
+							case OK:
+								break;
+							default:
+								console.log(`Unhandled ERR in RoleHarvester.source.harvest: ${status}`);
+						}
 					}
 				}
 			} else {

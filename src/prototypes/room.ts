@@ -25,7 +25,7 @@ interface Room {
 	setCreepMatrix(costMatrix: CostMatrix): void;
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
-	getCostMatrix(): CostMatrix;
+	getCostMatrix(ignoreRoomConfig?: boolean): CostMatrix;
 	getContainers(): Structure[];
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
@@ -96,7 +96,7 @@ Room.prototype.getCreepMatrix = function () {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
 			this.myCreeps.forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 40);
+				costMatrix.set(creep.pos.x, creep.pos.y, 50);
 			});
 			this.hostileCreeps.forEach(function (creep: Creep) {
 				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
@@ -112,7 +112,7 @@ Room.prototype.getCreepMatrix = function () {
 
 };
 
-Room.prototype.getCostMatrix = function () {
+Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 	this.roomConfig = {
 		W7N44: [
 			{x: 27, y: 30, w: 9}, // container next to extension, keep free for mule to deliver energy.
@@ -128,6 +128,76 @@ Room.prototype.getCostMatrix = function () {
 			{x: 43, y: 22, w: 9}, // Narrow Path, route to W4N42
 			{x: 43, y: 23, w: 9}, // Narrow Path, route to W4N42
 			{x: 43, y: 24, w: 9}, // Narrow Path, route to W4N42
+		],
+		W7N45: [
+			{x: 48, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 7, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 7, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 8, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 8, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 9, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 9, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 10, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 10, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 11, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 11, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 12, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 12, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 13, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 13, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 14, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 14, w: 0xff}, // SK near O source, avoid
+			{x: 48, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 15, w: 0xff}, // SK near O source, avoid
+		],
+		W6N45: [
+			{x: 0, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 2, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 7, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 8, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 9, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 10, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 11, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 6, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 7, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 7, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 7, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 8, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 8, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 8, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 9, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 9, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 9, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 10, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 10, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 10, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 11, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 11, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 11, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 12, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 12, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 12, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 13, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 13, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 13, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 14, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 14, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 14, w: 0xff}, // SK near O source, avoid
+			{x: 0, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 2, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 3, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 4, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 5, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 6, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 7, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 8, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 9, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 10, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 11, y: 15, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 15, w: 0xff}, // SK near O source, avoid
 		],
 	};
 	try {
@@ -152,10 +222,18 @@ Room.prototype.getCostMatrix = function () {
 					costs.set(s.pos.x, s.pos.y, 0xff);
 				}
 			});
-			this.allConstructionSites.forEach(function (site: ConstructionSite) {
+			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
+			// Prefer walking on hostile construction sites
+			hostileConstructionSites.forEach((s: ConstructionSite) => {
+				costs.set(s.pos.x, s.pos.y, 1);
+			});
+			// But avoid our own.
+			this.myConstructionSites.forEach(function (site: ConstructionSite) {
 				costs.set(site.pos.x, site.pos.y, 100);
 			});
-			_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
+			if (!ignoreRoomConfig) {
+				_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
+			}
 			// console.log("Returning NEW CostMatrix for room " + this.name);
 			this.setCostMatrix(costs);
 			return costs;

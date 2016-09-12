@@ -21,6 +21,6 @@ export default class ScientistGovernor extends CreepGovernor implements ICreepGo
 	}
 
 	public getCreepLimit(): number {
-		return (this.room.myLabs.length < 3) ? 0 : this.maxCreeps;
+		return (_.union(this.room.myLabs, this.room.boostLabs).length < 3) ? 0 : this.maxCreeps;
 	}
 }

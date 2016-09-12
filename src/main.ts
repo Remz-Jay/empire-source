@@ -1,6 +1,7 @@
 import "./config/config";
 import "./prototypes/room";
 import "./prototypes/link";
+import "./prototypes/terminal";
 import "./prototypes/tower";
 import "./prototypes/spawn";
 
@@ -9,9 +10,9 @@ import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
 
 import * as RoomManager from "./components/rooms/roomManager";
-import * as CreepManager from "./components/creeps/creepManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
+import * as MarketManager from "./components/market/marketManager";
 
 delete Memory.log;
 
@@ -34,11 +35,12 @@ export function loop() {
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
-		CreepManager.loadCreeps();
 		let CpuInit = Game.cpu.getUsed();
 
 		let cpuBeforeStats = Game.cpu.getUsed();
-		StatsManager.runBuiltinStats();
+		// let runExpensive = (Game.time % 5 === 0) ? true : false;
+		let runExpensive = true;
+		StatsManager.runBuiltinStats(runExpensive);
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
 		StatsManager.addStat("cpu.init", CpuInit);
 
@@ -57,6 +59,11 @@ export function loop() {
 		} catch (e) {
 			console.log("RoomManager Exception", (<Error> e).message);
 		}
+		try {
+			MarketManager.governMarket();
+		} catch (e) {
+			console.log("MarketManager Exception", (<Error> e).message);
+		}
 
 		if (!!Memory.showLogCreep) {
 			Memory.log.creeps.forEach((message: String, index: number) => {
@@ -74,18 +81,6 @@ export function loop() {
 			});
 		}
 		delete Memory.log;
-		if (!!Memory.showTransactions && Game.cpu.getUsed() < Game.cpu.limit) {
-			console.log();
-			console.log(`Incoming Transactions:`);
-			_.take(Game.market.incomingTransactions, 5).forEach((t: Transaction) => {
-				console.log(t.sender.username, t.resourceType, t.amount, t.from, t.to, t.description);
-			});
-			console.log();
-			console.log(`Outgoing Transactions:`);
-			_.take(Game.market.outgoingTransactions, 5).forEach((t: Transaction) => {
-				console.log(t.recipient.username, t.resourceType, t.amount, t.from, t.to, t.description);
-			});
-		}
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 		let cpuUsed = _.ceil(Game.cpu.getUsed());
 		let cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";
@@ -93,7 +88,9 @@ export function loop() {
 		console.log(`End of tick ${Game.time}.\t`
 			+ global.colorWrap(`GCL:${Game.gcl.level}@${perc}%\t`, "DodgerBlue")
 			+ global.colorWrap(`CPU:${cpuUsed}/${Game.cpu.limit}\t`, cpuColor)
-			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${Game.cpu.bucket}`, bucketColor));
+			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${Game.cpu.bucket.toLocaleString()}\t`, bucketColor)
+			+ global.colorWrap(`MKT:${Game.market.credits.toLocaleString()}`, "CornflowerBlue")
+		);
 		StatsManager.addStat("cpu.getUsed", cpuUsed);
 	});
 }

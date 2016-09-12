@@ -44,15 +44,11 @@ export default class Ranger extends WarfareCreepAction implements IRanger {
 
 	public action(): boolean {
 		if (super.renewCreep()) {
-			if (this.wait) {
-				this.waitAtFlag(this.creep.memory.homeRoom);
+			this.creep.say(this.creep.memory.config.targetRoom);
+			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
+				this.moveToTargetRoom();
 			} else {
-				this.creep.say(this.creep.memory.config.targetRoom);
-				if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-					this.moveToTargetRoom();
-				} else {
-					this.range();
-				}
+				this.range();
 			}
 		}
 		return true;

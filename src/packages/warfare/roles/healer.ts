@@ -1,4 +1,4 @@
-import * as RoomManager from "../../../components/rooms/roomManager";
+// import * as RoomManager from "../../../components/rooms/roomManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IHealer {
@@ -87,74 +87,21 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 
 	public move() {
 		if (!this.moveUsingPositions()) {
-			let target: Creep | Structure = undefined;
-			if (!this.creep.memory.target) {
-				target = this.findHealTarget();
-				if (!!target) {
-					this.creep.memory.target = target.id;
-					delete this.creep.memory.targetPath;
-				}
-			} else {
-				target = Game.getObjectById<Creep>(this.creep.memory.target);
-				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
-					target = this.findHealTarget();
-					if (!!target) {
-						this.creep.memory.target = target.id;
-						delete this.creep.memory.targetPath;
-					}
-				}
+			delete this.creep.memory.targetPath;
+			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
+				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(WORK) > 1,
+			});
+			if (!closest) {
+				closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
+					filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) < 6,
+				});
 			}
-			// Just moveTo when we're safely behind walls
-			if (!!target && !this.hardPath) {
-				// this.moveTo(target.pos);
-				if (target.hits < target.hitsMax && target.pos.x < 47 && target.pos.roomName === this.creep.pos.roomName) {
-					// this.creep.move(this.creep.pos.getDirectionTo(target));
-					this.moveTo(target.pos);
-				} else {
-					delete this.creep.memory.target;
-					delete this.creep.memory.targetPath;
-					target = undefined;
-				}
-				return;
-			}
-
-			// Otherwise, use a pathFinder path to get there.
-			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				if (this.creep.pos.getRangeTo(target) > 3) { // move closer if we're out of RANGED_ATTACK range.
-					if (!!this.creep.memory.targetPath) {
-						if (!this.creep.memory.pathTTL || this.creep.memory.pathTTL < 5) {
-							let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? this.creep.memory.pathTTL + 1 : 1;
-							this.moveByPath(path, target);
-						} else {
-							delete this.creep.memory.targetPath;
-							this.creep.memory.pathTTL = 1;
-							if (!this.findNewPath(target)) {
-								this.creep.say("HALP!");
-							}
-						}
-					} else {
-						this.creep.memory.target = target.id;
-						this.creep.memory.pathTTL = 1;
-						delete this.creep.memory.targetPath;
-						if (!this.findNewPath(target)) {
-							this.creep.say("HALP!");
-						}
-					}
-				} else {
-					// Just sit there.
-					delete this.creep.memory.targetPath;
-				}
-			} else {
-				delete this.creep.memory.targetPath;
-				let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) < 5});
-				if (!!closest && !this.creep.pos.isNearTo(closest)) {
-					// get in range
-					this.creep.moveTo(closest);
-				} else if (!!closest) {
-					// stay in range
-					this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
-				}
+			if (!!closest && !this.creep.pos.isNearTo(closest)) {
+				// get in range
+				this.creep.moveTo(closest);
+			} else if (!!closest) {
+				// stay in range
+				this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
 			}
 		}
 	}

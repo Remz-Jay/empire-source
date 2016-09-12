@@ -34,15 +34,11 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 
 	public action(): boolean {
 		if (super.renewCreep()) {
-			if (this.wait) {
-				this.waitAtFlag(this.creep.memory.homeRoom);
+			this.creep.say(this.creep.memory.config.targetRoom);
+			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
+				this.moveToTargetRoom();
 			} else {
-				this.creep.say(this.creep.memory.config.targetRoom);
-				if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-					this.moveToTargetRoom();
-				} else {
-					this.hacknslash();
-				}
+				this.hacknslash();
 			}
 		}
 		return true;

@@ -16,6 +16,23 @@ global.DEBUG = false;
 global.MAX_HARVESTERS_PER_SOURCE = 3;
 
 /**
+ * The maximum number of resources (per type) stored in terminals
+ * @type {number}
+ */
+global.TERMINAL_MAX = 20000;
+
+/**
+ * The minumum amount of energy a Storage should contain before performing aux tasks.
+ * @type {number}
+ */
+global.STORAGE_MIN = 100000;
+
+/**
+ * The minimum amount of bucket we should have. Auxilary tasks will be executed if above this number.
+ * @type {number}
+ */
+global.BUCKET_MIN = 8000;
+/**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
  * This is only default value, that don't have to be used.
  * So it doesn't cover all Screeps.
@@ -24,6 +41,12 @@ global.MAX_HARVESTERS_PER_SOURCE = 3;
 global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 200;
 global.MAX_TTL = 1400;
 
+/**
+ * This treshold defines which roles will be executed within a room, regardless of getUsed or bucket state.
+ * Anything below the treshold will be executed, everything above is conditional.
+ * @type {number}
+ */
+global.PRIORITY_TRESHOLD = 41;
 /**
  * Priorities for Regular Room Creeps
  * @type {number}
@@ -178,7 +201,20 @@ global.RESOURCE_TYPES = [
 	RESOURCE_CATALYZED_GHODIUM_ACID,
 	RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
 ];
-
+global.tradeTreshold = function(resourceType: string) {
+	switch (resourceType) {
+		case RESOURCE_ENERGY:
+			return 0.15;
+		case RESOURCE_ZYNTHIUM:
+			return 1.2;
+		case RESOURCE_OXYGEN:
+			return 0.7;
+		case RESOURCE_HYDROGEN:
+			return 0.7;
+		default:
+			return undefined;
+	}
+};
 // Taken from:
 // https://github.com/Sriep/screeps/blob/d307ac0e2ebf6b7c8ac1f0033baeed9679baa4da/building/lab.colours.js
 global.labColors = {
@@ -258,10 +294,12 @@ global.getTowerRange = function(roomName: string): number {
 			return 19;
 		case "W7N45":
 			return 7;
+/*		case "W6N49":
+			return 20;*/
 		default:
 			return 30;
 	}
-}
+};
 
 global.colorWrap = function(text: string, color: string) {
 	return `<font color="${color}">${text}</font>`;

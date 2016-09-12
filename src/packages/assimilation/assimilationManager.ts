@@ -164,10 +164,10 @@ function manageClaim(roomName: string, claim: boolean = false) {
 			}
 		}, this);
 	} else {
-		if (!Game.rooms[roomName] || !Game.rooms[roomName].controller
+		if (!Game.rooms[roomName]
+			|| !Game.rooms[roomName].controller
 			|| !Game.rooms[roomName].controller.reservation
-			|| (Game.rooms[roomName].controller.reservation.ticksToEnd < 1000
-				&& !isSpawning && !goHome)
+			|| (Game.rooms[roomName].controller.reservation.ticksToEnd < 1000 && !isSpawning && !goHome)
 		) {
 			isSpawning = true;
 			createCreep(governor.getCreepConfig(), true);
@@ -412,7 +412,7 @@ export function govern(): void {
 					try {
 						manageClaim(roomName, config.claim);
 					} catch (e) {
-						throw new Error("manageClaim." + (<Error> e).message);
+						console.log(`ERROR :: ASM in room ${roomName}: [CLAIM] ${e.message}`);
 					}
 				}
 				let vision: boolean = false;
@@ -428,23 +428,39 @@ export function govern(): void {
 					vision = true;
 					SourceManager.load(targetRoom);
 					try {
-						let containers = manageContainers();
+						let containers: any[];
+						try {
+							containers = manageContainers();
+						} catch (e) {
+							console.log(`ERROR :: ASM in room ${roomName}: [CONTAINERS] ${e.message}`);
+							containers = [];
+						}
 						if (containers.length > 0) {
 							if (config.claim) {
 								// manageHarvest(containers);
 								// manageMules(containers);
 							} else {
 								manageHarvest(containers);
-								manageMules(containers);
+								try {
+									manageMules(containers);
+								} catch (e) {
+									console.log(`ERROR :: ASM in room ${roomName}: [MULES] ${e.message}`);
+								}
 							}
 						}
+					} catch (e) {
+						console.log(`ERROR :: ASM in room ${roomName}: [HARVEST] ${e.message}`);
+					}
+					try {
 						if (config.claim) {
-							manageConstructions(0);
+							manageConstructions(3);
+						} else if (!config.hasController) {
+							manageConstructions(3);
 						} else {
 							manageConstructions(1);
 						}
 					} catch (e) {
-						throw new Error("Rest." + (<Error> e).message);
+						console.log(`ERROR :: ASM in room ${roomName}: [CONSTRUCTION] ${e.message}`);
 					}
 					Memory.log.asm.push(`AssimilationRoom ${roomName} has ${targetRoom.energyInContainers}/${targetRoom.containerCapacityAvailable}`
 						+ `(${targetRoom.energyPercentage}%) in storage.`
@@ -456,20 +472,23 @@ export function govern(): void {
 						manageDefenders(roomName, 0);
 					} else {
 						if (config.claim) {
-							manageDefenders(roomName, 0);
+							manageDefenders(roomName, 1);
+							manageSourceKeepers(roomName, 0);
 						} else if (!config.hasController) {
 							manageSourceKeepers(roomName, 1);
+						} else if (roomName === "W4N42") { // surrounded by owned rooms, no invaders.
+							manageDefenders(roomName, 0);
 						} else {
 							manageDefenders(roomName, 1);
 							manageSourceKeepers(roomName, 0);
 						}
 					}
 				} catch (e) {
-					throw new Error("manageDefenders." + (<Error> e).message);
+					console.log(`ERROR :: ASM in room ${roomName}: [DEFENDERS] ${e.message}`);
 				}
 			}
 		} catch (e) {
-			throw new Error(`ERROR :: ASM in room ${roomName}: ${e.message}`);
+			console.log(`ERROR :: ASM in room ${roomName}: [WRAPPER] ${e.message}`);
 		}
 	}, this);
 	try {

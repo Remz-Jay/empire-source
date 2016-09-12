@@ -130,49 +130,29 @@ export default class Scout extends WarfareCreepAction implements IScout {
 			delete this.creep.memory.targetPath;
 		}
 	}
-	public isSquadComplete(): boolean {
-		if (this.squad.length < this.squadSize) {
-			return false;
-		}
-		let flag = Game.flags[this.creep.memory.homeRoom];
-		let lookResults: LookAtResultWithPos[] = flag.room.lookForAtArea(
-			LOOK_CREEPS,
-			flag.pos.y - 1,
-			flag.pos.x - 1,
-			flag.pos.y + 1,
-			flag.pos.x + 1,
-			true // returns a LookAtResultWithPos[]
-		) as LookAtResultWithPos[];
-		return (lookResults.length === this.squadSize);
-	}
 	public action(): boolean {
 		if (!!this.creep.memory.inCombat || super.renewCreep()) {
-			if ((this.wait && !this.creep.memory.squadComplete) || !this.creep.memory.squadComplete) {
-				this.waitAtFlag(this.creep.memory.homeRoom);
-				this.creep.memory.squadComplete = this.isSquadComplete();
+			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
+				this.moveToTargetRoom();
 			} else {
-				if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-					this.moveToTargetRoom();
-				} else {
-					// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
-					if (this.heal()) {
-						delete this.creep.memory.waitForHealth;
-						if (this.rangedHeal()) {
-							if (!this.rangedAttack()) {
-								this.creep.memory.inCombat = true;
-							} else {
-								delete this.creep.memory.inCombat;
-							}
-						}
-					} else {
+				// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
+				if (this.heal()) {
+					delete this.creep.memory.waitForHealth;
+					if (this.rangedHeal()) {
 						if (!this.rangedAttack()) {
 							this.creep.memory.inCombat = true;
 						} else {
 							delete this.creep.memory.inCombat;
 						}
 					}
-					this.move();
+				} else {
+					if (!this.rangedAttack()) {
+						this.creep.memory.inCombat = true;
+					} else {
+						delete this.creep.memory.inCombat;
+					}
 				}
+				this.move();
 			}
 		} else {
 			if (!!this.creep.memory.lastHealth && this.creep.memory.lastHealth > this.creep.hits) {

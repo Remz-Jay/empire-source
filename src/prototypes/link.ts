@@ -4,7 +4,7 @@ interface StructureLink {
 StructureLink.prototype.run = function () {
 	let storage = this.room.storage;
 	let calcTotal = function(amount: number): number {
-		return _.ceil(amount + ((3 / 100) * amount));
+		return _.ceil(amount / 0.97);
 	};
 	if (!!storage && this.cooldown === 0) {
 		if (this.pos.isNearTo(storage)) {
@@ -26,7 +26,12 @@ StructureLink.prototype.run = function () {
 						if (this.energy < transferValue) {
 							transferValue = this.energy;
 						}
-						this.transferEnergy(r, transferValue);
+						if (transferValue > 0) {
+							let status = this.transferEnergy(r, transferValue);
+							if (status !== OK) {
+								this.transferEnergy(r);
+							}
+						}
 					}
 				});
 			}
@@ -48,7 +53,9 @@ StructureLink.prototype.run = function () {
 				if (toSend > canReceive) {
 					toSend = canReceive;
 				}
-				this.transferEnergy(storageLink, toSend);
+				if (toSend > 0) {
+					this.transferEnergy(storageLink, toSend);
+				}
 			}
 		}
 	}

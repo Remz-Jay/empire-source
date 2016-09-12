@@ -91,6 +91,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 		let boost = todo.shift();
 		// find a lab that supplies this resource
+		this.creep.say(boost);
 		let lab = this.creep.room.boostLabs.filter((l: StructureLab) => l.mineralType === boost && l.mineralAmount >= 30).shift();
 		if (!!lab) {
 			// move to it
@@ -284,11 +285,11 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		return true;
 	}
 
-	public rangedStructureAttack(): boolean {
+	public rangedStructureAttack(doMass: boolean = true): boolean {
 		if (this.creep.room.hostileStructures.length > 0) {
 			let targets: Structure[] = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0) {
-				if (targets.length > 1) {
+				if (doMass && targets.length > 1) {
 					this.creep.rangedMassAttack();
 					return false;
 				} else {
@@ -307,7 +308,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 		if (this.creep.room.allStructures.length > 0) {
 			let targets = this.creep.room.allStructures.filter(
-				(s: Structure) => (s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
+				(s: Structure) => (s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
 				&& s.pos.inRangeTo(this.creep.pos, 3)
 			);
 			if (targets.length > 0 ) {

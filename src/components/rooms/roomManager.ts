@@ -5,18 +5,12 @@ import * as RampartManager from "../ramparts/rampartManager";
 import * as StatsManager from "../../shared/statsManager";
 
 export let rooms: { [roomName: string]: Room };
-export let costMatrices: { [roomName: string]: CostMatrix };
-export let roomNames: string[] = [];
-
 export function loadRooms() {
 	rooms = {};
-	costMatrices = {};
 	_.each(Game.rooms, function(r: Room) {
 		r.addProperties();
 		rooms[r.name] = r;
 	});
-	_loadRoomNames();
-
 	if (global.VERBOSE) {
 		let count = _.size(rooms);
 		console.log(count + " rooms found.");
@@ -33,14 +27,6 @@ export function getRoomByName(roomName: string): Room {
 		return r;
 	}  else {
 		return undefined;
-	}
-}
-
-function _loadRoomNames() {
-	for (let roomName in rooms) {
-		if (rooms.hasOwnProperty(roomName)) {
-			roomNames.push(roomName);
-		}
 	}
 }
 
@@ -72,7 +58,7 @@ export function governRooms(): void {
 				SourceManager.updateHarvesterPreference();
 			}
 
-			if (room.controller.level > 1 && room.numberOfCreeps < 5) {
+			if (room.controller.level > 3 && room.numberOfCreeps < 5) {
 				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
 			}
 			if (global.ROOMSTATS) {
@@ -117,9 +103,12 @@ export function governRooms(): void {
 					l.run();
 				}, this);
 			}
+			if (!!room.terminal) {
+				room.terminal.run();
+			}
 			CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
 
-			if (Game.cpu.getUsed() < Game.cpu.limit) {
+			if (Game.cpu.getUsed() < Game.cpu.limit && Game.cpu.bucket > global.BUCKET_MIN) {
 				let CpuBeforeLabs = Game.cpu.getUsed();
 				if (room.myLabs.length > 2) {
 					try {

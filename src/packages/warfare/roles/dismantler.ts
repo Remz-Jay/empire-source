@@ -1,4 +1,5 @@
 import * as RoomManager from "../../../components/rooms/roomManager";
+import * as WallManager from "../../../components/walls/wallManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IDismantler {
@@ -33,6 +34,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 };
 
 export default class Dismantler extends WarfareCreepAction implements IDismantler {
+	public noTarget: boolean = false;
 	public hasHealer: boolean = true;
 	public hardPath: boolean = true;
 	public boosts: string[] = [
@@ -95,7 +97,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 				this.creep.dismantle(structures[0]);
 				return false;
 			}
-		} else if (this.positionIterator >= this.positions.length) {
+		} else if (!this.noTarget && this.positionIterator >= this.positions.length) {
 			let target = this.findTargetStructure();
 			if (!!target) {
 				if (!this.creep.pos.isNearTo(target)) {
@@ -109,6 +111,19 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 					}
 				}
 				return false;
+			} else if (!!this.creep.room.controller && !this.creep.room.controller.my) {
+				WallManager.load(this.creep.room);
+				target =  WallManager.getWeakestWall();
+				if (!this.creep.pos.isNearTo(target)) {
+					this.creep.moveTo(target);
+				} else {
+					this.creep.dismantle(target);
+					if (Game.time % 6 === 0) {
+						this.creep.say("OM NOM", true);
+					} else if (Game.time % 6 === 1) {
+						this.creep.say("NOM!", true);
+					}
+				}
 			}
 		}
 		return true;
@@ -117,6 +132,19 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	public move(): boolean {
 		if (!this.hasHealer && (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth)) {
 			return;
+		} else if (this.hasHealer && !this.checkTough()) {
+			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
+				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) > 5,
+			});
+			if (!!closest && !this.creep.pos.isNearTo(closest)) {
+				// get in range
+				this.creep.moveTo(closest);
+				return false;
+			} else if (!!closest) {
+				// stay in range
+				this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
+				return false;
+			}
 		} else {
 			if (!this.positions) {
 				return false;

@@ -8,27 +8,27 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 	public static ROLE: string = "Harvester";
 
 	public emergency: boolean = SourceManager.isEmergency() || (this.getNumberOfCreepsInRole() < (this.getCreepLimit() / 2));
-	public bodyPart: string[] = [WORK, WORK, CARRY, MOVE];
-	public maxParts: number = 4;
-	public getBody() {
-		if (this.room.containers.length < 1) {
-			// no containers, so this creep will have to leg it.
-			this.bodyPart = [WORK, MOVE, CARRY, MOVE];
-		}
-		let numParts: number;
+	public basePart: string[] = [CARRY, CARRY, MOVE];
+	public bodyPart: string[] = [WORK, WORK, MOVE];
+	public maxParts: number = 3;
 
+	public getBody() {
+		let numParts: number;
 		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
-			numParts = _.floor((this.room.energyCapacityAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+			numParts = _.floor(
+				(this.room.energyCapacityAvailable - CreepGovernor.calculateRequiredEnergy(this.basePart)) /
+				CreepGovernor.calculateRequiredEnergy(this.bodyPart));
 		} else {
+			this.bodyPart = [WORK, CARRY, MOVE];
 			numParts = _.floor((this.room.energyAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
+		}
+		if (numParts > this.maxParts) {
+			numParts = this.maxParts;
 		}
 		if (numParts < 1) {
 			numParts = 1;
 		}
-		if (this.maxParts > 1 && numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		let body: string[] = [];
+		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
 				body = body.concat(this.bodyPart);

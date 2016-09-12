@@ -29,36 +29,12 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 
 	public getBody() {
 		if (this.claim) {
-			return  AssimilationCreepGovernor.sortBodyParts([CLAIM, TOUGH, MOVE, MOVE, MOVE, MOVE]);
-		}
-		let numParts = _.floor(this.room.energyCapacityAvailable / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
-		if (numParts < 1) {
-			numParts = 1;
-		}
-		if (this.maxParts > 1 && numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		let body: string[] = [];
-		for (let i = 0; i < numParts; i++) {
-			if (body.length + this.bodyPart.length <= 50) {
-				body = body.concat(this.bodyPart);
-			}
-		}
-		return AssimilationCreepGovernor.sortBodyParts(body);
-	}
-
-	public getCreepLimit(): number {
-		let num: number;
-		if (this.room.controller.level > 4) {
-			num = _.floor(this.room.energyInContainers / 10000);
-		} else if (this.room.controller.level < 3) {
-			num = 1;
+			return  AssimilationCreepGovernor.sortBodyParts([TOUGH, TOUGH,
+				MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+				MOVE, MOVE, CLAIM,
+			]);
 		} else {
-			num = this.maxCreeps;
+			return super.getBody();
 		}
-		if (num > this.maxCreeps) {
-			num = this.maxCreeps;
-		}
-		return (num > 0) ? num : 1;
 	}
 }

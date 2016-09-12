@@ -8,8 +8,8 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 	public terminal: StructureTerminal;
 	public storage: StructureStorage;
-	public storageMin: number = 100000;
-	public terminalMax: number = 30000;
+	public storageMin: number = global.STORAGE_MIN;
+	public terminalMax: number = global.TERMINAL_MAX;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
@@ -93,16 +93,20 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				link = Game.getObjectById<StructureLink>(this.creep.memory.link);
 			}
 			if (!!link && this.creep.pos.isNearTo(link)) {
-				if (link.energy < 412) {
+				if (_.sum(this.creep.carry) > 0 && this.getMineralTypeFromStore(this.creep) !== RESOURCE_ENERGY) {
+					this.cleanUp();
+					return true;
+				}
+				if (link.energy < 413) {
 					if (this.creep.carry.energy === 0) {
-						this.creep.withdraw(this.storage, RESOURCE_ENERGY, (412 - link.energy));
+						this.creep.withdraw(this.storage, RESOURCE_ENERGY, (413 - link.energy));
 					} else {
 						this.creep.transfer(link, RESOURCE_ENERGY);
 					}
 					return true;
-				} else if (link.energy > 412) {
+				} else if (link.energy > 413) {
 					if (this.creep.carry.energy === 0) {
-						this.creep.withdraw(link, RESOURCE_ENERGY, (link.energy - 412));
+						this.creep.withdraw(link, RESOURCE_ENERGY, (link.energy - 413));
 					} else {
 						this.creep.transfer(this.storage, RESOURCE_ENERGY);
 					}
@@ -140,9 +144,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 0) {
 			if (this.creep.memory.direction === 1) {
-				this.creep.transfer(this.terminal, this.creep.memory.carryType);
+				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			} else {
-				this.creep.transfer(this.storage, this.creep.memory.carryType);
+				this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
 			}
 			this.creep.memory.direction = 0;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
