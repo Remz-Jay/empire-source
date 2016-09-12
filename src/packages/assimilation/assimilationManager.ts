@@ -453,7 +453,7 @@ export function govern(): void {
 					}
 					try {
 						if (config.claim) {
-							manageConstructions(0);
+							manageConstructions(3);
 						} else if (!config.hasController) {
 							manageConstructions(3);
 						} else {

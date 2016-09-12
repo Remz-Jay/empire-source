@@ -172,7 +172,7 @@ export default class CreepAction implements ICreepAction {
 				let lp = this.creep.memory.lastPosition;
 				if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 					this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
-					if (this.creep.memory.stuckTicks > 3) {
+					if (this.creep.memory.stuckTicks > 2) {
 						Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
 							+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
 						this.creep.memory.stuckTicks = undefined;
@@ -201,11 +201,14 @@ export default class CreepAction implements ICreepAction {
 				}
 				return status;
 			} else {
+				/*
 				Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) went off path. Recalculating route.`);
 				this.creep.memory.stuckTicks = undefined;
 				this.creep.memory.lastPosition = undefined;
 				this.creep.memory.pfgPath = undefined;
 				return (retry) ? ERR_NOT_FOUND : this.moveTo(pfg, true);
+				*/
+				this.creep.moveTo(pos);
 			}
 		} catch (e) {
 			console.log(e.message, JSON.stringify(target), "creepAction.moveTo");

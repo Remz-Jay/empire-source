@@ -24,7 +24,10 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getCreepLimit(): number {
-		if (this.room.name === "W6N49") {
+		if (this.room.controller.level === 8) {
+			return 1;
+		}
+		if (this.room.name === "W6N49" || this.room.name === "W6N42") {
 			return 2;
 		}
 		let num: number;
@@ -42,6 +45,9 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getBody() {
+		if (this.room.controller.level === 8) {
+			this.maxParts = 5;
+		}
 /*		if (this.room.name === "W7N45") {
 			this.bodyPart = [CARRY, MOVE, CARRY, MOVE, WORK, MOVE, WORK, MOVE];
 			this.maxParts = 1;
