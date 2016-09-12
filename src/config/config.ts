@@ -26,6 +26,12 @@ global.TERMINAL_MAX = 20000;
  * @type {number}
  */
 global.STORAGE_MIN = 100000;
+
+/**
+ * The minimum amount of bucket we should have. Auxilary tasks will be executed if above this number.
+ * @type {number}
+ */
+global.BUCKET_MIN = 8000;
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
  * This is only default value, that don't have to be used.
@@ -35,6 +41,12 @@ global.STORAGE_MIN = 100000;
 global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 200;
 global.MAX_TTL = 1400;
 
+/**
+ * This treshold defines which roles will be executed within a room, regardless of getUsed or bucket state.
+ * Anything below the treshold will be executed, everything above is conditional.
+ * @type {number}
+ */
+global.PRIORITY_TRESHOLD = 41;
 /**
  * Priorities for Regular Room Creeps
  * @type {number}

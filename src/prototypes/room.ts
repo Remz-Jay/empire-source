@@ -25,7 +25,7 @@ interface Room {
 	setCreepMatrix(costMatrix: CostMatrix): void;
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
-	getCostMatrix(): CostMatrix;
+	getCostMatrix(ignoreRoomConfig?: boolean): CostMatrix;
 	getContainers(): Structure[];
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
@@ -112,7 +112,7 @@ Room.prototype.getCreepMatrix = function () {
 
 };
 
-Room.prototype.getCostMatrix = function () {
+Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 	this.roomConfig = {
 		W7N44: [
 			{x: 27, y: 30, w: 9}, // container next to extension, keep free for mule to deliver energy.
@@ -231,7 +231,9 @@ Room.prototype.getCostMatrix = function () {
 			this.myConstructionSites.forEach(function (site: ConstructionSite) {
 				costs.set(site.pos.x, site.pos.y, 100);
 			});
-			_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
+			if (!ignoreRoomConfig) {
+				_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
+			}
 			// console.log("Returning NEW CostMatrix for room " + this.name);
 			this.setCostMatrix(costs);
 			return costs;

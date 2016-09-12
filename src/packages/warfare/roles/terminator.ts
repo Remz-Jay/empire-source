@@ -162,14 +162,14 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 						} else {
 							delete this.creep.memory.targetPath;
 							this.creep.memory.pathTTL = 1;
-							if (!this.findNewPath(target, "targetPath", true, range)) {
+							if (!this.findNewPath(target, "targetPath", true, range, true, true)) {
 								this.creep.say("HALP!");
 							}
 						}
 					} else {
 						this.creep.memory.pathTTL = 1;
 						delete this.creep.memory.targetPath;
-						if (!this.findNewPath(target, "targetPath", true, range)) {
+						if (!this.findNewPath(target, "targetPath", true, range, true, true)) {
 							this.creep.say("HALP!");
 						}
 					}

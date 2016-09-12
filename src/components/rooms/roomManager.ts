@@ -58,7 +58,7 @@ export function governRooms(): void {
 				SourceManager.updateHarvesterPreference();
 			}
 
-			if (room.controller.level > 1 && room.numberOfCreeps < 5) {
+			if (room.controller.level > 3 && room.numberOfCreeps < 5) {
 				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
 			}
 			if (global.ROOMSTATS) {
@@ -108,7 +108,7 @@ export function governRooms(): void {
 			}
 			CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
 
-			if (Game.cpu.getUsed() < Game.cpu.limit) {
+			if (Game.cpu.getUsed() < Game.cpu.limit && Game.cpu.bucket > global.BUCKET_MIN) {
 				let CpuBeforeLabs = Game.cpu.getUsed();
 				if (room.myLabs.length > 2) {
 					try {
