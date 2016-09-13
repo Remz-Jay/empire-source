@@ -88,6 +88,10 @@ declare interface SquadConfig {
 	wait: boolean;
 }
 
+declare interface ResourceList {
+	[resource: string]: number;
+}
+
 declare interface Memory {
 	showTransactions: boolean;
 	showLogCreep: boolean;

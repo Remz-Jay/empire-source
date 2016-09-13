@@ -23,7 +23,7 @@ StructureTerminal.prototype.run = function () {
 	) {
 		// Find a room that needs our mineral
 		_.forEach(Game.rooms, (room: Room) => {
-			if (!sending && !!room.terminal && room.terminal.my && room.terminal.store[minType] < (global.TERMINAL_MAX * 0.9)) {
+			if (!sending && !!room.terminal && room.terminal.my && (!room.terminal.store[minType] || room.terminal.store[minType] < (global.TERMINAL_MAX * 0.9))) {
 				let status = this.send(minType, 10000, room.name);
 				if (status === OK) {
 					sending = true;

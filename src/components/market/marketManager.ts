@@ -72,7 +72,7 @@ export function findDeals(): void {
 global.findDeals = findDeals;
 
 export function resourceReport(): void {
-	let resources: any = {};
+	let resources: ResourceList = {"energy": 0};
 	_.forEach(Game.rooms, (r: Room) => {
 		if (!!r.controller && r.controller.my) {
 			if (!!r.storage) {
@@ -85,7 +85,7 @@ export function resourceReport(): void {
 				});
 			}
 			if (!!r.terminal) {
-				_.forEach(r.storage.store, (value: number, key: string) => {
+				_.forEach(r.terminal.store, (value: number, key: string) => {
 					if (!!resources[key]) {
 						resources[key] += value;
 					} else {
@@ -95,8 +95,8 @@ export function resourceReport(): void {
 			}
 		}
 	});
-	// resources = _.map(resources, (v: number, k: string) => [k, v]).sortBy(0).fromPairs().value();
-	_.forOwn(resources, (value: number, key: string) => {
+	RESOURCES_ALL.forEach((key: string) => {
+		let value = resources[key] || 0;
 		let strVal: string = value.toString();
 		if (value > 1000000) {
 			strVal = _.round(value / 1000000, 2).toString() + "M";
