@@ -8,6 +8,8 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 	public terminal: StructureTerminal;
 	public storage: StructureStorage;
+	public nuker: StructureNuker;
+	public tower: StructureTower;
 	public storageMin: number = global.STORAGE_MIN;
 	public terminalMax: number = global.TERMINAL_MAX;
 
@@ -15,6 +17,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		super.setCreep(creep);
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;
+		this.nuker = this.creep.room.nuker;
 	}
 
 	public findSpot(): RoomPosition {
@@ -138,6 +141,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public balanceTerminal(): boolean {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) { // busy with fillNuker
+			return false;
+		}
 		if (!this.terminal || !this.creep.pos.isNearTo(this.terminal) || !this.creep.pos.isNearTo(this.storage)) {
 			return false;
 		}
@@ -202,6 +208,71 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}, this);
 		return !!(done);
 	}
+	public fillNuker(): boolean {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 4) { // busy with fillTower
+			return false;
+		}
+		if (!this.nuker || !this.creep.pos.isNearTo(this.nuker) || !this.creep.pos.isNearTo(this.terminal)) {
+			return false;
+		}
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) {
+			if (this.creep.memory.direction === 3) {
+				this.creep.transfer(this.nuker, this.getMineralTypeFromStore(this.creep));
+			} else {
+				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
+			}
+			this.creep.memory.direction = 0;
+			this.creep.memory.carryType = RESOURCE_ENERGY;
+			return true;
+		}
+		if (this.nuker.ghodium < this.nuker.ghodiumCapacity && !!this.terminal.store[RESOURCE_GHODIUM] && this.terminal.store[RESOURCE_GHODIUM] > 0) {
+			let amount: number = this.nuker.ghodiumCapacity - this.nuker.ghodium;
+			if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
+				amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
+			}
+			if (amount > this.terminal.store[RESOURCE_GHODIUM]) {
+				amount = this.terminal.store[RESOURCE_GHODIUM];
+			}
+			this.creep.withdraw(this.terminal, RESOURCE_GHODIUM, amount);
+			this.creep.memory.direction = 3;
+			this.creep.memory.carryType = RESOURCE_GHODIUM;
+			return true;
+		}
+	}
+	public fillTower(): boolean {
+		let towers = this.creep.room.myStructures.filter(
+			(s: OwnedStructure) => s.structureType === STRUCTURE_TOWER && s.pos.isNearTo(this.creep.pos)
+		) as StructureTower[];
+		if (towers.length > 0) {
+			this.tower = towers.pop();
+
+			if (!!this.creep.memory.direction && this.creep.memory.direction > 4) {
+				if (this.creep.memory.direction === 5) {
+					this.creep.transfer(this.tower, RESOURCE_ENERGY);
+				} else {
+					this.creep.transfer(this.storage, RESOURCE_ENERGY);
+				}
+				this.creep.memory.direction = 0;
+				this.creep.memory.carryType = RESOURCE_ENERGY;
+				return true;
+			}
+			if (this.tower.energy < this.tower.energyCapacity && this.storage.store.energy > 0) {
+				let amount: number = this.tower.energyCapacity - this.tower.energy;
+				if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
+					amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
+				}
+				if (amount > this.terminal.store.energy) {
+					amount = this.terminal.store.energy;
+				}
+				this.creep.withdraw(this.terminal, RESOURCE_ENERGY, amount);
+				this.creep.memory.direction = 5;
+				this.creep.memory.carryType = RESOURCE_ENERGY;
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
 	public cleanUp(): boolean {
 		if (_.sum(this.creep.carry) > 0) {
 			this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
@@ -212,7 +283,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 	public action(): boolean {
 		if (super.action() && this.flee()) {
-			if (!this.link() && !this.balanceTerminal()) {
+			if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower()) {
 				this.cleanUp();
 				this.move();
 			}

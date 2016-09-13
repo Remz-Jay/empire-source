@@ -62,7 +62,7 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 			if (this.room.name === "W6N49") {
 				return 3;
 			}
-			return (this.room.controller.level < 4) ? 2 : this.maxCreeps;
+			return (this.room.controller.level < 5) ? 2 : this.maxCreeps;
 		} else {
 			return 0;
 		}

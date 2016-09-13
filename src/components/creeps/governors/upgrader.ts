@@ -34,7 +34,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 		if (this.room.controller.level > 4) {
 			num = _.floor(this.room.energyInContainers / 200000);
 		} else if (this.room.controller.level < 5) {
-			num = 5;
+			num = 1;
 		} else {
 			num = this.maxCreeps;
 		}

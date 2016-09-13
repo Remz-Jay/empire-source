@@ -29,6 +29,6 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 
 	public getCreepLimit(): number {
 		let sites = this.room.myConstructionSites;
-		return (sites.length > 0) ? 1 : 0;
+		return (sites.length > 0) ? 2 : 0;
 	}
 }

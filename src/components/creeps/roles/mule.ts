@@ -400,19 +400,20 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 						this.creep.pickup(t.resource);
 					}
 				}, this);
-			}
-			if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-				let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
-					&& _.sum(s.store) > 50
-					&& s.pos.isNearTo(this.creep.pos)
-				) as StructureContainer[];
-				if (containers.length > 0) {
-					let t = containers.shift();
-					if (t.store.energy > 50) {
-						this.creep.withdraw(t, RESOURCE_ENERGY);
-					} else {
-						let x: string = this.getMineralTypeFromStore(t);
-						this.creep.withdraw(t, x);
+			} else {
+				if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+					let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
+						&& _.sum(s.store) > 50
+						&& s.pos.isNearTo(this.creep.pos)
+					) as StructureContainer[];
+					if (containers.length > 0) {
+						let t = containers.shift();
+						if (t.store.energy > 50) {
+							this.creep.withdraw(t, RESOURCE_ENERGY);
+						} else {
+							let x: string = this.getMineralTypeFromStore(t);
+							this.creep.withdraw(t, x);
+						}
 					}
 				}
 			}

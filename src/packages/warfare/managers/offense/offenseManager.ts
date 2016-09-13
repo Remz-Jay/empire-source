@@ -238,6 +238,22 @@ let warvestPositions: RoomPosition[] = [
 	new RoomPosition(48, 46, "W7N44"),
 	new RoomPosition(31, 28, "W7N44"), // Terminal
 ];
+
+let warvest2Positions: RoomPosition[] = [
+	new RoomPosition(1, 3, "W6N45"),
+	new RoomPosition(23, 3, "W6N45"),
+	new RoomPosition(33, 2, "W6N45"),
+	new RoomPosition(47, 2, "W6N45"),
+	new RoomPosition(7, 9, "W5N45"),
+	new RoomPosition(10, 17, "W5N45"), // X Source
+	new RoomPosition(7, 9, "W5N45"),
+	new RoomPosition(47, 2, "W6N45"),
+	new RoomPosition(33, 2, "W6N45"),
+	new RoomPosition(23, 3, "W6N45"),
+	new RoomPosition(1, 3, "W6N45"),
+	new RoomPosition(24, 21, "W7N45"), // Terminal
+];
+
 let healTestPositions: RoomPosition[] = [
 	new RoomPosition(30, 3, "W2N43"),
 	new RoomPosition(29, 47, "W2N44"),
@@ -452,7 +468,7 @@ export function govern(): void {
 					manageSquad(roomName, squadConfig, assaultPositions);
 					break;
 				case "W5N45":
-					manageSquad(roomName, warvestConfig, warvestPositions);
+					manageSquad(roomName, warvestConfig, warvest2Positions);
 					break;
 				case "W2N44": // DrakeShady
 					manageSquad(roomName, healTestConfig, healTestPositions);

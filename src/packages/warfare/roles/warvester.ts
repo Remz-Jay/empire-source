@@ -95,7 +95,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 			if (this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
 				let mineral = this.creep.room.lookForAt<Mineral>(LOOK_MINERALS, this.positions[this.positionIterator]);
 				if (mineral.length > 0) {
-					this.creep.say("H");
+					// this.creep.say("H");
 					this.creep.harvest(mineral[0]);
 					return false;
 				} else {
@@ -103,12 +103,12 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 				}
 			}
 			// TODO: Flexibilize this condition
-		} else if (this.isBagFull() && this.positionIterator === 6 && this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-			this.positionIterator = this.creep.memory.positionIterator = 7;
+		} else if (this.isBagFull() && this.positionIterator === 5 && this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+			this.positionIterator = this.creep.memory.positionIterator = 6;
 		} else if (this.creep.pos.isNearTo(this.creep.room.terminal)) {
 			let status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
 			if (status === OK) {
-				this.creep.say("Dump");
+				// this.creep.say("Dump");
 				this.positionIterator = this.creep.memory.positionIterator = 0;
 				return false;
 			}
@@ -123,7 +123,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		if (this.positionIterator < this.positions.length) {
 			if (!this.creep.pos.isEqualTo(this.positions[this.positionIterator])) {
 				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
-				this.creep.say(pfg[0].pos.x + "," + pfg[0].pos.y + "," + pfg[0].range);
+				// this.creep.say(pfg[0].pos.x + "," + pfg[0].pos.y + "," + pfg[0].range);
 				this.moveTo(pfg);
 			} else {
 				this.positionIterator = ++this.creep.memory.positionIterator;
@@ -135,9 +135,6 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 	}
 
 	public action(): boolean {
-		if (this.creep.hits === this.creep.hitsMax && !!this.creep.memory.waitForHealth) {
-			delete this.creep.memory.waitForHealth;
-		}
 		if (this.creep.room.name === this.creep.memory.homeRoom && this.isBagEmpty()) {
 			if (this.creep.ticksToLive < 550) {
 				this.creep.memory.hasRenewed = false;
@@ -146,12 +143,8 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 				return false;
 			}
 		}
-		if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
-			this.moveToTargetRoom();
-		} else {
-			if (this.warvest()) {
-				this.move();
-			}
+		if (this.warvest()) {
+			this.move();
 		}
 		return true;
 	}

@@ -5,10 +5,10 @@ StructureTerminal.prototype.run = function () {
 	let storage = this.room.storage;
 	let sending: boolean = false;
 	let minType: string = this.room.minerals[0].mineralType;
-	if (this.store.energy >= global.TERMINAL_MAX && storage.store.energy > (2 * global.STORAGE_MIN)) {
+	if (this.store.energy >= global.TERMINAL_MAX && storage.store.energy > (global.STORAGE_MIN + global.TERMINAL_MAX)) {
 		// Find a room that needs energy.
 		_.forEach(Game.rooms, (room: Room) => {
-			if (!sending && !!room.terminal && room.terminal.my && room.storage.store.energy < global.STORAGE_MIN) {
+			if (!sending && !!room.terminal && room.terminal.my && room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_MAX)) {
 				let status = this.send(RESOURCE_ENERGY, (global.TERMINAL_MAX - Game.market.calcTransactionCost(global.TERMINAL_MAX, this.room.name, room.name)), room.name);
 				if (status === OK) {
 					sending = true;

@@ -515,18 +515,25 @@ export default class CreepAction implements ICreepAction {
 				if (!this.creep.pos.isNearTo(source)) {
 					this.moveTo(source.pos);
 				} else {
-					let status = this.creep.withdraw(source, RESOURCE_ENERGY);
-					switch (status) {
-						case ERR_NOT_ENOUGH_RESOURCES:
-						case ERR_INVALID_TARGET:
-						case ERR_NOT_OWNER:
-						case ERR_FULL:
-							delete this.creep.memory.source;
-							break;
-						case OK:
-							break;
-						default:
-							throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+					let drops = source.pos.lookFor(LOOK_RESOURCES);
+					if (drops.length > 0) {
+						_.forEach(drops, (drop: Resource) => {
+							this.creep.pickup(drop);
+						});
+					} else {
+						let status = this.creep.withdraw(source, RESOURCE_ENERGY);
+						switch (status) {
+							case ERR_NOT_ENOUGH_RESOURCES:
+							case ERR_INVALID_TARGET:
+							case ERR_NOT_OWNER:
+							case ERR_FULL:
+								delete this.creep.memory.source;
+								break;
+							case OK:
+								break;
+							default:
+								throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+						}
 					}
 				}
 			} else {

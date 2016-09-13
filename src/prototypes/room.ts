@@ -18,6 +18,7 @@ interface Room {
 	myConstructionSites: ConstructionSite[];
 	sources: Source[];
 	minerals: Mineral[];
+	nuker: StructureNuker;
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -46,8 +47,8 @@ interface Room {
 	getMyConstructionSites(): ConstructionSite[];
 	getSources(): Source[];
 	getMinerals(): Mineral[];
+	getNuker(): StructureNuker;
 	addProperties(): void;
-	reloadCache(): void;
 }
 
 Room.prototype.setCostMatrix = function (costMatrix) {
@@ -352,6 +353,14 @@ Room.prototype.getSources = function(): Source[] {
 	}
 	return allSources;
 };
+Room.prototype.getNuker = function(): StructureNuker {
+	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_NUKER);
+	if (sn.length > 0) {
+		return sn.pop();
+	} else {
+		return undefined;
+	}
+};
 Room.prototype.addProperties = function () {
 	if (Game.time % 100 === 0) {
 		delete this.memory.allSources;
@@ -372,6 +381,7 @@ Room.prototype.addProperties = function () {
 	this.sources =              this.getSources();
 
 	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+	this.nuker =                (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getNuker() : undefined;
 	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
 	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
 	this.myLabs =               (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyLabs() : [];
