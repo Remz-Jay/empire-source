@@ -119,40 +119,51 @@ export function resourceReport(): void {
 	console.log(topLine);
 	console.log(header);
 	console.log(guideLine);
+	let tracers: string[] = [];
 	RESOURCES_ALL.forEach((key: string) => {
 		let globalRunning: boolean = false;
 		let value = resources[key] || 0;
-		let line: string = "";
-		line = line.concat(" " + formatAmount(value) + "\u2551");
-		roomList.forEach((r: Room) => {
-			let roomRunning: boolean = false;
-			if (!!Game.flags[r.name + "_LR"]) {
-				let flag = Game.flags[r.name + "_LR"];
-				if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
-					let reaction = global.labColors.resource(flag.color, flag.secondaryColor);
-					if (reaction === key) {
-						roomRunning = true;
-						globalRunning = true;
+		if (value > 1000) {
+			let line: string = "";
+			line = line.concat(" " + formatAmount(value) + "\u2551");
+			roomList.forEach((r: Room) => {
+				let roomRunning: boolean = false;
+				if (!!Game.flags[r.name + "_LR"]) {
+					let flag = Game.flags[r.name + "_LR"];
+					if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
+						let reaction = global.labColors.resource(flag.color, flag.secondaryColor);
+						if (reaction === key) {
+							roomRunning = true;
+							globalRunning = true;
+						}
 					}
 				}
-			}
-			let storageVal = (!!r.storage) ? r.storage.store[key] || 0 : 0;
-			let terminalVal = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
-			let totalVal = storageVal + terminalVal;
-			if (roomRunning) {
-				line = line.concat(" " + formatAmount(totalVal, "CornflowerBlue") + "\u2551");
+				let storageVal = (!!r.storage) ? r.storage.store[key] || 0 : 0;
+				let terminalVal = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
+				let totalVal = storageVal + terminalVal;
+				if (roomRunning) {
+					line = line.concat(" " + formatAmount(totalVal, "CornflowerBlue") + "\u2551");
+				} else {
+					line = line.concat(" " + formatAmount(totalVal) + "\u2551");
+				}
+			});
+			if (globalRunning) {
+				line = "\u2551 <b>" + global.colorWrap(_.padRight(key, 9), "CornflowerBlue") + "</b>\u2551".concat(line);
 			} else {
-				line = line.concat(" " + formatAmount(totalVal) + "\u2551");
+				line = "\u2551 <b>" + _.padRight(key, 9) + "</b>\u2551".concat(line);
 			}
-		});
-		if (globalRunning) {
-			line = "\u2551 <b>" + global.colorWrap(_.padRight(key, 9), "CornflowerBlue") + "</b>\u2551".concat(line);
-		} else {
-			line = "\u2551 <b>" + _.padRight(key, 9) + "</b>\u2551".concat(line);
+			console.log(line);
+		} else if (value > 0) {
+			tracers.push(key + ` (${value})`);
 		}
-		console.log(line);
 	});
 	console.log(bottomLine);
+	let tracerLine = "Also found traces of: ";
+	tracers.forEach((s: String) => {
+		tracerLine = tracerLine.concat(s + ", ");
+	});
+	tracerLine = tracerLine.slice(0, -2) + ".";
+	console.log(tracerLine);
 }
 global.resourceReport = resourceReport;
 
@@ -161,7 +172,7 @@ export function formatAmount(value: number, overrideColor?: string): string {
 	if (value > 1000000) {
 		strVal = _.round(value / 1000000, 2).toString() + "M";
 	} else if (value > 1000) {
-		strVal = _.round(value / 1000, 2).toString() + "K";
+		strVal = _.round(value / 1000, 2).toString() + "k";
 	}
 	strVal = _.padRight(" " + strVal, 9);
 	if (_.isString(overrideColor)) {
@@ -177,6 +188,13 @@ export function formatAmount(value: number, overrideColor?: string): string {
 	}
 	return strVal;
 }
+export function dumpResource(resource: string) {
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.terminal);
+	roomList.forEach((r: Room) => {
+		// hello
+	});
+}
+global.dumpResource = dumpResource;
 export function transactionReport(numTransactions = 5): void {
 	console.log(global.colorWrap(`[MARKET] Incoming Transactions:`, "Red"));
 	_.take(Game.market.incomingTransactions, numTransactions).forEach((t: Transaction) => {
