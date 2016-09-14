@@ -21,8 +21,10 @@ export function cleanupOrders(): void {
 		// console.log(global.colorWrap(`[MARKET] ${order.id}, ${order.type}, ${order.resourceType}, ${order.price}, ${order.remainingAmount}`, "cyan"));
 	});
 }
-
-const marketTresholds = {
+interface MarketThresholdsObject {
+	[k: string]: number;
+}
+const marketThresholds: MarketThresholdsObject = {
 	H: 0.5,
 	O: 0.5,
 	Z: 1.0,
@@ -34,7 +36,7 @@ const marketTresholds = {
 
 export function findDeals(): void {
 	console.log(`[MARKET] Doing a market price scan.`);
-	_.forOwn(marketTresholds, (price: number, resource: string) => {
+	_.forOwn(marketThresholds, (price: number, resource: string) => {
 		// console.log(`[MARKET] ${resource} at ${price}`);
 		let orders = Game.market.getAllOrders((order: Order) =>
 			order.type === ORDER_SELL
@@ -189,9 +191,58 @@ export function formatAmount(value: number, overrideColor?: string): string {
 	return strVal;
 }
 export function dumpResource(resource: string) {
-	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.terminal);
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
-		// hello
+		if (!!r.storage.store[resource] && r.storage.store[resource] > global.STORAGE_MIN
+			&& r.terminal.store[resource] && r.terminal.store[resource] >= global.TERMINAL_MAX
+		) {
+			let canSell = r.terminal.store[resource];
+			let availableEnergy = r.terminal.store.energy;
+			console.log(`Room ${r.name} has ${formatAmount(r.storage.store[resource])} x ${resource} in storage.`);
+			let price: number = marketThresholds[resource];
+			let orders = Game.market.getAllOrders((order: Order) =>
+				order.type === ORDER_BUY
+				&& order.resourceType === resource
+				&& order.price >= price
+				&& order.remainingAmount >= canSell
+				&& !_.has(Game.rooms, order.roomName)
+				&& Game.map.getRoomLinearDistance(r.name, order.roomName) < 10
+			);
+			if (!!orders && orders.length > 0) {
+				let bestPrice = 0;
+				let bestDistance = Infinity;
+				let bestOrder: Order;
+				orders.forEach((order: Order) => {
+					let orderDistance = Game.map.getRoomLinearDistance(r.name, order.roomName);
+					console.log(global.colorWrap(`[MARKET] found candidate: ${order.remainingAmount.toLocaleString()} at ${order.price}. `
+						+ `Range: ${orderDistance} (${order.roomName}). `
+						+ `ID: ${order.id}`, "cyan"));
+					if (order.price > bestPrice) {
+						bestPrice = order.price;
+						bestDistance = orderDistance;
+						bestOrder = order;
+					} else if (order.price === bestPrice && orderDistance < bestDistance) {
+						bestDistance = orderDistance;
+						bestOrder = order;
+					}
+				});
+				if (!!bestOrder) {
+					let cost = canSell * bestOrder.price;
+					let transferCost = Game.market.calcTransactionCost(canSell, r.name, bestOrder.roomName);
+					if (availableEnergy >= transferCost) {
+						console.log(global.colorWrap(`[MARKET] Decided to sell to: ${bestOrder.remainingAmount.toLocaleString()} at ${bestOrder.price}. `
+							+ `Range: ${bestDistance} (${bestOrder.roomName}). `
+							+ `Profit: ${cost.toLocaleString()}, Transfer: ${transferCost.toLocaleString()} energy. ID: ${bestOrder.id}`, "LightGreen"));
+						Game.market.deal(bestOrder.id, canSell, r.name);
+					} else {
+						console.log(
+							global.colorWrap(`[MARKET] ${r.name} as insufficient Terminal Energy to cover the transaction. (${availableEnergy} of ${transferCost})`,
+							"OrangeRed")
+						);
+					}
+				}
+			}
+		}
 	});
 }
 global.dumpResource = dumpResource;
