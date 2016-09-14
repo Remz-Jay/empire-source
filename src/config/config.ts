@@ -90,7 +90,7 @@ global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
 global.MINRCL_REPAIR            = 9;
 global.MINRCL_MINER             = 6;
-global.MINRCL_SCIENTIST         = 9;
+global.MINRCL_SCIENTIST         = 7;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps

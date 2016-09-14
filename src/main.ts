@@ -86,8 +86,17 @@ export function loop() {
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 		let cpuUsed = _.ceil(Game.cpu.getUsed());
 		let cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";
-		let bucketColor = (Game.cpu.bucket > 9000) ? "LightGreen" : "Tomato";
 		let bucket = Game.cpu.bucket || 0;
+		let bucketColor = "Tomato";
+		if (bucket > global.BUCKET_MIN / 4) {
+			bucketColor = "Salmon";
+		}
+		if (bucket > global.BUCKET_MIN / 2) {
+			bucketColor = "Orange";
+		}
+		if (bucket > global.BUCKET_MIN) {
+			bucketColor = "LightGreen";
+		}
 		let credits = Game.market.credits || 0; // Sim doesn't have this.
 		console.log(`End of tick ${Game.time}.\t`
 			+ global.colorWrap(`GCL:${Game.gcl.level}@${perc}%\t`, "DodgerBlue")

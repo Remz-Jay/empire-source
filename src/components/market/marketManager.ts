@@ -95,19 +95,88 @@ export function resourceReport(): void {
 			}
 		}
 	});
-	RESOURCES_ALL.forEach((key: string) => {
-		let value = resources[key] || 0;
-		let strVal: string = value.toString();
-		if (value > 1000000) {
-			strVal = _.round(value / 1000000, 2).toString() + "M";
-		} else if (value > 1000) {
-			strVal = _.round(value / 1000, 2).toString() + "K";
-		}
-		console.log(`[MARKET]\t${key}\t${strVal}`);
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	let elementList = [
+		"Resource",
+		"Total",
+	];
+	roomList.forEach((r: Room) => {
+		elementList.push(r.name);
 	});
+	let header: string = "\u2551";
+	let topLine = "\u2554";
+	let guideLine = "\u2560";
+	let bottomLine = "\u255a";
+	elementList.forEach((s: string) => {
+		header = header.concat(" " + _.padRight(s, 9) + "\u2551");
+		topLine = topLine.concat("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2566");
+		guideLine = guideLine.concat("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u256c");
+		bottomLine = bottomLine.concat("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2569");
+	});
+	topLine = topLine.slice(0, -1) + "\u2557";
+	guideLine = guideLine.slice(0, -1) + "\u2563";
+	bottomLine = bottomLine.slice(0, -1) + "\u255d";
+	console.log(topLine);
+	console.log(header);
+	console.log(guideLine);
+	RESOURCES_ALL.forEach((key: string) => {
+		let globalRunning: boolean = false;
+		let value = resources[key] || 0;
+		let line: string = "";
+		line = line.concat(" " + formatAmount(value) + "\u2551");
+		roomList.forEach((r: Room) => {
+			let roomRunning: boolean = false;
+			if (!!Game.flags[r.name + "_LR"]) {
+				let flag = Game.flags[r.name + "_LR"];
+				if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
+					let reaction = global.labColors.resource(flag.color, flag.secondaryColor);
+					if (reaction === key) {
+						roomRunning = true;
+						globalRunning = true;
+					}
+				}
+			}
+			let storageVal = (!!r.storage) ? r.storage.store[key] || 0 : 0;
+			let terminalVal = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
+			let totalVal = storageVal + terminalVal;
+			if (roomRunning) {
+				line = line.concat(" " + formatAmount(totalVal, "CornflowerBlue") + "\u2551");
+			} else {
+				line = line.concat(" " + formatAmount(totalVal) + "\u2551");
+			}
+		});
+		if (globalRunning) {
+			line = "\u2551 <b>" + global.colorWrap(_.padRight(key, 9), "CornflowerBlue") + "</b>\u2551".concat(line);
+		} else {
+			line = "\u2551 <b>" + _.padRight(key, 9) + "</b>\u2551".concat(line);
+		}
+		console.log(line);
+	});
+	console.log(bottomLine);
 }
 global.resourceReport = resourceReport;
 
+export function formatAmount(value: number, overrideColor?: string): string {
+	let strVal: string = value.toString();
+	if (value > 1000000) {
+		strVal = _.round(value / 1000000, 2).toString() + "M";
+	} else if (value > 1000) {
+		strVal = _.round(value / 1000, 2).toString() + "K";
+	}
+	strVal = _.padRight(" " + strVal, 9);
+	if (_.isString(overrideColor)) {
+		strVal = global.colorWrap(strVal, overrideColor);
+	} else {
+		if (value > global.STORAGE_MIN) {
+			strVal = global.colorWrap(strVal, "LightGreen");
+		} else if (value > global.STORAGE_MIN / 2) {
+			strVal = global.colorWrap(strVal, "Orange");
+		} else {
+			strVal = global.colorWrap(strVal, "Salmon");
+		}
+	}
+	return strVal;
+}
 export function transactionReport(numTransactions = 5): void {
 	console.log(global.colorWrap(`[MARKET] Incoming Transactions:`, "Red"));
 	_.take(Game.market.incomingTransactions, numTransactions).forEach((t: Transaction) => {
