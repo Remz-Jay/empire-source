@@ -70,7 +70,10 @@ Room.prototype.getCreepMatrix = function () {
 		} else {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
-			this.allCreeps.forEach(function (creep: Creep) {
+			_.union(this.myCreeps, this.alliedCreeps).forEach(function (creep: Creep) {
+				costMatrix.set(creep.pos.x, creep.pos.y, 20);
+			});
+			this.hostileCreeps.forEach(function (creep: Creep) {
 				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
@@ -102,6 +105,8 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			{x: 43, y: 24, w: 9}, // Narrow Path, route to W4N42
 		],
 		W7N45: [
+			{x: 48, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 49, y: 5, w: 0xff}, // SK near O source, avoid
 			{x: 48, y: 6, w: 0xff}, // SK near O source, avoid
 			{x: 49, y: 6, w: 0xff}, // SK near O source, avoid
 			{x: 48, y: 7, w: 0xff}, // SK near O source, avoid
@@ -124,14 +129,21 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			{x: 49, y: 15, w: 0xff}, // SK near O source, avoid
 		],
 		W6N45: [
+			{x: 0, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 1, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 2, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 3, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 4, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 5, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 6, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 7, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 8, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 9, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 10, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 11, y: 5, w: 0xff}, // SK near O source, avoid
+			{x: 12, y: 5, w: 0xff}, // SK near O source, avoid
 			{x: 0, y: 6, w: 0xff}, // SK near O source, avoid
 			{x: 1, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 2, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 7, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 8, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 9, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 10, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 11, y: 6, w: 0xff}, // SK near O source, avoid
 			{x: 12, y: 6, w: 0xff}, // SK near O source, avoid
 			{x: 0, y: 7, w: 0xff}, // SK near O source, avoid
 			{x: 1, y: 7, w: 0xff}, // SK near O source, avoid
@@ -202,6 +214,8 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				} else if (structure.structureType === STRUCTURE_RAMPART && !structure.my) {
 					// Avoid hostile ramparts
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
+				} else if (structure.structureType === STRUCTURE_CONTAINER) {
+					costs.set(structure.pos.x, structure.pos.y, 3);
 				}
 			});
 			// console.log("Returning NEW CostMatrix for room " + this.name);

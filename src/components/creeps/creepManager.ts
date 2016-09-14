@@ -70,7 +70,7 @@ export function governCreeps(room: Room): CreepStats {
 			&& (
 				prioritizedGovernors[index].PRIORITY < global.PRIORITY_TRESHOLD // Always execute roles that have priority
 				|| Game.cpu.bucket > global.BUCKET_MIN // Execute auxiliary roles when bucket allows for it
-				|| Game.cpu.getUsed() < Game.cpu.limit // Execute auxiliary roles when we have spare cycles this tick.
+				// || Game.cpu.getUsed() < Game.cpu.limit // Execute auxiliary roles when we have spare cycles this tick.
 			)
 		) {
 			let CpuBeforeRoles = Game.cpu.getUsed();

@@ -298,7 +298,7 @@ global.getTowerRange = function(roomName: string): number {
 		case "W6N49":
 			return 50;
 		default:
-			return 30;
+			return 50;
 	}
 };
 

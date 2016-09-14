@@ -32,7 +32,7 @@ StructureTerminal.prototype.run = function () {
 		});
 	}
 	if (!sending
-		&& Game.cpu.getUsed() < (Game.cpu.limit * 0.95)
+		&& Game.cpu.bucket > global.BUCKET_MIN
 		&& this.store.energy >= global.TERMINAL_MAX
 		&& storage.store[minType] > global.STORAGE_MIN
 		&& this.store[minType] >= global.TERMINAL_MAX

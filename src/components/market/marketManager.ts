@@ -1,5 +1,5 @@
 export function governMarket(): void {
-	if (Game.cpu.getUsed() < Game.cpu.limit) {
+	if (Game.cpu.bucket > global.BUCKET_MIN) {
 		switch (Game.time % 10) {
 			case 0:
 				cleanupOrders();

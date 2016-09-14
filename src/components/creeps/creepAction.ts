@@ -168,26 +168,27 @@ export default class CreepAction implements ICreepAction {
 		try {
 			let pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
 			let path: RoomPosition[] = [];
-			if (!!this.creep.memory.pfg && this.comparePfg(pfg, this.creep.memory.pfg) && !!this.creep.memory.pfgPath) {
+			if (!!this.creep.memory.pfg && _.isArray(this.creep.memory.pfgPath) && this.creep.memory.pfgPath.length > 0 && this.comparePfg(pfg, this.creep.memory.pfg)) {
 				path = this.creep.memory.pfgPath as Array<any>;
+				if (path.length < 1) {
+					this.creep.memory.pfgPath = undefined;
+					this.creep.memory.pfg = undefined;
+					this.creep.memory.lastPosition = undefined;
+					return ERR_NOT_FOUND;
+				}
 			} else {
 				this.creep.memory.lastPosition = undefined;
 				let ignoreCreeps = !retry;
-				if (this.creep.pos.getRangeTo(pfg[0].pos) < 5) {
+				if (this.creep.pos.getRangeTo(pfg[0].pos) < 3) {
 					ignoreCreeps = false;
 				}
 				path = this.findPathFinderPath(pfg, ignoreCreeps);
 				if (!!path && path.length > 0) {
 					this.creep.memory.pfg = pfg;
-					this.creep.memory.pfgPath = path;
 				} else {
 					this.creep.memory.pfgPath = undefined;
 					return ERR_NOT_FOUND;
 				}
-			}
-			if (path.length < 1) {
-				this.creep.memory.pfgPath = undefined;
-				return ERR_NOT_FOUND;
 			}
 			if (!!this.creep.memory.lastPosition) {
 				let lp = this.creep.memory.lastPosition;
@@ -199,39 +200,56 @@ export default class CreepAction implements ICreepAction {
 						this.creep.memory.stuckTicks = undefined;
 						this.creep.memory.lastPosition = undefined;
 						this.creep.memory.pfgPath = undefined;
+						this.creep.memory.moveAttempt = undefined;
 						this.creep.say("You win.");
 						return (retry) ? ERR_NOT_FOUND : this.moveTo(pfg, true);
 					} else {
-						this.creep.say("Pardon me.");
+						let phrases = [
+							"Pardon me.",
+							"'scuse me.",
+							"Move it!",
+							"Squeeze in",
+						];
+						this.creep.say(phrases[_.random(0, phrases.length - 1)], true);
+						if (!!this.creep.memory.moveAttempt) {
+							path.unshift(this.creep.memory.moveAttempt);
+						}
 					}
 				} else {
 					delete this.creep.memory.stuckTicks;
 				}
 			}
-			this.creep.memory.lastPosition = this.creep.pos;
-			let pos = this.deserializePathFinderPosition(path.shift());
-			if (this.creep.pos.isEqualTo(pos)) {
-				pos = this.deserializePathFinderPosition(path.shift());
-				this.creep.memory.pfgPath = path;
+			let pos = this.deserializePathFinderPosition(path[0]);
+			while (this.creep.pos.isEqualTo(pos)) {
+				if (path.length > 0) {
+					pos = this.deserializePathFinderPosition(path.shift());
+				} else {
+					this.creep.memory.pfgPath = undefined;
+					this.creep.memory.pfg = undefined;
+					this.creep.memory.lastPosition = undefined;
+					this.creep.memory.moveAttempt = undefined;
+					return ERR_NOT_FOUND;
+				}
 			}
 			if (this.creep.pos.isNearTo(pos)) {
-				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveTo #${++this.moveIterator}`);
-				let status = this.creep.move(this.creep.pos.getDirectionTo(pos));
-				if (status === OK) {
-					// this.creep.memory.lastPosition = this.creep.pos;
-					// this.creep.memory.pfgPath = path;
-				} else if (status === ERR_TIRED) {
-					// Delete the lastPosition, because the creep hasn't moved due to it being tired. No need to recalculate route now.
-					this.creep.memory.stuckTicks = undefined;
-				}
-				return status;
+				this.creep.memory.lastPosition = this.creep.pos;
+				this.creep.memory.pfgPath = path;
+				this.creep.memory.moveAttempt = pos;
+				return this.creep.move(this.creep.pos.getDirectionTo(pos));
 			} else {
-				Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) went off path. Recalculating route.`);
-				this.creep.memory.stuckTicks = undefined;
-				this.creep.memory.pfgPath = undefined;
 				this.creep.memory.lastPosition = undefined;
-				this.creep.say("I'm lost.");
-				return (retry) ? this.creep.moveTo(pos) : this.moveTo(pfg, true);
+				let distance = this.creep.pos.getRangeTo(pos);
+				if (distance === 2) {
+					this.creep.say("Catchup");
+					return this.creep.moveTo(pos);
+				} else {
+					this.creep.memory.stuckTicks = undefined;
+					this.creep.memory.pfgPath = undefined;
+					this.creep.memory.lastPosition = undefined;
+					this.creep.memory.moveAttempt = undefined;
+					this.creep.say("Lost. " + distance.toString());
+					return (retry) ? this.creep.moveTo(pos) : this.moveTo(pfg, true);
+				}
 			}
 		} catch (e) {
 			console.log(e.message, JSON.stringify(target), "creepAction.moveTo");
@@ -346,10 +364,11 @@ export default class CreepAction implements ICreepAction {
 			callback = this.ignoreCallback;
 		}
 		let maxOps = 2000;
-		if (Game.cpu.getUsed() > (Game.cpu.limit)) {
-			maxOps = 500;
-		} else if (Game.cpu.getUsed() > (Game.cpu.limit * 0.8)) {
+		if (Game.cpu.bucket < global.BUCKET_MIN) {
 			maxOps = 1000;
+		}
+		if (Game.cpu.bucket < (global.BUCKET_MIN / 2)) {
+			maxOps = 500;
 		}
 
 		let plainCost = 2;

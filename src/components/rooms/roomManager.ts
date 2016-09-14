@@ -72,7 +72,7 @@ export function governRooms(): void {
 					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
 				);
 			}
-			if (room.hostileCreeps.length > 0 && room.hostileCreeps[0].owner.username === "Tharit") {
+/*			if (room.hostileCreeps.length > 0 && room.hostileCreeps[0].owner.username === "Tharit") {
 				if (!Memory.offense.config[room.name]) {
 					let sourceRoom: string;
 					switch (room.name) {
@@ -90,7 +90,7 @@ export function governRooms(): void {
 					Game.offense.add(room.name, sourceRoom);
 					Game.notify(`Better wake up, ${room.name} is under attack by Tharit.`);
 				}
-			}
+			}*/
 			CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
 			try {
@@ -104,23 +104,25 @@ export function governRooms(): void {
 				console.log("RoomManager.Towers", e.message);
 			}
 
-			try {
-				let CpuBeforeLinks = Game.cpu.getUsed();
-				if (!!room.storage) {
-					let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
-					_.each(links, function(l: StructureLink) {
-						l.run();
-					}, this);
+			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
+				try {
+					let CpuBeforeLinks = Game.cpu.getUsed();
+					if (!!room.storage) {
+						let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
+						_.each(links, function(l: StructureLink) {
+							l.run();
+						}, this);
+					}
+					if (!!room.terminal) {
+						room.terminal.run();
+					}
+					CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
+				} catch (e) {
+					console.log("RoomManager.Links", e.message);
 				}
-				if (!!room.terminal) {
-					room.terminal.run();
-				}
-				CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
-			} catch (e) {
-				console.log("RoomManager.Links", e.message);
 			}
 
-			if (Game.cpu.getUsed() < Game.cpu.limit && Game.cpu.bucket > global.BUCKET_MIN) {
+			if (Game.cpu.bucket > global.BUCKET_MIN) {
 				let CpuBeforeLabs = Game.cpu.getUsed();
 				if (room.myLabs.length > 2) {
 					try {
@@ -145,13 +147,15 @@ export function governRooms(): void {
 			}
 
 			// run the creeps in this room
-			try {
-				let statObject: CreepStats = CreepManager.governCreeps(room);
-				CpuRoles += statObject.roles;
-				CpuCreeps += statObject.creeps;
-				allCreeps.push(statObject.perRole);
-			} catch (e) {
-				console.log (`ERROR :: Running Creeps for room ${room.name} : ${e.message}`);
+			if (Game.cpu.bucket > (global.BUCKET_MIN / 4)) {
+				try {
+					let statObject: CreepStats = CreepManager.governCreeps(room);
+					CpuRoles += statObject.roles;
+					CpuCreeps += statObject.creeps;
+					allCreeps.push(statObject.perRole);
+				} catch (e) {
+					console.log (`ERROR :: Running Creeps for room ${room.name} : ${e.message}`);
+				}
 			}
 		}
 	}

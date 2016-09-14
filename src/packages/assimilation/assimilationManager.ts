@@ -422,7 +422,7 @@ export function govern(): void {
 					}
 				}
 				let vision: boolean = false;
-				if (!!targetRoom && (!config.hasController || Game.cpu.getUsed() < Game.cpu.limit)) {
+				if (!!targetRoom && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
 						goHome = true;
 						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
