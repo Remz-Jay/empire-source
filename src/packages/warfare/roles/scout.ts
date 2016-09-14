@@ -35,7 +35,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 
 	public moveToHeal(): boolean {
 		if (!this.checkTough()) {
-			let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
+			let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 3);
 			if (targets.length > 0) {
 				let goals = _.map(targets, function (t: Creep) {
 					return {pos: t.pos, range: 4};
@@ -59,7 +59,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 	}
 
 	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2);
+		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2);
 		if (targets.length > 0) {
 			let goals = _.map(targets, function (t: Creep) {
 				return {pos: t.pos, range: 3};

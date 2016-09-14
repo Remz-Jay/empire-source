@@ -62,7 +62,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	}
 
 	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2, {
+		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2, {
 			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
 			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
 		});

@@ -61,7 +61,7 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 	}
 
 	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 4, {
+		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 4, {
 			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
 			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
 		});

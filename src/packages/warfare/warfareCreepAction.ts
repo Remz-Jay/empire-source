@@ -354,7 +354,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			);
 			let hostile = this.creep.pos.findClosestByRange<Creep>(hostiles);
 			if (!!hostile) {
-				if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(FIND_SOURCES, 5).length === 0) {
+				if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(this.creep.room.sources, 5).length === 0) {
 					return undefined;
 				} else {
 					return hostile;

@@ -13,10 +13,12 @@ import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
+// import ObserverManager from "./components/observers/observerManager";
 
 delete Memory.log;
 
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
+// global.om = new ObserverManager();
 // Profiler.enable();
 
 /*

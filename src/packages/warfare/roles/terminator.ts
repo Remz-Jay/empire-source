@@ -181,7 +181,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					let lairs = this.creep.room.allStructures.filter(
 						(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
 						&& s.ticksToSpawn < 50
-						&& (s.pos.findInRange(FIND_SOURCES, 5).length > 0)
+						&& (s.pos.findInRange(this.creep.room.sources, 5).length > 0)
 					);
 					if (lairs.length > 0) {
 						if (!this.creep.pos.inRangeTo(lairs[0].pos, 4)) {

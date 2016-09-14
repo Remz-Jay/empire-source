@@ -10,7 +10,7 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 		super.setCreep(creep);
 	}
 	public hacknslash() {
-		let closestHostile: Creep | Structure = this.creep.pos.findClosestByRange<Creep>(FIND_HOSTILE_CREEPS);
+		let closestHostile: Creep | Structure = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps);
 		if (!!closestHostile) {
 			if (this.creep.attack(closestHostile) === ERR_NOT_IN_RANGE) {
 				this.moveTo(closestHostile.pos);

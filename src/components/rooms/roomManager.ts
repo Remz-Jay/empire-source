@@ -42,20 +42,24 @@ export function governRooms(): void {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		let room = getRoomByName(roomName);
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
-			WallManager.load(room);
-			WallManager.adjustStrength();
-			RampartManager.load(room);
-			RampartManager.adjustStrength();
-			if (room.mySpawns.length > 0) {
-				room.mySpawns.forEach(function (s: StructureSpawn) {
-					if (!!s.spawning) {
-						s.isBusy = true;
-					} else {
-						s.renewCreeps();
-					}
-				});
-				SourceManager.load(room);
-				SourceManager.updateHarvesterPreference();
+			try {
+				WallManager.load(room);
+				WallManager.adjustStrength();
+				RampartManager.load(room);
+				RampartManager.adjustStrength();
+				if (room.mySpawns.length > 0) {
+					room.mySpawns.forEach(function (s: StructureSpawn) {
+						if (!!s.spawning) {
+							s.isBusy = true;
+						} else {
+							s.renewCreeps();
+						}
+					});
+					SourceManager.load(room);
+					SourceManager.updateHarvesterPreference();
+				}
+			} catch (e) {
+				console.log("RoomManager.init", e.message);
 			}
 
 			if (room.controller.level > 3 && room.numberOfCreeps < 5) {
@@ -89,24 +93,32 @@ export function governRooms(): void {
 			}
 			CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
-			let CpuBeforeTowers = Game.cpu.getUsed();
-			let towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
-			_.each(towers, function(t: StructureTower) {
-				t.run();
-			}, this);
-			CpuTowers += (Game.cpu.getUsed() - CpuBeforeTowers);
-
-			let CpuBeforeLinks = Game.cpu.getUsed();
-			if (!!room.storage) {
-				let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
-				_.each(links, function(l: StructureLink) {
-					l.run();
+			try {
+				let CpuBeforeTowers = Game.cpu.getUsed();
+				let towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
+				_.each(towers, function(t: StructureTower) {
+					t.run();
 				}, this);
+				CpuTowers += (Game.cpu.getUsed() - CpuBeforeTowers);
+			} catch (e) {
+				console.log("RoomManager.Towers", e.message);
 			}
-			if (!!room.terminal) {
-				room.terminal.run();
+
+			try {
+				let CpuBeforeLinks = Game.cpu.getUsed();
+				if (!!room.storage) {
+					let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
+					_.each(links, function(l: StructureLink) {
+						l.run();
+					}, this);
+				}
+				if (!!room.terminal) {
+					room.terminal.run();
+				}
+				CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
+			} catch (e) {
+				console.log("RoomManager.Links", e.message);
 			}
-			CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
 
 			if (Game.cpu.getUsed() < Game.cpu.limit && Game.cpu.bucket > global.BUCKET_MIN) {
 				let CpuBeforeLabs = Game.cpu.getUsed();

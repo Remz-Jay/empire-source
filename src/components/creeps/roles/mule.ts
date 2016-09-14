@@ -1,55 +1,18 @@
 import CreepAction, {ICreepAction} from "../creepAction";
 
 export interface IMule {
-
-	targetEnergyDropOff: Spawn | Structure;
-	targetEnergySource: Spawn | Structure;
-
 	isBagEmpty(): boolean;
-	assignNewTarget(): boolean;
-
 	action(): boolean;
 }
 
 export default class Mule extends CreepAction implements IMule, ICreepAction {
 
-	public targetEnergyDropOff: Spawn | Structure;
-	public targetEnergySource: Spawn | Structure;
+	public scanForDrops: boolean = false;
+	public storage: StructureStorage;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
-
-		this.targetEnergyDropOff = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_dropoff_id);
-		this.targetEnergySource = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_source_id);
-	}
-
-	public assignNewTarget(blackList: string[] = []): boolean {
-		if (this.creep.room.myStructures.length > 0) {
-			let structs: OwnedStructure[] = this.creep.room.myStructures.filter((structure: EnergyStructure) =>
-				( blackList.indexOf(structure.id) === -1 &&
-					(
-						(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
-						|| ((structure.structureType === STRUCTURE_TOWER || structure.structureType === STRUCTURE_SPAWN)
-						&& structure.energy < (structure.energyCapacity * 0.8))
-					)
-				)
-			);
-			let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByRange(structs);
-			if (!!target) {
-				let taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
-				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.target && c.memory.target === target.id));
-				if (!!taken && taken.length > 0) {
-					blackList.push(target.id);
-					return this.assignNewTarget(blackList);
-				} else {
-					this.targetEnergyDropOff = target;
-					this.creep.memory.target_energy_dropoff_id = target.id;
-					return true;
-				}
-			}
-		}
-		return false;
+		this.storage = this.creep.room.storage || undefined;
 	}
 
 	public isBagEmpty(): boolean {
@@ -131,27 +94,23 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	};
 	public dumpAtStorage(): void {
 		if (!this.creep.memory.target) {
-			// find a nearby link first, if storage isn't close
-			if (!!this.creep.room.storage && this.creep.carry.energy > 0 && !this.creep.pos.inRangeTo(this.creep.room.storage.pos, 9)) {
-				let target: StructureLink[] = this.creep.room.myStructures.filter((s: StructureLink) => s.structureType === STRUCTURE_LINK
-					&& s.energy < s.energyCapacity
-					&& s.pos.inRangeTo(this.creep.pos, 10)
-				) as StructureLink[];
-				if (!!target && target.length > 0) {
-					this.creep.memory.target = target[0].id;
+			// find a link that's closer than storage
+			if (!!this.storage && this.creep.carry.energy > 0) {
+				let storageRange = this.creep.pos.getRangeTo(this.storage.pos);
+				let target: OwnedStructure = this.creep.pos.findClosestByRange<OwnedStructure>(
+					this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_LINK && s.pos.getRangeTo(this.creep.pos) < storageRange)
+				);
+				if (!!target) {
+					this.creep.memory.target = target.id;
 				} else {
-					this.creep.memory.target = this.creep.room.storage.id;
+					this.creep.memory.target = this.storage.id;
 				}
-			} else if (!!this.creep.room.storage) {
-				this.creep.memory.target = this.creep.room.storage.id;
+			} else if (!!this.storage) {
+				this.creep.memory.target = this.storage.id;
 			} else {
 				// last resort; just return energy to the nearest container.
-				let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
-				structure.structureType === STRUCTURE_CONTAINER && _.sum(structure.store) < structure.storeCapacity);
-				let target: StructureContainer = this.creep.pos.findClosestByPath(structs, {
-					algorithm: "astar",
-					maxRooms: 1,
-					maxOps: 500,
+				let target: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.containers, {
+					filter: (structure: StructureContainer) => _.sum(structure.store) < structure.storeCapacity,
 					costCallback: this.roomCallback,
 				}) as StructureContainer;
 				if (!!target) {
@@ -181,7 +140,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			maxOps: 500,
 			costCallback: this.roomCallback,
 		}) as StructureContainer;
-		if (!source && idle) {
+		if (!source && idle && this.creep.room.controller.level > 5) {
 			// No energy in containers found. Get some minerals instead
 			structs = this.creep.room.containers.filter((structure: StructureContainer) =>
 			blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
@@ -257,13 +216,13 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.dumpRoutine(target);
 			}
 		} else if (!!this.creep.memory.idle) {
-			if (_.sum(this.creep.carry) > this.creep.carry.energy) {
+			if (_.sum(this.creep.carry) - this.creep.carry.energy > 0) {
 				// We're carrying Minerals. Drop them off first before returning to duty.
 				this.dumpAtStorage();
 			} else {
 				// return to duty when able
 				let target: Structure = undefined;
-				if (Game.time % 3 === 0) {
+				if (Game.time % 5 === 0) {
 					target = this.scanForTargets();
 				}
 				if (!!target) {
@@ -274,13 +233,18 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				} else {
 					// scan for dropped energy if we have room
 					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-						let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-							filter: (r: Resource) => r.amount > 100,
-							algorithm: "astar",
-							maxRooms: 1,
-							maxOps: 500,
-							costCallback: this.roomCallback,
-						}) as Resource;
+						let target: Resource;
+						if (this.scanForDrops) {
+							let resources = this.creep.room.find(FIND_DROPPED_RESOURCES, {filter: (r: Resource) => r.amount > 100});
+							if (resources.length > 0) {
+								target = this.creep.pos.findClosestByPath(resources, {
+									algorithm: "astar",
+									maxRooms: 1,
+									maxOps: 500,
+									costCallback: this.roomCallback,
+								}) as Resource;
+							}
+						}
 						if (!!target) {
 							if (!this.creep.pos.isNearTo(target)) {
 								this.moveTo(target.pos);
@@ -303,9 +267,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 								// No sources found, proceed to offload at Storage.
 								this.dumpAtStorage();
 							} else {
-								let flag = this.creep.room.find<Flag>(FIND_FLAGS, {filter: (f: Flag) => f.name === this.creep.room.name});
-								if (flag.length > 0) {
-									this.moveTo(flag.pop().pos);
+								let flag = Game.flags[this.creep.room.name];
+								if (!!flag && flag.room.name === this.creep.room.name) {
+									this.moveTo(flag.pos);
 								}
 							}
 						}
@@ -333,13 +297,18 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					this.creep.memory.dumping = true;
 				} else {
 					this.creep.say("DRY");
-					let target: Resource = this.creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-						filter: (r: Resource) => r.amount > 100,
-						algorithm: "astar",
-						maxRooms: 1,
-						maxOps: 500,
-						costCallback: this.roomCallback,
-					}) as Resource;
+					let target: Resource;
+					if (this.scanForDrops) {
+						let resources = this.creep.room.find(FIND_DROPPED_RESOURCES, {filter: (r: Resource) => r.amount > 100});
+						if (resources.length > 0) {
+							target = this.creep.pos.findClosestByPath(resources, {
+								algorithm: "astar",
+								maxRooms: 1,
+								maxOps: 500,
+								costCallback: this.roomCallback,
+							}) as Resource;
+						}
+					}
 					if (!!target) {
 						if (!this.creep.pos.isNearTo(target)) {
 							this.moveTo(target.pos);
@@ -347,9 +316,9 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 							this.creep.pickup(target);
 						}
 					} else {
-						let flag = this.creep.room.find<Flag>(FIND_FLAGS, {filter: (f: Flag) => f.name === this.creep.room.name});
-						if (flag.length > 0) {
-							this.moveTo(flag.pop().pos);
+						let flag = Game.flags[this.creep.room.name];
+						if (!!flag && flag.room.name === this.creep.room.name) {
+							this.moveTo(flag.pos);
 						}
 					}
 				}

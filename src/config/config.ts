@@ -88,7 +88,7 @@ global.MINRCL_HARVESTER         = 1;
 global.MINRCL_MULE              = 1;
 global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
-global.MINRCL_REPAIR            = 3;
+global.MINRCL_REPAIR            = 9;
 global.MINRCL_MINER             = 6;
 global.MINRCL_SCIENTIST         = 9;
 
@@ -295,8 +295,8 @@ global.getTowerRange = function(roomName: string): number {
 			return 19;
 		case "W7N45":
 			return 7;
-/*		case "W6N49":
-			return 20;*/
+		case "W6N49":
+			return 50;
 		default:
 			return 30;
 	}

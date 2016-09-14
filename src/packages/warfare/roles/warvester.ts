@@ -33,6 +33,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 
 export default class Warvester extends WarfareCreepAction implements IWarvester {
 
+	public sourcePosition: number = 5;
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
 		super.setCreep(creep, positions);
 	}
@@ -54,7 +55,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 	}
 
 	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2, {
+		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2, {
 			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
 			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
 		});
@@ -91,24 +92,35 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		if (!this.positions) {
 			return false;
 		}
-		if (!this.isBagFull()) {
+		if (!this.isBagFull() && this.positionIterator === this.sourcePosition) {
 			if (this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				let mineral = this.creep.room.lookForAt<Mineral>(LOOK_MINERALS, this.positions[this.positionIterator]);
-				if (mineral.length > 0) {
-					// this.creep.say("H");
-					this.creep.harvest(mineral[0]);
+				let mineralSource: Mineral;
+				if (!!this.creep.memory.mineralSource) {
+					mineralSource = Game.getObjectById(this.creep.memory.mineralSource) as Mineral;
+				} else {
+					let mineral = this.creep.room.lookForAt<Mineral>(LOOK_MINERALS, this.positions[this.positionIterator]);
+					if (mineral.length > 0) {
+						this.creep.memory.mineralSource = mineral[0].id;
+						mineralSource = mineral[0];
+					}
+				}
+				if (!!mineralSource) {
+					let status = this.creep.harvest(mineralSource);
+					if (status === ERR_NOT_ENOUGH_RESOURCES) {
+						this.positionIterator = this.creep.memory.positionIterator = this.sourcePosition + 1;
+						return true;
+					}
 					return false;
 				} else {
 					return true;
 				}
 			}
-			// TODO: Flexibilize this condition
-		} else if (this.isBagFull() && this.positionIterator === 5 && this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-			this.positionIterator = this.creep.memory.positionIterator = 6;
+		} else if (this.positionIterator === this.sourcePosition && this.isBagFull()) {
+			this.positionIterator = this.creep.memory.positionIterator = this.sourcePosition + 1;
 		} else if (this.creep.pos.isNearTo(this.creep.room.terminal)) {
 			let status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
 			if (status === OK) {
-				// this.creep.say("Dump");
+				this.creep.say("Dump");
 				this.positionIterator = this.creep.memory.positionIterator = 0;
 				return false;
 			}

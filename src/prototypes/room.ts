@@ -19,6 +19,7 @@ interface Room {
 	sources: Source[];
 	minerals: Mineral[];
 	nuker: StructureNuker;
+	observer: StructureObserver;
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -48,6 +49,7 @@ interface Room {
 	getSources(): Source[];
 	getMinerals(): Mineral[];
 	getNuker(): StructureNuker;
+	getObserver(): StructureObserver;
 	addProperties(): void;
 }
 
@@ -68,10 +70,7 @@ Room.prototype.getCreepMatrix = function () {
 		} else {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
-			this.myCreeps.forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 50);
-			});
-			this.hostileCreeps.forEach(function (creep: Creep) {
+			this.allCreeps.forEach(function (creep: Creep) {
 				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
 			});
 			// console.log("Returning NEW CreepMatrix for room " + this.name);
@@ -180,21 +179,6 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			return costMatrix;
 		} else {
 			let costs = new PathFinder.CostMatrix();
-			this.allStructures.forEach(function (structure: Structure) {
-				if (structure.structureType === STRUCTURE_ROAD) {
-					// Favor roads over plain tiles
-					costs.set(structure.pos.x, structure.pos.y, 1);
-				} else if (structure.structureType !== STRUCTURE_CONTAINER &&
-					(structure.structureType !== STRUCTURE_RAMPART)) {
-					// Can't walk through non-walkable buildings
-					costs.set(structure.pos.x, structure.pos.y, 0xff);
-				}
-			});
-			this.allStructures.forEach((s: OwnedStructure) => {
-				if (s.structureType === STRUCTURE_RAMPART && !s.my) {
-					costs.set(s.pos.x, s.pos.y, 0xff);
-				}
-			});
 			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
 			// Prefer walking on hostile construction sites
 			hostileConstructionSites.forEach((s: ConstructionSite) => {
@@ -202,11 +186,24 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			});
 			// But avoid our own.
 			this.myConstructionSites.forEach(function (site: ConstructionSite) {
-				costs.set(site.pos.x, site.pos.y, 100);
+				costs.set(site.pos.x, site.pos.y, 10);
 			});
 			if (!ignoreRoomConfig) {
 				_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
 			}
+			this.allStructures.forEach(function (structure: OwnedStructure) {
+				if (structure.structureType === STRUCTURE_ROAD) {
+					// Favor roads over plain tiles
+					costs.set(structure.pos.x, structure.pos.y, 1);
+				} else if (structure.structureType !== STRUCTURE_CONTAINER &&
+					(structure.structureType !== STRUCTURE_RAMPART)) {
+					// Can't walk through non-walkable buildings
+					costs.set(structure.pos.x, structure.pos.y, 0xff);
+				} else if (structure.structureType === STRUCTURE_RAMPART && !structure.my) {
+					// Avoid hostile ramparts
+					costs.set(structure.pos.x, structure.pos.y, 0xff);
+				}
+			});
 			// console.log("Returning NEW CostMatrix for room " + this.name);
 			this.setCostMatrix(costs);
 			return costs;
@@ -361,6 +358,14 @@ Room.prototype.getNuker = function(): StructureNuker {
 		return undefined;
 	}
 };
+Room.prototype.getObserver = function(): StructureObserver {
+	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_OBSERVER);
+	if (sn.length > 0) {
+		return sn.pop();
+	} else {
+		return undefined;
+	}
+};
 Room.prototype.addProperties = function () {
 	if (Game.time % 100 === 0) {
 		delete this.memory.allSources;
@@ -382,9 +387,10 @@ Room.prototype.addProperties = function () {
 
 	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
 	this.nuker =                (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getNuker() : undefined;
+	this.observer =             (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getObserver() : undefined;
 	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
 	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
-	this.myLabs =               (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyLabs() : [];
+	this.myLabs =               (!!this.controller && !!this.controller.my && this.controller.level >= 6 && this.allStructures.length > 0) ? this.getMyLabs() : [];
 	this.boostLabs =            (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getBoostLabs() : [];
 
 	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];

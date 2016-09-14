@@ -3,7 +3,7 @@ interface StructureTower {
 }
 StructureTower.prototype.run = function () {
 	if (this.room.hostileCreeps.length > 0) {
-		let hostiles = this.pos.findInRange(FIND_HOSTILE_CREEPS, global.getTowerRange(this.room.name));
+		let hostiles = this.pos.findInRange(this.room.hostileCreeps, global.getTowerRange(this.room.name));
 		let filteredHostiles = hostiles.filter((c: Creep) => c.getActiveBodyparts(ATTACK) > 2
 			|| c.getActiveBodyparts(RANGED_ATTACK) > 2
 			|| c.getActiveBodyparts(WORK) > 2

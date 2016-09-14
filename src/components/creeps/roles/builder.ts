@@ -112,7 +112,6 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 					delete this.creep.memory.target;
 					delete this.creep.memory.source;
 					this.creep.say("B:IDLE");
-					// this.moveTo(this.creep.pos.findClosestByPath(FIND_MY_SPAWNS));
 				}
 			}
 			let target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;

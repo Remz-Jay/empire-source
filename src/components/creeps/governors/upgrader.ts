@@ -27,14 +27,14 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 		if (this.room.controller.level === 8) {
 			return 1;
 		}
-		if (this.room.name === "W6N42") {
+		if (this.room.name === "W7N45" || this.room.name === "W5N42" || this.room.name === "W6N49") {
 			return 2;
 		}
 		let num: number;
 		if (this.room.controller.level > 4) {
 			num = _.floor(this.room.energyInContainers / 200000);
 		} else if (this.room.controller.level < 5) {
-			num = 1;
+			num = 4;
 		} else {
 			num = this.maxCreeps;
 		}
@@ -48,13 +48,9 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 		if (this.room.controller.level === 8) {
 			this.maxParts = 5;
 		}
-		if (this.room.controller.level < 4) {
+		if (this.room.controller.level < 5) { // Carry more stuff when links aren't available yet.
 			this.bodyPart = [CARRY, WORK, MOVE];
 		}
-/*		if (this.room.name === "W7N45") {
-			this.bodyPart = [CARRY, MOVE, CARRY, MOVE, WORK, MOVE, WORK, MOVE];
-			this.maxParts = 1;
-		}*/
 		return super.getBody();
 	}
 }
