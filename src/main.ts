@@ -14,7 +14,7 @@ import * as AssimilationManager from "./packages/assimilation/assimilationManage
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
 // import ObserverManager from "./components/observers/observerManager";
-
+let reset: number = 1;
 delete Memory.log;
 
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
@@ -37,14 +37,14 @@ export function loop() {
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
-/*		let CpuInit = Game.cpu.getUsed();
+		let CpuInit = Game.cpu.getUsed();
 
 		let cpuBeforeStats = Game.cpu.getUsed();
 		// let runExpensive = (Game.time % 5 === 0) ? true : false;
 		let runExpensive = true;
 		StatsManager.runBuiltinStats(runExpensive);
 		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
-		StatsManager.addStat("cpu.init", CpuInit);*/
+		StatsManager.addStat("cpu.init", CpuInit);
 
 		try {
 			AssimilationManager.govern();
@@ -104,6 +104,10 @@ export function loop() {
 			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${bucket.toLocaleString()}\t`, bucketColor)
 			+ global.colorWrap(`MKT:${credits.toLocaleString()}`, "CornflowerBlue")
 		);
+		Memory.resetCounter += reset;
 		StatsManager.addStat("cpu.getUsed", cpuUsed);
+		StatsManager.addStat("cpu.reset", reset);
+		StatsManager.addStat("cpu.resetCounter", Memory.resetCounter);
+		reset = 0;
 	});
 }

@@ -5,10 +5,11 @@ StructureTerminal.prototype.run = function () {
 	let storage = this.room.storage;
 	let sending: boolean = false;
 	let minType: string = this.room.minerals[0].mineralType;
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_MAX && storage.store.energy > (global.STORAGE_MIN + global.TERMINAL_MAX)) {
 		// Find a room that needs energy.
-		_.forEach(Game.rooms, (room: Room) => {
-			if (!sending && !!room.terminal && room.terminal.my && room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_MAX)) {
+		_.forEach(roomList, (room: Room) => {
+			if (!sending && room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_MAX)) {
 				let status = this.send(RESOURCE_ENERGY, (global.TERMINAL_MAX - Game.market.calcTransactionCost(global.TERMINAL_MAX, this.room.name, room.name)), room.name);
 				if (status === OK) {
 					sending = true;
@@ -22,9 +23,9 @@ StructureTerminal.prototype.run = function () {
 		&& this.store[minType] >= global.TERMINAL_MAX
 	) {
 		// Find a room that needs our mineral
-		_.forEach(Game.rooms, (room: Room) => {
-			if (!sending && !!room.terminal && room.terminal.my && (!room.terminal.store[minType] || room.terminal.store[minType] < (global.TERMINAL_MAX * 0.9))) {
-				let status = this.send(minType, 10000, room.name);
+		_.forEach(roomList, (room: Room) => {
+			if (!sending && (!room.storage.store[minType] || room.storage.store[minType] < (global.STORAGE_MIN * 0.5))) {
+				let status = this.send(minType, 5000, room.name);
 				if (status === OK) {
 					sending = true;
 				}

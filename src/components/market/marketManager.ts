@@ -1,11 +1,17 @@
 export function governMarket(): void {
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
-		switch (Game.time % 10) {
+		switch (Game.time % 20) {
 			case 0:
 				cleanupOrders();
 				break;
 			case 1:
 				findDeals();
+				break;
+			case 2:
+				dumpResource("O");
+				break;
+			case 3:
+				dumpResource("H");
 				break;
 			default:
 				return;
@@ -75,9 +81,15 @@ global.findDeals = findDeals;
 
 export function resourceReport(): void {
 	let resources: ResourceList = {"energy": 0};
-	_.forEach(Game.rooms, (r: Room) => {
+	let roomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	let elementList: string[] = [
+		"Resource",
+		"Total",
+	];
+	_.forEach(roomList, (r: Room) => {
 		if (!!r.controller && r.controller.my) {
 			if (!!r.storage) {
+				elementList.push(r.name);
 				_.forEach(r.storage.store, (value: number, key: string) => {
 					if (!!resources[key]) {
 						resources[key] += value;
@@ -97,23 +109,16 @@ export function resourceReport(): void {
 			}
 		}
 	});
-	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
-	let elementList = [
-		"Resource",
-		"Total",
-	];
-	roomList.forEach((r: Room) => {
-		elementList.push(r.name);
-	});
+	let cellWidth: number = 9;
 	let header: string = "\u2551";
-	let topLine = "\u2554";
-	let guideLine = "\u2560";
-	let bottomLine = "\u255a";
+	let topLine: string = "\u2554";
+	let guideLine: string = "\u2560";
+	let bottomLine: string = "\u255a";
 	elementList.forEach((s: string) => {
-		header = header.concat(" " + _.padRight(s, 9) + "\u2551");
-		topLine = topLine.concat("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2566");
-		guideLine = guideLine.concat("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u256c");
-		bottomLine = bottomLine.concat("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2569");
+		header =  header.concat(" " + _.padRight(s, cellWidth) + "\u2551");
+		topLine = topLine.concat(_.padLeft("", cellWidth + 1, "\u2550") + "\u2566");
+		guideLine = guideLine.concat(_.padLeft("", cellWidth + 1, "\u2550") + "\u256c");
+		bottomLine = bottomLine.concat(_.padLeft("", cellWidth + 1, "\u2550") + "\u2569");
 	});
 	topLine = topLine.slice(0, -1) + "\u2557";
 	guideLine = guideLine.slice(0, -1) + "\u2563";
@@ -124,10 +129,10 @@ export function resourceReport(): void {
 	let tracers: string[] = [];
 	RESOURCES_ALL.forEach((key: string) => {
 		let globalRunning: boolean = false;
-		let value = resources[key] || 0;
+		let value: number = resources[key] || 0;
 		if (value > 1000) {
 			let line: string = "";
-			line = line.concat(" " + formatAmount(value) + "\u2551");
+			line = line.concat(" " + formatAmount(value, cellWidth) + "\u2551");
 			roomList.forEach((r: Room) => {
 				let roomRunning: boolean = false;
 				if (!!Game.flags[r.name + "_LR"]) {
@@ -140,19 +145,19 @@ export function resourceReport(): void {
 						}
 					}
 				}
-				let storageVal = (!!r.storage) ? r.storage.store[key] || 0 : 0;
-				let terminalVal = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
-				let totalVal = storageVal + terminalVal;
+				let storageVal: number = (!!r.storage) ? r.storage.store[key] || 0 : 0;
+				let terminalVal: number = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
+				let totalVal: number = storageVal + terminalVal;
 				if (roomRunning) {
-					line = line.concat(" " + formatAmount(totalVal, "CornflowerBlue") + "\u2551");
+					line = line.concat(" " + formatAmount(totalVal, cellWidth, "CornflowerBlue") + "\u2551");
 				} else {
-					line = line.concat(" " + formatAmount(totalVal) + "\u2551");
+					line = line.concat(" " + formatAmount(totalVal, cellWidth) + "\u2551");
 				}
 			});
 			if (globalRunning) {
-				line = "\u2551 <b>" + global.colorWrap(_.padRight(key, 9), "CornflowerBlue") + "</b>\u2551".concat(line);
+				line = "\u2551 <b>" + global.colorWrap(_.padRight(key, cellWidth), "CornflowerBlue") + "</b>\u2551".concat(line);
 			} else {
-				line = "\u2551 <b>" + _.padRight(key, 9) + "</b>\u2551".concat(line);
+				line = "\u2551 <b>" + _.padRight(key, cellWidth) + "</b>\u2551".concat(line);
 			}
 			console.log(line);
 		} else if (value > 0) {
@@ -160,23 +165,25 @@ export function resourceReport(): void {
 		}
 	});
 	console.log(bottomLine);
-	let tracerLine = "Also found traces of: ";
-	tracers.forEach((s: String) => {
-		tracerLine = tracerLine.concat(s + ", ");
-	});
-	tracerLine = tracerLine.slice(0, -2) + ".";
-	console.log(tracerLine);
+	if (tracers.length > 0) {
+		let tracerLine: string = "Also found traces of: ";
+		tracers.forEach((s: String) => {
+			tracerLine = tracerLine.concat(s + ", ");
+		});
+		tracerLine = tracerLine.slice(0, -2) + ".";
+		console.log(tracerLine);
+	}
 }
 global.resourceReport = resourceReport;
 
-export function formatAmount(value: number, overrideColor?: string): string {
+export function formatAmount(value: number, cellWidth: number = 0, overrideColor?: string): string {
 	let strVal: string = value.toString();
 	if (value > 1000000) {
 		strVal = _.round(value / 1000000, 2).toString() + "M";
 	} else if (value > 1000) {
 		strVal = _.round(value / 1000, 2).toString() + "k";
 	}
-	strVal = _.padRight(" " + strVal, 9);
+	strVal = _.padRight(strVal, cellWidth);
 	if (_.isString(overrideColor)) {
 		strVal = global.colorWrap(strVal, overrideColor);
 	} else {
@@ -191,12 +198,16 @@ export function formatAmount(value: number, overrideColor?: string): string {
 	return strVal;
 }
 export function dumpResource(resource: string) {
+	let perBatch: number = 1000;
 	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
-		if (!!r.storage.store[resource] && r.storage.store[resource] > global.STORAGE_MIN
-			&& r.terminal.store[resource] && r.terminal.store[resource] >= global.TERMINAL_MAX
+		if (!!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.5)
+			&& r.terminal.store[resource] && r.terminal.store[resource] >= perBatch
 		) {
 			let canSell = r.terminal.store[resource];
+			if (canSell > perBatch) {
+				canSell = perBatch;
+			}
 			let availableEnergy = r.terminal.store.energy;
 			console.log(`Room ${r.name} has ${formatAmount(r.storage.store[resource])} x ${resource} in storage.`);
 			let price: number = marketThresholds[resource];

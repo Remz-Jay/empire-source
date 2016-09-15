@@ -141,7 +141,20 @@ export default class CreepAction implements ICreepAction {
 					});
 					Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - flee #${++this.moveIterator}`);
 					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
-					this.creep.say("FLEE!");
+					let phrases: string[] = [
+						"Mommy!",
+						"KKTHNXBYE!",
+						"$%&# This!",
+						"Call 911!",
+						"Oh HELL no",
+						"Catch me!",
+						"OKDOEI.",
+						"Aaaaaaaah!",
+						"No. No. NO",
+						"*scared*",
+						"*sobbing*",
+					];
+					this.creep.say(phrases[_.random(0, phrases.length - 1)], true);
 				} else {
 					this.creep.cancelOrder("move");
 				}
@@ -396,10 +409,28 @@ export default class CreepAction implements ICreepAction {
 			return path.path;
 		}
 	};
+
+	public safeLook(lookFor: string, pos: RoomPosition, range: number = 1): LookAtResultWithPos[] {
+		let positions: any = {
+			top: pos.y - range,
+			left: pos.x - range,
+			bottom: pos.y + range,
+			right: pos.x + range,
+		};
+		_.forOwn(positions, (val: number, key: any) => {
+			if (val < 1) {
+				positions[key] = 1;
+			}
+			if (val > 48) {
+				positions[key] = 48;
+			}
+		});
+		return this.creep.room.lookForAtArea(lookFor, positions.top, positions.left, positions.bottom, positions.right, true) as LookAtResultWithPos[];
+	}
+
 	public pickupResourcesInRange(skipContainers: boolean = false): void {
 		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
-			let p = this.creep.pos;
-			let targets = this.creep.room.lookForAtArea(LOOK_RESOURCES, p.y - 1, p.x - 1, p.y + 1, p.x + 1, true) as LookAtResultWithPos[];
+			let targets = this.safeLook(LOOK_RESOURCES, this.creep.pos, 1);
 			if (targets.length > 0) {
 				this.creep.pickup(targets[0].resource);
 			} else if (!skipContainers) {

@@ -93,6 +93,7 @@ declare interface ResourceList {
 }
 
 declare interface Memory {
+	resetCounter: number;
 	showTransactions: boolean;
 	showLogCreep: boolean;
 	showLogMove: boolean;

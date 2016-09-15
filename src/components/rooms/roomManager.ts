@@ -37,6 +37,7 @@ export function governRooms(): void {
 	let CpuRoles = 0;
 	let CpuCreeps = 0;
 	let CpuLabs = 0;
+	let CpuTerminals = 0;
 	let allCreeps: any[] = [];
 	for (let roomName in Game.rooms) {
 		let CpuBeforeRoomInit = Game.cpu.getUsed();
@@ -101,7 +102,7 @@ export function governRooms(): void {
 				}, this);
 				CpuTowers += (Game.cpu.getUsed() - CpuBeforeTowers);
 			} catch (e) {
-				console.log("RoomManager.Towers", e.message);
+				console.log("RoomManager.Towers", room.name, e.message);
 			}
 
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
@@ -113,12 +114,20 @@ export function governRooms(): void {
 							l.run();
 						}, this);
 					}
+					CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
+				} catch (e) {
+					console.log("RoomManager.Links", room.name, e.message);
+				}
+			}
+			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
+				try {
+					let CpuBeforeTerminals = Game.cpu.getUsed();
 					if (!!room.terminal) {
 						room.terminal.run();
 					}
-					CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
+					CpuTerminals += (Game.cpu.getUsed() - CpuBeforeTerminals);
 				} catch (e) {
-					console.log("RoomManager.Links", e.message);
+					console.log("RoomManager.Terminal", room.name, e.message);
 				}
 			}
 
@@ -140,7 +149,7 @@ export function governRooms(): void {
 							}
 						}
 					} catch (e) {
-						console.log(`ERROR :: RoomManager.runLabs: ${e.message}`);
+						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.message);
 					}
 				}
 				CpuLabs += (Game.cpu.getUsed() - CpuBeforeLabs);
@@ -186,6 +195,7 @@ export function governRooms(): void {
 	StatsManager.addStat("cpu.roominit", CpuRoomInit);
 	StatsManager.addStat("cpu.towers", CpuTowers);
 	StatsManager.addStat("cpu.links", CpuLinks);
+	StatsManager.addStat("cpu.terminals", CpuTerminals);
 	StatsManager.addStat("cpu.labs", CpuLabs);
 	StatsManager.addStat("cpu.roles", CpuRoles);
 	StatsManager.addStat("cpu.creeps", CpuCreeps);

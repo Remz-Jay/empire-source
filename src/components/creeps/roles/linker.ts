@@ -31,14 +31,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return flag.pos;
 		} else {
 			let storPos = this.storage.pos;
-			let positions = this.creep.room.lookForAtArea(
-				LOOK_STRUCTURES,
-				storPos.y - 1,
-				storPos.x - 1,
-				storPos.y + 1,
-				storPos.x + 1,
-				true
-			) as Array<any>;
+			let positions = this.safeLook(LOOK_STRUCTURES, storPos, 1);
 			let linkPos: RoomPosition;
 			let termPos: RoomPosition;
 			let creepPos: RoomPosition;
@@ -106,20 +99,36 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				link = Game.getObjectById<StructureLink>(this.creep.memory.link);
 			}
 			if (!!link && this.creep.pos.isNearTo(link)) {
+				let linkLimit: number = 413;
+				let flagSearch = link.pos.lookFor<Flag>(LOOK_FLAGS);
+				if (flagSearch.length > 0) {
+					let flag = flagSearch.pop();
+					if (flag.color === COLOR_PURPLE && flag.secondaryColor === COLOR_PURPLE) {
+						linkLimit = link.energyCapacity;
+					}
+				}
 				if (_.sum(this.creep.carry) > 0 && this.getMineralTypeFromStore(this.creep) !== RESOURCE_ENERGY) {
 					this.cleanUp();
 					return true;
 				}
-				if (link.energy < 413) {
+				if (link.energy < linkLimit) {
 					if (this.creep.carry.energy === 0) {
-						this.creep.withdraw(this.storage, RESOURCE_ENERGY, (413 - link.energy));
+						let transferValue = (linkLimit - link.energy);
+						if (transferValue > this.creep.carryCapacity) {
+							transferValue = this.creep.carryCapacity;
+						}
+						this.creep.withdraw(this.storage, RESOURCE_ENERGY, transferValue);
 					} else {
 						this.creep.transfer(link, RESOURCE_ENERGY);
 					}
 					return true;
-				} else if (link.energy > 413) {
+				} else if (link.energy > linkLimit) {
 					if (this.creep.carry.energy === 0) {
-						this.creep.withdraw(link, RESOURCE_ENERGY, (link.energy - 413));
+						let transferValue = (link.energy - linkLimit);
+						if (transferValue > this.creep.carryCapacity) {
+							transferValue = this.creep.carryCapacity;
+						}
+						this.creep.withdraw(link, RESOURCE_ENERGY, transferValue);
 					} else {
 						this.creep.transfer(this.storage, RESOURCE_ENERGY);
 					}

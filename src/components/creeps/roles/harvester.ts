@@ -206,8 +206,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						delete this.creep.memory[`cont_${this.creep.memory.source}`];
 					}
 				} else {
-					let spos = source.pos;
-					let lr = this.creep.room.lookForAtArea(LOOK_STRUCTURES, spos.y - 1, spos.x - 1, spos.y + 1, spos.x + 1, true) as LookAtResultWithPos[];
+					let lr = this.safeLook(LOOK_STRUCTURES, source.pos, 1);
 					if (lr.length > 0) {
 						_.forEach(lr, (r: LookAtResultWithPos) => {
 							if (r.structure.structureType === STRUCTURE_CONTAINER) {
