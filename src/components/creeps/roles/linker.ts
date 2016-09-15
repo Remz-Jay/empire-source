@@ -249,12 +249,14 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			this.tower = Game.getObjectById<StructureTower>(this.creep.memory.tower);
 		}
 		if (!!this.tower) {
-			if (!!this.creep.memory.direction && this.creep.memory.direction > 4 && this.creep.carry.energy > 0) {
-				if (this.creep.memory.direction === 5) {
-					this.creep.transfer(this.tower, RESOURCE_ENERGY);
-					this.creep.say("TowerPower", true);
-				} else {
-					this.creep.transfer(this.storage, RESOURCE_ENERGY);
+			if (!!this.creep.memory.direction && this.creep.memory.direction > 4) {
+				if (this.creep.carry.energy > 0) {
+					if (this.creep.memory.direction === 5) {
+						this.creep.transfer(this.tower, RESOURCE_ENERGY);
+						this.creep.say("TowerPower", true);
+					} else {
+						this.creep.transfer(this.storage, RESOURCE_ENERGY);
+					}
 				}
 				this.creep.memory.direction = 0;
 				this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -268,7 +270,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				if (amount > this.storage.store.energy) {
 					amount = this.storage.store.energy;
 				}
-				this.creep.withdraw(this.terminal, RESOURCE_ENERGY, amount);
+				this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
 				this.creep.memory.direction = 5;
 				this.creep.memory.carryType = RESOURCE_ENERGY;
 				return true;
