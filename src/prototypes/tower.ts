@@ -24,7 +24,7 @@ StructureTower.prototype.run = function () {
 		if (damagedCreeps.length > 0) {
 			this.heal(_.sortBy(damagedCreeps, "hits").shift());
 		} else {
-			let minHits: number = this.room.controller.level * 20000;
+			let minHits: number = this.room.controller.level * 25000;
 			let damagedStructures = this.room.allStructures.filter((structure: OwnedStructure) =>
 				structure.hits < (structure.hitsMax * 0.8) &&
 				(

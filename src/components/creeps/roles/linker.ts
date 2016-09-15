@@ -10,6 +10,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	public storage: StructureStorage;
 	public nuker: StructureNuker;
 	public tower: StructureTower;
+	public spot: RoomPosition;
 	public storageMin: number = global.STORAGE_MIN;
 	public terminalMax: number = global.TERMINAL_MAX;
 
@@ -18,60 +19,69 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;
 		this.nuker = this.creep.room.nuker;
-	}
-
-	public findSpot(): RoomPosition {
-		let storPos = this.storage.pos;
-		let positions = this.creep.room.lookForAtArea(
-			LOOK_STRUCTURES,
-			storPos.y - 1,
-			storPos.x - 1,
-			storPos.y + 1,
-			storPos.x + 1,
-			true
-		) as Array<any>;
-		let linkPos: RoomPosition;
-		let termPos: RoomPosition;
-		let creepPos: RoomPosition;
-		positions.forEach((pos: any) => {
-			if (pos.structure.structureType === STRUCTURE_TERMINAL) {
-				termPos = new RoomPosition(pos.x, pos.y, this.creep.room.name);
-			}
-			if (pos.structure.structureType === STRUCTURE_LINK) {
-				linkPos = new RoomPosition(pos.x, pos.y, this.creep.room.name);
-			}
-		});
-		if (!!termPos && !!linkPos) {
-			if ((termPos.x === storPos.x - 1 || termPos.x === storPos.x + 1) && termPos.y === storPos.y) {
-				// Use x
-				creepPos = new RoomPosition(termPos.x, linkPos.y, this.creep.room.name);
-			} else if ((termPos.y === storPos.y - 1 || termPos.y === storPos.y + 1) && termPos.x === storPos.x) {
-				// Use y
-				creepPos = new RoomPosition(linkPos.x, termPos.y, this.creep.room.name);
-			}
-		} else if (!!linkPos) {
-			if (linkPos.x === storPos.x) {
-				// Stand left of the storage
-				creepPos = new RoomPosition(linkPos.x - 1, linkPos.y, this.creep.room.name);
-			} else if (linkPos.y === storPos.y) {
-				// Stand below storage
-				creepPos = new RoomPosition(linkPos.x, linkPos.y + 1, this.creep.room.name);
-			}
-		}
-		if (!!creepPos) {
-			return creepPos;
-		} else {
-			throw new Error("Linker.findSpot :: Could not find a suitable position. Help?");
-		}
-	}
-
-	public move(): boolean {
 		if (!this.creep.memory.spot) {
 			this.creep.memory.spot = this.findSpot();
 		}
-		let spot = new RoomPosition(this.creep.memory.spot.x, this.creep.memory.spot.y, this.creep.memory.spot.roomName);
-		if (!this.creep.pos.isEqualTo(spot)) {
-			this.moveTo([{pos: spot, range: 0}]);
+		this.spot = new RoomPosition(this.creep.memory.spot.x, this.creep.memory.spot.y, this.creep.memory.spot.roomName);
+	}
+
+	public findSpot(): RoomPosition {
+		let flag = Game.flags[this.creep.room.name + "_LS"];
+		if (!!flag) {
+			return flag.pos;
+		} else {
+			let storPos = this.storage.pos;
+			let positions = this.creep.room.lookForAtArea(
+				LOOK_STRUCTURES,
+				storPos.y - 1,
+				storPos.x - 1,
+				storPos.y + 1,
+				storPos.x + 1,
+				true
+			) as Array<any>;
+			let linkPos: RoomPosition;
+			let termPos: RoomPosition;
+			let creepPos: RoomPosition;
+			positions.forEach((pos: any) => {
+				if (pos.structure.structureType === STRUCTURE_TERMINAL) {
+					termPos = new RoomPosition(pos.x, pos.y, this.creep.room.name);
+				}
+				if (pos.structure.structureType === STRUCTURE_LINK) {
+					linkPos = new RoomPosition(pos.x, pos.y, this.creep.room.name);
+				}
+			});
+			if (!!termPos && !!linkPos) {
+				if ((termPos.x === storPos.x - 1 || termPos.x === storPos.x + 1) && termPos.y === storPos.y) {
+					// Use x
+					creepPos = new RoomPosition(termPos.x, linkPos.y, this.creep.room.name);
+				} else if ((termPos.y === storPos.y - 1 || termPos.y === storPos.y + 1) && termPos.x === storPos.x) {
+					// Use y
+					creepPos = new RoomPosition(linkPos.x, termPos.y, this.creep.room.name);
+				}
+			} else if (!!linkPos) {
+				if (linkPos.x === storPos.x) {
+					// Stand left of the storage
+					creepPos = new RoomPosition(linkPos.x - 1, linkPos.y, this.creep.room.name);
+				} else if (linkPos.y === storPos.y) {
+					// Stand below storage
+					creepPos = new RoomPosition(linkPos.x, linkPos.y + 1, this.creep.room.name);
+				}
+			}
+			if (!!creepPos) {
+				return creepPos;
+			} else {
+				throw new Error("Linker.findSpot :: Could not find a suitable position. Help?");
+			}
+		}
+	}
+
+	public isAtSpot(): boolean {
+		return this.creep.pos.isEqualTo(this.spot);
+	}
+
+	public move(): boolean {
+		if (!this.isAtSpot()) {
+			this.moveTo([{pos: this.spot, range: 0}]);
 			return false;
 		}
 		return true;
@@ -127,19 +137,6 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		return false;
 	}
 
-	public getMineralTypeFromStore2(source: StorageStructure | Creep): string {
-		let resource: string = undefined;
-		let s: any = (source instanceof Creep) ? source.carry : source.store;
-		_.reduce(s, function(result, value, key) {
-			if (_.isNumber(value) && value > result && key !== RESOURCE_ENERGY) {
-				result = value;
-				resource = key;
-			}
-			return result;
-		}, 0);
-		return resource;
-	}
-
 	public balanceTerminal(): boolean {
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) { // busy with fillNuker
 			return false;
@@ -148,7 +145,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 0) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 0 && _.sum(this.creep.carry) > 0) {
 			if (this.creep.memory.direction === 1) {
 				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -215,7 +212,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		if (!this.nuker || !this.creep.pos.isNearTo(this.nuker) || !this.creep.pos.isNearTo(this.terminal)) {
 			return false;
 		}
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 2 && _.sum(this.creep.carry) > 0) {
 			if (this.creep.memory.direction === 3) {
 				this.creep.transfer(this.nuker, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -240,15 +237,22 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 	}
 	public fillTower(): boolean {
-		let towers = this.creep.room.myStructures.filter(
-			(s: OwnedStructure) => s.structureType === STRUCTURE_TOWER && s.pos.isNearTo(this.creep.pos)
-		) as StructureTower[];
-		if (towers.length > 0) {
-			this.tower = towers.pop();
-
-			if (!!this.creep.memory.direction && this.creep.memory.direction > 4) {
+		if (!this.creep.memory.tower) {
+			let towers = this.creep.room.myStructures.filter(
+				(s: OwnedStructure) => s.structureType === STRUCTURE_TOWER && s.pos.isNearTo(this.creep.pos)
+			) as StructureTower[];
+			if (towers.length > 0) {
+				this.tower = towers.pop();
+				this.creep.memory.tower = this.tower.id;
+			}
+		} else {
+			this.tower = Game.getObjectById<StructureTower>(this.creep.memory.tower);
+		}
+		if (!!this.tower) {
+			if (!!this.creep.memory.direction && this.creep.memory.direction > 4 && this.creep.carry.energy > 0) {
 				if (this.creep.memory.direction === 5) {
 					this.creep.transfer(this.tower, RESOURCE_ENERGY);
+					this.creep.say("TowerPower", true);
 				} else {
 					this.creep.transfer(this.storage, RESOURCE_ENERGY);
 				}
@@ -261,14 +265,15 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
 					amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
 				}
-				if (amount > this.terminal.store.energy) {
-					amount = this.terminal.store.energy;
+				if (amount > this.storage.store.energy) {
+					amount = this.storage.store.energy;
 				}
 				this.creep.withdraw(this.terminal, RESOURCE_ENERGY, amount);
 				this.creep.memory.direction = 5;
 				this.creep.memory.carryType = RESOURCE_ENERGY;
 				return true;
 			}
+			return false;
 		} else {
 			return false;
 		}
@@ -283,9 +288,10 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 	public action(): boolean {
 		if (super.action() && this.flee()) {
-			if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower()) {
-				this.cleanUp();
-				this.move();
+			if (this.move()) {
+				if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower()) {
+					this.cleanUp();
+				}
 			}
 			return true;
 		}

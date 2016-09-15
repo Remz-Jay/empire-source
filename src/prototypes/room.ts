@@ -71,7 +71,7 @@ Room.prototype.getCreepMatrix = function () {
 			let costMatrix = this.getCostMatrix();
 			// Avoid creeps in the room
 			_.union(this.myCreeps, this.alliedCreeps).forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 20);
+				costMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
 			});
 			this.hostileCreeps.forEach(function (creep: Creep) {
 				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
@@ -90,8 +90,9 @@ Room.prototype.getCreepMatrix = function () {
 Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 	this.roomConfig = {
 		W7N44: [
-			{x: 27, y: 30, w: 9}, // container next to extension, keep free for mule to deliver energy.
+			{x: 27, y: 30, w: global.PF_CREEP}, // container next to extension, keep free for mule to deliver energy.
 		],
+/*
 		W6N42: [
 			{x: 11, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
 			{x: 12, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
@@ -104,6 +105,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			{x: 43, y: 23, w: 9}, // Narrow Path, route to W4N42
 			{x: 43, y: 24, w: 9}, // Narrow Path, route to W4N42
 		],
+*/
 		W7N45: [
 			{x: 48, y: 5, w: 0xff}, // SK near O source, avoid
 			{x: 49, y: 5, w: 0xff}, // SK near O source, avoid
@@ -215,9 +217,13 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 					// Avoid hostile ramparts
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
 				} else if (structure.structureType === STRUCTURE_CONTAINER) {
-					costs.set(structure.pos.x, structure.pos.y, 3);
+					costs.set(structure.pos.x, structure.pos.y, global.PF_CREEP); // Assume there's a harvester on the container
 				}
 			});
+			let linkerFlag = Game.flags[this.name + "_LS"];
+			if (!!linkerFlag) {
+				costs.set(linkerFlag.pos.x, linkerFlag.pos.y, global.PF_CREEP); // Assume there's a linker on the spot
+			}
 			// console.log("Returning NEW CostMatrix for room " + this.name);
 			this.setCostMatrix(costs);
 			return costs;

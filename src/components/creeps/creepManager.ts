@@ -111,7 +111,7 @@ export function governCreeps(room: Room): CreepStats {
 						role.setGovernor(governor);
 						role.action();
 					} catch (e) {
-						console.log(`ERROR :: ${creepRole}: ${e.message}`);
+						console.log(`ERROR :: ${creepRole}: ${creep.name} ${creep.room.name} ${e.message}`);
 					}
 				}
 			}, this);

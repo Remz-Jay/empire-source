@@ -32,6 +32,12 @@ global.STORAGE_MIN = 100000;
  * @type {number}
  */
 global.BUCKET_MIN = 8000;
+
+/**
+ * The PathFinder cost for a tile where one of our creeps is (or we assume there is).
+ * @type {number}
+ */
+global.PF_CREEP = 20;
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
  * This is only default value, that don't have to be used.
@@ -88,7 +94,7 @@ global.MINRCL_HARVESTER         = 1;
 global.MINRCL_MULE              = 1;
 global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
-global.MINRCL_REPAIR            = 9;
+global.MINRCL_REPAIR            = 5;
 global.MINRCL_MINER             = 6;
 global.MINRCL_SCIENTIST         = 7;
 
