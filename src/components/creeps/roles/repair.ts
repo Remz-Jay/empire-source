@@ -120,9 +120,9 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 				}
 				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 					this.moveTo(target.pos);
-					let movingTargets = this.creep.room.allStructures.filter((s: Structure) => s.hits < (s.hitsMax * 0.91)
-						&& s.pos.inRangeTo(this.creep.pos, 3)
-					);
+					let movingTargets = _.map(this.safeLook(LOOK_STRUCTURES, this.creep.pos, 3), "structure").filter(
+						(s: Structure) => s.hits < (s.hitsMax * 0.91)
+					) as Structure[];
 					if (movingTargets.length) {
 						this.creep.repair(_.sortBy(movingTargets, "hits").shift());
 					}

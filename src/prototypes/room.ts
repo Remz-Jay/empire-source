@@ -130,62 +130,17 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			{x: 48, y: 15, w: 0xff}, // SK near O source, avoid
 			{x: 49, y: 15, w: 0xff}, // SK near O source, avoid
 		],
-		W6N45: [
-			{x: 0, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 2, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 3, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 4, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 5, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 6, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 7, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 8, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 9, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 10, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 11, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 7, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 7, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 7, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 8, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 8, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 8, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 9, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 9, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 9, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 10, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 10, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 10, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 11, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 11, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 11, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 12, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 12, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 12, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 13, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 13, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 13, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 14, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 14, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 14, w: 0xff}, // SK near O source, avoid
-			{x: 0, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 1, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 2, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 3, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 4, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 5, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 6, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 7, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 8, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 9, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 10, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 11, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 12, y: 15, w: 0xff}, // SK near O source, avoid
-		],
+		W6N45: [],
 	};
+	if (this.name === "W6N45") {
+		let positions: any[] = [];
+		for (let i = 0; i < 18; i++) {
+			for (let j = 5; j < 16; j++) {
+				positions.push({x: i, y: j, w: 0xff});
+			}
+		}
+		this.roomConfig.W6N45 = positions;
+	}
 	try {
 		let costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
 		if (!!costMatrix) {
@@ -202,8 +157,10 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			this.myConstructionSites.forEach(function (site: ConstructionSite) {
 				costs.set(site.pos.x, site.pos.y, 10);
 			});
-			if (!ignoreRoomConfig) {
-				_.each(this.roomConfig[this.name], obj => costs.set(obj.x, obj.y, obj.w));
+			if (!ignoreRoomConfig && !!this.roomConfig[this.name]) {
+				this.roomConfig[this.name].forEach((obj: any) => {
+					costs.set(obj.x, obj.y, obj.w);
+				});
 			}
 			this.allStructures.forEach(function (structure: OwnedStructure) {
 				if (structure.structureType === STRUCTURE_ROAD) {
@@ -229,7 +186,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			return costs;
 		}
 	} catch (e) {
-		console.log(JSON.stringify(e), "Room.prototype.getCostMatrix", this.name);
+		console.log("Room.prototype.getCostMatrix", this.name, e.message);
 		return new PathFinder.CostMatrix();
 	}
 };

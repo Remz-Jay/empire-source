@@ -37,6 +37,7 @@ StructureTerminal.prototype.run = function () {
 		&& this.store.energy >= global.TERMINAL_MAX
 		&& storage.store[minType] > global.STORAGE_MIN
 		&& this.store[minType] >= global.TERMINAL_MAX
+		&& (true === false)
 	) {
 		try {
 			let treshold = global.tradeTreshold(minType);
