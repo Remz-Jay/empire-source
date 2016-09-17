@@ -31,8 +31,15 @@ export default class CreepAction implements ICreepAction {
 	public fleeRange: number = 5;
 	public _minLifeBeforeNeedsRenew: number = global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
 	public moveIterator: number = 0;
+	public boosts: string[] = [];
+	public hasBoosts: string[] = [];
+
 	public setCreep(creep: Creep) {
 		this.creep = creep;
+		if (!this.creep.memory.hasBoosts) {
+			this.creep.memory.hasBoosts = [];
+		}
+		this.hasBoosts = this.creep.memory.hasBoosts;
 	}
 
 	public setGovernor(governor: CreepGovernor): void {
@@ -473,6 +480,9 @@ export default class CreepAction implements ICreepAction {
 		return false;
 	};
 	public renewCreep(max: number = global.MAX_TTL): boolean {
+		if (!!this.creep.memory.isBoosted) {
+			return true;
+		}
 		if (!_.isBoolean(this.creep.memory.hasRenewed)) {
 			this.creep.memory.hasRenewed = true;
 		}
@@ -619,6 +629,42 @@ export default class CreepAction implements ICreepAction {
 				}
 			}
 		}
+	}
+
+	public getBoosted(): boolean {
+		if (this.boosts.length < 1) {
+			return true;
+		}
+		let todo: string[] = _.difference(this.boosts, this.hasBoosts);
+		if (todo.length < 1) {
+			return true;
+		}
+		let boost = todo.shift();
+		// find a lab that supplies this resource
+		let lab = this.creep.room.boostLabs.filter((l: StructureLab) => l.mineralType === boost && l.mineralAmount >= 30).shift();
+		if (!!lab) {
+			this.creep.say(boost);
+			// move to it
+			if (!this.creep.pos.isNearTo(lab)) {
+				this.moveTo(lab.pos);
+				return false;
+			} else {
+				// boost it
+				let status = lab.boostCreep(this.creep);
+				if (status === OK || status === ERR_NOT_ENOUGH_RESOURCES || status === ERR_NOT_FOUND) {
+					// mark it as done.
+					this.creep.say("F\u00C6\u00C6LG\u00D8\u00D8\u00D0!", true);
+					this.creep.memory.hasBoosts.push(boost);
+					this.creep.memory.isBoosted = true; // prevent renew while passing spawns.
+				} else {
+					this.creep.say(status.toString());
+				}
+			}
+			return false;
+		}
+		// Forget about this boost and continue with the next, if any
+		this.creep.memory.hasBoosts.push(boost);
+		return true;
 	}
 
 	public action(): boolean {

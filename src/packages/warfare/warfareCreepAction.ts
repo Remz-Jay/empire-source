@@ -48,8 +48,12 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public squad: Creep[] = [];
 	public squadSize: number = 0;
 	public wait: boolean = false;
-	public boosts: string[] = [];
-	public hasBoosts: string[] = [];
+	public ignoreStructures: string[] = [
+		STRUCTURE_STORAGE,
+		STRUCTURE_TERMINAL,
+		STRUCTURE_SPAWN,
+		STRUCTURE_EXTENSION,
+	];
 	protected positions: RoomPosition[];
 	protected positionIterator: number;
 
@@ -60,10 +64,6 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			this.creep.memory.positionIterator = 0;
 		}
 		this.positionIterator = this.creep.memory.positionIterator;
-		if (!this.creep.memory.hasBoosts) {
-			this.creep.memory.hasBoosts = [];
-		}
-		this.hasBoosts = this.creep.memory.hasBoosts;
 	}
 
 	public isMyRoom(roomName: string) {
@@ -79,40 +79,6 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			Game.rooms[roomName].controller.reservation &&
 			Game.rooms[roomName].controller.reservation.username === username;
 		return (isMyRoom || isMyReservedRoom) ? true : false;
-	}
-
-	public getBoosted(): boolean {
-		if (this.boosts.length < 1) {
-			return true;
-		}
-		let todo: string[] = _.difference(this.boosts, this.hasBoosts);
-		if (todo.length < 1) {
-			return true;
-		}
-		let boost = todo.shift();
-		// find a lab that supplies this resource
-		this.creep.say(boost);
-		let lab = this.creep.room.boostLabs.filter((l: StructureLab) => l.mineralType === boost && l.mineralAmount >= 30).shift();
-		if (!!lab) {
-			// move to it
-			if (!this.creep.pos.isNearTo(lab)) {
-				this.moveTo(lab.pos);
-				return false;
-			} else {
-				// boost it
-				let status = lab.boostCreep(this.creep);
-				if (status === OK || status === ERR_NOT_ENOUGH_RESOURCES || status === ERR_NOT_FOUND) {
-					// mark it as done.
-					this.creep.say("F\u00C6\u00C6LG\u00D8\u00D8\u00D0!", true);
-					this.creep.memory.hasBoosts.push(boost);
-					this.creep.memory.isBoosted = true; // prevent renew while passing spawns.
-				} else {
-					this.creep.say(status.toString());
-				}
-			}
-			return false;
-		}
-		return true;
 	}
 
 	public moveUsingPositions(): boolean {
@@ -241,7 +207,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 
 	public attackEnemyStructure(): boolean {
 		if (this.creep.room.hostileStructures.length > 0) {
-			let targets: Structure[]  = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.isNearTo(this.creep));
+			let targets: Structure[]  = this.creep.room.hostileStructures.filter(
+				(s: Structure) => this.ignoreStructures.indexOf(s.structureType) === -1 && s.pos.isNearTo(this.creep)
+			);
 			if (targets.length > 0 ) {
 				let target = this.getPriorityStructure(targets);
 				this.creep.attack(target);
@@ -287,7 +255,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 
 	public rangedStructureAttack(doMass: boolean = true): boolean {
 		if (this.creep.room.hostileStructures.length > 0) {
-			let targets: Structure[] = this.creep.room.hostileStructures.filter((s: Structure) => s.pos.inRangeTo(this.creep.pos, 3));
+			let targets: Structure[] = this.creep.room.hostileStructures.filter(
+				(s: Structure) => this.ignoreStructures.indexOf(s.structureType) === -1 && s.pos.inRangeTo(this.creep.pos, 3)
+			);
 			if (targets.length > 0) {
 				if (doMass && targets.length > 1) {
 					this.creep.rangedMassAttack();
@@ -391,7 +361,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public findTargetStructure(): Structure {
 		let structurePriorities: string[] = [
 			STRUCTURE_TOWER,
-			STRUCTURE_SPAWN,
+			// STRUCTURE_SPAWN,
 		];
 		let hostile: Structure = undefined;
 		structurePriorities.forEach(function(p) {
@@ -403,7 +373,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return hostile;
 		} else {
 			// Any odd structure will do.
-			hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.hostileStructures);
+			hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.hostileStructures,
+				{filter: (s: Structure) => this.ignoreStructures.indexOf(s.structureType) === -1}
+			);
 			if (!!hostile) {
 				return hostile;
 			} else if (!this.isMyRoom(this.creep.room.name) && !!this.creep.room.controller) {

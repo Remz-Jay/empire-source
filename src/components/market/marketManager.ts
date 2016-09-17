@@ -80,6 +80,7 @@ export function findDeals(): void {
 global.findDeals = findDeals;
 
 export function resourceReport(): void {
+	let outputBuffer: string[] = [];
 	let resources: ResourceList = {"energy": 0};
 	let roomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
 	let elementList: string[] = [
@@ -123,9 +124,9 @@ export function resourceReport(): void {
 	topLine = topLine.slice(0, -1) + "\u2557";
 	guideLine = guideLine.slice(0, -1) + "\u2563";
 	bottomLine = bottomLine.slice(0, -1) + "\u255d";
-	console.log(topLine);
-	console.log(header);
-	console.log(guideLine);
+	outputBuffer.push(topLine);
+	outputBuffer.push(header);
+	outputBuffer.push(guideLine);
 	let tracers: string[] = [];
 	RESOURCES_ALL.forEach((key: string) => {
 		let globalRunning: boolean = false;
@@ -159,20 +160,66 @@ export function resourceReport(): void {
 			} else {
 				line = "\u2551 <b>" + _.padRight(key, cellWidth) + "</b>\u2551".concat(line);
 			}
-			console.log(line);
+			outputBuffer.push(line);
 		} else if (value > 0) {
 			tracers.push(key + ` (${value})`);
 		}
 	});
-	console.log(bottomLine);
+	outputBuffer.push(guideLine);
+	let storageLine = "";
+	let terminalLine = "";
+	let storages = 0;
+	let storageTotal = 0;
+	let terminals = 0;
+	let terminalTotal = 0;
+	_.forEach(roomList, (r: Room) => {
+		if (!!r.controller && r.controller.my) {
+			if (!!r.storage) {
+				let storagePercentage = _.round(_.sum(r.storage.store) / (r.storage.storeCapacity / 100));
+				storageLine = storageLine.concat(" "
+					+ global.colorWrap(_.padRight(" " + storagePercentage + "%", cellWidth),
+						global.getColorBasedOnPercentage(storagePercentage))
+					+ "\u2551");
+				storages++;
+				storageTotal += _.sum(r.storage.store);
+			} else {
+				storageLine = storageLine.concat(" " + formatAmount(NaN, cellWidth) + "\u2551");
+			}
+			if (!!r.terminal) {
+				let terminalPercentage = _.round(_.sum(r.terminal.store) / (r.terminal.storeCapacity / 100));
+				terminalLine = terminalLine.concat(" "
+					+ global.colorWrap(_.padRight(" " + terminalPercentage + "%", cellWidth),
+						global.getColorBasedOnPercentage(terminalPercentage))
+					+ "\u2551");
+				terminals++;
+				terminalTotal += _.sum(r.terminal.store);
+			} else {
+				terminalLine = terminalLine.concat(" " + formatAmount(NaN, cellWidth) + "\u2551");
+			}
+		}
+	});
+	let totalStoragePercentage = _.round(storageTotal / ((STORAGE_CAPACITY * storages) / 100));
+	let totalStorageChunk = global.colorWrap(_.padRight(" " + totalStoragePercentage + "%", cellWidth),
+		global.getColorBasedOnPercentage(totalStoragePercentage));
+	let totalTerminalPercentage = _.round(terminalTotal / ((TERMINAL_CAPACITY * terminals) / 100));
+	let totalTerminalChunk = global.colorWrap(_.padRight(" " + totalTerminalPercentage + "%", cellWidth),
+		global.getColorBasedOnPercentage(totalTerminalPercentage));
+	storageLine = "\u2551 <b>" + _.padRight("Storage", cellWidth) + "</b>\u2551 "
+		+ totalStorageChunk + "\u2551".concat(storageLine);
+	terminalLine = "\u2551 <b>" + _.padRight("Terminal", cellWidth) + "</b>\u2551 "
+		+ totalTerminalChunk + "\u2551".concat(terminalLine);
+	outputBuffer.push(storageLine);
+	outputBuffer.push(terminalLine);
+	outputBuffer.push(bottomLine);
 	if (tracers.length > 0) {
 		let tracerLine: string = "Also found traces of: ";
 		tracers.forEach((s: String) => {
 			tracerLine = tracerLine.concat(s + ", ");
 		});
 		tracerLine = tracerLine.slice(0, -2) + ".";
-		console.log(tracerLine);
+		outputBuffer.push(tracerLine);
 	}
+	console.log(outputBuffer.join("<br />"));
 }
 global.resourceReport = resourceReport;
 
@@ -187,13 +234,18 @@ export function formatAmount(value: number, cellWidth: number = 0, overrideColor
 	if (_.isString(overrideColor)) {
 		strVal = global.colorWrap(strVal, overrideColor);
 	} else {
-		if (value > global.STORAGE_MIN) {
+		let percentage = value / (global.STORAGE_MIN / 100);
+		if (percentage > 100) {
+			percentage += 50;
+		}
+		strVal = global.colorWrap(strVal, global.getColorBasedOnPercentage(100 - percentage));
+		/*if (value > global.STORAGE_MIN) {
 			strVal = global.colorWrap(strVal, "LightGreen");
 		} else if (value > global.STORAGE_MIN / 2) {
 			strVal = global.colorWrap(strVal, "Orange");
 		} else {
 			strVal = global.colorWrap(strVal, "Salmon");
-		}
+		}*/
 	}
 	return strVal;
 }

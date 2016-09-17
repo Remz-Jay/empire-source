@@ -18,6 +18,9 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 
 	public targetController: Controller;
 	public targetEnergySource: Spawn | Structure;
+	public boosts: string[] = [
+		RESOURCE_CATALYZED_GHODIUM_ACID, // +100% upgradeController effectiveness without increasing the energy cost
+	];
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
@@ -92,7 +95,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	};
 
 	public action(): boolean {
-		if (super.action() && this.flee()) {
+		if (this.getBoosted() && super.action() && this.flee()) {
 			this.upgraderLogic();
 		}
 		return true;

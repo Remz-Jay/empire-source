@@ -34,7 +34,7 @@ export interface IHealer {
 
 export default class Healer extends WarfareCreepAction implements IHealer {
 
-	public hardPath: boolean = false;
+	public hardPath: boolean = true;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, // +300% heal and rangedHeal effectiveness
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed

@@ -55,7 +55,7 @@ let dismantleConfig = {
 	wait: false,
 };
 
-let W4N47Positions: RoomPosition[] = [
+let W2N46Positions: RoomPosition[] = [
 	new RoomPosition(48, 46, "W7N44"),
 	new RoomPosition(19, 48, "W6N44"),
 	new RoomPosition(48, 44, "W6N44"),
@@ -65,8 +65,14 @@ let W4N47Positions: RoomPosition[] = [
 	new RoomPosition(45, 25, "W5N45"),
 	new RoomPosition(22, 15, "W4N45"),
 	new RoomPosition(25, 46, "W4N46"),
-	new RoomPosition(36, 3, "W4N46"),
-	new RoomPosition(30, 30, "W4N47"),
+	new RoomPosition(27, 36, "W4N46"),
+	new RoomPosition(47, 22, "W4N46"),
+	new RoomPosition(43, 13, "W3N46"),
+	new RoomPosition(3, 11, "W2N46"),
+	new RoomPosition(6, 47, "W1N46"),
+	new RoomPosition(10, 2, "W1N45"),
+	new RoomPosition(36, 32, "W1N45"),
+	// new RoomPosition(26, 15, "W2N46"),
 ];
 let W9N48Positions: RoomPosition[] = [
 	new RoomPosition(16, 1, "W9N47"),
@@ -494,8 +500,8 @@ export function govern(): void {
 				case "W9N49": // Tharit 7 left
 					manageSquad(roomName, warArcherConfig, W9N49Positions2);
 					break;
-				case "W4N47": // Thart Right 6
-					manageSquad(roomName, warArcherConfig, W4N47Positions);
+				case "W2N46": // Drowsy X
+					manageSquad(roomName, healTestConfig, W2N46Positions);
 					break;
 				case "W9N48":
 					manageSquad(roomName, warArcherConfig, W9N48Positions);

@@ -28,47 +28,6 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 		}
 	}
 
-	public repairInfra(modifier: number = 0.3): boolean {
-		if (this.creep.carry.energy > 0 ) {
-			let target: Structure;
-			if (!!this.creep.memory.repairtarget) {
-				target = Game.getObjectById<Structure>(this.creep.memory.repairtarget);
-			} else {
-				let lookTargets = this.safeLook(LOOK_STRUCTURES, this.creep.pos, 1);
-				_.forEach(lookTargets, (l: LookAtResultWithPos) => {
-					let s = l.structure;
-					if ((s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER) && s.hits < (s.hitsMax * modifier)) {
-						if (!target || target.hits > s.hits) {
-							target = s;
-						}
-					}
-				});
-				if (!!target) {
-					this.creep.memory.repairtarget = target.id;
-				} else {
-					return true;
-				}
-			}
-			let top = modifier + 0.2;
-			if (top > 1.0) {
-				top = 1;
-			}
-			if (!!target && target.hits < target.hitsMax * top) {
-				let status = this.creep.repair(target);
-				if (status !== OK) {
-					delete this.creep.memory.repairtarget;
-					return true;
-				} else {
-					return false;
-				}
-			} else {
-				delete this.creep.memory.repairtarget;
-				return true;
-			}
-		}
-		return true;
-	}
-
 	public moveToTargetRoom() {
 		let flag = Game.flags[this.creep.memory.config.targetRoom];
 		if (!!flag && !!flag.pos) {

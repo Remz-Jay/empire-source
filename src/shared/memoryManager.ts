@@ -5,7 +5,7 @@ export function loadMemory(): void {
 	if (!this.memory.resetCounter) {
 		this.memory.resetCounter = 0;
 	}
-	if (Game.time % 100000 === 0) {
+	if (Game.time % 3000 === 0) {
 		this.memory.resetCounter = 0;
 	}
 	if (!this.memory.log) {
