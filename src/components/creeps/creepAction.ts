@@ -144,7 +144,7 @@ export default class CreepAction implements ICreepAction {
 						plainCost: 2,
 						swampCost: 10,
 						maxOps: 500,
-						roomCallback: this.creepCallback,
+						roomCallback: this.roomCallback,
 					});
 					Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - flee #${++this.moveIterator}`);
 					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));

@@ -1,4 +1,6 @@
 interface Room {
+	costMatrix: CostMatrix;
+	creepMatrix: CostMatrix;
 	containers: Structure[];
 	containerCapacityAvailable: number;
 	energyInContainers: number;
@@ -59,32 +61,31 @@ interface Room {
 }
 
 Room.prototype.setCostMatrix = function (costMatrix) {
+	this.costMatrix = costMatrix;
 	this.memory.costMatrix = costMatrix.serialize();
 };
 
 Room.prototype.setCreepMatrix = function (costMatrix) {
-	this.memory.creepMatrix = costMatrix.serialize();
+	this.creepMatrix = costMatrix;
+	// this.memory.creepMatrix = costMatrix.serialize();
 };
 
 Room.prototype.getCreepMatrix = function () {
 	try {
-		let creepMatrix = (!!this.memory.creepMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.creepMatrix) : undefined;
-		if (!!creepMatrix) {
-			// console.log("Returning existing CreepMatrix for room " + this.name);
-			return creepMatrix;
-		} else {
-			let costMatrix = this.getCostMatrix();
-			// Avoid creeps in the room
-			_.union(this.myCreeps, this.alliedCreeps).forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
-			});
-			this.hostileCreeps.forEach(function (creep: Creep) {
-				costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
-			});
-			// console.log("Returning NEW CreepMatrix for room " + this.name);
-			this.setCreepMatrix(costMatrix);
-			return costMatrix;
+		if (!!this.creepMatrix) {
+			return this.creepMatrix;
 		}
+		let costMatrix = this.getCostMatrix();
+		// Avoid creeps in the room
+		_.union(this.myCreeps, this.alliedCreeps).forEach(function (creep: Creep) {
+			costMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
+		});
+		this.hostileCreeps.forEach(function (creep: Creep) {
+			costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
+		});
+		// console.log("Returning NEW CreepMatrix for room " + this.name);
+		this.setCreepMatrix(costMatrix);
+		return costMatrix;
 	} catch (e) {
 		console.log(e.message, "Room.Prototype.getCreepMatrix", this.name);
 		return new PathFinder.CostMatrix();
@@ -93,65 +94,55 @@ Room.prototype.getCreepMatrix = function () {
 };
 
 Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
-	this.roomConfig = {
-		W7N44: [
-			{x: 27, y: 30, w: global.PF_CREEP}, // container next to extension, keep free for mule to deliver energy.
-		],
-/*
-		W6N42: [
-			{x: 11, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
-			{x: 12, y: 19, w: 9}, // Narrow Path near Controller, route to W7N42
-			{x: 25, y: 5, w: 9}, // Narrow Path near upper Source in the corner.
-		],
-		W5N42: [
-			{x: 37, y: 24, w: 9}, // Narrow Path in the tower bulwark
-			{x: 38, y: 25, w: 9}, // Narrow Path in the tower bulwark
-			{x: 43, y: 22, w: 9}, // Narrow Path, route to W4N42
-			{x: 43, y: 23, w: 9}, // Narrow Path, route to W4N42
-			{x: 43, y: 24, w: 9}, // Narrow Path, route to W4N42
-		],
-*/
-		W7N45: [
-			{x: 48, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 5, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 6, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 7, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 7, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 8, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 8, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 9, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 9, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 10, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 10, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 11, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 11, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 12, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 12, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 13, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 13, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 14, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 14, w: 0xff}, // SK near O source, avoid
-			{x: 48, y: 15, w: 0xff}, // SK near O source, avoid
-			{x: 49, y: 15, w: 0xff}, // SK near O source, avoid
-		],
-		W6N45: [],
-	};
-	if (this.name === "W6N45") {
-		let positions: any[] = [];
-		for (let i = 0; i < 18; i++) {
-			for (let j = 5; j < 16; j++) {
-				positions.push({x: i, y: j, w: 0xff});
-			}
-		}
-		this.roomConfig.W6N45 = positions;
+	if (!!this.costMatrix) {
+		return this.costMatrix;
 	}
 	try {
 		let costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
 		if (!!costMatrix) {
 			// console.log("Returning existing CostMatrix for room " + this.name);
+			this.costMatrix = costMatrix;
 			return costMatrix;
 		} else {
+			this.roomConfig = {
+				W7N44: [
+					{x: 27, y: 30, w: global.PF_CREEP}, // container next to extension, keep free for mule to deliver energy.
+				],
+				W7N45: [
+					{x: 48, y: 5, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 5, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 6, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 6, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 7, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 7, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 8, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 8, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 9, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 9, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 10, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 10, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 11, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 11, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 12, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 12, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 13, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 13, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 14, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 14, w: 0xff}, // SK near O source, avoid
+					{x: 48, y: 15, w: 0xff}, // SK near O source, avoid
+					{x: 49, y: 15, w: 0xff}, // SK near O source, avoid
+				],
+				W6N45: [],
+			};
+			if (this.name === "W6N45") {
+				let positions: any[] = [];
+				for (let i = 0; i < 18; i++) {
+					for (let j = 5; j < 16; j++) {
+						positions.push({x: i, y: j, w: 0xff});
+					}
+				}
+				this.roomConfig.W6N45 = positions;
+			}
 			let costs = new PathFinder.CostMatrix();
 			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
 			// Prefer walking on hostile construction sites
@@ -382,8 +373,6 @@ Room.prototype.addProperties = function () {
 		delete this.memory.allConstructionSites;
 		delete this.memory.costMatrix;
 	}
-
-	delete this.memory.creepMatrix;
 	this.towerTargets = [];
 
 	this.allStructures =        this.getAllStructures();
