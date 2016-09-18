@@ -71,7 +71,7 @@ export default class CreepAction implements ICreepAction {
 			}
 			return room.getCreepMatrix(); // Uncached, with per-tick creep updates.
 		} catch (e) {
-			console.log(e.message, "creepAction.roomCallback", roomName);
+			console.log(e.message, "creepAction.creepCallback", roomName);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -86,7 +86,7 @@ export default class CreepAction implements ICreepAction {
 			}
 			return room.getCostMatrix(true); // The cached one without per-tick creeps.
 		} catch (e) {
-			console.log(e.message, "creepAction.roomCallback", roomName);
+			console.log(e.message, "creepAction.ignoreCallback", roomName);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -144,7 +144,7 @@ export default class CreepAction implements ICreepAction {
 						plainCost: 2,
 						swampCost: 10,
 						maxOps: 500,
-						roomCallback: this.roomCallback,
+						roomCallback: this.creepCallback,
 					});
 					Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - flee #${++this.moveIterator}`);
 					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));

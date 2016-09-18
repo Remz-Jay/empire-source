@@ -25,7 +25,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 
 	public getTargetList(blackList: string[] = []): Structure[] {
 		return this.creep.room.myStructures.filter((structure: EnergyStructure) => (
-			blackList.indexOf(structure.id) === -1 && (
+			!_.includes(blackList, structure.id) && (
 				(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
 				|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.75))
 				|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.85))
@@ -132,7 +132,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	public setSource(idle: boolean = false, blackList: string[] = [], retry: boolean = false): void {
 		// Get energy from containers
 		let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
-		blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
+		!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
 		&& structure.store[RESOURCE_ENERGY] >= (this.creep.carryCapacity - _.sum(this.creep.carry)));
 		let source: StructureContainer = this.creep.pos.findClosestByPath(structs, {
 			algorithm: "astar",
@@ -143,7 +143,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (!source && idle && this.creep.room.controller.level > 5) {
 			// No energy in containers found. Get some minerals instead
 			structs = this.creep.room.containers.filter((structure: StructureContainer) =>
-			blackList.indexOf(structure.id) === -1 && structure.structureType === STRUCTURE_CONTAINER
+			!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
 			&& _.sum(structure.store) >= (this.creep.carryCapacity - _.sum(this.creep.carry)) / 2);
 			source = this.creep.pos.findClosestByPath(structs, {
 				algorithm: "astar",
@@ -222,7 +222,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			} else {
 				// return to duty when able
 				let target: Structure = undefined;
-				if (Game.time % 5 === 0) {
+				if (Game.time & 4) {
 					target = this.scanForTargets();
 				}
 				if (!!target) {

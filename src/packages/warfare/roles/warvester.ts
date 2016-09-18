@@ -4,33 +4,6 @@ export interface IWarvester {
 	action(): boolean;
 }
 
-let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = Game.rooms[roomName];
-		if (!room) {
-			return;
-		}
-		let matrix = room.getCreepMatrix();
-		// avoid the edges
-		for (let i = 1; i < 50; i++) {
-			matrix.set(0, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(49, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 0, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 49, 50);
-		}
-		return matrix;
-	} catch (e) {
-		console.log(JSON.stringify(e), "Dismantler.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-};
-
 export default class Warvester extends WarfareCreepAction implements IWarvester {
 
 	public sourcePosition: number = 5;
@@ -69,7 +42,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 				plainCost: 2,
 				swampCost: 10,
 				maxOps: 500,
-				roomCallback: roomCallback,
+				roomCallback: this.creepCallback,
 			});
 			let pos = path.path[0];
 			console.log(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);

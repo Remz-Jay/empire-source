@@ -9,41 +9,6 @@ export interface IWFCreepAction {
 	moveToTargetRoom(): void;
 }
 
-/*let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = RoomManager.getRoomByName(roomName);
-		if (!room) {
-			return;
-		}
-		let matrix = room.getCreepMatrix();
-		room.allCreeps.forEach(function (creep: Creep) {
-			matrix.set(creep.pos.x, creep.pos.y, 10);
-		});
-		room.hostileStructures.forEach(function (s: Structure) {
-			matrix.set(s.pos.x, s.pos.y, 50);
-		});
-		room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL).forEach((s: Structure) => {
-			matrix.set(s.pos.x, s.pos.y, 50);
-		});
-		for (let i = 1; i < 50; i++) {
-			matrix.set(0, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(49, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 0, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 49, 50);
-		}
-		return matrix;
-	} catch (e) {
-		console.log(JSON.stringify(e), "WarfareCreepAction.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-};*/
-
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
 	public squad: Creep[] = [];
 	public squadSize: number = 0;
@@ -208,7 +173,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public attackEnemyStructure(): boolean {
 		if (this.creep.room.hostileStructures.length > 0) {
 			let targets: Structure[]  = this.creep.room.hostileStructures.filter(
-				(s: Structure) => this.ignoreStructures.indexOf(s.structureType) === -1 && s.pos.isNearTo(this.creep)
+				(s: Structure) => !_.includes(this.ignoreStructures, s.structureType) && s.pos.isNearTo(this.creep)
 			);
 			if (targets.length > 0 ) {
 				let target = this.getPriorityStructure(targets);
@@ -256,7 +221,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public rangedStructureAttack(doMass: boolean = true): boolean {
 		if (this.creep.room.hostileStructures.length > 0) {
 			let targets: Structure[] = this.creep.room.hostileStructures.filter(
-				(s: Structure) => this.ignoreStructures.indexOf(s.structureType) === -1 && s.pos.inRangeTo(this.creep.pos, 3)
+				(s: Structure) => !_.includes(this.ignoreStructures, s.structureType) && s.pos.inRangeTo(this.creep.pos, 3)
 			);
 			if (targets.length > 0) {
 				if (doMass && targets.length > 1) {
@@ -374,7 +339,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		} else {
 			// Any odd structure will do.
 			hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.hostileStructures,
-				{filter: (s: Structure) => this.ignoreStructures.indexOf(s.structureType) === -1}
+				{filter: (s: Structure) => !_.includes(this.ignoreStructures, s.structureType) }
 			);
 			if (!!hostile) {
 				return hostile;

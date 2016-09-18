@@ -7,9 +7,19 @@ import * as StatsManager from "../../shared/statsManager";
 export let rooms: { [roomName: string]: Room };
 export function loadRooms() {
 	rooms = {};
+	global.labReactions = [];
+	global.boostReagents = [];
+	global.sendRegistry = [];
 	_.each(Game.rooms, function(r: Room) {
 		r.addProperties();
 		rooms[r.name] = r;
+		if (!!r.labReaction) {
+			global.labReactions.push({
+				room: r,
+				reaction: r.labReaction,
+				reagents: r.labReagents,
+			});
+		}
 	});
 }
 
@@ -69,25 +79,6 @@ export function governRooms(): void {
 					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
 				);
 			}
-/*			if (room.hostileCreeps.length > 0 && room.hostileCreeps[0].owner.username === "Tharit") {
-				if (!Memory.offense.config[room.name]) {
-					let sourceRoom: string;
-					switch (room.name) {
-						case "W7N44":
-						case "W7N45":
-							sourceRoom = "W7N44";
-							break;
-						case "W6N45":
-						case "W5N45":
-							sourceRoom = "W6N45";
-							break;
-						default:
-							sourceRoom = "W7N44";
-					}
-					global.offense.add(room.name, sourceRoom);
-					Game.notify(`Better wake up, ${room.name} is under attack by Tharit.`);
-				}
-			}*/
 			CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
 			try {
@@ -117,7 +108,6 @@ export function governRooms(): void {
 			}
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
-					global.sendRegistry = [];
 					let CpuBeforeTerminals = Game.cpu.getUsed();
 					if (!!room.terminal) {
 						room.terminal.run();
@@ -132,17 +122,12 @@ export function governRooms(): void {
 				let CpuBeforeLabs = Game.cpu.getUsed();
 				if (room.myLabs.length > 2) {
 					try {
-						if (!!Game.flags[room.name + "_LR"]) {
-							let flag = Game.flags[room.name + "_LR"];
-							if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
-								let reaction = global.labColors.resource(flag.color, flag.secondaryColor);
-								let reagents = global.findReagents(reaction);
-								let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[0] && l.mineralAmount >= 10).pop();
-								let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === reagents[1] && l.mineralAmount >= 10).pop();
-								if (!!inLab1 && !!inLab2) {
-									let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
-									labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
-								}
+						if (!!room.labReaction) {
+							let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= 10).pop();
+							let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= 10).pop();
+							if (!!inLab1 && !!inLab2) {
+								let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
+								labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
 							}
 						}
 					} catch (e) {

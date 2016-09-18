@@ -188,7 +188,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 							this.moveTo([{pos: lairs[0].pos, range: 4}]);
 						} else {
 							// this.creep.cancelOrder("move");
-							if (Game.time % _.random(3, 6) === 0) {
+							if (_.random(0, 10) === 1) {
 								this.creep.say("Come out!", true);
 							}
 						}

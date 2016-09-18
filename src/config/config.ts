@@ -16,6 +16,11 @@ global.DEBUG = false;
 global.MAX_HARVESTERS_PER_SOURCE = 3;
 
 /**
+ * Value that gets substracted from Game.time to ease modulo operations.
+ * @type {number}
+ */
+global.TIME_OFFSET = 13773000;
+/**
  * The maximum number of Energy stored in terminals
  * @type {number}
  */
@@ -51,6 +56,15 @@ global.PF_CREEP = 20;
  */
 global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 200;
 global.MAX_TTL = 1400;
+
+/**
+ * An array of players whose creeps will be excluded from Room.prototype.hostileCreeps
+ * and will be added to Room.prototype.alliedCreeps instead.
+ * @type {string[]}
+ */
+global.alliedPlayers = [
+	"TranceCake",
+];
 
 /**
  * This treshold defines which roles will be executed within a room, regardless of getUsed or bucket state.
@@ -229,6 +243,15 @@ global.tradeTreshold = function(resourceType: string) {
 			return undefined;
 	}
 };
+
+/**
+ * A list of resources that will be blacklisted during Terminal balancing
+ * @type {string[]}
+ */
+global.TERMINAL_SKIP_BALANCE_RESOURCES = [
+	RESOURCE_ENERGY,
+	RESOURCE_POWER,
+];
 // Taken from:
 // https://github.com/Sriep/screeps/blob/d307ac0e2ebf6b7c8ac1f0033baeed9679baa4da/building/lab.colours.js
 global.labColors = {

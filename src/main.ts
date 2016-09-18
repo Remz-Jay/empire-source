@@ -12,7 +12,7 @@ import * as MemoryManager from "./shared/memoryManager";
 
 import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
-import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
+// import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
 // import ObserverManager from "./components/observers/observerManager";
 let reset: number = 1;
@@ -32,7 +32,7 @@ Profiler.registerObject(OffenseManager, "OffenseManager");
 
 StatsManager.init();
 AssimilationManager.setup();
-OffenseManager.setup();
+// OffenseManager.setup();
 
 export function loop() {
 	// Profiler.wrap(function () {
@@ -54,11 +54,13 @@ export function loop() {
 		} catch (e) {
 			console.log("AssimilationManager Exception", (<Error> e).message);
 		}
+/*
 		try {
 			OffenseManager.govern();
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}
+*/
 		try {
 			RoomManager.governRooms();
 		} catch (e) {
@@ -69,11 +71,11 @@ export function loop() {
 		} catch (e) {
 			console.log("MarketManager Exception", (<Error> e).message);
 		}
-		try {
+/*		try {
 			// global.om.observe();
 		} catch (e) {
 			console.log("ObserverManager Exception", (<Error> e).message);
-		}
+		}*/
 
 		if (!!Memory.showLogCreep) {
 			Memory.log.creeps.forEach((message: String, index: number) => {

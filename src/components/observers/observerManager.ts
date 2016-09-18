@@ -10,7 +10,7 @@ export default class ObserverManager {
 	public observe(): void {
 		let index: number = 0;
 		this.observationTargets.forEach((roomName: string) => {
-			if (Game.time % this.observationTargets.length === index) {
+			if (global.time % this.observationTargets.length === index) {
 				this.observers[0].observeRoom(roomName);
 			}
 			if (!!Game.rooms[roomName]) {

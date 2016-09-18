@@ -1,36 +1,8 @@
-// import * as RoomManager from "../../../components/rooms/roomManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IHealer {
 	action(): boolean;
 }
-
-/*let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = RoomManager.getRoomByName(roomName);
-		if (!room) {
-			return;
-		}
-		let matrix = room.getCreepMatrix();
-		// avoid the edges
-		for (let i = 1; i < 50; i++) {
-			matrix.set(0, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(49, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 0, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 49, 50);
-		}
-		return matrix;
-	} catch (e) {
-		console.log(JSON.stringify(e), "Terminator.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-};*/
 
 export default class Healer extends WarfareCreepAction implements IHealer {
 
@@ -74,7 +46,7 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				maxRooms: 1,
 				plainCost: 2,
 				swampCost: 10,
-				roomCallback: this.roomCallback,
+				roomCallback: this.creepCallback,
 			});
 			let pos = path.path[0];
 			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);

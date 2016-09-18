@@ -4,20 +4,6 @@ export interface IWarArcher {
 	action(): boolean;
 }
 
-let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = Game.rooms[roomName];
-		if (!room) {
-			return;
-		}
-		let matrix = room.getCreepMatrix();
-		return matrix;
-	} catch (e) {
-		console.log(JSON.stringify(e), "WarArcher.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-};
-
 export default class WarArcher extends WarfareCreepAction implements IWarArcher {
 	public hasHealer: boolean = false;
 	public hardPath: boolean = true;
@@ -59,7 +45,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 					maxRooms: 1,
 					plainCost: 2,
 					swampCost: 3,
-					roomCallback: roomCallback,
+					roomCallback: this.creepCallback,
 				});
 				let pos = path.path[0];
 				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
@@ -86,7 +72,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 				maxRooms: 1,
 				plainCost: 2,
 				swampCost: 3,
-				roomCallback: roomCallback,
+				roomCallback: this.creepCallback,
 			});
 			let pos = path.path[0];
 			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);

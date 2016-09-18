@@ -21,6 +21,8 @@ interface Room {
 	nuker: StructureNuker;
 	observer: StructureObserver;
 	towerTargets: Creep|Structure[];
+	labReaction: string;
+	labReagents: string[];
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -51,6 +53,8 @@ interface Room {
 	getMinerals(): Mineral[];
 	getNuker(): StructureNuker;
 	getObserver(): StructureObserver;
+	getLabReaction(): string;
+	getLabReagents(): string[];
 	addProperties(): void;
 }
 
@@ -222,10 +226,7 @@ Room.prototype.getHostileCreeps = function(): Creep[] {
 	return _.difference<Creep>(this.allCreeps, this.myCreeps);
 };
 Room.prototype.getAlliedCreeps = function(): Creep[] {
-	let alliedPlayers: string[] = [
-		"TranceCake",
-	];
-	let allies: Creep[] = this.hostileCreeps.filter((c: Creep) => alliedPlayers.indexOf(c.owner.username) !== -1);
+	let allies: Creep[] = this.hostileCreeps.filter((c: Creep) => _.includes(global.alliedPlayers, c.owner.username));
 	allies.forEach((c: Creep) => this.hostileCreeps = _.pull(this.hostileCreeps, c));
 	return allies;
 };
@@ -281,8 +282,10 @@ Room.prototype.getBoostLabs = function(): StructureLab[] {
 	let boostLabs: StructureLab[] = [];
 	this.myLabs.forEach((l: StructureLab) => {
 		let flag = l.pos.lookFor<Flag>(LOOK_FLAGS).shift();
-		if (!!flag && flag.name.indexOf("_B") !== -1) {
+		if (!!flag && _.includes(flag.name, "_B")) {
 			boostLabs.push(l);
+			let reagent = global.labColors.resource(flag.color, flag.secondaryColor);
+			global.boostReagents.push({room: this, reagent: reagent});
 			// console.log(`Room.prototype.getBoostLabs found ${flag.name} as boostLab in ${this.name}`, this.myLabs.length, boostLabs.length);
 		}
 	});
@@ -354,12 +357,27 @@ Room.prototype.getObserver = function(): StructureObserver {
 		return undefined;
 	}
 };
+Room.prototype.getLabReaction = function(): string {
+	if (!!Game.flags[this.name + "_LR"]) {
+		let flag = Game.flags[this.name + "_LR"];
+		if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
+			return global.labColors.resource(flag.color, flag.secondaryColor);
+		}
+	}
+	return undefined;
+};
+Room.prototype.getLabReagents = function(): string[] {
+	if (!!this.labReaction) {
+		return global.findReagents(this.labReaction);
+	}
+	return undefined;
+};
 Room.prototype.addProperties = function () {
-	if (Game.time % 100 === 0) {
+	if (Game.time & 99) {
 		delete this.memory.allSources;
 		delete this.memory.allMinerals;
 	}
-	if (Game.time % 10 === 0) {
+	if (Game.time & 9) {
 		delete this.memory.allStructures;
 		delete this.memory.allConstructionSites;
 		delete this.memory.costMatrix;
@@ -381,6 +399,8 @@ Room.prototype.addProperties = function () {
 	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
 	this.myLabs =               (!!this.controller && !!this.controller.my && this.controller.level >= 6 && this.allStructures.length > 0) ? this.getMyLabs() : [];
 	this.boostLabs =            (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getBoostLabs() : [];
+	this.labReaction =          (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getLabReaction() : undefined;
+	this.labReagents =          (!!this.labReaction) ? this.getLabReagents() : [];
 
 	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
 	this.numberOfCreeps =       (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;

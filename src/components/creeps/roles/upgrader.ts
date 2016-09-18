@@ -75,7 +75,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 				this.creep.upgradeController(target);
 			} else {
 				this.creep.upgradeController(target);
-				if (Game.time % _.random(0, 27) === 0 ) {
+				if (_.random(0, 10) === 1) {
 					this.creep.say("_/=\\\u0CA0_", true);
 				}
 			}

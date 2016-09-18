@@ -1,6 +1,6 @@
 export function governMarket(): void {
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
-		switch (Game.time % 20) {
+		switch (global.time % 20) {
 			case 0:
 				cleanupOrders();
 				break;
@@ -67,14 +67,14 @@ export function findDeals(): void {
 	console.log(`[MARKET] Doing a market price scan.`);
 	_.forOwn(marketThresholds, (price: number, resource: string) => {
 		// console.log(`[MARKET] ${resource} at ${price}`);
-		let orders = Game.market.getAllOrders((order: Order) =>
+		let orders = global.getAllOrders().filter((order: Order) =>
 			order.type === ORDER_SELL
 			&& order.resourceType === resource
 			&& order.price < price
 			&& !_.has(Game.rooms, order.roomName)
 			&& Game.map.getRoomLinearDistance("W6N42", order.roomName) < 71
 			&& Game.market.calcTransactionCost(order.remainingAmount, "W6N42", order.roomName) <= global.TERMINAL_MAX
-		);
+		) as Order[];
 		if (!!orders && orders.length > 0) {
 			orders.forEach((order: Order) => {
 				let cost = order.remainingAmount * order.price;
@@ -87,11 +87,11 @@ export function findDeals(): void {
 			});
 		}
 	});
-	let orders = Game.market.getAllOrders((order: Order) =>
+	let orders = global.getAllOrders().filter((order: Order) =>
 		order.type === ORDER_BUY
 		&& order.resourceType === SUBSCRIPTION_TOKEN
 		&& order.price >= 3000000
-	);
+	) as Order[];
 	if (!!orders && orders.length > 0) {
 		let order = _.sortBy(orders, "price").pop();
 		let status = Game.market.deal(order.id, 1);
@@ -159,15 +159,9 @@ export function resourceReport(): void {
 			line = line.concat(" " + formatAmount(value, cellWidth) + "\u2551");
 			roomList.forEach((r: Room) => {
 				let roomRunning: boolean = false;
-				if (!!Game.flags[r.name + "_LR"]) {
-					let flag = Game.flags[r.name + "_LR"];
-					if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
-						let reaction = global.labColors.resource(flag.color, flag.secondaryColor);
-						if (reaction === key) {
-							roomRunning = true;
-							globalRunning = true;
-						}
-					}
+				if (!!r.labReaction && r.labReaction === key) {
+					roomRunning = true;
+					globalRunning = true;
 				}
 				let storageVal: number = (!!r.storage) ? r.storage.store[key] || 0 : 0;
 				let terminalVal: number = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
@@ -286,14 +280,14 @@ export function dumpResource(resource: string) {
 			let availableEnergy = r.terminal.store.energy;
 			console.log(`Room ${r.name} has ${formatAmount(r.storage.store[resource])} x ${resource} in storage.`);
 			let price: number = marketThresholds[resource];
-			let orders = Game.market.getAllOrders((order: Order) =>
+			let orders = global.getAllOrders().filter((order: Order) =>
 				order.type === ORDER_BUY
 				&& order.resourceType === resource
 				&& order.price >= price
 				&& order.remainingAmount >= canSell
 				&& !_.has(Game.rooms, order.roomName)
 				&& Game.map.getRoomLinearDistance(r.name, order.roomName) < 10
-			);
+			) as Order[];
 			if (!!orders && orders.length > 0) {
 				let bestPrice = 0;
 				let bestDistance = Infinity;

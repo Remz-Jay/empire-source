@@ -27,7 +27,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		// See if any owned buildings are damaged.
 		if (this.creep.room.myStructures.length > 0) {
 			let targets = this.creep.room.myStructures.filter((s: OwnedStructure) =>
-				blackList.indexOf(s.id) === -1
+				!_.includes(blackList, s.id)
 				&& s.hits < (s.hitsMax * this.myStructureMultiplier)
 				&& s.structureType !== STRUCTURE_RAMPART
 			);
@@ -42,7 +42,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		// No? Try to repair a neutral structure instead.
 		if (!target) {
 			let targets = this.creep.room.allStructures.filter((s: Structure) =>
-				blackList.indexOf(s.id) === -1
+				!_.includes(blackList, s.id)
 				&& s.hits < (s.hitsMax * this.publicStructureMultiplier) &&
 				(   s.structureType === STRUCTURE_ROAD ||
 					s.structureType === STRUCTURE_CONTAINER ||
@@ -66,7 +66,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 			} else {
 				let rampart = RampartManager.getWeakestRampart();
 				if (
-					blackList.indexOf(rampart.id) === -1
+					!_.includes(blackList, rampart.id)
 					&& (rampart.hits < RampartManager.getAverageStrength() && rampart.hits < WallManager.getAverageStrength())
 					|| rampart.hits < (rampart.hitsMax * 0.1)
 				) {

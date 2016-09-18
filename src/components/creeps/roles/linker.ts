@@ -231,6 +231,14 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			this.creep.memory.carryType = RESOURCE_GHODIUM;
 			return true;
 		}
+		if (this.nuker.energy < this.nuker.energyCapacity && this.storage.store.energy > global.STORAGE_MIN) {
+			let amount: number = global.clamp(this.nuker.energyCapacity - this.nuker.energy, 0, this.canTransfer);
+			this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
+			this.creep.memory.direction = 3;
+			this.creep.memory.carryType = RESOURCE_ENERGY;
+			return true;
+		}
+		return false;
 	}
 	public fillTower(): boolean {
 		if (!this.creep.memory.tower) {

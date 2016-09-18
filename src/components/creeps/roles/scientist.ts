@@ -32,17 +32,14 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		if (!!this.creep.memory.mode) {
 			this.mode = this.creep.memory.mode;
 		}
-		if (!!Game.flags[this.creep.room.name + "_LR"]) {
-			let flag = Game.flags[this.creep.room.name + "_LR"];
-			if (flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED) {
-				this.reaction = undefined;
-				this.clean = true;
-			} else {
-				this.reaction = global.labColors.resource(flag.color, flag.secondaryColor);
-				if (this.mode === MODE.CLEANALL) {
-					this.mode = MODE.IDLE;
-				}
+		if (!!this.creep.room.labReaction) {
+			this.reaction = this.creep.room.labReaction;
+			if (this.mode === MODE.CLEANALL) {
+				this.mode = MODE.IDLE;
 			}
+		} else {
+			this.reaction = undefined;
+			this.clean = true;
 		}
 		if (!this.creep.memory.inLab1) {
 			if (!!Game.flags[this.creep.room.name + "_L1"]) {
@@ -84,10 +81,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			this.creep.memory.moveToId = lab.id;
 			return true;
 		} else if (this.mode === MODE.CLEANUP && !!this.creep.memory.targetId && this.isBagEmpty() && this.creep.pos.isNearTo(lab.pos)) {
-			let amount = lab.mineralAmount;
-			if (amount > this.creep.carryCapacity) {
-				amount = this.creep.carryCapacity;
-			}
+			let amount = global.clamp(lab.mineralAmount, 0, this.creep.carryCapacity);
 			let status = this.creep.withdraw(lab, lab.mineralType, amount);
 			if (status === OK) {
 				this.creep.memory.moveToId = this.terminal.id;
@@ -108,9 +102,8 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 	}
 	public mineralize(): boolean {
 		if (!this.clean && !!this.reaction && ((this.mode === MODE.IDLE && !this.creep.memory.targetId) || this.mode === MODE.CLEANUP)) {
-			let reagents = global.findReagents(this.reaction);
+			let reagents = this.creep.room.labReagents;
 			if (!!reagents) {
-
 				if (!!this.inLab1.mineralType && this.inLab1.mineralType !== reagents[0]) {
 					return this.cleanUp(this.inLab1);
 				} else if (!!this.terminal.store[reagents[0]] && this.terminal.store[reagents[0]] > 0) {

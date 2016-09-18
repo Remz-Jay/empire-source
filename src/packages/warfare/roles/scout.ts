@@ -4,19 +4,6 @@ export interface IScout {
 	action(): boolean;
 }
 
-let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = Game.rooms[roomName];
-		if (!room) {
-			return;
-		}
-		return room.getCreepMatrix();
-	} catch (e) {
-		console.log(JSON.stringify(e), "Scout.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-};
-
 export default class Scout extends WarfareCreepAction implements IScout {
 
 	public setCreep(creep: Creep) {
@@ -45,7 +32,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 					maxRooms: 1,
 					plainCost: 2,
 					swampCost: 10,
-					roomCallback: roomCallback,
+					roomCallback: this.creepCallback,
 				});
 				let pos = path.path[0];
 				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
@@ -69,7 +56,7 @@ export default class Scout extends WarfareCreepAction implements IScout {
 				maxRooms: 1,
 				plainCost: 2,
 				swampCost: 10,
-				roomCallback: roomCallback,
+				roomCallback: this.creepCallback,
 			});
 			let pos = path.path[0];
 			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);

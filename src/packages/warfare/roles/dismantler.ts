@@ -103,9 +103,9 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 					this.creep.moveTo(target);
 				} else {
 					this.creep.dismantle(target);
-					if (Game.time % 6 === 0) {
+					if (Game.time & 5) {
 						this.creep.say("OM NOM", true);
-					} else if (Game.time % 6 === 1) {
+					} else if (Game.time & 6) {
 						this.creep.say("NOM!", true);
 					}
 				}
@@ -117,9 +117,9 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 					this.creep.moveTo(target);
 				} else {
 					this.creep.dismantle(target);
-					if (Game.time % 6 === 0) {
+					if (Game.time & 5) {
 						this.creep.say("OM NOM", true);
-					} else if (Game.time % 6 === 1) {
+					} else if (Game.time & 6) {
 						this.creep.say("NOM!", true);
 					}
 				}

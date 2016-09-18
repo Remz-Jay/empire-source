@@ -2,7 +2,7 @@ interface StructureTower {
 	run(): boolean;
 }
 StructureTower.prototype.run = function(): boolean {
-	let damagedCreeps = this.room.myCreeps.filter((c: Creep) => this.room.towerTargets.indexOf(c) === -1 && c.hits < c.hitsMax);
+	let damagedCreeps = this.room.myCreeps.filter((c: Creep) => !_.includes(this.room.towerTargets, c) && c.hits < c.hitsMax);
 	if (damagedCreeps.length > 0) {
 		let target = _.sortBy(damagedCreeps, "hits").shift();
 		this.room.towerTargets.push(target);
@@ -12,7 +12,7 @@ StructureTower.prototype.run = function(): boolean {
 	if (this.room.hostileCreeps.length > 0) {
 		let hostiles: Creep[] = this.pos.findInRange(this.room.hostileCreeps, global.getTowerRange(this.room.name));
 		let filteredHostiles: Creep[] = hostiles.filter((c: Creep) =>
-			this.room.towerTargets.indexOf(c) === -1
+			!_.includes(this.room.towerTargets, c)
 			&& (c.getActiveBodyparts(ATTACK) > 2
 			|| c.getActiveBodyparts(RANGED_ATTACK) > 2
 			|| c.getActiveBodyparts(WORK) > 2
@@ -44,7 +44,7 @@ StructureTower.prototype.run = function(): boolean {
 	if (this.energy > (this.energyCapacity / 2)) {
 		let minHits: number = this.room.controller.level * 30000;
 		let damagedStructures = this.room.allStructures.filter((structure: OwnedStructure) =>
-			this.room.towerTargets.indexOf(structure) === -1
+			!_.includes(this.room.towerTargets, structure)
 			&& structure.hits < (structure.hitsMax * 0.8) &&
 			(
 				(structure.structureType !== STRUCTURE_RAMPART && structure.structureType !== STRUCTURE_WALL)

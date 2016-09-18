@@ -20,7 +20,7 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 				filter: (s: Structure) => s.structureType === STRUCTURE_EXTENSION
 				|| s.structureType === STRUCTURE_SPAWN
 				|| s.structureType === STRUCTURE_TOWER,
-				costCallback: this.roomCallback,
+				costCallback: this.creepCallback,
 			});
 			if (!!closestHostile) {
 				if (this.creep.attack(closestHostile) === ERR_NOT_IN_RANGE) {
