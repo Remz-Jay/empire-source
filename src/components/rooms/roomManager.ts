@@ -117,6 +117,7 @@ export function governRooms(): void {
 			}
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
+					global.sendRegistry = [];
 					let CpuBeforeTerminals = Game.cpu.getUsed();
 					if (!!room.terminal) {
 						room.terminal.run();

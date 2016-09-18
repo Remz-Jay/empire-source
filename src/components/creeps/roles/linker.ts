@@ -13,9 +13,14 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	public spot: RoomPosition;
 	public storageMin: number = global.STORAGE_MIN;
 	public terminalMax: number = global.TERMINAL_MAX;
+	public terminalEnergyMax: number = global.TERMINAL_ENERGY_MAX;
+	public carryTotal: number;
+	public canTransfer: number;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
+		this.carryTotal = _.sum(this.creep.carry);
+		this.canTransfer = this.creep.carryCapacity - this.carryTotal;
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;
 		this.nuker = this.creep.room.nuker;
@@ -85,80 +90,71 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 		let link: StructureLink;
-		if (this.creep.pos.isNearTo(this.storage)) {
-			if (!this.creep.memory.link) {
-				let linkResult: StructureLink[] = _.filter(this.creep.room.myStructures,
-					(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.storage)) as StructureLink[];
-				if (linkResult.length > 0) {
-					link = linkResult[0];
-					this.creep.memory.link = link.id;
-				} else {
-					throw new Error("Linker.link :: Could not locate Link near Storage.");
-				}
+		if (!this.creep.memory.link) {
+			let linkResult: StructureLink[] = _.filter(this.creep.room.myStructures,
+				(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.storage)) as StructureLink[];
+			if (linkResult.length > 0) {
+				link = linkResult[0];
+				this.creep.memory.link = link.id;
 			} else {
-				link = Game.getObjectById<StructureLink>(this.creep.memory.link);
+				throw new Error("Linker.link :: Could not locate Link near Storage.");
 			}
-			if (!!link && this.creep.pos.isNearTo(link)) {
-				let linkLimit: number = 413;
-				let flagSearch = link.pos.lookFor<Flag>(LOOK_FLAGS);
-				if (flagSearch.length > 0) {
-					let flag = flagSearch.pop();
-					if (flag.color === COLOR_PURPLE && flag.secondaryColor === COLOR_PURPLE) {
-						linkLimit = link.energyCapacity;
-					}
+		} else {
+			link = Game.getObjectById<StructureLink>(this.creep.memory.link);
+		}
+		if (!!link) {
+			let linkLimit: number = 413;
+			let flagSearch = link.pos.lookFor<Flag>(LOOK_FLAGS);
+			if (flagSearch.length > 0) {
+				let flag = flagSearch.pop();
+				if (flag.color === COLOR_PURPLE && flag.secondaryColor === COLOR_PURPLE) {
+					linkLimit = link.energyCapacity;
 				}
-				if (_.sum(this.creep.carry) > 0 && this.getMineralTypeFromStore(this.creep) !== RESOURCE_ENERGY) {
-					this.cleanUp();
-					return true;
-				}
-				if (link.energy < linkLimit) {
-					if (this.creep.carry.energy === 0) {
-						let transferValue = (linkLimit - link.energy);
-						if (transferValue > this.creep.carryCapacity) {
-							transferValue = this.creep.carryCapacity;
-						}
-						if (this.storage.store.energy >= transferValue) {
-							this.creep.withdraw(this.storage, RESOURCE_ENERGY, transferValue);
-						} else {
-							return false;
-						}
+			}
+			if (this.carryTotal > 0 && this.getMineralTypeFromStore(this.creep) !== RESOURCE_ENERGY) {
+				this.cleanUp();
+				return true;
+			}
+			if (link.energy < linkLimit) {
+				if (this.creep.carry.energy === 0) {
+					let transferValue = global.clamp((linkLimit - link.energy), 0, this.canTransfer);
+					if (this.storage.store.energy >= transferValue) {
+						this.creep.withdraw(this.storage, RESOURCE_ENERGY, transferValue);
 					} else {
-						this.creep.transfer(link, RESOURCE_ENERGY);
+						return false;
 					}
-					return true;
-				} else if (link.energy > linkLimit) {
-					if (this.creep.carry.energy === 0) {
-						let transferValue = (link.energy - linkLimit);
-						if (transferValue > this.creep.carryCapacity) {
-							transferValue = this.creep.carryCapacity;
-						}
-						this.creep.withdraw(link, RESOURCE_ENERGY, transferValue);
-					} else {
-						this.creep.transfer(this.storage, RESOURCE_ENERGY);
-					}
-					return true;
-				} else if (this.creep.carry.energy > 0) {
-					this.creep.transfer(this.storage, RESOURCE_ENERGY);
-					return true;
 				} else {
-					return false;
+					this.creep.transfer(link, RESOURCE_ENERGY);
 				}
+				return true;
+			} else if (link.energy > linkLimit) {
+				if (this.creep.carry.energy === 0) {
+					let transferValue = global.clamp((link.energy - linkLimit), 0, this.canTransfer);
+					this.creep.withdraw(link, RESOURCE_ENERGY, transferValue);
+				} else {
+					this.creep.transfer(this.storage, RESOURCE_ENERGY);
+				}
+				return true;
+			} else if (this.creep.carry.energy > 0) {
+				this.creep.transfer(this.storage, RESOURCE_ENERGY);
+				return true;
 			} else {
 				return false;
 			}
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	public balanceTerminal(): boolean {
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) { // busy with fillNuker
 			return false;
 		}
-		if (!this.terminal || !this.creep.pos.isNearTo(this.terminal) || !this.creep.pos.isNearTo(this.storage)) {
+		if (!this.terminal) {
 			return false;
 		}
 
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 0 && _.sum(this.creep.carry) > 0) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 0 && this.carryTotal > 0) {
 			if (this.creep.memory.direction === 1) {
 				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -169,47 +165,36 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 
-		if (this.storage.store.energy > (this.storageMin / 10) && this.terminal.store.energy < this.terminalMax) {
-			let amount: number = this.terminalMax - this.terminal.store.energy;
-			if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-				amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
-			}
+		if (this.storage.store.energy > (this.storageMin / 10) && this.terminal.store.energy < this.terminalEnergyMax) {
+			let amount: number = global.clamp(this.terminalEnergyMax - this.terminal.store.energy, 0, this.canTransfer);
 			this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
 			this.creep.memory.direction = 1;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
 			return true;
-		} else if (this.terminal.store.energy > this.terminalMax) {
-			let amount: number = this.terminal.store.energy - this.terminalMax;
-			if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-				amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
-			}
+		} else if (this.terminal.store.energy > this.terminalEnergyMax) {
+			let amount: number = global.clamp(this.terminal.store.energy - this.terminalEnergyMax, 0, this.canTransfer);
 			this.creep.withdraw(this.terminal, RESOURCE_ENERGY, amount);
 			this.creep.memory.direction = 2;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
 			return true;
 		}
 		let done: boolean = false;
-		global.RESOURCE_TYPES.forEach((r: string) => {
+		_.difference(RESOURCES_ALL, [RESOURCE_ENERGY]).forEach((r: string) => {
 			if (done) {
 				return;
 			}
 			if (!!this.storage.store[r] && (!this.terminal.store[r] || this.terminal.store[r] < this.terminalMax)) {
-				let amount: number = this.terminalMax - (this.terminal.store[r] || 0);
-				if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-					amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
-				}
-				if (amount > this.storage.store[r]) {
-					amount = this.storage.store[r];
-				}
+				let amount: number = global.clamp(
+					this.terminalMax - (this.terminal.store[r] || 0),
+					0,
+					_.min([this.canTransfer, this.storage.store[r]])
+				);
 				this.creep.withdraw(this.storage, r, amount);
 				this.creep.memory.direction = 1;
 				this.creep.memory.carryType = r;
 				done = true;
 			} else if (!!this.terminal.store[r] && this.terminal.store[r] > this.terminalMax) {
-				let amount: number = this.terminal.store[r] - this.terminalMax;
-				if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-					amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
-				}
+				let amount: number = global.clamp(this.terminal.store[r] - this.terminalMax, 0, this.canTransfer);
 				this.creep.withdraw(this.terminal, r, amount);
 				this.creep.memory.direction = 2;
 				this.creep.memory.carryType = r;
@@ -222,10 +207,10 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 4) { // busy with fillTower
 			return false;
 		}
-		if (!this.nuker || !this.creep.pos.isNearTo(this.nuker) || !this.creep.pos.isNearTo(this.terminal)) {
+		if (!this.nuker) {
 			return false;
 		}
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 2 && _.sum(this.creep.carry) > 0) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 2 && this.carryTotal > 0) {
 			if (this.creep.memory.direction === 3) {
 				this.creep.transfer(this.nuker, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -236,13 +221,11 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		if (this.nuker.ghodium < this.nuker.ghodiumCapacity && !!this.terminal.store[RESOURCE_GHODIUM] && this.terminal.store[RESOURCE_GHODIUM] > 0) {
-			let amount: number = this.nuker.ghodiumCapacity - this.nuker.ghodium;
-			if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-				amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
-			}
-			if (amount > this.terminal.store[RESOURCE_GHODIUM]) {
-				amount = this.terminal.store[RESOURCE_GHODIUM];
-			}
+			let amount: number = global.clamp(
+				this.nuker.ghodiumCapacity - this.nuker.ghodium,
+				0,
+				_.min([this.canTransfer, this.terminal.store[RESOURCE_GHODIUM]])
+			);
 			this.creep.withdraw(this.terminal, RESOURCE_GHODIUM, amount);
 			this.creep.memory.direction = 3;
 			this.creep.memory.carryType = RESOURCE_GHODIUM;
@@ -276,13 +259,11 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				return true;
 			}
 			if (this.tower.energy < this.tower.energyCapacity && this.storage.store.energy > 0) {
-				let amount: number = this.tower.energyCapacity - this.tower.energy;
-				if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-					amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
-				}
-				if (amount > this.storage.store.energy) {
-					amount = this.storage.store.energy;
-				}
+				let amount: number = global.clamp(
+					this.tower.energyCapacity - this.tower.energy,
+					0,
+					_.min([this.canTransfer, this.storage.store.energy])
+				);
 				this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
 				this.creep.memory.direction = 5;
 				this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -294,7 +275,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 	}
 	public cleanUp(): boolean {
-		if (_.sum(this.creep.carry) > 0) {
+		if (this.carryTotal > 0) {
 			this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
 			return true;
 		}
@@ -302,11 +283,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public action(): boolean {
-		if (super.action() && this.flee()) {
-			if (this.move()) {
-				if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower()) {
-					this.cleanUp();
-				}
+		if (this.renewCreep() && this.move()) {
+			if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower()) {
+				this.cleanUp();
 			}
 			return true;
 		}

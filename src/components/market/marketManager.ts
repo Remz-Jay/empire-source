@@ -16,9 +16,6 @@ export function governMarket(): void {
 			case 4:
 				dumpResource("Z");
 				break;
-			case 5:
-				chainResources();
-				break;
 			default:
 				return;
 		}

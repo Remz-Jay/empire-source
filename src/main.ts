@@ -1,3 +1,4 @@
+import "./shared/utils";
 import "./config/config";
 import "./prototypes/room";
 import "./prototypes/link";
@@ -6,7 +7,7 @@ import "./prototypes/tower";
 import "./prototypes/spawn";
 
 import * as StatsManager from "./shared/statsManager";
-import * as Profiler from "./lib/screeps-profiler";
+// import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
 
 import * as RoomManager from "./components/rooms/roomManager";
@@ -18,9 +19,9 @@ let reset: number = 1;
 delete Memory.log;
 
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
+// RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 // global.om = new ObserverManager();
 // Profiler.enable();
-
 /*
 Profiler.registerObject(StatsManager, "StatsManager");
 Profiler.registerObject(RoomManager, "RoomManager");
@@ -34,7 +35,7 @@ AssimilationManager.setup();
 OffenseManager.setup();
 
 export function loop() {
-	Profiler.wrap(function () {
+	// Profiler.wrap(function () {
 		PathFinder.use(true);
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
@@ -68,8 +69,13 @@ export function loop() {
 		} catch (e) {
 			console.log("MarketManager Exception", (<Error> e).message);
 		}
+		try {
+			// global.om.observe();
+		} catch (e) {
+			console.log("ObserverManager Exception", (<Error> e).message);
+		}
 
-/*		if (!!Memory.showLogCreep) {
+		if (!!Memory.showLogCreep) {
 			Memory.log.creeps.forEach((message: String, index: number) => {
 				console.log("log.creeps", message);
 			});
@@ -83,7 +89,7 @@ export function loop() {
 			Memory.log.asm.forEach((message: String, index: number) => {
 				console.log("log.ASM", message);
 			});
-		}*/
+		}
 		delete Memory.log;
 		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 		let cpuUsed = _.ceil(Game.cpu.getUsed());
@@ -111,5 +117,5 @@ export function loop() {
 		StatsManager.addStat("cpu.reset", reset);
 		StatsManager.addStat("cpu.resetCounter", Memory.resetCounter);
 		reset = 0;
-	});
+	// });
 }
