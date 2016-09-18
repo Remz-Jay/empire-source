@@ -7,42 +7,32 @@ export interface IClaim {
 
 export default class Claim extends ASMCreepAction implements IClaim {
 	public doClaim: boolean;
+	public targetController: StructureController;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 		this.doClaim = false;
+		this.targetController = Game.rooms[this.creep.memory.config.targetRoom].controller;
 	}
 
 	public assimilateRoom() {
 		// this.nextStepIntoRoom();
-		if (!this.creep.pos.isNearTo(this.creep.room.controller)) {
-			this.moveTo(this.creep.room.controller.pos);
+		if (!this.creep.pos.isNearTo(this.targetController)) {
+			this.moveTo(this.targetController.pos);
 		} else {
 			// once we're at the controller, claim it.
 			if (this.doClaim) {
-				this.creep.claimController(this.creep.room.controller);
+				this.creep.claimController(this.targetController);
 			} else {
-				this.creep.reserveController(this.creep.room.controller);
+				this.creep.reserveController(this.targetController);
 			}
 		}
 	}
 
 	public action(): boolean {
-/*		if (!this.flee()) {
-			return;
-		}*/
-/*		if (this.goHome) {
-			this.creep.say("HOME");
-			this.moveTo(Game.rooms[this.creep.memory.homeRoom].mySpawns[0].pos);
-			return false;
-		}*/
 		this.creep.say(this.creep.memory.config.targetRoom);
-		if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-			this.moveToTargetRoom();
-		} else {
-			if (this.flee()) {
-				this.assimilateRoom();
-			}
+		if (this.flee()) {
+			this.assimilateRoom();
 		}
 		return true;
 	}

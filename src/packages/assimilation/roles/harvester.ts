@@ -57,10 +57,6 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	}
 
 	public moveToHarvest(): void {
-		if (!this.source && !!Game.flags[this.creep.memory.config.targetRoom]) {
-			this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
-			return;
-		}
 		if (!!this.container) {
 			if (!this.creep.pos.isEqualTo(this.container.pos)) {
 				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.container.pos, 0);
@@ -103,8 +99,12 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 
 	public action(): boolean {
 		if (this.flee() && !this.shouldIGoHome()) {
+			if (!this.source && !!Game.flags[this.creep.memory.config.targetRoom]) {
+				this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
+				return false;
+			}
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-				this.moveToTargetRoom();
+				this.moveTo(this.container.pos);
 			} else {
 				// this.nextStepIntoRoom();
 				if (this.isBagFull()) {

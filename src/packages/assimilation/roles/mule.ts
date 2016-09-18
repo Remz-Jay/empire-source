@@ -90,7 +90,12 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				case STRUCTURE_SPAWN:
 				case STRUCTURE_TOWER:
 				case STRUCTURE_LINK:
-					status = this.creep.transfer(target, RESOURCE_ENERGY);
+					let link = <StructureLink> target;
+					if (link.energy < link.energyCapacity) {
+						status = this.creep.transfer(link, RESOURCE_ENERGY);
+					} else {
+						return;
+					}
 					break;
 				case STRUCTURE_CONTAINER:
 				case STRUCTURE_STORAGE:
@@ -106,10 +111,6 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			}
 			switch (status) {
 				case ERR_FULL:
-					let containers = this.creep.room.containers.filter((s: StorageStructure) => _.sum(s.store) < s.storeCapacity && s.pos.isNearTo(this.creep));
-					if (containers.length > 0) {
-						this.creep.transfer(containers[0], RESOURCE_ENERGY);
-					}
 					break;
 				case ERR_NOT_ENOUGH_RESOURCES:
 					if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
@@ -169,7 +170,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				if (this.isBagEmpty()) {
-					this.moveToTargetRoom();
+					this.moveTo(this.container.pos);
 				} else {
 					this.passingRepair();
 					if (!!this.creep.memory.resetTarget) {
@@ -183,7 +184,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 						this.dumpAtStorageOrLink();
 					} else {
 						this.creep.memory.resetTarget = true;
-						this.dumpRoutine(this.storage);
+						this.moveTo(this.storage.pos);
 					}
 				}
 			} else {
@@ -191,7 +192,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				if (this.isBagFull()) {
 					this.passingRepair();
 					this.creep.memory.resetTarget = true;
-					this.dumpRoutine(this.storage);
+					this.moveTo(this.storage.pos);
 				} else if (!this.isBagFull()) {
 					this.collectFromContainer();
 				}
