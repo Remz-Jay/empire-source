@@ -123,7 +123,7 @@ gulp.task('compile', gulp.series(buildConfig.bundle ? 'compile-bundled' : 'compi
 gulp.task('upload', gulp.series('compile', function uploading() {
     return gulp.src('dist/' + buildTarget + '/*.js')
         .pipe(gulpRename((path) => path.extname = ''))
-        .pipe(gulpScreepsUpload(config.user.email, config.user.password, buildConfig.branch, 0));
+        .pipe(gulpScreepsUpload(config.user.email, config.user.password, buildConfig.branch, buildConfig.ptr, 0));
 }));
 
 gulp.task('watch', function () {
