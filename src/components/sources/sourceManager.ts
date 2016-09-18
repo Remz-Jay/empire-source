@@ -17,10 +17,6 @@ export function initMemory(room: Room) {
 export function load(room: Room) {
 	sourceRoom = room;
 	sources = sourceRoom.sources;
-	sourceCount = _.size(sources);
-	if (global.VERBOSE) {
-		console.log("[SourceManager] " + sourceCount + " sources in room.");
-	}
 	blacklistSources(global.BLACKLIST_SOURCES);
 	initMemory(room);
 	_.each(sources, function (s: ISource) {
@@ -47,14 +43,15 @@ export function blacklistSources(sourceIds: string[]): boolean {
 }
 
 export function findAvailableHarvester(s: Source) {
-	let harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === "Harvester".toUpperCase());
-	return harvesters.find((h: Creep) => (!h.memory.preferredSource) && s.room.name === h.room.name);
+	let harvesters = _.filter(s.room.myCreeps, (c: Creep) => c.memory.role.toUpperCase() === "Harvester".toUpperCase());
+	return harvesters.find((h: Creep) => !h.memory.preferredSource);
 }
 
 export function updateHarvesterPreference() {
+	let mhps = getMaxHarvestersPerSource();
 	_.each(sources, function (s: ISource) {
 		for (let i = 1; i <= global.MAX_HARVESTERS_PER_SOURCE; i++) {
-			if (i > getMaxHarvestersPerSource() || i > getMiningSlots(s).length) {
+			if (i > mhps || i > getMiningSlots(s).length) {
 				if (!s.memory[`preferredHarvester${i}`]) {
 					let preferredHarvester: string = s.memory[`preferredHarvester${i}`];
 					delete s.memory[`preferredHarvester${i}`];
@@ -84,26 +81,32 @@ export function updateHarvesterPreference() {
 		}
 	}, this);
 }
-export function getMiningSlots(source: Source) {
-	let lookResults: LookAtResultWithPos[] = source.room.lookForAtArea(
-		LOOK_TERRAIN,
-		source.pos.y - 1,
-		source.pos.x - 1,
-		source.pos.y + 1,
-		source.pos.x + 1,
-		true // returns a LookAtResultWithPos[]
-	) as LookAtResultWithPos[];
-	let slots: LookAtResultWithPos[] = [];
-	for (let result of lookResults) {
-		if (result.terrain === "plain" || result.terrain === "swamp") {
-			slots.push(result);
+export function getMiningSlots(source: ISource): LookAtResultWithPos[] {
+	if (!!source.memory.slots && _.isArray(source.memory.slots)) {
+		return source.memory.slots;
+	} else {
+		let lookResults: LookAtResultWithPos[] = source.room.lookForAtArea(
+			LOOK_TERRAIN,
+			source.pos.y - 1,
+			source.pos.x - 1,
+			source.pos.y + 1,
+			source.pos.x + 1,
+			true // returns a LookAtResultWithPos[]
+		) as LookAtResultWithPos[];
+		let slots: LookAtResultWithPos[] = [];
+		for (let result of lookResults) {
+			if (result.terrain === "plain" || result.terrain === "swamp") {
+				slots.push(result);
+			}
 		}
+		source.memory.slots = slots;
+		return slots;
 	}
-	return slots;
 }
 
 export function getMaxHarvestersPerSource(): number {
-	let capacity: number = sourceRoom.energyCapacityAvailable;
+	return 1;
+/*	let capacity: number = sourceRoom.energyCapacityAvailable;
 	let max: number = 1;
 	if (capacity < 1200) {
 		max = 2;
@@ -111,8 +114,7 @@ export function getMaxHarvestersPerSource(): number {
 	if (capacity < 600 || isEmergency()) {
 		max = global.MAX_HARVESTERS_PER_SOURCE;
 	}
-	max = 1;
-	return max;
+	return max;*/
 }
 
 export function getNumberOfRequiredHarvesters(): number {

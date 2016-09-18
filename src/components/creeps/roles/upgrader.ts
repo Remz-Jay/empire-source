@@ -63,7 +63,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 			delete this.creep.memory.source;
 			this.creep.say("U:COL");
 		}
-		if (!this.creep.memory.dumping && this.creep.carry.energy === this.creep.carryCapacity) {
+		if (!this.creep.memory.dumping && this.creep.carry.energy  > 0) {
 			this.creep.memory.dumping = true;
 			delete this.creep.memory.source;
 			this.creep.say("U:UPGR");

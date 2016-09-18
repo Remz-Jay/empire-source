@@ -21,6 +21,7 @@ StructureTerminal.prototype.run = function () {
 		&& this.store.energy >= global.TERMINAL_MAX
 		&& storage.store[minType] > global.STORAGE_MIN
 		&& this.store[minType] >= global.TERMINAL_MAX
+		&& (true === false)
 	) {
 		// Find a room that needs our mineral
 		_.forEach(roomList, (room: Room) => {

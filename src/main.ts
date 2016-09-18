@@ -30,6 +30,8 @@ Profiler.registerObject(OffenseManager, "OffenseManager");
 */
 
 StatsManager.init();
+AssimilationManager.setup();
+OffenseManager.setup();
 
 export function loop() {
 	Profiler.wrap(function () {

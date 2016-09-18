@@ -13,10 +13,36 @@ export function governMarket(): void {
 			case 3:
 				dumpResource("H");
 				break;
+			case 4:
+				dumpResource("Z");
+				break;
+			case 5:
+				chainResources();
+				break;
 			default:
 				return;
 		}
 	}
+}
+
+let chain = [
+	{source: "W6N42", destination: "W7N45", resource: RESOURCE_GHODIUM},
+	{source: "W7N45", destination: "W5N42", resource: RESOURCE_GHODIUM_HYDRIDE},
+	{source: "W5N42", destination: "W6N42", resource: RESOURCE_GHODIUM_ACID},
+	{source: "W7N45", destination: "W6N42", resource: RESOURCE_CATALYST},
+];
+export function chainResources(): void {
+	chain.forEach(c => {
+		let room = Game.rooms[c.source];
+		let terminal = room.terminal;
+		if (!!terminal.store[c.resource] && terminal.store[c.resource] >= 200) {
+			let targetRoom = Game.rooms[c.destination];
+			let targetTerminal = targetRoom.terminal;
+			if (!targetTerminal.store[c.resource] || targetTerminal.store[c.resource] < 1000) {
+				terminal.send(c.resource, 200, c.destination);
+			}
+		}
+	});
 }
 
 export function cleanupOrders(): void {
@@ -250,10 +276,10 @@ export function formatAmount(value: number, cellWidth: number = 0, overrideColor
 	return strVal;
 }
 export function dumpResource(resource: string) {
-	let perBatch: number = 1000;
+	let perBatch: number = 2000;
 	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
-		if (!!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.5)
+		if (!!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.2)
 			&& r.terminal.store[resource] && r.terminal.store[resource] >= perBatch
 		) {
 			let canSell = r.terminal.store[resource];

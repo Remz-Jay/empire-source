@@ -66,6 +66,7 @@ global.PRIORITY_MINER           = 50;
 global.PRIORITY_REPAIR          = 60;
 global.PRIORITY_BUILDER         = 70;
 global.PRIORITY_SCIENTIST       = 80;
+global.PRIORITY_BITER           = 30;
 
 /**
  * Priorities for Assimilation Package Creeps
@@ -97,6 +98,7 @@ global.MINRCL_LINKER            = 5;
 global.MINRCL_REPAIR            = 9;
 global.MINRCL_MINER             = 6;
 global.MINRCL_SCIENTIST         = 7;
+global.MINRCL_BITER             = 5;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps
@@ -296,9 +298,9 @@ global.getTowerRange = function(roomName: string): number {
 		case "W6N42":
 			return 21;
 		case "W5N42":
-			return 25;
+			return 10;
 		case "W7N44":
-			return 19;
+			return 21;
 		case "W7N45":
 			return 7;
 		case "W6N49":
@@ -397,4 +399,3 @@ global.table = function(data: any[], widths?: number[]){
 	rows.push(`${leftBottomCorner}${bottomBar}${rightBottomCorner}`);
 	return rows.join("\n");
 };
-

@@ -131,7 +131,6 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		if (this.container.store.energy >= (this.creep.carryCapacity - _.sum(this.creep.carry))) {
 			return true;
 		}
-		let p: RoomPosition = this.container.pos;
 		let resources = this.safeLook(LOOK_RESOURCES, this.creep.pos, 15);
 		if (resources.length > 0) {
 			let r = resources[0];

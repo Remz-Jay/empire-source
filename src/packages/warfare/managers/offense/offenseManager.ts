@@ -228,7 +228,7 @@ let artilleryConfig = {
 	],
 	wait: false,
 };
-let warvestPositions: RoomPosition[] = [
+/*let warvestPositions: RoomPosition[] = [
 	new RoomPosition(48, 46, "W7N44"),
 	new RoomPosition(19, 48, "W6N44"),
 	new RoomPosition(48, 44, "W6N44"),
@@ -243,7 +243,7 @@ let warvestPositions: RoomPosition[] = [
 	new RoomPosition(19, 48, "W6N44"),
 	new RoomPosition(48, 46, "W7N44"),
 	new RoomPosition(31, 28, "W7N44"), // Terminal
-];
+];*/
 
 let warvest2Positions: RoomPosition[] = [
 	new RoomPosition(1, 3, "W6N45"),
@@ -293,9 +293,9 @@ let positions: RoomPosition[] = [
 	new RoomPosition(7, 8, "W5N42"),
 ].reverse();
 
-function setup() {
+export function setup() {
 	initMemory();
-	Game.offense = {
+	global.offense = {
 		add(roomName: string, homeRoomName?: string) {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				Memory.offense.targets.push(roomName);
@@ -451,7 +451,6 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 }
 
 export function govern(): void {
-	setup();
 	_.each(Memory.offense.targets, function(roomName) {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);

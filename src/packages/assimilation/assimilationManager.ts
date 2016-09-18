@@ -15,8 +15,8 @@ import ASMMule from "./roles/mule";
 
 import SentinelGovernor from "../warfare/governors/sentinel";
 import Terminator from "../warfare/roles/terminator";
-import ASMRaiderGovernor from "./governors/raider";
-import ASMRaider from "./roles/raider";
+/*import ASMRaiderGovernor from "./governors/raider";
+import ASMRaider from "./roles/raider";*/
 import FasterminatorGovernor from "../warfare/governors/fasterminator";
 
 function initMemory(): void {
@@ -35,9 +35,9 @@ let isSpawning: boolean;
 let goHome: boolean;
 let CpuObject: any;
 
-function setup() {
+export function setup() {
 	initMemory();
-	Game.assman = {
+	global.assman = {
 		add(roomName: string, claim: boolean = false, hasController = true, homeRoomName?: string) {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				Memory.assimilation.targets.push(roomName);
@@ -390,7 +390,7 @@ function manageMules(containers: StructureContainer[]) {
 	}
 }
 
-function manageRaiders(roomName: string) {
+/*function manageRaiders(roomName: string) {
 	let CpuBeforeRole: number = Game.cpu.getUsed();
 	// we need raiders
 	let governor = new ASMRaiderGovernor(homeRoom, config);
@@ -416,12 +416,11 @@ function manageRaiders(roomName: string) {
 		createCreep(governor.getCreepConfig());
 	}
 	updateCpuObject(ASMRaiderGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
-}
+}*/
 
 export function govern(): void {
-	setup();
 	CpuObject = {};
-	_.each(Memory.assimilation.targets, function(roomName) {
+	_.each(Memory.assimilation.targets, (roomName: string) => {
 		try {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				config = getConfigForRemoteTarget(roomName);
@@ -432,14 +431,14 @@ export function govern(): void {
 				goHome = false;
 
 				// Fridge Raider Override.
-				if (roomName === "W3N42") {
+/*				if (roomName === "W3N42") {
 					try {
 						manageRaiders(roomName);
 					} catch (e) {
 						console.log(e.message, "ASM.manageRaiders");
 					}
 					return;
-				}
+				}*/
 
 				// Only manage claim in rooms with a controller (not in SK rooms).
 				if (config.hasController && (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1)) {
@@ -449,14 +448,12 @@ export function govern(): void {
 						console.log(`ERROR :: ASM in room ${roomName}: [CLAIM] ${e.message}`);
 					}
 				}
-				let vision: boolean = false;
 				if (!!targetRoom && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
 						goHome = true;
 						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
 					}
 					// We have vision of the room, that's good.
-					vision = true;
 					SourceManager.load(targetRoom);
 					try {
 						let containers: any[];

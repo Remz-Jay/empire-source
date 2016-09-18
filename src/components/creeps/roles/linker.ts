@@ -117,7 +117,11 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 						if (transferValue > this.creep.carryCapacity) {
 							transferValue = this.creep.carryCapacity;
 						}
-						this.creep.withdraw(this.storage, RESOURCE_ENERGY, transferValue);
+						if (this.storage.store.energy >= transferValue) {
+							this.creep.withdraw(this.storage, RESOURCE_ENERGY, transferValue);
+						} else {
+							return false;
+						}
 					} else {
 						this.creep.transfer(link, RESOURCE_ENERGY);
 					}
@@ -165,7 +169,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 
-		if (this.storage.store.energy > this.storageMin && this.terminal.store.energy < this.terminalMax) {
+		if (this.storage.store.energy > (this.storageMin / 10) && this.terminal.store.energy < this.terminalMax) {
 			let amount: number = this.terminalMax - this.terminal.store.energy;
 			if (amount > (this.creep.carryCapacity - _.sum(this.creep.carry))) {
 				amount = (this.creep.carryCapacity - _.sum(this.creep.carry));
