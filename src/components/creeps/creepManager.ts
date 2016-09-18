@@ -16,6 +16,8 @@ import Miner from "./roles/miner";
 import MinerGovernor from "./governors/miner";
 import Scientist from "./roles/scientist";
 import ScientistGovernor from "./governors/scientist";
+import Biter from "./roles/biter";
+import BiterGovernor from "./governors/biter";
 
 let roles: {[key: string]: typeof CreepAction } = {
 	Builder: Builder,
@@ -26,6 +28,7 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Repair: Repair,
 	Miner: Miner,
 	Scientist: Scientist,
+	Biter: Biter,
 };
 
 let governors: {[key: string]: typeof CreepGovernor } = {
@@ -37,6 +40,7 @@ let governors: {[key: string]: typeof CreepGovernor } = {
 	RepairGovernor: RepairGovernor,
 	MinerGovernor: MinerGovernor,
 	ScientistGovernor: ScientistGovernor,
+	BiterGovernor: BiterGovernor,
 };
 
 export function createCreep(room: Room, config: CreepConfiguration): string|number {

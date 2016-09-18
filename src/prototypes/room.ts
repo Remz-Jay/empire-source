@@ -20,6 +20,7 @@ interface Room {
 	minerals: Mineral[];
 	nuker: StructureNuker;
 	observer: StructureObserver;
+	towerTargets: Creep|Structure[];
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
@@ -232,20 +233,30 @@ Room.prototype.getNumberOfCreepsInRoom = function(): number {
 	return this.myCreeps.length;
 };
 Room.prototype.getAllStructures = function(): Structure[] {
-	let allStructures: Structure[] = [];
+	return this.find(FIND_STRUCTURES) as Structure[];
+/*	let allStructures: Structure[] = [];
+	if (!global.structures) {
+		global.structures = [];
+	}
 	if (!!this.memory.allStructures && _.isArray(this.memory.allStructures)) {
-		this.memory.allStructures.forEach((s: string) => {
-			let st = Game.getObjectById<Structure>(s);
-			if (!!st) {
-				allStructures.push(st);
-			}
-		});
+		if (_.isArray(global.structures[this.name]) && global.structures[this.name].length === this.memory.allStructures.length) {
+			allStructures = global.structures[this.name];
+		} else {
+			this.memory.allStructures.forEach((s: string) => {
+				let st = Game.getObjectById<Structure>(s);
+				if (!!st) {
+					allStructures.push(st);
+				}
+			});
+		}
 	} else {
 		allStructures = this.find(FIND_STRUCTURES) as Structure[];
 		this.memory.allStructures = [];
 		allStructures.forEach((s: Structure) => this.memory.allStructures.push(s.id));
 	}
-	return allStructures;
+
+	global.structures[this.name] = allStructures;
+	return allStructures;*/
 };
 Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
@@ -355,6 +366,7 @@ Room.prototype.addProperties = function () {
 	}
 
 	delete this.memory.creepMatrix;
+	this.towerTargets = [];
 
 	this.allStructures =        this.getAllStructures();
 	this.allCreeps =            this.getAllCreeps();
