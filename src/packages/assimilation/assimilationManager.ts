@@ -1,5 +1,4 @@
 import * as SourceManager from "../../components/sources/sourceManager";
-import * as StatsManager from "../../shared/statsManager";
 
 import ClaimGovernor from "./governors/claim";
 import Claim from "./roles/claim";
@@ -134,20 +133,7 @@ function createCreep(creepConfig: CreepConfiguration, priority: boolean = false)
 	return status;
 }
 
-function updateCpuObject(role: string, numCreeps: number, cpuUsed: number) {
-	if (!CpuObject[role]) {
-		CpuObject[role] = {
-			numCreeps: numCreeps,
-			cpu: cpuUsed,
-		};
-	} else {
-		CpuObject[role].numCreeps += numCreeps;
-		CpuObject[role].cpu += cpuUsed;
-	}
-}
-
 function manageClaim(roomName: string, claim: boolean = false) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
 	let governor = new ClaimGovernor(homeRoom, config, claim);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ClaimGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
@@ -176,7 +162,6 @@ function manageClaim(roomName: string, claim: boolean = false) {
 			createCreep(governor.getCreepConfig(), true);
 		}
 	}
-	updateCpuObject(ClaimGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
 }
 function manageContainers(): StructureContainer[] {
 	let allContainers: StructureContainer[] = [];
@@ -210,7 +195,6 @@ function manageContainers(): StructureContainer[] {
 }
 
 function manageConstructions(maxBuilders: number = 1) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
 	let sites = targetRoom.myConstructionSites;
 	let governor = new ASMBuilderGovernor(homeRoom, config);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMBuilderGovernor.ROLE.toUpperCase()
@@ -237,11 +221,9 @@ function manageConstructions(maxBuilders: number = 1) {
 			createCreep(governor.getCreepConfig());
 		}
 	}
-	updateCpuObject(ASMBuilderGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
 }
 
 function manageHarvest(containers: StructureContainer[]) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
 	if (containers.length > 0) {
 		// we need harvesters
 		let governor = new ASMHarvesterGovernor(homeRoom, config, containers);
@@ -279,12 +261,10 @@ function manageHarvest(containers: StructureContainer[]) {
 			isSpawning = true;
 			createCreep(governor.getCreepConfig());
 		}
-		updateCpuObject(ASMHarvesterGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
 	}
 }
 
 function manageDefenders(roomName: string, limit: number = 0) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
 	let governor = new SentinelGovernor(homeRoom, config);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === SentinelGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
@@ -317,11 +297,9 @@ function manageDefenders(roomName: string, limit: number = 0) {
 		isSpawning = true;
 		createCreep(governor.getCreepConfig(), true);
 	}
-	updateCpuObject(SentinelGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
 }
 
 function manageSourceKeepers(roomName: string, limit: number = 0) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
 	let governor = new FasterminatorGovernor(homeRoom, config);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === FasterminatorGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
@@ -357,11 +335,9 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 		isSpawning = true;
 		createCreep(governor.getCreepConfig(), true);
 	}
-	updateCpuObject(FasterminatorGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
 }
 
 function manageMules(containers: StructureContainer[]) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
 	if (containers.length > 0) {
 		// we need mules
 		let governor = new ASMMuleGovernor(homeRoom, config, containers);
@@ -386,38 +362,8 @@ function manageMules(containers: StructureContainer[]) {
 			isSpawning = true;
 			createCreep(governor.getCreepConfig());
 		}
-		updateCpuObject(ASMMuleGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
 	}
 }
-
-/*function manageRaiders(roomName: string) {
-	let CpuBeforeRole: number = Game.cpu.getUsed();
-	// we need raiders
-	let governor = new ASMRaiderGovernor(homeRoom, config);
-	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ASMRaiderGovernor.ROLE.toUpperCase()
-	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
-	if (creepsInRole.length > 0) {
-		_.each(creepsInRole, function (creep: Creep) {
-			try {
-				if (!creep.spawning) {
-					let role: ASMRaider = new ASMRaider();
-					role.setCreep(<Creep> creep);
-					role.setGoHome(goHome);
-					role.setGovernor(governor);
-					role.action();
-				}
-			} catch (e) {
-				console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
-			}
-		}, this);
-	}
-	if (creepsInRole.length < governor.getCreepLimit() && !isSpawning && !goHome) {
-		isSpawning = true;
-		createCreep(governor.getCreepConfig());
-	}
-	updateCpuObject(ASMRaiderGovernor.ROLE, creepsInRole.length, Game.cpu.getUsed() - CpuBeforeRole);
-}*/
-
 export function govern(): void {
 	CpuObject = {};
 	_.each(Memory.assimilation.targets, (roomName: string) => {
@@ -429,16 +375,6 @@ export function govern(): void {
 				targetRoom = Game.rooms[roomName];
 				isSpawning = false;
 				goHome = false;
-
-				// Fridge Raider Override.
-/*				if (roomName === "W3N42") {
-					try {
-						manageRaiders(roomName);
-					} catch (e) {
-						console.log(e.message, "ASM.manageRaiders");
-					}
-					return;
-				}*/
 
 				// Only manage claim in rooms with a controller (not in SK rooms).
 				if (config.hasController && (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1)) {
@@ -519,25 +455,4 @@ export function govern(): void {
 			console.log(`ERROR :: ASM in room ${roomName}: [WRAPPER] ${e.message}`);
 		}
 	}, this);
-	try {
-		let unifiedObject: any = {};
-		_.forOwn(CpuObject, (y: any, key: string) => { // Role
-			if (!!unifiedObject[key]) {
-				unifiedObject[key].numCreeps += y.numCreeps;
-				unifiedObject[key].cpu += y.cpu;
-			} else {
-				unifiedObject[key] = {
-					numCreeps: y.numCreeps,
-					cpu: y.cpu,
-				};
-			}
-		});
-		_.forOwn(unifiedObject, (x: any, key: string) => {
-			StatsManager.addStat(`cpu.perrole.${key}.cpu`, x.cpu);
-			StatsManager.addStat(`cpu.perrole.${key}.creeps`, x.numCreeps);
-			StatsManager.addStat(`cpu.perrole.${key}.cpupercreep`, x.cpu / x.numCreeps);
-		});
-	} catch (e) {
-		console.log(`ERROR :: PerRole Stats: ${e.message}`);
-	}
 }

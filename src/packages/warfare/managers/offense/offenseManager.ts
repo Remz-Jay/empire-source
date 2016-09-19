@@ -1,4 +1,3 @@
-import * as StatsManager from "../../../../shared/statsManager";
 import WarfareCreepAction from "../../warfareCreepAction";
 
 import SentinelGovernor from "../../governors/sentinel";
@@ -536,9 +535,6 @@ export function govern(): void {
 				}
 				console.log(`AssaultRoom ${roomName} has ${targetRoom.energyInContainers} energy in containers, `
 					+ `${hostiles.length} hostiles and ${towers.length} towers with ${energyInTowers} energy.`);
-				StatsManager.addStat(`offense.${roomName}.energy`, targetRoom.energyInContainers);
-				StatsManager.addStat(`offense.${roomName}.hostiles`, hostiles.length);
-				StatsManager.addStat(`offense.${roomName}.towerEnergy`, energyInTowers);
 			}
 		}
 	}, this);

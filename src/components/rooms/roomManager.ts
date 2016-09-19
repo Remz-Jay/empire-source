@@ -2,7 +2,6 @@ import * as CreepManager from "./../creeps/creepManager";
 import * as SourceManager from "./../sources/sourceManager";
 import * as WallManager from "../walls/wallManager";
 import * as RampartManager from "../ramparts/rampartManager";
-import * as StatsManager from "../../shared/statsManager";
 
 export let rooms: { [roomName: string]: Room };
 export function loadRooms() {
@@ -37,16 +36,7 @@ export function getRoomByName(roomName: string): Room {
 }
 
 export function governRooms(): void {
-	let CpuRoomInit = 0;
-	let CpuTowers = 0;
-	let CpuLinks = 0;
-	let CpuRoles = 0;
-	let CpuCreeps = 0;
-	let CpuLabs = 0;
-	let CpuTerminals = 0;
-	let allCreeps: any[] = [];
 	for (let roomName in Game.rooms) {
-		let CpuBeforeRoomInit = Game.cpu.getUsed();
 		let room = getRoomByName(roomName);
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
 			try {
@@ -79,47 +69,39 @@ export function governRooms(): void {
 					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
 				);
 			}
-			CpuRoomInit += (Game.cpu.getUsed() - CpuBeforeRoomInit);
 
 			try {
-				let CpuBeforeTowers = Game.cpu.getUsed();
 				let towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
 				_.each(towers, (t: StructureTower) => {
 					t.run();
 				});
-				CpuTowers += (Game.cpu.getUsed() - CpuBeforeTowers);
 			} catch (e) {
 				console.log("RoomManager.Towers", room.name, e.message);
 			}
 
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
-					let CpuBeforeLinks = Game.cpu.getUsed();
 					if (!!room.storage) {
 						let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
 						_.each(links, (l: StructureLink) => {
 							l.run();
 						});
-					}
-					CpuLinks += (Game.cpu.getUsed() - CpuBeforeLinks);
+					};
 				} catch (e) {
 					console.log("RoomManager.Links", room.name, e.message);
 				}
 			}
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
-					let CpuBeforeTerminals = Game.cpu.getUsed();
 					if (!!room.terminal) {
 						room.terminal.run();
 					}
-					CpuTerminals += (Game.cpu.getUsed() - CpuBeforeTerminals);
 				} catch (e) {
 					console.log("RoomManager.Terminal", room.name, e.message);
 				}
 			}
 
 			if (Game.cpu.bucket > global.BUCKET_MIN) {
-				let CpuBeforeLabs = Game.cpu.getUsed();
 				if (room.myLabs.length > 2) {
 					try {
 						if (!!room.labReaction) {
@@ -134,51 +116,16 @@ export function governRooms(): void {
 						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.message);
 					}
 				}
-				CpuLabs += (Game.cpu.getUsed() - CpuBeforeLabs);
 			}
 
 			// run the creeps in this room
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 4)) {
 				try {
-					let statObject: CreepStats = CreepManager.governCreeps(room);
-					CpuRoles += statObject.roles;
-					CpuCreeps += statObject.creeps;
-					allCreeps.push(statObject.perRole);
+					CreepManager.governCreeps(room);
 				} catch (e) {
 					console.log (`ERROR :: Running Creeps for room ${room.name} : ${e.message}`);
 				}
 			}
 		}
 	}
-	try {
-		let unifiedObject: any = {};
-		allCreeps.forEach((x: any) => { // Room
-			_.forOwn(x, (y: any, key: string) => { // Role
-				if (!!unifiedObject[key]) {
-					unifiedObject[key].numCreeps += y.numCreeps;
-					unifiedObject[key].cpu += y.cpu;
-				} else {
-					unifiedObject[key] = {
-						numCreeps: y.numCreeps,
-						cpu: y.cpu,
-					};
-				}
-			});
-		});
-		_.forOwn(unifiedObject, (x: any, key: string) => {
-			StatsManager.addStat(`cpu.perrole.${key}.cpu`, x.cpu);
-			StatsManager.addStat(`cpu.perrole.${key}.creeps`, x.numCreeps);
-			StatsManager.addStat(`cpu.perrole.${key}.cpupercreep`, x.cpu / x.numCreeps);
-		});
-	} catch (e) {
-		console.log(`ERROR :: PerRole Stats: ${e.message}`);
-	}
-
-	StatsManager.addStat("cpu.roominit", CpuRoomInit);
-	StatsManager.addStat("cpu.towers", CpuTowers);
-	StatsManager.addStat("cpu.links", CpuLinks);
-	StatsManager.addStat("cpu.terminals", CpuTerminals);
-	StatsManager.addStat("cpu.labs", CpuLabs);
-	StatsManager.addStat("cpu.roles", CpuRoles);
-	StatsManager.addStat("cpu.creeps", CpuCreeps);
 }

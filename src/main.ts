@@ -6,10 +6,7 @@ import "./prototypes/terminal";
 import "./prototypes/tower";
 import "./prototypes/spawn";
 
-import * as StatsManager from "./shared/statsManager";
-// import * as Profiler from "./lib/screeps-profiler";
 import * as MemoryManager from "./shared/memoryManager";
-
 import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 // import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
@@ -21,34 +18,15 @@ delete Memory.log;
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
 // RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 // global.om = new ObserverManager();
-// Profiler.enable();
-/*
-Profiler.registerObject(StatsManager, "StatsManager");
-Profiler.registerObject(RoomManager, "RoomManager");
-Profiler.registerObject(CreepManager, "CreepManager");
-Profiler.registerObject(AssimilationManager, "AssimilationManager");
-Profiler.registerObject(OffenseManager, "OffenseManager");
-*/
 
-StatsManager.init();
 AssimilationManager.setup();
 // OffenseManager.setup();
 
 export function loop() {
-	// Profiler.wrap(function () {
 		PathFinder.use(true);
 		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
 		MemoryManager.loadMemory();
 		MemoryManager.cleanMemory();
-		let CpuInit = Game.cpu.getUsed();
-
-		let cpuBeforeStats = Game.cpu.getUsed();
-		// let runExpensive = (Game.time % 5 === 0) ? true : false;
-		let runExpensive = true;
-		StatsManager.runBuiltinStats(runExpensive);
-		StatsManager.addStat("cpu.stats", Game.cpu.getUsed() - cpuBeforeStats);
-		StatsManager.addStat("cpu.init", CpuInit);
-
 		try {
 			AssimilationManager.govern();
 		} catch (e) {
@@ -115,9 +93,5 @@ export function loop() {
 			+ global.colorWrap(`MKT:${credits.toLocaleString()}`, "CornflowerBlue")
 		);
 		Memory.resetCounter += reset;
-		StatsManager.addStat("cpu.getUsed", cpuUsed);
-		StatsManager.addStat("cpu.reset", reset);
-		StatsManager.addStat("cpu.resetCounter", Memory.resetCounter);
 		reset = 0;
-	// });
 }

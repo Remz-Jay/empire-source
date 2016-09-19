@@ -63,10 +63,7 @@ export function createCreep(room: Room, config: CreepConfiguration): string|numb
 	}
 }
 
-export function governCreeps(room: Room): CreepStats {
-	let CpuRoles = 0;
-	let CpuCreeps = 0;
-	let CpuPerRole: any = {};
+export function governCreeps(room: Room) {
 	let isSpawning = false;
 	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
 	for (let index in prioritizedGovernors) {
@@ -74,10 +71,8 @@ export function governCreeps(room: Room): CreepStats {
 			&& (
 				prioritizedGovernors[index].PRIORITY < global.PRIORITY_TRESHOLD // Always execute roles that have priority
 				|| Game.cpu.bucket > global.BUCKET_MIN // Execute auxiliary roles when bucket allows for it
-				// || Game.cpu.getUsed() < Game.cpu.limit // Execute auxiliary roles when we have spare cycles this tick.
 			)
 		) {
-			let CpuBeforeRoles = Game.cpu.getUsed();
 			let governor: CreepGovernor = new prioritizedGovernors[index](room);
 			let creepRole: string = prioritizedGovernors[index].ROLE;
 			let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === creepRole.toUpperCase()
@@ -104,9 +99,6 @@ export function governCreeps(room: Room): CreepStats {
 					isSpawning = true; // prevent spawning of other roles until the emergency is over.
 				}
 			}
-			CpuRoles += (Game.cpu.getUsed() - CpuBeforeRoles);
-
-			let CpuBeforeCreeps = Game.cpu.getUsed();
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
 					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
@@ -119,10 +111,6 @@ export function governCreeps(room: Room): CreepStats {
 					}
 				}
 			}, this);
-			let temp = Game.cpu.getUsed() - CpuBeforeCreeps;
-			CpuPerRole[creepRole] = {numCreeps: creepsInRole.length, cpu: temp};
-			CpuCreeps += temp;
 		}
 	}
-	return {roles: CpuRoles, creeps: CpuCreeps, perRole: CpuPerRole};
 }
