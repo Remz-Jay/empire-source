@@ -21,6 +21,7 @@ interface Room {
 	sources: Source[];
 	minerals: Mineral[];
 	nuker: StructureNuker;
+	powerSpawn: StructurePowerSpawn;
 	observer: StructureObserver;
 	towerTargets: Creep|Structure[];
 	labReaction: string;
@@ -53,6 +54,7 @@ interface Room {
 	getSources(): Source[];
 	getMinerals(): Mineral[];
 	getNuker(): StructureNuker;
+	getPowerSpawn(): StructurePowerSpawn;
 	getObserver(): StructureObserver;
 	getLabReaction(): string;
 	getLabReagents(): string[];
@@ -327,6 +329,14 @@ Room.prototype.getNuker = function(): StructureNuker {
 		return undefined;
 	}
 };
+Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
+	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_POWER_SPAWN);
+	if (sn.length > 0) {
+		return sn.pop();
+	} else {
+		return undefined;
+	}
+};
 Room.prototype.getObserver = function(): StructureObserver {
 	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_OBSERVER);
 	if (sn.length > 0) {
@@ -373,6 +383,7 @@ Room.prototype.addProperties = function () {
 
 	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
 	this.nuker =                (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getNuker() : undefined;
+	this.powerSpawn =           (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getPowerSpawn() : undefined;
 	this.observer =             (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getObserver() : undefined;
 	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
 	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];

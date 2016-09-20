@@ -118,6 +118,13 @@ export function governRooms(): void {
 						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.message);
 					}
 				}
+				try {
+					if (!!room.powerSpawn && room.powerSpawn.power >= 0 && room.powerSpawn.energy >= 50) {
+						room.powerSpawn.processPower();
+					}
+				} catch (e) {
+					console.log(`ERROR :: RoomManager.runPowerSpawn:`, room.name, e.message);
+				}
 			}
 
 			// run the creeps in this room

@@ -9,6 +9,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	public terminal: StructureTerminal;
 	public storage: StructureStorage;
 	public nuker: StructureNuker;
+	public powerSpawn: StructurePowerSpawn;
 	public tower: StructureTower;
 	public spot: RoomPosition;
 	public storageMin: number = global.STORAGE_MIN;
@@ -24,6 +25,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;
 		this.nuker = this.creep.room.nuker;
+		this.powerSpawn = this.creep.room.powerSpawn;
 		if (!this.creep.memory.spot) {
 			this.creep.memory.spot = this.findSpot();
 		}
@@ -240,7 +242,44 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 		return false;
 	}
+	public fillPowerSpawn(): boolean {
+		if (!this.powerSpawn) {
+			return false;
+		}
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 6 && this.carryTotal > 0) {
+			if (this.creep.memory.direction === 7) {
+				this.creep.transfer(this.powerSpawn, this.getMineralTypeFromStore(this.creep));
+			} else {
+				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
+			}
+			this.creep.memory.direction = 0;
+			this.creep.memory.carryType = RESOURCE_ENERGY;
+			return true;
+		}
+		if (this.powerSpawn.power < (this.powerSpawn.powerCapacity / 2) && !!this.terminal.store[RESOURCE_POWER] && this.terminal.store[RESOURCE_POWER] > 0) {
+			let amount: number = global.clamp(
+				this.powerSpawn.powerCapacity - this.powerSpawn.power,
+				0,
+				_.min([this.canTransfer, this.terminal.store[RESOURCE_POWER]])
+			);
+			this.creep.withdraw(this.terminal, RESOURCE_POWER, amount);
+			this.creep.memory.direction = 7;
+			this.creep.memory.carryType = RESOURCE_POWER;
+			return true;
+		}
+		if (this.powerSpawn.energy < (this.powerSpawn.energyCapacity / 2) && this.storage.store.energy > (global.STORAGE_MIN)) {
+			let amount: number = global.clamp(this.powerSpawn.energyCapacity - this.powerSpawn.energy, 0, this.canTransfer);
+			this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
+			this.creep.memory.direction = 7;
+			this.creep.memory.carryType = RESOURCE_ENERGY;
+			return true;
+		}
+		return false;
+	}
 	public fillTower(): boolean {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 6) { // busy with fillNuker
+			return false;
+		}
 		if (!this.creep.memory.tower) {
 			let towers = this.creep.room.myStructures.filter(
 				(s: OwnedStructure) => s.structureType === STRUCTURE_TOWER && s.pos.isNearTo(this.creep.pos)
@@ -292,7 +331,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 	public action(): boolean {
 		if (this.renewCreep() && this.move()) {
-			if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower()) {
+			if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower() && !this.fillPowerSpawn()) {
 				this.cleanUp();
 			}
 			return true;
