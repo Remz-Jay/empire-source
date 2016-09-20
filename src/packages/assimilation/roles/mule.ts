@@ -18,7 +18,13 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			this.storage = Game.getObjectById<StructureStorage>(this.creep.memory.storage);
 		}
 		if (!this.container) {
-			this.creep.suicide();
+			let containerId = this.governor.checkContainerAssignment();
+			if (!!containerId) {
+				this.creep.memory.container = containerId;
+				this.setCreep(creep);
+			} else {
+				this.creep.suicide();
+			}
 		}
 	}
 
@@ -47,27 +53,19 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			// find a link that's closer than storage
 			if (!!this.storage && this.creep.carry.energy > 0) {
 				let storageRange = this.creep.pos.getRangeTo(this.storage.pos);
-				let target: OwnedStructure = this.creep.pos.findClosestByRange<OwnedStructure>(
-					this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_LINK && s.pos.getRangeTo(this.creep.pos) < storageRange)
-				);
+				let links = this.creep.room.myStructures.filter(
+					(s: StructureLink) => s.structureType === STRUCTURE_LINK
+					&& s.energy <= (s.energyCapacity / 2));
+				let target: OwnedStructure = this.creep.pos.findClosestByPath<OwnedStructure>(links, {
+					filter: (l: StructureLink) => l.pos.getRangeTo(this.creep.pos) < storageRange,
+					algorithm: "astar",
+					costCallback: this.roomCallback,
+					maxOps: 500,
+				});
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
 					this.creep.memory.target = this.storage.id;
-				}
-			} else if (!!this.storage) {
-				this.creep.memory.target = this.storage.id;
-			} else {
-				// last resort; just return energy to the nearest container.
-				let target: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.containers, {
-					filter: (structure: StructureContainer) => _.sum(structure.store) < structure.storeCapacity,
-					costCallback: this.roomCallback,
-				}) as StructureContainer;
-				if (!!target) {
-					this.creep.memory.target = target.id;
-				} else {
-					delete this.creep.memory.target;
-					this.creep.say("IDLE!");
 				}
 			}
 		}
@@ -86,9 +84,6 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			this.moveTo(target.pos);
 		} else {
 			switch (target.structureType) {
-				case STRUCTURE_EXTENSION:
-				case STRUCTURE_SPAWN:
-				case STRUCTURE_TOWER:
 				case STRUCTURE_LINK:
 					let link = <StructureLink> target;
 					if (link.energy < link.energyCapacity) {
@@ -97,7 +92,6 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 						return;
 					}
 					break;
-				case STRUCTURE_CONTAINER:
 				case STRUCTURE_STORAGE:
 					if (this.creep.carry.energy > 0) {
 						status = this.creep.transfer(target, RESOURCE_ENERGY);
@@ -129,19 +123,32 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	};
 
 	public collectFromDrops(): boolean {
-		if (this.container.store.energy >= (this.creep.carryCapacity - _.sum(this.creep.carry))) {
-			return true;
-		}
-		let resources = this.safeLook(LOOK_RESOURCES, this.creep.pos, 15);
-		if (resources.length > 0) {
-			let r = resources[0];
-			let rpos = new RoomPosition(r.x, r.y, this.creep.room.name);
-			if (!this.creep.pos.isNearTo(rpos)) {
-				this.moveTo(rpos);
-			} else {
-				this.creep.pickup(r.resource);
+		if (!this.creep.memory.dropTarget) {
+			let drops = this.creep.room.find(FIND_DROPPED_RESOURCES,
+				{filter: (r: Resource) => r.amount >= this.creep.carryCapacity}
+			) as Resource[];
+			if (drops.length > 0) {
+				let drop = this.creep.pos.findClosestByPath(drops, {
+					maxRooms: 1,
+					costCallback: this.roomCallback,
+				});
+				this.creep.memory.dropTarget = drop.id;
 			}
-			return false;
+		}
+		if (!!this.creep.memory.dropTarget) {
+			let drop = Game.getObjectById(this.creep.memory.dropTarget) as Resource;
+			if (!!drop && drop.amount >= this.creep.carryCapacity) {
+				if (!this.creep.pos.isNearTo(drop.pos)) {
+					this.moveTo(drop.pos);
+				} else {
+					this.creep.pickup(drop);
+					delete this.creep.memory.dropTarget;
+				}
+				return false;
+			} else {
+				delete this.creep.memory.dropTarget;
+				return true;
+			}
 		}
 		return true;
 	}

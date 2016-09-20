@@ -215,8 +215,6 @@ export default class CreepAction implements ICreepAction {
 				if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 					this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
 					if (this.creep.memory.stuckTicks > 1) {
-						Memory.log.creeps.push(`moveTo: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
-							+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
 						this.creep.memory.stuckTicks = undefined;
 						this.creep.memory.lastPosition = undefined;
 						this.creep.memory.pfgPath = undefined;
@@ -272,7 +270,7 @@ export default class CreepAction implements ICreepAction {
 				}
 			}
 		} catch (e) {
-			console.log(e.message, JSON.stringify(target), "creepAction.moveTo");
+			console.log(e.message, target, "creepAction.moveTo");
 			// fall back to regular move.
 			if (!(target instanceof RoomPosition)) {
 				target = new RoomPosition(target[0].pos.x, target[0].pos.y, target[0].pos.roomName);
@@ -305,8 +303,6 @@ export default class CreepAction implements ICreepAction {
 			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
 				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
 				if (this.creep.memory.stuckTicks > 1) {
-					Memory.log.creeps.push(`moveByPath: ${this.creep.name} (${this.creep.memory.role}) is stuck at `
-						+ `${JSON.stringify(lp)} for ${this.creep.memory.stuckTicks}. Recalculating route.`);
 					delete this.creep.memory.stuckTicks;
 					delete this.creep.memory.lastPosition;
 					// TODO: Figure out this recursive mess..
@@ -333,7 +329,7 @@ export default class CreepAction implements ICreepAction {
 			case OK:
 				return true;
 			default:
-				throw new Error("Uncaught moveBy status " + JSON.stringify(status) + " in Class.Creep.moveByPath.");
+				console.log("Uncaught moveBy status " + global.translateErrorCode(status) + " in Class.Creep.moveByPath.");
 		}
 	};
 
@@ -397,7 +393,7 @@ export default class CreepAction implements ICreepAction {
 		let moveParts = this.creep.getActiveBodyparts(MOVE);
 		let totalParts = this.creep.body.length;
 		// If we have a 1:1 ratio on MOVE parts or our carry is empty, ignore roads.
-		if ((totalParts / moveParts) <= 2 || (this.creep.getActiveBodyparts(CARRY) > 0 && _.sum(this.creep.carry) === 0)) {
+		if ((moveParts / totalParts) >= 0.5 || ((moveParts / totalParts) >= 0.25 && this.creep.getActiveBodyparts(CARRY) > 0 && _.sum(this.creep.carry) === 0)) {
 			plainCost = 1;
 			swampCost = 5;
 		}
@@ -413,6 +409,7 @@ export default class CreepAction implements ICreepAction {
 			// We're near the target.
 			return undefined;
 		} else {
+			// console.log("PathFinder", `${maxOps} maxOps, ${path.ops} ops, ${path.cost} cost, ${path.incomplete} incomplete`);
 			return path.path;
 		}
 	};
@@ -605,7 +602,7 @@ export default class CreepAction implements ICreepAction {
 							case OK:
 								break;
 							default:
-								throw new Error(`Unhandled ERR in creep.source.container ${status}`);
+								console.log(`Unhandled ERR in creep.source.container ${status}`);
 						}
 					}
 				}
@@ -624,7 +621,7 @@ export default class CreepAction implements ICreepAction {
 						case OK:
 							break;
 						default:
-							throw new Error(`Unhandled ERR in creep.source.harvest: ${status}`);
+							console.log(`Unhandled ERR in creep.source.harvest: ${status}`);
 					}
 				}
 			}

@@ -9,6 +9,8 @@ export function loadRooms() {
 	global.labReactions = [];
 	global.boostReagents = [];
 	global.sendRegistry = [];
+	global.targetBlackList = [];
+	global.linkBlackList = [];
 	_.each(Game.rooms, function(r: Room) {
 		r.addProperties();
 		rooms[r.name] = r;
@@ -59,8 +61,8 @@ export function governRooms(): void {
 				console.log("RoomManager.init", e.message);
 			}
 
-			if (room.controller.level > 3 && room.numberOfCreeps < 5) {
-				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.numberOfCreeps}`);
+			if (room.controller.level > 3 && room.myCreeps.length < 5) {
+				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.myCreeps.length}`);
 			}
 			if (global.ROOMSTATS) {
 				// this is one of our controlled rooms
@@ -91,7 +93,7 @@ export function governRooms(): void {
 					console.log("RoomManager.Links", room.name, e.message);
 				}
 			}
-			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
+			if (global.time % 5 === 0 && Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
 					if (!!room.terminal) {
 						room.terminal.run();

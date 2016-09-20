@@ -7,29 +7,27 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "ASMMule";
 
 	public bodyPart: string[] = [CARRY, MOVE];
-	public maxParts: number = 14;
+	public basePart: string[] = [WORK, WORK, MOVE, MOVE];
+	public maxParts: number = 23;
 	public maxCreeps: number = 1;
+	public multiplier: number = 1;
 	public containers: StructureContainer[] = [];
 
 	constructor(homeRoom: Room, config: RemoteRoomConfig, containers: StructureContainer[]) {
 		super(homeRoom, config);
+		this.multiplier = (config.hasController) ? 1 : 2; // SK Rooms get 2 mules / source.
 		this.containers = containers;
 	}
-
-	public getBody(): string[] {
-		let numParts: number;
-		numParts = _.floor((this.room.energyCapacityAvailable - 200) / AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
-
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		let body: string[] = [];
+	public getBody() {
+		let numParts = global.clamp(_.floor(
+			(this.room.energyCapacityAvailable - AssimilationCreepGovernor.calculateRequiredEnergy(this.basePart)) /
+			AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart)), 0, this.maxParts);
+		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
-			if (body.length + this.bodyPart.length <= 46) {
+			if (body.length + this.bodyPart.length <= 50) {
 				body = body.concat(this.bodyPart);
 			}
 		}
-		body = body.concat([WORK, WORK, MOVE, MOVE]);
 		return AssimilationCreepGovernor.sortBodyParts(body);
 	}
 
@@ -46,10 +44,9 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 	public checkContainerAssignment(): string {
 		let freeContainer: string = undefined;
-		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
 		_.each(this.containers, function(c: StructureContainer) {
 			let mules = this.checkAssignedMules(c);
-			if (!mules || mules.length < multiplier) {
+			if (!mules || mules.length < this.multiplier) {
 				freeContainer = c.id;
 			}
 		}, this);
@@ -63,10 +60,6 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 		);
 	}
 	public getCreepLimit(): number {
-		let multiplier = (this.config.homeDistance > 2) ? 3 : 2;
-		if (this.config.targetRoom === "W7N42") {
-			multiplier = 1;
-		}
-		return this.containers.length * multiplier;
+		return this.containers.length * this.multiplier;
 	}
 }

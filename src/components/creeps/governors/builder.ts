@@ -6,7 +6,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 	public static ROLE: string = "Builder";
 	public static MINRCL: number = global.MINRCL_BUILDER;
 
-	public bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
+	public bodyPart: string[] = [WORK, CARRY, MOVE];
 	public maxParts: number = 5;
 	public maxCreeps: number = 1;
 

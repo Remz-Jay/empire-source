@@ -5,10 +5,6 @@ export function load(r: Room) {
 	room = r;
 	walls = getWalls();
 }
-
-export function saveToMemory() {
-	Memory.walls = _.pluck(walls, "hits");
-}
 export function getAverageStrength() {
 	return _.round(_.sum<StructureWall>(walls, "hits") / _.size(walls));
 }
@@ -29,7 +25,7 @@ export function adjustStrength() {
 	}
 }
 
-export function getWalls(): StructureWall[] {
+function getWalls(): StructureWall[] {
 	let w = room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL) as StructureWall[];
 	if (Memory.config.Wall === undefined) {
 		Memory.config.Wall = {};

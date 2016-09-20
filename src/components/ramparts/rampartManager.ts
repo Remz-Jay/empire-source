@@ -7,10 +7,6 @@ export function load(r: Room) {
 	room = r;
 	ramparts = getRamparts();
 }
-
-export function saveToMemory() {
-	Memory.ramparts = _.pluck(ramparts, "hits");
-}
 export function getAverageStrength() {
 	return _.round(_.sum(ramparts, "hits") / _.size(ramparts));
 }
@@ -33,7 +29,7 @@ export function adjustStrength() {
 	}
 }
 
-export function getRamparts(): StructureRampart[] {
+function getRamparts(): StructureRampart[] {
 	let r = room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_RAMPART) as StructureRampart[];
 	if (Memory.config.Rampart === undefined) {
 		Memory.config.Rampart = {};

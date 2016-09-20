@@ -264,5 +264,5 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 	});
 
 	// My Creeps
-	stats.rooms[room.name].creeps = room.numberOfCreeps;
+	stats.rooms[room.name].creeps = room.myCreeps.length;
 }

@@ -11,6 +11,9 @@ export interface ICreepGovernor {
 	getBody(): string[];
 	getNumberOfCreepsInRole(): number;
 	getCreepsInRole(): Creep[];
+	getBlackList(): string[];
+	addToBlackList(targetId: string): void;
+	checkContainerAssignment(): string;
 }
 
 export default class CreepGovernor implements ICreepGovernor {
@@ -115,5 +118,15 @@ export default class CreepGovernor implements ICreepGovernor {
 			}
 		}
 		return CreepGovernor.sortBodyParts(body);
+	}
+
+	public getBlackList(): string[] {
+		return [];
+	}
+	public addToBlackList(targetId: string): void {
+		return;
+	}
+	public checkContainerAssignment(): string {
+		return undefined;
 	}
 }

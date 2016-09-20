@@ -68,7 +68,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			if (!!creepPos) {
 				return creepPos;
 			} else {
-				throw new Error("Linker.findSpot :: Could not find a suitable position. Help?");
+				console.log("Linker.findSpot :: Could not find a suitable position. Help?");
 			}
 		}
 	}
@@ -97,7 +97,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				link = linkResult[0];
 				this.creep.memory.link = link.id;
 			} else {
-				throw new Error("Linker.link :: Could not locate Link near Storage.");
+				console.log("Linker.link :: Could not locate Link near Storage.");
 			}
 		} else {
 			link = Game.getObjectById<StructureLink>(this.creep.memory.link);

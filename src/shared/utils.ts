@@ -1,15 +1,3 @@
-global.time = Game.time - global.TIME_OFFSET;
-
-let allOrders: Order[];
-global.getAllOrders = function(): Order[] {
-	if (!!allOrders) {
-		return allOrders;
-	} else {
-		allOrders = Game.market.getAllOrders();
-		return allOrders;
-	}
-};
-
 global.colorWrap = function(text: string, color: string) {
 	return `<font color="${color}">${text}</font>`;
 };

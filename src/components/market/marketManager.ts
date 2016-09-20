@@ -1,11 +1,13 @@
 export function governMarket(): void {
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
+		getAllOrders();
 		switch (global.time % 20) {
 			case 0:
 				cleanupOrders();
 				break;
 			case 1:
-				findDeals();
+				// findDeals();
+				// chainResources();
 				break;
 			case 2:
 				dumpResource("O");
@@ -21,14 +23,33 @@ export function governMarket(): void {
 		}
 	}
 }
+function getAllOrders() {
+	global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE = [];
+	global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE = [];
+	let orders = Game.market.getAllOrders();
+	for (let ord in orders) {
+		let myOrder = orders[ord];
+		if (myOrder.type === ORDER_SELL) {
+			if (!global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType]) {
+				global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType] = [];
+			}
+			global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType].push(myOrder);
+		} else {
+			if (!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType]) {
+				global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType] = [];
+			}
+			global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType].push(myOrder);
+		}
+	}
+}
 
-let chain = [
+const chain = [
 	{source: "W6N42", destination: "W7N45", resource: RESOURCE_GHODIUM},
 	{source: "W7N45", destination: "W5N42", resource: RESOURCE_GHODIUM_HYDRIDE},
 	{source: "W5N42", destination: "W6N42", resource: RESOURCE_GHODIUM_ACID},
 	{source: "W7N45", destination: "W6N42", resource: RESOURCE_CATALYST},
 ];
-export function chainResources(): void {
+function chainResources(): void {
 	chain.forEach(c => {
 		let room = Game.rooms[c.source];
 		let terminal = room.terminal;
@@ -42,7 +63,7 @@ export function chainResources(): void {
 	});
 }
 
-export function cleanupOrders(): void {
+function cleanupOrders(): void {
 	_.forOwn(Game.market.orders, (order: Order, id: string) => {
 		if (order.resourceType !== SUBSCRIPTION_TOKEN && order.totalAmount > 100 && order.remainingAmount < 100) {
 			Game.market.cancelOrder(order.id);
@@ -63,46 +84,44 @@ const marketThresholds: MarketThresholdsObject = {
 	X: 1.0,
 };
 
-export function findDeals(): void {
+function findDeals(): void {
 	console.log(`[MARKET] Doing a market price scan.`);
 	_.forOwn(marketThresholds, (price: number, resource: string) => {
 		// console.log(`[MARKET] ${resource} at ${price}`);
-		let orders = global.getAllOrders().filter((order: Order) =>
-			order.type === ORDER_SELL
-			&& order.resourceType === resource
-			&& order.price < price
-			&& !_.has(Game.rooms, order.roomName)
-			&& Game.map.getRoomLinearDistance("W6N42", order.roomName) < 71
-			&& Game.market.calcTransactionCost(order.remainingAmount, "W6N42", order.roomName) <= global.TERMINAL_MAX
-		) as Order[];
-		if (!!orders && orders.length > 0) {
-			orders.forEach((order: Order) => {
-				let cost = order.remainingAmount * order.price;
-				let transferCost = Game.market.calcTransactionCost(order.remainingAmount, "W6N42", order.roomName);
-				let sellsFor = order.remainingAmount * price;
-				let profit = sellsFor - cost;
-				console.log(global.colorWrap(`[MARKET] found an interesting deal on ${resource}: ${order.remainingAmount.toLocaleString()} at ${order.price}. `
-					+ `Range: ${Game.map.getRoomLinearDistance("W6N42", order.roomName)} (${order.roomName}). `
-					+ `Cost: ${cost.toLocaleString()}, Profit: ${profit.toLocaleString()}, Transfer: ${transferCost.toLocaleString()} energy. ID: ${order.id}`, "cyan"));
-			});
+		if (!!global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE[resource]) {
+			let orders = _.filter(global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE[resource], (order: Order) =>
+				order.price < price
+				&& !_.has(Game.rooms, order.roomName)
+				&& Game.map.getRoomLinearDistance("W6N42", order.roomName) < 71
+				&& Game.market.calcTransactionCost(order.remainingAmount, "W6N42", order.roomName) <= global.TERMINAL_MAX
+			) as Order[];
+			if (!!orders && orders.length > 0) {
+				orders.forEach((order: Order) => {
+					let cost = order.remainingAmount * order.price;
+					let transferCost = Game.market.calcTransactionCost(order.remainingAmount, "W6N42", order.roomName);
+					let sellsFor = order.remainingAmount * price;
+					let profit = sellsFor - cost;
+					console.log(global.colorWrap(`[MARKET] found an interesting deal on ${resource}: ${order.remainingAmount.toLocaleString()} at ${order.price}. `
+						+ `Range: ${Game.map.getRoomLinearDistance("W6N42", order.roomName)} (${order.roomName}). `
+						+ `Cost: ${cost.toLocaleString()}, Profit: ${profit.toLocaleString()}, Transfer: ${transferCost.toLocaleString()} energy. ID: ${order.id}`, "cyan"));
+				});
+			}
 		}
 	});
-	let orders = global.getAllOrders().filter((order: Order) =>
-		order.type === ORDER_BUY
-		&& order.resourceType === SUBSCRIPTION_TOKEN
-		&& order.price >= 3000000
-	) as Order[];
-	if (!!orders && orders.length > 0) {
-		let order = _.sortBy(orders, "price").pop();
-		let status = Game.market.deal(order.id, 1);
-		if (status === OK) {
-			Game.notify(`Sold 1 token at ${order.price}. PROFIT!`);
+	if (!!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[SUBSCRIPTION_TOKEN]) {
+		let orders = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[SUBSCRIPTION_TOKEN], (order: Order) => order.price >= 3000000) as Order[];
+		if (!!orders && orders.length > 0) {
+			let order = _.sortBy(orders, "price").pop();
+			let status = Game.market.deal(order.id, 1);
+			if (status === OK) {
+				Game.notify(`Sold 1 token at ${order.price}. PROFIT!`);
+			}
 		}
 	}
 }
 global.findDeals = findDeals;
 
-export function resourceReport(): void {
+function resourceReport(): void {
 	let outputBuffer: string[] = [];
 	let resources: ResourceList = {"energy": 0};
 	let roomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
@@ -240,7 +259,7 @@ export function resourceReport(): void {
 }
 global.resourceReport = resourceReport;
 
-export function formatAmount(value: number, cellWidth: number = 0, overrideColor?: string): string {
+function formatAmount(value: number, cellWidth: number = 0, overrideColor?: string): string {
 	let strVal: string = value.toString();
 	if (value > 1000000) {
 		strVal = _.round(value / 1000000, 2).toString() + "M";
@@ -266,11 +285,12 @@ export function formatAmount(value: number, cellWidth: number = 0, overrideColor
 	}
 	return strVal;
 }
-export function dumpResource(resource: string) {
+function dumpResource(resource: string) {
 	let perBatch: number = 2000;
 	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
-		if (!!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.2)
+		if (!!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[resource]
+			&& !!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.2)
 			&& r.terminal.store[resource] && r.terminal.store[resource] >= perBatch
 		) {
 			let canSell = r.terminal.store[resource];
@@ -280,13 +300,11 @@ export function dumpResource(resource: string) {
 			let availableEnergy = r.terminal.store.energy;
 			console.log(`Room ${r.name} has ${formatAmount(r.storage.store[resource])} x ${resource} in storage.`);
 			let price: number = marketThresholds[resource];
-			let orders = global.getAllOrders().filter((order: Order) =>
-				order.type === ORDER_BUY
-				&& order.resourceType === resource
-				&& order.price >= price
+			let orders = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[resource], (order: Order) =>
+				order.price >= price
 				&& order.remainingAmount >= canSell
 				&& !_.has(Game.rooms, order.roomName)
-				&& Game.map.getRoomLinearDistance(r.name, order.roomName) < 10
+				&& Game.map.getRoomLinearDistance(r.name, order.roomName) < 20
 			) as Order[];
 			if (!!orders && orders.length > 0) {
 				let bestPrice = 0;
@@ -326,7 +344,7 @@ export function dumpResource(resource: string) {
 	});
 }
 global.dumpResource = dumpResource;
-export function transactionReport(numTransactions = 5): void {
+function transactionReport(numTransactions = 5): void {
 	console.log(global.colorWrap(`[MARKET] Incoming Transactions:`, "Red"));
 	_.take(Game.market.incomingTransactions, numTransactions).forEach((t: Transaction) => {
 		t = _.defaults<Transaction>(t, {

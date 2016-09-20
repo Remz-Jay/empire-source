@@ -32,7 +32,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			)
 		));
 	}
-	public scanForTargets(blackList: string[] = []): Structure {
+	public scanForTargets(): Structure {
+		let blackList = this.governor.getBlackList();
 		if (this.creep.room.myStructures.length > 0) {
 			let structs = this.getTargetList(blackList);
 			let target: EnergyStructure = this.creep.pos.findClosestByPath(structs, {
@@ -42,15 +43,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				costCallback: this.roomCallback,
 			}) as EnergyStructure;
 			if (!!target) {
-				let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
-				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.target && c.memory.target === target.id));
-				if (!!taken && taken.length > 0) {
-					blackList.push(target.id);
-					return this.scanForTargets(blackList);
-				} else {
-					return target;
-				}
+				this.governor.addToBlackList(target.id);
+				return target;
 			}
 		}
 		return undefined;
@@ -129,7 +123,8 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		}
 	};
 
-	public setSource(idle: boolean = false, blackList: string[] = [], retry: boolean = false): void {
+	public setSource(idle: boolean = false): void {
+		let blackList = this.governor.getBlackList();
 		// Get energy from containers
 		let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
 		!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
@@ -159,21 +154,12 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			this.creep.memory.mineralType = RESOURCE_ENERGY;
 		}
 		if (!!source) {
-			let taken: Creep[] = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
-				&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-				&& (!!c.memory.source && c.memory.source === source.id));
-			if (!!taken && taken.length > 0) {
-				blackList.push(source.id);
-				this.setSource(idle, blackList);
-			} else {
-				this.creep.memory.source = source.id;
-			}
+			this.governor.addToBlackList(source.id);
+			this.creep.memory.source = source.id;
 		} else if (!!this.creep.room.storage && this.creep.room.storage.store[RESOURCE_ENERGY] > 0) {
 			if (!idle) { // Only collect from the storage if we have targets that require energy.
 				this.creep.memory.source = this.creep.room.storage.id;
 				this.creep.memory.mineralType = RESOURCE_ENERGY;
-			} else if (!retry) {
-				this.setSource(true, blackList, true);
 			}
 		}
 	}

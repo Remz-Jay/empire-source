@@ -6,8 +6,8 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	public static MINRCL: number = global.MINRCL_MULE;
 	public static ROLE: string = "Mule";
 
-	public bodyPart = [CARRY, MOVE];
-	public maxParts = 16;
+	public bodyPart = [CARRY, CARRY, MOVE];
+	public maxParts = 12;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -23,9 +23,6 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	}
 
 	public getBody(): string[] {
-/*		if (this.room.controller.level >= 7) {
-			this.maxParts = 12;
-		}*/
 		let numParts: number;
 		if (this.getNumberOfCreepsInRole() > 0 && !this.emergency) {
 			numParts = _.floor((this.room.energyCapacityAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
@@ -66,6 +63,29 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 		} else {
 			return 0;
 		}
-
 	};
+
+	public getBlackList(): string[] {
+		if (!!global.targetBlackList[MuleGovernor.ROLE] && _.isArray(global.targetBlackList[MuleGovernor.ROLE])) {
+			return global.targetBlackList[MuleGovernor.ROLE];
+		} else {
+			global.targetBlackList[MuleGovernor.ROLE] = [];
+			let allMules: Creep[] = _.filter(Game.creeps, (c: Creep) => c.memory.role === MuleGovernor.ROLE);
+			allMules.forEach((c: Creep) => {
+				if (!!c.memory.target) {
+					global.targetBlackList[MuleGovernor.ROLE].push(c.memory.target);
+				}
+				if (!!c.memory.source) {
+					global.targetBlackList[MuleGovernor.ROLE].push(c.memory.source);
+				}
+			});
+			return global.targetBlackList[MuleGovernor.ROLE];
+		}
+	}
+	public addToBlackList(targetId: string): void {
+		if (!global.targetBlackList[MuleGovernor.ROLE]) {
+			this.getBlackList();
+		}
+		global.targetBlackList[MuleGovernor.ROLE].push(targetId);
+	}
 }

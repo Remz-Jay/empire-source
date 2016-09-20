@@ -27,7 +27,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 		}
 		return matrix;
 	} catch (e) {
-		console.log(JSON.stringify(e), "Dismantler.roomCallback", roomName);
+		console.log(e.message, "Dismantler.roomCallback", roomName);
 		return new PathFinder.CostMatrix();
 	}
 };

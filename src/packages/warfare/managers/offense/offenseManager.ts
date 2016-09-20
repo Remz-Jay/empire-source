@@ -431,9 +431,9 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 					// Do a preemptive spawn if this creep is about to expire.
 					let status = createCreep(governor.getCreepConfig());
 					if (_.isNumber(status)) {
-						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
+						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
 					} else {
-						console.log("manageSquad.preempt-spawn", status, JSON.stringify(squadRole.governor.ROLE));
+						console.log("manageSquad.preempt-spawn", status, squadRole.governor.ROLE);
 					}
 				}
 			}
@@ -441,9 +441,9 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 		if (creepsInRole.length < squadRole.maxCreeps) {
 			let status = createCreep(governor.getCreepConfig());
 			if (_.isNumber(status)) {
-				console.log("manageSquad.spawn", global.translateErrorCode(status), JSON.stringify(squadRole.governor.ROLE));
+				console.log("manageSquad.spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
 			} else {
-				console.log("manageSquad.spawn", status, JSON.stringify(squadRole.governor.ROLE));
+				console.log("manageSquad.spawn", status, squadRole.governor.ROLE);
 			}
 		}
 	}, this);

@@ -200,6 +200,10 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 			if (!!this.creep.memory.source) {
 				let source: Source = Game.getObjectById(this.creep.memory.source) as Source;
 				let container: StructureContainer;
+				let link: StructureLink;
+				if (!!this.creep.memory[`link_${this.creep.memory.source}`]) {
+					link = Game.getObjectById(this.creep.memory[`link_${this.creep.memory.source}`]) as StructureLink;
+				}
 				if (!!this.creep.memory[`cont_${this.creep.memory.source}`]) {
 					container = Game.getObjectById(this.creep.memory[`cont_${this.creep.memory.source}`]) as StructureContainer;
 					if (!container) {
@@ -213,6 +217,10 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 								container = r.structure as StructureContainer;
 								this.creep.memory[`cont_${this.creep.memory.source}`] = r.structure.id;
 							}
+							if (r.structure.structureType === STRUCTURE_LINK) {
+								link = r.structure as StructureLink;
+								this.creep.memory[`link_${this.creep.memory.source}`] = r.structure.id;
+							}
 						});
 					}
 				}
@@ -225,7 +233,9 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 					if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && container.hits < container.hitsMax) {
 						return this.creep.repair(container);
 					} else if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
-						if (this.creep.pos.isNearTo(container.pos)) {
+						if (!!link && link.energy < link.energyCapacity && this.creep.pos.isNearTo(link.pos)) {
+							this.creep.transfer(link, RESOURCE_ENERGY);
+						} else if (this.creep.pos.isNearTo(container.pos)) {
 							if (_.sum(container.store) < container.storeCapacity) {
 								this.creep.transfer(container, RESOURCE_ENERGY);
 							} else {

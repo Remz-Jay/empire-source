@@ -6,7 +6,7 @@ StructureTerminal.prototype.run = function (): boolean {
 	let storage = this.room.storage;
 	let sending: boolean = false;
 	let minType: string = this.room.minerals[0].mineralType;
-	let batchSize: number = 200;
+	let batchSize: number = 1000;
 
 	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_ENERGY_MAX
@@ -15,6 +15,7 @@ StructureTerminal.prototype.run = function (): boolean {
 		// Find a room that needs energy.
 		_.forEach(roomList, (room: Room) => {
 			if (!sending
+				&& room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, RESOURCE_ENERGY)
 				&& room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_ENERGY_MAX)
 			) {
@@ -40,9 +41,10 @@ StructureTerminal.prototype.run = function (): boolean {
 		resourceBlacklist.push(br.reagent);
 		if (!sending && Game.cpu.bucket > global.BUCKET_MIN) {
 			if (!sending
+				&& br.room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, br.reagent)
 				&& this.store[br.reagent] >= batchSize
-				&& br.room.terminal.store[br.reagent] < global.TERMINAL_MAX
+				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < global.TERMINAL_MAX)
 				&& !br.room.storage.store[br.reagent]
 			) {
 				let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, br.room.name);
@@ -68,9 +70,10 @@ StructureTerminal.prototype.run = function (): boolean {
 		if (!sending && Game.cpu.bucket > global.BUCKET_MIN) {
 			lr.reagents.forEach((reagent: string) => {
 				if (!sending
+					&& lr.room.name !== this.room.name
 					&& !_.includes(global.sendRegistry, reagent)
 					&& this.store[reagent] >= batchSize
-					&& lr.room.terminal.store[reagent] < global.TERMINAL_MAX
+					&& (!lr.room.terminal.store[reagent] || lr.room.terminal.store[reagent] < global.TERMINAL_MAX)
 					&& !lr.room.storage.store[reagent]
 				) {
 					let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, lr.room.name);
@@ -134,11 +137,9 @@ StructureTerminal.prototype.run = function (): boolean {
 	) {
 		try {
 			let threshold = global.tradeTreshold(minType);
-			if (_.isNumber(threshold)) {
-				let offers = global.getAllOrders().filter((order: Order) =>
-					order.type === ORDER_BUY
-					&& order.resourceType === minType
-					&& order.price >= threshold
+			if (_.isNumber(threshold) && !!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType]) {
+				let offers = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType], (order: Order) =>
+					order.price >= threshold
 					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName) < 50 // At 70 the energy costs equal the amount to transfer.
 				) as Order[];
 				if (offers.length > 0) {

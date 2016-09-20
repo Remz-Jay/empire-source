@@ -6,9 +6,9 @@ export default class ScientistGovernor extends CreepGovernor implements ICreepGo
 	public static MINRCL: number = global.MINRCL_SCIENTIST;
 	public static ROLE: string = "Scientist";
 
-	public bodyPart = [CARRY, MOVE];
+	public bodyPart = [CARRY, CARRY, MOVE];
 	public maxCreeps = 1;
-	public maxParts = 4;
+	public maxParts = 2;
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -25,7 +25,7 @@ export default class ScientistGovernor extends CreepGovernor implements ICreepGo
 	}
 	public getBody(): string[] {
 		if (this.room.controller.level === 8) {
-			this.maxParts = 6;
+			this.maxParts = 4;
 		}
 		return super.getBody();
 	}

@@ -14,6 +14,15 @@ import * as MarketManager from "./components/market/marketManager";
 // import ObserverManager from "./components/observers/observerManager";
 let reset: number = 1;
 delete Memory.log;
+if (!global.costMatrix) {
+	global.costMatrix = {};
+}
+if (!global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE) {
+	global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE = [];
+}
+if (!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE) {
+	global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE = [];
+}
 
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
 // RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
@@ -23,12 +32,21 @@ AssimilationManager.setup();
 // OffenseManager.setup();
 
 export function loop() {
+		global.time = Game.time - global.TIME_OFFSET;
 		PathFinder.use(true);
-		RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
-		MemoryManager.loadMemory();
-		MemoryManager.cleanMemory();
+		let used = Game.cpu.getUsed();
 		try {
+			RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
+			console.log(`Room Setup: ${_.ceil(Game.cpu.getUsed() - used)}`);
+			MemoryManager.loadMemory();
+			MemoryManager.cleanMemory();
+		} catch (e) {
+			console.log("Setup Exception", (<Error> e).message);
+		}
+		try {
+			used = Game.cpu.getUsed();
 			AssimilationManager.govern();
+			console.log(`ASM: ${_.ceil(Game.cpu.getUsed() - used)}`);
 		} catch (e) {
 			console.log("AssimilationManager Exception", (<Error> e).message);
 		}
@@ -40,12 +58,16 @@ export function loop() {
 		}
 */
 		try {
+			used = Game.cpu.getUsed();
 			RoomManager.governRooms();
+			console.log(`Rooms: ${_.ceil(Game.cpu.getUsed() - used)}`);
 		} catch (e) {
 			console.log("RoomManager Exception", (<Error> e).message);
 		}
 		try {
+			used = Game.cpu.getUsed();
 			MarketManager.governMarket();
+			console.log(`Market: ${_.ceil(Game.cpu.getUsed() - used)}`);
 		} catch (e) {
 			console.log("MarketManager Exception", (<Error> e).message);
 		}

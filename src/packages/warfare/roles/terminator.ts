@@ -26,7 +26,7 @@ let roomCallback = function (roomName: string): CostMatrix {
 		}
 		return matrix;
 	} catch (e) {
-		console.log(JSON.stringify(e), "Terminator.roomCallback", roomName);
+		console.log(e.message, "Terminator.roomCallback", roomName);
 		return new PathFinder.CostMatrix();
 	}
 };
@@ -207,13 +207,13 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 		// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 		if (this.heal()) {
 			delete this.creep.memory.waitForHealth;
-			if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+			if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 				this.creep.memory.inCombat = true;
 			} else {
 				delete this.creep.memory.inCombat;
 			}
 		} else {
-			if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+			if (!this.rangedAttack(true) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 				this.creep.memory.inCombat = true;
 			} else {
 				delete this.creep.memory.inCombat;

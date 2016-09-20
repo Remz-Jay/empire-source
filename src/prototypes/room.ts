@@ -41,7 +41,6 @@ interface Room {
 	getMyCreeps(): Creep[];
 	getHostileCreeps(): Creep[];
 	getAlliedCreeps(): Creep[];
-	getNumberOfCreepsInRoom(): number;
 	getAllStructures(): Structure[];
 	getMyStructures(): OwnedStructure[];
 	getHostileStructures(): OwnedStructure[];
@@ -61,7 +60,7 @@ interface Room {
 }
 
 Room.prototype.setCostMatrix = function (costMatrix) {
-	this.costMatrix = costMatrix;
+	global.costMatrix[this.name] = costMatrix;
 	this.memory.costMatrix = costMatrix.serialize();
 };
 
@@ -77,10 +76,10 @@ Room.prototype.getCreepMatrix = function () {
 		}
 		let costMatrix = this.getCostMatrix();
 		// Avoid creeps in the room
-		_.union(this.myCreeps, this.alliedCreeps).forEach(function (creep: Creep) {
+		_.union(this.myCreeps, this.alliedCreeps).forEach((creep: Creep) => {
 			costMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
 		});
-		this.hostileCreeps.forEach(function (creep: Creep) {
+		this.hostileCreeps.forEach((creep: Creep) => {
 			costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
 		});
 		// console.log("Returning NEW CreepMatrix for room " + this.name);
@@ -94,14 +93,14 @@ Room.prototype.getCreepMatrix = function () {
 };
 
 Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
-	if (!!this.costMatrix) {
-		return this.costMatrix;
+	if (!!global.costMatrix[this.name]) {
+		return global.costMatrix[this.name];
 	}
 	try {
 		let costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
 		if (!!costMatrix) {
 			// console.log("Returning existing CostMatrix for room " + this.name);
-			this.costMatrix = costMatrix;
+			global.costMatrix[this.name] = costMatrix;
 			return costMatrix;
 		} else {
 			this.roomConfig = {
@@ -151,14 +150,18 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			});
 			// But avoid our own.
 			this.myConstructionSites.forEach(function (site: ConstructionSite) {
-				costs.set(site.pos.x, site.pos.y, 10);
+				if (site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_RAMPART) {
+					costs.set(site.pos.x, site.pos.y, 1);
+				} else {
+					costs.set(site.pos.x, site.pos.y, 0xff);
+				}
 			});
 			if (!ignoreRoomConfig && !!this.roomConfig[this.name]) {
 				this.roomConfig[this.name].forEach((obj: any) => {
 					costs.set(obj.x, obj.y, obj.w);
 				});
 			}
-			this.allStructures.forEach(function (structure: OwnedStructure) {
+			this.allStructures.forEach((structure: OwnedStructure) => {
 				if (structure.structureType === STRUCTURE_ROAD) {
 					// Favor roads over plain tiles
 					costs.set(structure.pos.x, structure.pos.y, 1);
@@ -191,18 +194,10 @@ Room.prototype.getContainers = function (): Structure[] {
 	return this.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE);
 };
 Room.prototype.getContainerCapacityAvailable = function () {
-	let total = 0;
-	_.each(this.containers, function (c) {
-		total += c.storeCapacity;
-	});
-	return total;
+	return _.sum(this.containers, "storeCapacity");
 };
 Room.prototype.getEnergyInContainers = function () {
-	let total = 0;
-	_.each(this.containers, function (c) {
-		total += c.store[RESOURCE_ENERGY];
-	});
-	return total;
+	return _.sum(this.containers, (c: StorageStructure) => c.store[RESOURCE_ENERGY]);
 };
 Room.prototype.getEnergyPercentage = function () {
 	return _.floor(this.energyInContainers / (this.containerCapacityAvailable / 100));
@@ -218,11 +213,8 @@ Room.prototype.getHostileCreeps = function(): Creep[] {
 };
 Room.prototype.getAlliedCreeps = function(): Creep[] {
 	let allies: Creep[] = this.hostileCreeps.filter((c: Creep) => _.includes(global.alliedPlayers, c.owner.username));
-	allies.forEach((c: Creep) => this.hostileCreeps = _.pull(this.hostileCreeps, c));
+	this.hostileCreeps = _.difference(this.hostileCreeps, allies);
 	return allies;
-};
-Room.prototype.getNumberOfCreepsInRoom = function(): number {
-	return this.myCreeps.length;
 };
 Room.prototype.getAllStructures = function(): Structure[] {
 	return this.find(FIND_STRUCTURES) as Structure[];
@@ -281,10 +273,7 @@ Room.prototype.getBoostLabs = function(): StructureLab[] {
 		}
 	});
 	if (boostLabs.length > 0) {
-		boostLabs.forEach((l: StructureLab) => this.myLabs = _.pull(this.myLabs, l));
-/*		this.myLabs.forEach((ml: StructureLab) => console.log(ml.id));
-		console.log("------------------");
-		boostLabs.forEach((bl: StructureLab) => console.log(bl.id));*/
+		this.myLabs = _.difference(this.myLabs, boostLabs);
 	}
 	return boostLabs;
 };
@@ -303,7 +292,7 @@ Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	} else {
 		allConstructionSites = this.find(FIND_CONSTRUCTION_SITES) as ConstructionSite[];
 		this.memory.allConstructionSites = [];
-		allConstructionSites.forEach((s: ConstructionSite) => this.memory.allConstructionSites.push(s.id));
+		this.memory.allConstructionSites = _.map(allConstructionSites, "id");
 	}
 	return allConstructionSites;
 };
@@ -316,8 +305,7 @@ Room.prototype.getMinerals = function(): Mineral[] {
 		this.memory.allMinerals.forEach((s: string) => allMinerals.push(Game.getObjectById<Mineral>(s)));
 	} else {
 		allMinerals = this.find(FIND_MINERALS) as Mineral[];
-		this.memory.allMinerals = [];
-		allMinerals.forEach((s: Mineral) => this.memory.allMinerals.push(s.id));
+		this.memory.allMinerals = _.map(allMinerals, "id");
 	}
 	return allMinerals;
 };
@@ -327,8 +315,7 @@ Room.prototype.getSources = function(): Source[] {
 		this.memory.allSources.forEach((s: string) => allSources.push(Game.getObjectById<Source>(s)));
 	} else {
 		allSources = this.find(FIND_SOURCES) as Source[];
-		this.memory.allSources = [];
-		allSources.forEach((s: Source) => this.memory.allSources.push(s.id));
+		this.memory.allSources = _.map(allSources, "id");
 	}
 	return allSources;
 };
@@ -364,14 +351,17 @@ Room.prototype.getLabReagents = function(): string[] {
 	return undefined;
 };
 Room.prototype.addProperties = function () {
-	if (Game.time & 99) {
+	if (global.time % 500 === 0) {
 		delete this.memory.allSources;
 		delete this.memory.allMinerals;
 	}
-	if (Game.time & 9) {
+	if (global.time % 50 === 0) {
 		delete this.memory.allStructures;
 		delete this.memory.allConstructionSites;
 		delete this.memory.costMatrix;
+		if (!!global.costMatrix && !!global.costMatrix[this.name]) {
+			delete global.costMatrix[this.name];
+		}
 	}
 	this.towerTargets = [];
 
@@ -387,12 +377,11 @@ Room.prototype.addProperties = function () {
 	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
 	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
 	this.myLabs =               (!!this.controller && !!this.controller.my && this.controller.level >= 6 && this.allStructures.length > 0) ? this.getMyLabs() : [];
-	this.boostLabs =            (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getBoostLabs() : [];
-	this.labReaction =          (!!this.controller && !!this.controller.my && this.myLabs.length > 0) ? this.getLabReaction() : undefined;
+	this.boostLabs =            (this.myLabs.length > 0) ? this.getBoostLabs() : [];
+	this.labReaction =          (this.myLabs.length > 0) ? this.getLabReaction() : undefined;
 	this.labReagents =          (!!this.labReaction) ? this.getLabReagents() : [];
 
 	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
-	this.numberOfCreeps =       (this.myCreeps.length > 0) ? this.getNumberOfCreepsInRoom() : 0;
 	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
 	this.alliedCreeps =         (this.hostileCreeps.length > 0) ? this.getAlliedCreeps() : [];
 

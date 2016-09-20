@@ -348,9 +348,9 @@ function manageMules(containers: StructureContainer[]) {
 				try {
 					if (!creep.spawning) {
 						let role: ASMMule = new ASMMule();
+						role.setGovernor(governor);
 						role.setCreep(<Creep> creep);
 						role.setGoHome(goHome);
-						role.setGovernor(governor);
 						role.action();
 					}
 				} catch (e) {

@@ -6,9 +6,9 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 	public static MINRCL: number = global.MINRCL_LINKER;
 	public static ROLE: string = "Linker";
 
-	public bodyPart = [CARRY, MOVE];
+	public bodyPart = [CARRY, CARRY, MOVE];
 	public maxCreeps = 1;
-	public maxParts = 9;
+	public maxParts = 5;
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();

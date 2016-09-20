@@ -61,10 +61,9 @@ StructureSpawn.prototype.renewCreeps = function(): void {
 	}
 	if (!!prio) {
 		this.renewCreep(prio);
-		if (targets.length > 4 && prio.ticksToLive > 400) {
+		if (targets.length > 2 && prio.ticksToLive > 400) {
 			// Send away the creep with the highest TTL if we're crowded to keep things moving.
-			prio.memory.hasRenewed = true;
-			delete prio.memory.renewStation;
+			prio.memory.renewStation = this.room.getFreeSpawn().id;
 		}
 	}
 };
