@@ -6,9 +6,10 @@ export default class HealerGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "Healer";
 
-	public maxParts = 6;
+	public maxParts = 12;
 	public maxCreeps = 3;
 	public bodyPart = [HEAL, HEAL, HEAL, MOVE];
+	public basePart = [HEAL, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
@@ -23,5 +24,22 @@ export default class HealerGovernor extends WarfareCreepGovernor {
 
 	public getCreepLimit(): number {
 		return this.maxCreeps;
+	}
+
+	public getBody() {
+		let numParts = _.floor(
+			(this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(this.basePart)) /
+			WarfareCreepGovernor.calculateRequiredEnergy(this.bodyPart));
+
+		if (numParts > this.maxParts) {
+			numParts = this.maxParts;
+		}
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return WarfareCreepGovernor.sortBodyParts(body);
 	}
 }

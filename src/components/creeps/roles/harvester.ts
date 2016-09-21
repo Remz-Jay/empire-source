@@ -210,18 +210,19 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						delete this.creep.memory[`cont_${this.creep.memory.source}`];
 					}
 				} else {
-					let lr = this.safeLook(LOOK_STRUCTURES, source.pos, 1);
+					let lr = this.safeLook(LOOK_STRUCTURES, source.pos, 2);
 					if (lr.length > 0) {
-						_.forEach(lr, (r: LookAtResultWithPos) => {
-							if (r.structure.structureType === STRUCTURE_CONTAINER) {
-								container = r.structure as StructureContainer;
-								this.creep.memory[`cont_${this.creep.memory.source}`] = r.structure.id;
-							}
-							if (r.structure.structureType === STRUCTURE_LINK) {
-								link = r.structure as StructureLink;
-								this.creep.memory[`link_${this.creep.memory.source}`] = r.structure.id;
-							}
-						});
+						let s = _.map(lr, "structure");
+						let containers = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_CONTAINER);
+						if (containers.length > 0) {
+							container = source.pos.findClosestByRange(containers) as StructureContainer;
+							this.creep.memory[`cont_${this.creep.memory.source}`] = container.id;
+						}
+						let links = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_LINK);
+						if (links.length > 0) {
+							link = source.pos.findClosestByRange(links) as StructureLink;
+							this.creep.memory[`link_${this.creep.memory.source}`] = link.id;
+						}
 					}
 				}
 				if (!!container && !this.creep.pos.isEqualTo(container.pos)) {

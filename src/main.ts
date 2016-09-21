@@ -9,7 +9,7 @@ import "./prototypes/spawn";
 import * as MemoryManager from "./shared/memoryManager";
 import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
-// import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
+import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
 // import ObserverManager from "./components/observers/observerManager";
 let reset: number = 1;
@@ -29,45 +29,45 @@ console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESE
 // global.om = new ObserverManager();
 
 AssimilationManager.setup();
-// OffenseManager.setup();
+OffenseManager.setup();
 
 export function loop() {
 		global.time = Game.time - global.TIME_OFFSET;
 		PathFinder.use(true);
+		MemoryManager.loadMemory();
+		MemoryManager.cleanMemory();
 		let used = Game.cpu.getUsed();
 		try {
 			RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
-			console.log(`Room Setup: ${_.ceil(Game.cpu.getUsed() - used)}`);
-			MemoryManager.loadMemory();
-			MemoryManager.cleanMemory();
+			console.log(`Room Setup: ${_.round(Game.cpu.getUsed() - used, 2)}`);
 		} catch (e) {
 			console.log("Setup Exception", (<Error> e).message);
 		}
 		try {
 			used = Game.cpu.getUsed();
 			AssimilationManager.govern();
-			console.log(`ASM: ${_.ceil(Game.cpu.getUsed() - used)}`);
+			console.log(`ASM: ${_.round(Game.cpu.getUsed() - used, 2)}`);
 		} catch (e) {
 			console.log("AssimilationManager Exception", (<Error> e).message);
 		}
-/*
+
 		try {
 			OffenseManager.govern();
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}
-*/
+
 		try {
 			used = Game.cpu.getUsed();
 			RoomManager.governRooms();
-			console.log(`Rooms: ${_.ceil(Game.cpu.getUsed() - used)}`);
+			console.log(`Rooms: ${_.round(Game.cpu.getUsed() - used, 2)}`);
 		} catch (e) {
 			console.log("RoomManager Exception", (<Error> e).message);
 		}
 		try {
 			used = Game.cpu.getUsed();
 			MarketManager.governMarket();
-			console.log(`Market: ${_.ceil(Game.cpu.getUsed() - used)}`);
+			console.log(`Market: ${_.round(Game.cpu.getUsed() - used, 2)}`);
 		} catch (e) {
 			console.log("MarketManager Exception", (<Error> e).message);
 		}

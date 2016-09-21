@@ -114,7 +114,7 @@ global.MINRCL_HARVESTER         = 1;
 global.MINRCL_MULE              = 1;
 global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
-global.MINRCL_REPAIR            = 8;
+global.MINRCL_REPAIR            = 9;
 global.MINRCL_MINER             = 6;
 global.MINRCL_SCIENTIST         = 7;
 global.MINRCL_BITER             = 5;
@@ -239,6 +239,10 @@ global.tradeTreshold = function(resourceType: string) {
 			return 0.7;
 		case RESOURCE_HYDROGEN:
 			return 0.7;
+		case RESOURCE_LEMERGIUM:
+			return 1.3;
+		case RESOURCE_UTRIUM:
+			return 1.3;
 		default:
 			return undefined;
 	}
@@ -322,7 +326,8 @@ global.findReagents = function(reaction: string): string[] {
 };
 
 global.getTowerRange = function(roomName: string): number {
-	switch (roomName) {
+	return 50;
+/*	switch (roomName) {
 		case "W6N42":
 			return 21;
 		case "W5N42":
@@ -335,5 +340,5 @@ global.getTowerRange = function(roomName: string): number {
 			return 50;
 		default:
 			return 50;
-	}
+	}*/
 };

@@ -1,32 +1,36 @@
 export function governMarket(): void {
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
-		getAllOrders();
-		switch (global.time % 20) {
-			case 0:
-				cleanupOrders();
-				break;
-			case 1:
-				// findDeals();
-				// chainResources();
-				break;
-			case 2:
-				dumpResource("O");
-				break;
-			case 3:
-				dumpResource("H");
-				break;
-			case 4:
-				dumpResource("Z");
-				break;
-			default:
-				return;
+		if (global.time % 50 === 0) {
+			console.log(`[MARKET] Running actions`);
+			getAllOrders();
+			cleanupOrders();
+			// dumpResource("O");
+			// dumpResource("H");
+			// dumpResource("Z");
+			autoSell();
+			findDeals();
 		}
 	}
 }
+function autoSell() {
+	let before = Game.cpu.getUsed();
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
+	roomList.forEach((r: Room) => {
+		try {
+			r.terminal.autoSell();
+		} catch (e) {
+			console.log(`MarketManager.autoSell, terminal in room ${r.name} reports: ${e.message}`);
+		}
+	});
+	console.log(`MarketManager.autoSell took ${_.round(Game.cpu.getUsed() - before, 2)}`);
+}
 function getAllOrders() {
+	let before = Game.cpu.getUsed();
 	global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE = [];
 	global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE = [];
+	let b = Game.cpu.getUsed();
 	let orders = Game.market.getAllOrders();
+	let a = Game.cpu.getUsed() - b;
 	for (let ord in orders) {
 		let myOrder = orders[ord];
 		if (myOrder.type === ORDER_SELL) {
@@ -41,6 +45,8 @@ function getAllOrders() {
 			global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[myOrder.resourceType].push(myOrder);
 		}
 	}
+	console.log(`MarketManager.getAllOrders took ${_.round(Game.cpu.getUsed() - before, 2)}`
+	+` (${_.round(a, 2)} on market.getAllOrders) to process ${orders.length} orders.`);
 }
 
 const chain = [
@@ -85,6 +91,7 @@ const marketThresholds: MarketThresholdsObject = {
 };
 
 function findDeals(): void {
+	let before = Game.cpu.getUsed();
 	console.log(`[MARKET] Doing a market price scan.`);
 	_.forOwn(marketThresholds, (price: number, resource: string) => {
 		// console.log(`[MARKET] ${resource} at ${price}`);
@@ -118,6 +125,7 @@ function findDeals(): void {
 			}
 		}
 	}
+	console.log(`MarketManager.findDeals took ${_.round(Game.cpu.getUsed() - before, 2)}`);
 }
 global.findDeals = findDeals;
 
@@ -286,8 +294,9 @@ function formatAmount(value: number, cellWidth: number = 0, overrideColor?: stri
 	return strVal;
 }
 function dumpResource(resource: string) {
+	let before = Game.cpu.getUsed();
 	let perBatch: number = 2000;
-	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
 		if (!!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[resource]
 			&& !!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.2)
@@ -342,6 +351,7 @@ function dumpResource(resource: string) {
 			}
 		}
 	});
+	console.log(`MarketManager.dumpResource(${resource}) took ${_.round(Game.cpu.getUsed() - before, 2)}`);
 }
 global.dumpResource = dumpResource;
 function transactionReport(numTransactions = 5): void {
@@ -363,3 +373,5 @@ function transactionReport(numTransactions = 5): void {
 	});
 }
 global.transactionReport = transactionReport;
+Object.defineProperty(global, "rr", { get: function () { return global.resourceReport(); } });
+Object.defineProperty(global, "tr", { get: function () { return global.transactionReport(); } });

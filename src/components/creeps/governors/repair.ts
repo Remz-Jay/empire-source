@@ -23,7 +23,7 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 	}
 
 	public getCreepLimit(): number {
-		if (this.room.controller.level === 8) {
+		if (this.room.controller.level === 8 && this.room.myConstructionSites.length === 0) {
 			return 1;
 		}
 		let num: number = 0;

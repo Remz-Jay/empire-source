@@ -101,6 +101,7 @@ export function governCreeps(room: Room) {
 			}
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
+					let b = Game.cpu.getUsed();
 					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
 					try {
 						role.setCreep(<Creep> creep);
@@ -108,6 +109,10 @@ export function governCreeps(room: Room) {
 						role.action();
 					} catch (e) {
 						console.log(`ERROR :: ${creepRole}: ${creep.name} ${creep.room.name} ${e.message}`);
+					}
+					let a = Game.cpu.getUsed() - b;
+					if (a > 2) {
+						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				}
 			}, this);

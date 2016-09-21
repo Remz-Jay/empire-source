@@ -141,12 +141,17 @@ function manageClaim(roomName: string, claim: boolean = false) {
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
+					let b = Game.cpu.getUsed();
 					let role: Claim = new Claim();
 					role.setCreep(<Creep> creep);
 					role.setGoHome(goHome);
 					role.doClaim = claim;
 					role.setGovernor(governor);
 					role.action();
+					let a = Game.cpu.getUsed() - b;
+					if (a > 2) {
+						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
+					}
 				}
 			} catch (e) {
 				console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
@@ -203,11 +208,16 @@ function manageConstructions(maxBuilders: number = 1) {
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
+					let b = Game.cpu.getUsed();
 					let role: ASMBuilder = new ASMBuilder();
 					role.setCreep(<Creep> creep);
 					role.setGoHome(goHome);
 					role.setGovernor(governor);
 					role.action();
+					let a = Game.cpu.getUsed() - b;
+					if (a > 2) {
+						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
+					}
 				}
 			} catch (e) {
 				console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
@@ -233,6 +243,7 @@ function manageHarvest(containers: StructureContainer[]) {
 			_.each(creepsInRole, function (creep: Creep) {
 				try {
 					if (!creep.spawning) {
+						let b = Game.cpu.getUsed();
 						if (!creep.memory.container) {
 							creep.memory.container = governor.checkContainerAssignment();
 						}
@@ -250,6 +261,10 @@ function manageHarvest(containers: StructureContainer[]) {
 							} else {
 								console.log("manageHarvesters.preempt-spawn", status);
 							}
+						}
+						let a = Game.cpu.getUsed() - b;
+						if (a > 2) {
+							console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 						}
 					}
 				} catch (e) {
@@ -272,6 +287,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
 				try {
+					let b = Game.cpu.getUsed();
 					let role: Terminator = new Terminator();
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
@@ -286,6 +302,10 @@ function manageDefenders(roomName: string, limit: number = 0) {
 						} else {
 							console.log("manageDefenders.preempt-spawn", status);
 						}
+					}
+					let a = Game.cpu.getUsed() - b;
+					if (a > 2) {
+						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				} catch (e) {
 					console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
@@ -307,6 +327,7 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
+					let b = Game.cpu.getUsed();
 					let role: Terminator = new Terminator();
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
@@ -324,6 +345,10 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 						} else {
 							console.log("manageDefenders.preempt-spawn", status);
 						}
+					}
+					let a = Game.cpu.getUsed() - b;
+					if (a > 2) {
+						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				}
 			} catch (e) {
@@ -347,11 +372,16 @@ function manageMules(containers: StructureContainer[]) {
 			_.each(creepsInRole, function (creep: Creep) {
 				try {
 					if (!creep.spawning) {
+						let b = Game.cpu.getUsed();
 						let role: ASMMule = new ASMMule();
 						role.setGovernor(governor);
 						role.setCreep(<Creep> creep);
 						role.setGoHome(goHome);
 						role.action();
+						let a = Game.cpu.getUsed() - b;
+						if (a > 2) {
+							console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
+						}
 					}
 				} catch (e) {
 					console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);

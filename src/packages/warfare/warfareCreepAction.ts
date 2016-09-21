@@ -17,7 +17,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		STRUCTURE_STORAGE,
 		STRUCTURE_TERMINAL,
 		STRUCTURE_SPAWN,
-		STRUCTURE_EXTENSION,
+		// STRUCTURE_EXTENSION,
 	];
 	protected positions: RoomPosition[];
 	protected positionIterator: number;

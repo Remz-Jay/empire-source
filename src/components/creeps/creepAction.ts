@@ -379,7 +379,7 @@ export default class CreepAction implements ICreepAction {
 		if (ignoreRoomConfig) {
 			callback = this.ignoreCallback;
 		}
-		let maxOps = 2000;
+		let maxOps = 3000;
 		if (Game.cpu.bucket < global.BUCKET_MIN) {
 			maxOps = 1000;
 		}
@@ -393,7 +393,7 @@ export default class CreepAction implements ICreepAction {
 		let moveParts = this.creep.getActiveBodyparts(MOVE);
 		let totalParts = this.creep.body.length;
 		// If we have a 1:1 ratio on MOVE parts or our carry is empty, ignore roads.
-		if ((moveParts / totalParts) >= 0.5 || ((moveParts / totalParts) >= 0.25 && this.creep.getActiveBodyparts(CARRY) > 0 && _.sum(this.creep.carry) === 0)) {
+		if ((totalParts / moveParts) <= 2 || (this.creep.getActiveBodyparts(CARRY) > 0 && _.sum(this.creep.carry) === 0)) {
 			plainCost = 1;
 			swampCost = 5;
 		}
@@ -640,21 +640,26 @@ export default class CreepAction implements ICreepAction {
 		// find a lab that supplies this resource
 		let lab = this.creep.room.boostLabs.filter((l: StructureLab) => l.mineralType === boost && l.mineralAmount >= 30).shift();
 		if (!!lab) {
-			this.creep.say(boost);
+
 			// move to it
 			if (!this.creep.pos.isNearTo(lab)) {
 				this.moveTo(lab.pos);
 				return false;
 			} else {
+				this.creep.say(boost);
 				// boost it
-				let status = lab.boostCreep(this.creep);
-				if (status === OK || status === ERR_NOT_ENOUGH_RESOURCES || status === ERR_NOT_FOUND) {
-					// mark it as done.
-					this.creep.say("F\u00C6\u00C6LG\u00D8\u00D8\u00D0!", true);
-					this.creep.memory.hasBoosts.push(boost);
-					this.creep.memory.isBoosted = true; // prevent renew while passing spawns.
-				} else {
-					this.creep.say(status.toString());
+				try {
+					let status = lab.boostCreep(this.creep);
+					if (status === OK || status === ERR_NOT_ENOUGH_RESOURCES || status === ERR_NOT_FOUND) {
+						// mark it as done.
+						this.creep.say("F\u00C6\u00C6LG\u00D8\u00D8\u00D0!", true);
+						this.creep.memory.hasBoosts.push(boost);
+						this.creep.memory.isBoosted = true; // prevent renew while passing spawns.
+					} else {
+						this.creep.say(status.toString());
+					}
+				} catch (e) {
+					console.log(e.message);
 				}
 			}
 			return false;

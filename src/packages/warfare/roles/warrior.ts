@@ -5,10 +5,15 @@ export interface IWarrior {
 }
 
 export default class Warrior extends WarfareCreepAction implements IWarrior {
-
-	public setCreep(creep: Creep) {
-		super.setCreep(creep);
+	public powerBankDuty: boolean = true;
+	public boosts: string[] = [
+		RESOURCE_CATALYZED_UTRIUM_ACID, // +300% attack effectiveness
+		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
+	];
+	public setCreep(creep: Creep, positions: RoomPosition[]) {
+		super.setCreep(creep, positions);
 	}
+
 	public hacknslash() {
 		let closestHostile: Creep | Structure = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps);
 		if (!!closestHostile) {
@@ -31,15 +36,30 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 			}
 		}
 	}
+	public move() {
+		if (!this.moveUsingPositions()) {
+			if (this.powerBankDuty) {
+				let target = this.creep.pos.findClosestByRange(this.creep.room.allStructures, {filter: (s: Structure) => s.structureType === STRUCTURE_POWER_BANK });
+				if (!!target && !this.creep.pos.isNearTo(target)) {
+					// get in range
+					this.moveTo(target.pos);
+				} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2)) {
+					if (target.hits < 10000) {
+						let mules = _.filter(this.creep.room.myCreeps, (c: Creep) => c.memory.role === "WarMule");
+						if (!mules || mules.length < 2) {
+							// Don't break the PowerBank until we have mules present to prevent decay.
+							return;
+						}
+					}
+					this.creep.attack(target);
+				}
+			}
+		}
+	}
 
 	public action(): boolean {
-		if (super.renewCreep()) {
-			this.creep.say(this.creep.memory.config.targetRoom);
-			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-				this.moveToTargetRoom();
-			} else {
-				this.hacknslash();
-			}
+		if (this.getBoosted()) {
+			this.move();
 		}
 		return true;
 	}

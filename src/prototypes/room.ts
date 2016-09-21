@@ -152,7 +152,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			});
 			// But avoid our own.
 			this.myConstructionSites.forEach(function (site: ConstructionSite) {
-				if (site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_RAMPART) {
+				if (!!site && (site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_RAMPART)) {
 					costs.set(site.pos.x, site.pos.y, 1);
 				} else {
 					costs.set(site.pos.x, site.pos.y, 0xff);
@@ -220,36 +220,33 @@ Room.prototype.getAlliedCreeps = function(): Creep[] {
 };
 Room.prototype.getAllStructures = function(): Structure[] {
 	return this.find(FIND_STRUCTURES) as Structure[];
-/*	let allStructures: Structure[] = [];
+	/*
+	let allStructures: Structure[] = [];
 	if (!global.structures) {
 		global.structures = [];
 	}
 	if (!!this.memory.allStructures && _.isArray(this.memory.allStructures)) {
 		if (_.isArray(global.structures[this.name]) && global.structures[this.name].length === this.memory.allStructures.length) {
-			allStructures = global.structures[this.name];
+			return global.structures[this.name];
 		} else {
-			this.memory.allStructures.forEach((s: string) => {
-				let st = Game.getObjectById<Structure>(s);
-				if (!!st) {
-					allStructures.push(st);
-				}
-			});
+			allStructures = _.map(this.memory.allStructures, (id: string) => Game.getObjectById(id)) as Structure[];
 		}
 	} else {
 		allStructures = this.find(FIND_STRUCTURES) as Structure[];
 		this.memory.allStructures = [];
-		allStructures.forEach((s: Structure) => this.memory.allStructures.push(s.id));
+		this.memory.allStructures = _.map(allStructures, "id");
 	}
 
 	global.structures[this.name] = allStructures;
-	return allStructures;*/
+	return allStructures;
+	*/
 };
 Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
 };
 Room.prototype.getHostileStructures = function (): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) =>
-	undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
+	!!s && undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	let spawns = this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
@@ -271,7 +268,6 @@ Room.prototype.getBoostLabs = function(): StructureLab[] {
 			boostLabs.push(l);
 			let reagent = global.labColors.resource(flag.color, flag.secondaryColor);
 			global.boostReagents.push({room: this, reagent: reagent});
-			// console.log(`Room.prototype.getBoostLabs found ${flag.name} as boostLab in ${this.name}`, this.myLabs.length, boostLabs.length);
 		}
 	});
 	if (boostLabs.length > 0) {
@@ -285,12 +281,7 @@ Room.prototype.getFreeSpawn = function(): StructureSpawn {
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	let allConstructionSites: ConstructionSite[] = [];
 	if (!!this.memory.allConstructionSites && _.isArray(this.memory.allConstructionSites)) {
-		this.memory.allConstructionSites.forEach((s: string) => {
-			let cs = Game.getObjectById<ConstructionSite>(s);
-			if (!!cs) {
-				allConstructionSites.push(cs);
-			}
-		});
+		allConstructionSites = _.compact(_.map(this.memory.allConstructionSites, (id: string) => Game.getObjectById(id))) as ConstructionSite[];
 	} else {
 		allConstructionSites = this.find(FIND_CONSTRUCTION_SITES) as ConstructionSite[];
 		this.memory.allConstructionSites = [];
@@ -299,12 +290,12 @@ Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
 	return allConstructionSites;
 };
 Room.prototype.getMyConstructionSites = function(): ConstructionSite[] {
-	return this.allConstructionSites.filter((cs: ConstructionSite) => !!cs.my);
+	return this.allConstructionSites.filter((cs: ConstructionSite) => !!cs && !!cs.my);
 };
 Room.prototype.getMinerals = function(): Mineral[] {
 	let allMinerals: Mineral[] = [];
 	if (!!this.memory.allMinerals && _.isArray(this.memory.allMinerals)) {
-		this.memory.allMinerals.forEach((s: string) => allMinerals.push(Game.getObjectById<Mineral>(s)));
+		allMinerals = _.compact(_.map(this.memory.allMinerals, (id: string) => Game.getObjectById(id))) as Mineral[];
 	} else {
 		allMinerals = this.find(FIND_MINERALS) as Mineral[];
 		this.memory.allMinerals = _.map(allMinerals, "id");
@@ -314,7 +305,7 @@ Room.prototype.getMinerals = function(): Mineral[] {
 Room.prototype.getSources = function(): Source[] {
 	let allSources: Source[] = [];
 	if (!!this.memory.allSources && _.isArray(this.memory.allSources)) {
-		this.memory.allSources.forEach((s: string) => allSources.push(Game.getObjectById<Source>(s)));
+		allSources = _.compact(_.map(this.memory.allSources, (id: string) => Game.getObjectById(id))) as Source[];
 	} else {
 		allSources = this.find(FIND_SOURCES) as Source[];
 		this.memory.allSources = _.map(allSources, "id");
@@ -365,7 +356,7 @@ Room.prototype.addProperties = function () {
 		delete this.memory.allSources;
 		delete this.memory.allMinerals;
 	}
-	if (global.time % 50 === 0) {
+	if (global.time % 50 === 1) {
 		delete this.memory.allStructures;
 		delete this.memory.allConstructionSites;
 		delete this.memory.costMatrix;

@@ -1,14 +1,49 @@
 interface StructureTerminal {
 	run(): boolean;
+	autoSell(): boolean;
 }
+
+StructureTerminal.prototype.autoSell = function(): boolean {
+	let storage = this.room.storage;
+	let sending: boolean = false;
+	let minType: string = this.room.minerals[0].mineralType;
+	if (!sending
+		&& Game.cpu.bucket > global.BUCKET_MIN
+		&& this.store.energy >= global.TERMINAL_MAX
+		&& storage.store[minType] > global.STORAGE_MIN
+		&& this.store[minType] >= global.TERMINAL_MAX
+	) {
+		try {
+			let threshold = global.tradeTreshold(minType);
+			if (_.isNumber(threshold) && !!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType]) {
+				let offers = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType], (order: Order) =>
+					order.price >= threshold
+					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName) < 50 // At 70 the energy costs equal the amount to transfer.
+				) as Order[];
+				if (offers.length > 0) {
+					let offer = _.sortBy(offers, "price").shift();
+					let amount = global.clamp(offer.remainingAmount, 0, this.store[minType]);
+					let status = Game.market.deal(offer.id, amount, this.room.name);
+					if (status === OK) {
+						console.log(global.colorWrap(`[MARKET] AutoSelling ${amount} ${minType} in ${this.room.name} at price ${offer.price}`
+							+ ` - order ${offer.id}.`, "DeepPink"));
+					}
+					return true;
+				}
+			}
+		} catch (e) {
+			console.log("Terminal.prototype.marketTrade ERROR ::" + e.message);
+		}
+	}
+	return false;
+};
 
 StructureTerminal.prototype.run = function (): boolean {
 	let storage = this.room.storage;
 	let sending: boolean = false;
-	let minType: string = this.room.minerals[0].mineralType;
 	let batchSize: number = 1000;
 
-	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && !!r.storage && !!r.terminal);
+	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_ENERGY_MAX
 		&& storage.store.energy >= (global.STORAGE_MIN + global.TERMINAL_ENERGY_MAX)
 	) {
@@ -128,34 +163,6 @@ StructureTerminal.prototype.run = function (): boolean {
 				});
 			}
 		});
-	}
-	if (!sending
-		&& Game.cpu.bucket > global.BUCKET_MIN
-		&& this.store.energy >= global.TERMINAL_MAX
-		&& storage.store[minType] > global.STORAGE_MIN
-		&& this.store[minType] >= global.TERMINAL_MAX
-	) {
-		try {
-			let threshold = global.tradeTreshold(minType);
-			if (_.isNumber(threshold) && !!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType]) {
-				let offers = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType], (order: Order) =>
-					order.price >= threshold
-					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName) < 50 // At 70 the energy costs equal the amount to transfer.
-				) as Order[];
-				if (offers.length > 0) {
-					let offer = _.sortBy(offers, "price").shift();
-					let amount = global.clamp(offer.remainingAmount, 0, this.store[minType]);
-					let status = Game.market.deal(offer.id, amount, this.room.name);
-					if (status === OK) {
-						console.log(global.colorWrap(`[MARKET] AutoSelling ${amount} ${minType} in ${this.room.name} at price ${offer.price}`
-							+ ` - order ${offer.id}.`, "DeepPink"));
-					}
-					return true;
-				}
-			}
-		} catch (e) {
-			console.log("Terminal.prototype.marketTrade ERROR ::" + e.message);
-		}
 	}
 	return false;
 };

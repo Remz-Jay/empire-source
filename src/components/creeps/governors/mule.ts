@@ -45,7 +45,7 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	}
 
 	public getCreepLimit(): number {
-		if (this.room.controller.level >= 7) {
+		if (this.room.name === "W6N42") {
 			++this.maxCreeps;
 		}
 		if (this.room.containers.length > 0) {
@@ -55,9 +55,6 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 			}
 			if (this.maxCreeps > this.room.containers.length) {
 				this.maxCreeps = this.room.containers.length;
-			}
-			if (this.room.name === "W6N49") {
-				return 3;
 			}
 			return (this.room.controller.level < 5) ? 2 : this.maxCreeps;
 		} else {

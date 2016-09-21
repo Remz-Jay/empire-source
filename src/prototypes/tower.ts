@@ -42,7 +42,7 @@ StructureTower.prototype.run = function(): boolean {
 		}
 	}
 	if (this.energy > (this.energyCapacity / 2)) {
-		let minHits: number = this.room.controller.level * 30000;
+		let minHits: number = this.room.controller.level * 10000;
 		let damagedStructures = this.room.allStructures.filter((structure: OwnedStructure) =>
 			!_.includes(this.room.towerTargets, structure)
 			&& structure.hits < (structure.hitsMax * 0.8) &&

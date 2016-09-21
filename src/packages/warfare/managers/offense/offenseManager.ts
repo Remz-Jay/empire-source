@@ -13,6 +13,14 @@ import DismantlerGovernor from "../../governors/dismantler";
 import Dismantler from "../../roles/dismantler";
 import WarArcherGovernor from "../../governors/wararcher";
 import WarArcher from "../../roles/wararcher";
+import WarriorGovernor from "../../governors/warrior";
+import Warrior from "../../roles/warrior";
+import WarMuleGovernor from "../../governors/warmule";
+import WarMule from "../../roles/warmule";
+import WarUpgraderGovernor from "../../governors/warupgrader";
+import WarUpgrader from "../../roles/warupgrader";
+import WarBuilderGovernor from "../../governors/warbuilder";
+import WarBuilder from "../../roles/warbuilder";
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -55,23 +63,17 @@ let dismantleConfig = {
 };
 
 let W2N46Positions: RoomPosition[] = [
-	new RoomPosition(48, 46, "W7N44"),
-	new RoomPosition(19, 48, "W6N44"),
-	new RoomPosition(48, 44, "W6N44"),
-	new RoomPosition(2, 26, "W5N44"),
+	new RoomPosition(24, 37, "W5N44"),
 	new RoomPosition(22, 9, "W5N44"),
 	new RoomPosition(30, 43, "W5N45"),
-	new RoomPosition(45, 25, "W5N45"),
+	new RoomPosition(45, 35, "W5N45"),
 	new RoomPosition(22, 15, "W4N45"),
+	new RoomPosition(33, 5, "W4N45"),
 	new RoomPosition(25, 46, "W4N46"),
-	new RoomPosition(27, 36, "W4N46"),
+	new RoomPosition(25, 36, "W4N46"),
 	new RoomPosition(47, 22, "W4N46"),
 	new RoomPosition(43, 13, "W3N46"),
 	new RoomPosition(3, 11, "W2N46"),
-	new RoomPosition(6, 47, "W1N46"),
-	new RoomPosition(10, 2, "W1N45"),
-	new RoomPosition(36, 32, "W1N45"),
-	// new RoomPosition(26, 15, "W2N46"),
 ];
 let W9N48Positions: RoomPosition[] = [
 	new RoomPosition(16, 1, "W9N47"),
@@ -146,6 +148,38 @@ let W7N47Positions: RoomPosition[] =
 let W8N46Positions: RoomPosition[] = W7N46Positions.concat([
 	new RoomPosition(46, 18, "W8N46"),
 ]);
+
+let powerSquad = {
+	roles: [
+		{
+			"governor": WarriorGovernor,
+			"role": Warrior,
+			"maxCreeps": 0,
+		},
+		{
+			"governor": HealerGovernor,
+			"role": Healer,
+			"maxCreeps": 0,
+		},
+		{
+			"governor": WarMuleGovernor,
+			"role": WarMule,
+			"maxCreeps": 0,
+		},
+	],
+	wait: false,
+};
+
+let claimSquad = {
+	roles: [
+		{
+			"governor": WarUpgraderGovernor,
+			"role": WarUpgrader,
+			"maxCreeps": 0,
+		},
+	],
+	wait: false,
+};
 
 let defenderConfig = {
 	roles: [
@@ -292,6 +326,10 @@ let positions: RoomPosition[] = [
 	new RoomPosition(7, 8, "W5N42"),
 ].reverse();
 
+let powerPositions: RoomPosition[] = [
+	new RoomPosition(30, 21, "W6N40"),
+];
+
 export function setup() {
 	initMemory();
 	global.offense = {
@@ -418,6 +456,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
+				let b = Game.cpu.getUsed();
 				let role: WarfareCreepAction = new squadRole.role();
 				role.setCreep(<Creep> c, targetPositions);
 				role.squad = creeps;
@@ -435,6 +474,10 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 					} else {
 						console.log("manageSquad.preempt-spawn", status, squadRole.governor.ROLE);
 					}
+				}
+				let a = Game.cpu.getUsed() - b;
+				if (a > 2) {
+					console.log(global.colorWrap(`Creep ${c.name} (${c.memory.role} in ${c.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 				}
 			}
 		}, this);
@@ -499,7 +542,7 @@ export function govern(): void {
 					manageSquad(roomName, warArcherConfig, W9N49Positions2);
 					break;
 				case "W2N46": // Drowsy X
-					manageSquad(roomName, healTestConfig, W2N46Positions);
+					manageSquad(roomName, claimSquad, W2N46Positions);
 					break;
 				case "W9N48":
 					manageSquad(roomName, warArcherConfig, W9N48Positions);
@@ -516,7 +559,14 @@ export function govern(): void {
 				case "W7N45":
 					manageSquad(roomName, defenderConfig, undefined);
 					break;
-
+				case "W6N40":
+					let powerFlagName = "P";
+					let powerFlag = Game.flags[powerFlagName];
+					if (!!powerFlag) {
+						powerPositions = [powerFlag.pos];
+					}
+					manageSquad(roomName, powerSquad, powerPositions);
+					break;
 				default:
 					manageSquad(roomName, squadConfig, positions);
 			}
