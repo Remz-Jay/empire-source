@@ -28,7 +28,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 			return 1;
 		}
 		if (this.room.name === "W2N46") {
-			return 1;
+			return 2;
 		}
 		let num: number;
 		if (this.room.controller.level > 4) {
