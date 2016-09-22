@@ -52,7 +52,7 @@ export default class CreepAction implements ICreepAction {
 			}
 			let room = Game.rooms[roomName];
 			if (!room) {
-				return;
+				return false;
 			}
 			return room.getCostMatrix(false); // The cached one without per-tick creeps.
 		} catch (e) {
@@ -67,7 +67,7 @@ export default class CreepAction implements ICreepAction {
 			}
 			let room = Game.rooms[roomName];
 			if (!room) {
-				return;
+				return false;
 			}
 			return room.getCreepMatrix(); // Uncached, with per-tick creep updates.
 		} catch (e) {
@@ -82,7 +82,7 @@ export default class CreepAction implements ICreepAction {
 			}
 			let room = Game.rooms[roomName];
 			if (!room) {
-				return;
+				return false;
 			}
 			return room.getCostMatrix(true); // The cached one without per-tick creeps.
 		} catch (e) {
@@ -277,6 +277,7 @@ export default class CreepAction implements ICreepAction {
 			}
 			this.creep.moveTo(<RoomPosition> target, {reusePath: 25});
 		}
+		return ERR_NOT_FOUND;
 	}
 	public findNewPath(
 		target: RoomObject | RoomPosition,
@@ -293,9 +294,8 @@ export default class CreepAction implements ICreepAction {
 			if (move) {
 				return this.moveByPath(path, target, memoryName);
 			}
-		} else {
-			return false;
 		}
+		return false;
 	};
 	public moveByPath(path: RoomPosition[], target: RoomObject | RoomPosition, memoryName: string = "targetPath"): boolean {
 		if (!!this.creep.memory.lastPosition) {
@@ -331,6 +331,7 @@ export default class CreepAction implements ICreepAction {
 			default:
 				console.log("Uncaught moveBy status " + global.translateErrorCode(status) + " in Class.Creep.moveByPath.");
 		}
+		return false;
 	};
 
 	public getMineralTypeFromStore(source: StorageStructure | Creep): string {
@@ -407,7 +408,7 @@ export default class CreepAction implements ICreepAction {
 		});
 		if (path.path.length < 1) {
 			// We're near the target.
-			return undefined;
+			return [];
 		} else {
 			// console.log("PathFinder", `${maxOps} maxOps, ${path.ops} ops, ${path.cost} cost, ${path.incomplete} incomplete`);
 			return path.path;
@@ -435,8 +436,9 @@ export default class CreepAction implements ICreepAction {
 	public pickupResourcesInRange(skipContainers: boolean = false): void {
 		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
 			let targets = this.safeLook(LOOK_RESOURCES, this.creep.pos, 1);
-			if (targets.length > 0) {
-				this.creep.pickup(targets[0].resource);
+			let target = targets.pop();
+			if (!!target && !!target.resource) {
+				this.creep.pickup(target.resource);
 			} else if (!skipContainers) {
 				if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
 					let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
@@ -515,7 +517,7 @@ export default class CreepAction implements ICreepAction {
 					renewStation = homeRoom.getFreeSpawn();
 					this.creep.memory.renewStation = renewStation.id;
 			} else {
-				renewStation = Game.getObjectById<StructureSpawn>(this.creep.memory.renewStation);
+				renewStation = Game.getObjectById<StructureSpawn>(this.creep.memory.renewStation)!;
 			}
 			if (!this.creep.pos.isNearTo(renewStation)) {
 				Memory.log.creeps.push(`${_.padRight(this.creep.name, 10)}\t${_.padRight(this.creep.memory.role, 10)}\t${_.padRight(this.creep.ticksToLive.toString(), 4)}`
