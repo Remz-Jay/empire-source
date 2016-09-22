@@ -139,8 +139,8 @@ function resourceReport(): void {
 	];
 	_.forEach(roomList, (r: Room) => {
 		if (!!r.controller && r.controller.my) {
+			elementList.push(r.name);
 			if (!!r.storage) {
-				elementList.push(r.name);
 				_.forEach(r.storage.store, (value: number, key: string) => {
 					if (!!resources[key]) {
 						resources[key] += value;
