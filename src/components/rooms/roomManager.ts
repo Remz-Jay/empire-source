@@ -46,6 +46,11 @@ export function governRooms(): void {
 				WallManager.adjustStrength();
 				RampartManager.load(room);
 				RampartManager.adjustStrength();
+				if (room.alliedCreeps.length > 0 && room.hostileCreeps.length === 0) {
+					RampartManager.openRamparts();
+				} else {
+					RampartManager.closeRamparts();
+				}
 				if (room.mySpawns.length > 0) {
 					room.mySpawns.forEach(function (s: StructureSpawn) {
 						if (!!s.spawning) {

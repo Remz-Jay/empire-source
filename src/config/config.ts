@@ -64,6 +64,7 @@ global.MAX_TTL = 1400;
  */
 global.alliedPlayers = [
 	"TranceCake",
+	"Azfaloth",
 ];
 
 /**
@@ -116,7 +117,7 @@ global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
 global.MINRCL_REPAIR            = 9;
 global.MINRCL_MINER             = 6;
-global.MINRCL_SCIENTIST         = 7;
+global.MINRCL_SCIENTIST         = 6;
 global.MINRCL_BITER             = 5;
 
 /**

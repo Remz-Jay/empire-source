@@ -95,12 +95,12 @@ Room.prototype.getCreepMatrix = function () {
 };
 
 Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
-	if (!!global.costMatrix[this.name]) {
+	if (!ignoreRoomConfig && !!global.costMatrix[this.name]) {
 		return global.costMatrix[this.name];
 	}
 	try {
 		let costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
-		if (!!costMatrix) {
+		if (!ignoreRoomConfig && !!costMatrix) {
 			// console.log("Returning existing CostMatrix for room " + this.name);
 			global.costMatrix[this.name] = costMatrix;
 			return costMatrix;
@@ -183,7 +183,9 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				costs.set(linkerFlag.pos.x, linkerFlag.pos.y, global.PF_CREEP); // Assume there's a linker on the spot
 			}
 			// console.log("Returning NEW CostMatrix for room " + this.name);
-			this.setCostMatrix(costs);
+			if (!ignoreRoomConfig) {
+				this.setCostMatrix(costs);
+			}
 			return costs;
 		}
 	} catch (e) {

@@ -18,6 +18,18 @@ export function getWeakestRampart() {
 		return o.hits;
 	});
 }
+export function openRamparts() {
+	let list = _.filter(ramparts, (r: StructureRampart) => !r.isPublic);
+	list.forEach((r: Rampart) => {
+		r.setPublic(true);
+	});
+}
+export function closeRamparts() {
+	let list = _.filter(ramparts, (r: StructureRampart) => !!r.isPublic);
+	list.forEach((r: Rampart) => {
+		r.setPublic(false);
+	});
+}
 export function adjustStrength() {
 	let current = Memory.config.Rampart[room.name].strength;
 	let avg = getAverageStrength();

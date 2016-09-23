@@ -65,5 +65,16 @@ StructureSpawn.prototype.renewCreeps = function(): void {
 			// Send away the creep with the highest TTL if we're crowded to keep things moving.
 			prio.memory.renewStation = this.room.getFreeSpawn().id;
 		}
+	} else if (this.room.alliedCreeps.length > 0) {
+		targets = this.room.alliedCreeps.filter((c: Creep) => c.ticksToLive < 1400
+			&& c.getActiveBodyparts(CLAIM) === 0
+			&& _.filter(c.body, (bp: BodyPartDefinition) => !!bp.boost).length === 0
+			&& c.pos.isNearTo(this)
+		);
+		if (targets.length > 0) {
+			prio = this.getPriorityCreep(targets, true);
+			this.isBusy = true;
+			this.renewCreep(prio);
+		}
 	}
 };

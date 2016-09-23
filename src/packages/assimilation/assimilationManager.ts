@@ -154,7 +154,7 @@ function manageClaim(roomName: string, claim: boolean = false) {
 					}
 				}
 			} catch (e) {
-				console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
+				console.log("ERROR :: ", ClaimGovernor.ROLE, creep.name, creep.room.name, e.message);
 			}
 		}, this);
 	} else {
@@ -220,7 +220,7 @@ function manageConstructions(maxBuilders: number = 1) {
 					}
 				}
 			} catch (e) {
-				console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
+				console.log("ERROR :: ", ASMBuilderGovernor.ROLE, creep.name, creep.room.name, e.message);
 			}
 		}, this);
 	}
@@ -268,7 +268,7 @@ function manageHarvest(containers: StructureContainer[]) {
 						}
 					}
 				} catch (e) {
-					console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
+					console.log("ERROR :: ", ASMHarvesterGovernor.ROLE, creep.name, creep.room.name, e.message);
 				}
 			}, this);
 		}
@@ -308,7 +308,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				} catch (e) {
-					console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);
+					console.log("ERROR :: ", SentinelGovernor.ROLE, creep.name, creep.room.name, e.message);
 				}
 			}
 		}, this);
