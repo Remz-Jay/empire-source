@@ -182,7 +182,7 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public moveTo(target: RoomPosition|PathFinderGoal, retry: boolean = false): string | number {
-		if (this.creep.fatigue > 0) {
+		if (this.creep.fatigue > 0 || this.creep.getActiveBodyparts(MOVE) < 1) {
 			return ERR_TIRED;
 		}
 		try {
@@ -266,7 +266,8 @@ export default class CreepAction implements ICreepAction {
 					this.creep.memory.lastPosition = undefined;
 					this.creep.memory.moveAttempt = undefined;
 					this.creep.say("Lost. " + distance.toString());
-					return (retry) ? this.creep.moveTo(pos) : this.moveTo(pfg, true);
+					let withCreeps = (distance === Infinity) ? false : true;
+					return (retry) ? this.creep.moveTo(pos) : this.moveTo(pfg, withCreeps);
 				}
 			}
 		} catch (e) {
@@ -392,8 +393,8 @@ export default class CreepAction implements ICreepAction {
 
 		let moveParts = this.creep.getActiveBodyparts(MOVE);
 		let totalParts = this.creep.body.length;
-		// If we have a 1:1 ratio on MOVE parts or our carry is empty, ignore roads.
-		if ((totalParts / moveParts) <= 2 || (this.creep.getActiveBodyparts(CARRY) > 0 && _.sum(this.creep.carry) === 0)) {
+		// If we have a 1:1 ratio on MOVE parts, ignore roads.
+		if ((totalParts / moveParts) <= 2) {
 			plainCost = 1;
 			swampCost = 5;
 		}

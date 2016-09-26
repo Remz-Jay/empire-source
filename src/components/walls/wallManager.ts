@@ -6,7 +6,7 @@ export function load(r: Room) {
 	walls = getWalls();
 }
 export function getAverageStrength() {
-	return _.round(_.sum<StructureWall>(walls, "hits") / _.size(walls));
+	return _.round(_.sum(walls, "hits") / _.size(walls));
 }
 export function getMinimumStrength() {
 	return _.round(_.min(walls, "hits").hits);

@@ -233,17 +233,17 @@ global.RESOURCE_TYPES = [
 global.tradeTreshold = function(resourceType: string) {
 	switch (resourceType) {
 		case RESOURCE_ENERGY:
-			return 0.15;
+			return 0.6;
 		case RESOURCE_ZYNTHIUM:
-			return 1.2;
+			return 1.5;
 		case RESOURCE_OXYGEN:
-			return 0.7;
+			return 1.2;
 		case RESOURCE_HYDROGEN:
-			return 0.7;
+			return 1.2;
 		case RESOURCE_LEMERGIUM:
-			return 1.3;
+			return 1.5;
 		case RESOURCE_UTRIUM:
-			return 1.3;
+			return 1.5;
 		default:
 			return undefined;
 	}

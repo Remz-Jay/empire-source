@@ -4,6 +4,7 @@ export interface IMiner {
 
 	targetMineralSource: Mineral;
 	targetMineralDropOff: Spawn | Structure;
+	targetExtractor: StructureExtractor;
 	mineralType: string;
 
 	isBagFull(): boolean;
@@ -20,6 +21,7 @@ export interface IMiner {
 export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	public targetMineralSource: Mineral;
 	public targetMineralDropOff: Spawn | Structure;
+	public targetExtractor: StructureExtractor;
 	public mineralType: string;
 
 	public setCreep(creep: Creep) {
@@ -27,12 +29,17 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 
 		this.targetMineralSource = Game.getObjectById<Mineral>(this.creep.memory.target_source_id);
 		this.targetMineralDropOff = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_dropoff_id);
+		this.targetExtractor = Game.getObjectById<StructureExtractor>(this.creep.memory.target_extractor_id);
 		this.mineralType = this.creep.memory.target_mineral_type;
 		if (!this.targetMineralSource || !this.mineralType) {
 			this.assignNewSource();
 		}
 		if (!this.targetMineralDropOff) {
 			this.assignNewDropOff();
+		}
+		if (!this.targetExtractor && !!this.targetMineralSource) {
+			this.targetExtractor = this.targetMineralSource.pos.lookFor<StructureExtractor>(LOOK_STRUCTURES).shift();
+			this.creep.memory.target_extractor_id = this.targetExtractor.id;
 		}
 	}
 
@@ -45,9 +52,11 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		});
 		if (target) {
 			this.targetMineralSource = target;
+			this.targetExtractor = target.pos.lookFor<StructureExtractor>(LOOK_STRUCTURES).shift();
 			this.mineralType = target.mineralType;
 			this.creep.memory.target_mineral_type = target.mineralType;
 			this.creep.memory.target_source_id = target.id;
+			this.creep.memory.target_extractor_id = this.targetExtractor.id;
 			return true;
 		} else {
 			return false;
@@ -77,7 +86,8 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 				this.creep.transfer(targets[0], this.getMineralTypeFromStore(this.creep));
 			}
 		}
-		if (this.targetMineralSource.mineralAmount > 0) {
+		if (this.targetMineralSource.mineralAmount > 0 && this.targetExtractor.cooldown === 0) {
+
 			return this.creep.harvest(this.targetMineralSource);
 		} else {
 			return ERR_NOT_ENOUGH_RESOURCES;

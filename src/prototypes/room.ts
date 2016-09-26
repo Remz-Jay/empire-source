@@ -145,6 +145,21 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				this.roomConfig.W6N45 = positions;
 			}
 			let costs = new PathFinder.CostMatrix();
+			this.allStructures.forEach((structure: OwnedStructure) => {
+				if (structure.structureType === STRUCTURE_ROAD) {
+					// Favor roads over plain tiles
+					costs.set(structure.pos.x, structure.pos.y, 1);
+				} else if (structure.structureType !== STRUCTURE_CONTAINER &&
+					(structure.structureType !== STRUCTURE_RAMPART)) {
+					// Can't walk through non-walkable buildings
+					costs.set(structure.pos.x, structure.pos.y, 0xff);
+				} else if (structure.structureType === STRUCTURE_RAMPART && !structure.my) {
+					// Avoid hostile ramparts
+					costs.set(structure.pos.x, structure.pos.y, 0xff);
+				} else if (structure.structureType === STRUCTURE_CONTAINER) {
+					costs.set(structure.pos.x, structure.pos.y, global.PF_CREEP); // Assume there's a harvester on the container
+				}
+			});
 			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
 			// Prefer walking on hostile construction sites
 			hostileConstructionSites.forEach((s: ConstructionSite) => {
@@ -163,21 +178,6 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 					costs.set(obj.x, obj.y, obj.w);
 				});
 			}
-			this.allStructures.forEach((structure: OwnedStructure) => {
-				if (structure.structureType === STRUCTURE_ROAD) {
-					// Favor roads over plain tiles
-					costs.set(structure.pos.x, structure.pos.y, 1);
-				} else if (structure.structureType !== STRUCTURE_CONTAINER &&
-					(structure.structureType !== STRUCTURE_RAMPART)) {
-					// Can't walk through non-walkable buildings
-					costs.set(structure.pos.x, structure.pos.y, 0xff);
-				} else if (structure.structureType === STRUCTURE_RAMPART && !structure.my) {
-					// Avoid hostile ramparts
-					costs.set(structure.pos.x, structure.pos.y, 0xff);
-				} else if (structure.structureType === STRUCTURE_CONTAINER) {
-					costs.set(structure.pos.x, structure.pos.y, global.PF_CREEP); // Assume there's a harvester on the container
-				}
-			});
 			let linkerFlag = Game.flags[this.name + "_LS"];
 			if (!!linkerFlag) {
 				costs.set(linkerFlag.pos.x, linkerFlag.pos.y, global.PF_CREEP); // Assume there's a linker on the spot

@@ -1,6 +1,6 @@
 import WarfareCreepAction from "../../warfareCreepAction";
 
-import SentinelGovernor from "../../governors/sentinel";
+// import SentinelGovernor from "../../governors/sentinel";
 import FasterminatorGovernor from "../../governors/fasterminator";
 import Terminator from "../../roles/terminator";
 
@@ -19,8 +19,8 @@ import WarMuleGovernor from "../../governors/warmule";
 import WarMule from "../../roles/warmule";
 import WarUpgraderGovernor from "../../governors/warupgrader";
 import WarUpgrader from "../../roles/warupgrader";
-import WarBuilderGovernor from "../../governors/warbuilder";
-import WarBuilder from "../../roles/warbuilder";
+// import WarBuilderGovernor from "../../governors/warbuilder";
+// import WarBuilder from "../../roles/warbuilder";
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -34,33 +34,6 @@ function initMemory(): void {
 let config: RemoteRoomConfig;
 let homeRoom: Room;
 let targetRoom: Room;
-
-let satelliteConfig = {
-	roles: [
-		{
-			"governor": SentinelGovernor,
-			"role": Terminator,
-			"maxCreeps": 1,
-		},
-	],
-	wait: false,
-};
-
-let dismantleConfig = {
-	roles: [
-		{
-			"governor": SentinelGovernor,
-			"role": Terminator,
-			"maxCreeps": 0,
-		},
-		{
-			"governor": DismantlerGovernor,
-			"role": Dismantler,
-			"maxCreeps": 0,
-		},
-	],
-	wait: false,
-};
 
 let W2N46Positions: RoomPosition[] = [
 	new RoomPosition(24, 37, "W5N44"),
@@ -93,35 +66,6 @@ let W9N49Positions2: RoomPosition[] = [
 	new RoomPosition(27, 16, "W7N43"),
 ].concat(W9N49Positions);
 
-let W9N45Positions: RoomPosition[] = [
-	new RoomPosition(35, 6, "W8N44"), // 0
-	new RoomPosition(1, 9, "W8N45"), // 1
-	new RoomPosition(47, 9, "W9N45"), // 2
-	new RoomPosition(28, 22, "W9N45"), // 3
-	new RoomPosition(46, 39, "W9N46"),
-	new RoomPosition(12, 33, "W8N46"),
-	new RoomPosition(6, 2, "W8N46"),
-	new RoomPosition(23, 40, "W8N47"),
-	new RoomPosition(27, 10, "W8N47"),
-	new RoomPosition(47, 13, "W8N47"),
-	new RoomPosition(4, 13, "W7N47"),
-	new RoomPosition(18, 3, "W8N47"),
-	new RoomPosition(15, 17, "W8N48"),
-	new RoomPosition(3, 10, "W8N48"),
-];
-let W9N43Positions: RoomPosition[] = [
-	new RoomPosition(45, 16, "W9N43"),
-];
-let W8N45Positions: RoomPosition[] = [
-	new RoomPosition(34, 23, "W7N43"),
-	new RoomPosition(35, 6, "W8N44"),
-	new RoomPosition(26, 25, "W8N45"),
-	new RoomPosition(42, 19, "W9N45"),
-	new RoomPosition(46, 39, "W9N46"),
-	new RoomPosition(12, 33, "W8N46"),
-	new RoomPosition(6, 2, "W8N46"),
-	new RoomPosition(6, 47, "W8N47"),
-];
 let W7N46Positions: RoomPosition[] = [
 	new RoomPosition(7, 2, "W6N44"),
 	new RoomPosition(14, 20, "W6N45"),
@@ -145,9 +89,6 @@ let W7N47Positions: RoomPosition[] =
 		new RoomPosition(14, 47, "W3N49"),
 		new RoomPosition(28, 12, "W3N49"),
 	]);
-let W8N46Positions: RoomPosition[] = W7N46Positions.concat([
-	new RoomPosition(46, 18, "W8N46"),
-]);
 
 let powerSquad = {
 	roles: [
@@ -241,44 +182,12 @@ let squadConfig = {
 	],
 	wait: false,
 };
-let sqibConfig = {
-	roles: [
-		{
-			"governor": FasterminatorGovernor,
-			"role": Terminator,
-			"maxCreeps": 0,
-		},
-	],
-	wait: false,
-};
-let artilleryConfig = {
-	roles: [
-		{
-			"governor": FasterminatorGovernor,
-			"role": Terminator,
-			"maxCreeps": 0,
-		},
-	],
-	wait: false,
-};
-/*let warvestPositions: RoomPosition[] = [
-	new RoomPosition(48, 46, "W7N44"),
-	new RoomPosition(19, 48, "W6N44"),
-	new RoomPosition(48, 44, "W6N44"),
-	new RoomPosition(2, 26, "W5N44"),
-	new RoomPosition(22, 9, "W5N44"),
-	new RoomPosition(12, 33, "W5N45"),
-	new RoomPosition(10, 17, "W5N45"), // X Source
-	new RoomPosition(12, 33, "W5N45"),
-	new RoomPosition(22, 9, "W5N44"),
-	new RoomPosition(2, 26, "W5N44"),
-	new RoomPosition(48, 44, "W6N44"),
-	new RoomPosition(19, 48, "W6N44"),
-	new RoomPosition(48, 46, "W7N44"),
-	new RoomPosition(31, 28, "W7N44"), // Terminal
-];*/
-
-let warvest2Positions: RoomPosition[] = [
+let boo: RoomPosition[] = [
+	new RoomPosition(2, 37, "W7N43"),
+	new RoomPosition(41, 47, "W8N43"),
+	new RoomPosition(18, 28, "W8N42"),
+];
+let warvestPositions: RoomPosition[] = [
 	new RoomPosition(1, 3, "W6N45"),
 	new RoomPosition(23, 3, "W6N45"),
 	new RoomPosition(33, 2, "W6N45"),
@@ -293,30 +202,6 @@ let warvest2Positions: RoomPosition[] = [
 	new RoomPosition(24, 21, "W7N45"), // Terminal
 ];
 
-let healTestPositions: RoomPosition[] = [
-	new RoomPosition(30, 3, "W2N43"),
-	new RoomPosition(29, 47, "W2N44"),
-	new RoomPosition(39, 28, "W2N44"),
-	new RoomPosition(14, 27, "W2N44"), // Rampart
-	new RoomPosition(9, 25, "W2N44"), // Tower
-	new RoomPosition(8, 20, "W2N44"), // Spawn
-];
-let helpPositions: RoomPosition[] = [
-	new RoomPosition(47, 43, "W7N44"),
-	new RoomPosition(9, 41, "W6N44"),
-
-];
-let schmoopPositions: RoomPosition[] = [
-	new RoomPosition(33, 11, "W6N40"),
-	new RoomPosition(40, 6, "W3N40"),
-	new RoomPosition(6, 4, "W2N40"),
-	new RoomPosition(2, 20, "W2N42"),
-	new RoomPosition(9, 17, "W3N42"),
-	new RoomPosition(10, 10, "W4N42"),
-];
-let assaultPositions: RoomPosition[] = [
-	new RoomPosition(48, 17, "W7N42"),
-];
 let positions: RoomPosition[] = [
 	new RoomPosition(14, 2, "W3N42"),
 	new RoomPosition(14, 43, "W3N43"),
@@ -330,6 +215,26 @@ let powerPositions: RoomPosition[] = [
 	new RoomPosition(30, 21, "W6N40"),
 ];
 
+let W15N41Positions: RoomPosition[] = [
+	new RoomPosition(2, 16, "W10N40"),
+	new RoomPosition(27, 7, "W15N40"),
+	new RoomPosition(42, 8, "W15N41"),
+	new RoomPosition(43, 3, "W13N41"),
+];
+let W12N43Positions: RoomPosition[] = [
+	new RoomPosition(47, 43, "W11N44"),
+	new RoomPosition(6, 7, "W11N43"),
+	new RoomPosition(47, 9, "W12N43"),
+	new RoomPosition(30, 47, "W12N43"),
+	new RoomPosition(47, 9, "W12N43"),
+	new RoomPosition(3, 31, "W12N42"),
+	new RoomPosition(35, 34, "W13N42"),
+	new RoomPosition(25, 35, "W13N42"),
+	new RoomPosition(4, 3, "W13N42"),
+	new RoomPosition(19, 40, "W13N43"),
+	new RoomPosition(44, 35, "W13N44"),
+	new RoomPosition(3, 35, "W12N44"),
+];
 export function setup() {
 	initMemory();
 	global.offense = {
@@ -499,44 +404,11 @@ export function govern(): void {
 			homeRoom = Game.rooms[config.homeRoom];
 			targetRoom = Game.rooms[roomName];
 			switch (roomName) {
-				case "W5N43": // Dummy for Kov Main secondary force
-					manageSquad(roomName, sqibConfig, assaultPositions);
-					break;
-				case "W4N42": // Kov Main
-					manageSquad(roomName, sqibConfig, assaultPositions);
-					break;
-				case "W3N42": // Kov Satellite
-					manageSquad(roomName, sqibConfig, schmoopPositions);
-					break;
-				case "W6N44":
-					manageSquad(roomName, artilleryConfig, helpPositions);
-					break;
-				case "W7N42":
-					manageSquad(roomName, squadConfig, assaultPositions);
+				case "W8N42":
+					manageSquad(roomName, squadConfig, boo);
 					break;
 				case "W5N45":
-					manageSquad(roomName, warvestConfig, warvest2Positions);
-					break;
-				case "W2N44": // DrakeShady
-					manageSquad(roomName, healTestConfig, healTestPositions);
-					break;
-				case "W8N45": // unverbraucht sat2
-					manageSquad(roomName, satelliteConfig, W8N45Positions);
-					break;
-				case "W7N46": // unverbraucht sat3
-					manageSquad(roomName, satelliteConfig, W7N46Positions);
-					break;
-				case "W8N46": // unverbracht sat 4
-					manageSquad(roomName, satelliteConfig, W8N46Positions);
-					break;
-				case "W9N43": // unverbraucht lowbie room
-					manageSquad(roomName, dismantleConfig, W9N43Positions);
-					break;
-				case "W9N44": // unverbraucht bottom main - W6N42
-					manageSquad(roomName, warArcherConfig, W9N45Positions);
-					break;
-				case "W9N45": // unverbraucht bottom main - W7N44
-					manageSquad(roomName, healTestConfig, W9N45Positions);
+					manageSquad(roomName, warvestConfig, warvestPositions);
 					break;
 				case "W9N49": // Tharit 7 left
 					manageSquad(roomName, warArcherConfig, W9N49Positions2);
@@ -552,6 +424,12 @@ export function govern(): void {
 					break;
 				case "W7N48":
 					manageSquad(roomName, warArcherConfig, W7N47Positions);
+					break;
+				case "W15N41": // SirLovi south
+					manageSquad(roomName, warArcherConfig, W15N41Positions);
+					break;
+				case "W12N43": // SirLovi East
+					manageSquad(roomName, healTestConfig, W12N43Positions);
 					break;
 				case "W5N42":
 				case "W6N42":

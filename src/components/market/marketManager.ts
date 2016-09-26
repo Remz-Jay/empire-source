@@ -46,27 +46,7 @@ function getAllOrders() {
 		}
 	}
 	console.log(`MarketManager.getAllOrders took ${_.round(Game.cpu.getUsed() - before, 2)}`
-	+` (${_.round(a, 2)} on market.getAllOrders) to process ${orders.length} orders.`);
-}
-
-const chain = [
-	{source: "W6N42", destination: "W7N45", resource: RESOURCE_GHODIUM},
-	{source: "W7N45", destination: "W5N42", resource: RESOURCE_GHODIUM_HYDRIDE},
-	{source: "W5N42", destination: "W6N42", resource: RESOURCE_GHODIUM_ACID},
-	{source: "W7N45", destination: "W6N42", resource: RESOURCE_CATALYST},
-];
-function chainResources(): void {
-	chain.forEach(c => {
-		let room = Game.rooms[c.source];
-		let terminal = room.terminal;
-		if (!!terminal.store[c.resource] && terminal.store[c.resource] >= 200) {
-			let targetRoom = Game.rooms[c.destination];
-			let targetTerminal = targetRoom.terminal;
-			if (!targetTerminal.store[c.resource] || targetTerminal.store[c.resource] < 1000) {
-				terminal.send(c.resource, 200, c.destination);
-			}
-		}
-	});
+	+ ` (${_.round(a, 2)} on market.getAllOrders) to process ${orders.length} orders.`);
 }
 
 function cleanupOrders(): void {
@@ -81,13 +61,13 @@ interface MarketThresholdsObject {
 	[k: string]: number;
 }
 const marketThresholds: MarketThresholdsObject = {
-	H: 0.5,
-	O: 0.5,
-	Z: 1.0,
-	K: 1.0,
-	U: 1.0,
-	L: 1.0,
-	X: 1.0,
+	H: 1.2,
+	O: 1.2,
+	Z: 1.2,
+	K: 1.2,
+	U: 1.2,
+	L: 1.2,
+	X: 1.5,
 };
 
 function findDeals(): void {

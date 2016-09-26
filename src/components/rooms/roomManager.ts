@@ -93,7 +93,7 @@ export function governRooms(): void {
 						_.each(links, (l: StructureLink) => {
 							l.run();
 						});
-					};
+					}
 				} catch (e) {
 					console.log("RoomManager.Links", room.name, e.message);
 				}
@@ -125,7 +125,7 @@ export function governRooms(): void {
 				}
 				try {
 					if (!!room.powerSpawn && room.powerSpawn.power >= 0 && room.powerSpawn.energy >= 50) {
-						room.powerSpawn.processPower();
+						// room.powerSpawn.processPower();
 					}
 				} catch (e) {
 					console.log(`ERROR :: RoomManager.runPowerSpawn:`, room.name, e.message);

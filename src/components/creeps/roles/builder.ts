@@ -141,7 +141,8 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 				delete this.creep.memory.source;
 				let spawn = this.creep.pos.findClosestByPath(this.creep.room.mySpawns) as Spawn;
 				if (this.creep.pos.isNearTo(spawn)) {
-					this.creep.memory.role = "Upgrader";
+					spawn.recycleCreep(this.creep);
+					// this.creep.memory.role = "Upgrader";
 				} else {
 					this.moveTo(spawn.pos);
 				}

@@ -9,6 +9,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 
 	public container: StructureContainer;
 	public source: Source;
+	public keeperLair: StructureKeeperLair;
 	public governor: ASMHarvesterGovernor;
 
 	public setGovernor(governor: ASMHarvesterGovernor): void {
@@ -28,12 +29,29 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		} else {
 			this.source = Game.getObjectById<Source>(this.creep.memory.source);
 		}
+		if (!this.creep.memory.config.hasController && !!this.source) {
+			if (!!this.creep.memory.keeperLair) {
+				this.keeperLair = Game.getObjectById<StructureKeeperLair>(this.creep.memory.keeperLair);
+			} else {
+				let lairs = this.creep.room.allStructures.filter(
+					(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
+					&& s.pos.inRangeTo(this.source.pos, 5)
+				) as StructureKeeperLair[];
+				if (lairs.length > 0) {
+					this.keeperLair = lairs.shift();
+					this.creep.memory.keeperLair = this.keeperLair.id;
+				}
+			}
+		}
 	}
 	public findSourceNearContainer(c: StructureContainer): Source {
 		let sources = c.room.sources.filter((s: Source) => s.pos.isNearTo(c));
 		return sources[0];
 	}
 	public isBagFull(): boolean {
+		if (this.creep.getActiveBodyparts(CARRY) < 1) {
+			return false;
+		}
 		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
 	}
 
@@ -97,8 +115,31 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		}
 	}
 
+	public fleeFromKeeperLair(): boolean {
+		if (!!this.keeperLair) {
+			if (this.keeperLair.ticksToSpawn < 6) {
+				let fleeRange = 6;
+				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
+					let goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
+					let path = PathFinder.search(this.creep.pos, goals, {
+						flee: true,
+						maxRooms: 1,
+						plainCost: 2,
+						swampCost: 10,
+						maxOps: 500,
+						roomCallback: this.roomCallback,
+					});
+					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
+				}
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}
+
 	public action(): boolean {
-		if (this.flee() && !this.shouldIGoHome()) {
+		if (this.flee() && this.fleeFromKeeperLair() && !this.shouldIGoHome()) {
 			if (!this.source && !!Game.flags[this.creep.memory.config.targetRoom]) {
 				this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
 				return false;

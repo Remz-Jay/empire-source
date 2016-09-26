@@ -14,9 +14,9 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public squadSize: number = 0;
 	public wait: boolean = false;
 	public ignoreStructures: string[] = [
-		STRUCTURE_STORAGE,
-		STRUCTURE_TERMINAL,
-		STRUCTURE_SPAWN,
+		// STRUCTURE_STORAGE,
+		// STRUCTURE_TERMINAL,
+		// STRUCTURE_SPAWN,
 		// STRUCTURE_EXTENSION,
 	];
 	protected positions: RoomPosition[];

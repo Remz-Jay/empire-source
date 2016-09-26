@@ -6,6 +6,7 @@ export interface IASMMule {
 export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public container: StructureContainer;
+	public keeperLair: StructureKeeperLair;
 	public storage: StructureStorage;
 
 	public setCreep(creep: Creep) {
@@ -123,9 +124,12 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 	};
 
 	public collectFromDrops(): boolean {
+		if (this.container.store.energy > (this.creep.carryCapacity - this.creep.carry.energy)) {
+			return true;
+		}
 		if (!this.creep.memory.dropTarget) {
 			let drops = this.creep.room.find(FIND_DROPPED_RESOURCES,
-				{filter: (r: Resource) => r.amount >= this.creep.carryCapacity}
+				{filter: (r: Resource) => r.amount >= (this.creep.carryCapacity / 2)}
 			) as Resource[];
 			if (drops.length > 0) {
 				let drop = this.creep.pos.findClosestByPath(drops, {
@@ -137,7 +141,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		}
 		if (!!this.creep.memory.dropTarget) {
 			let drop = Game.getObjectById(this.creep.memory.dropTarget) as Resource;
-			if (!!drop && drop.amount >= this.creep.carryCapacity) {
+			if (!!drop && drop.amount > 100) {
 				if (!this.creep.pos.isNearTo(drop.pos)) {
 					this.moveTo(drop.pos);
 				} else {
@@ -175,6 +179,9 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public action(): boolean {
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
+			if (this.creep.carry.energy === 0 && _.sum(this.creep.carry) > 0) {
+				this.creep.drop(this.getMineralTypeFromStore(this.creep));
+			}
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				if (this.isBagEmpty()) {
 					this.moveTo(this.container.pos);
