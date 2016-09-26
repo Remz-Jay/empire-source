@@ -20,7 +20,7 @@ export interface IMiner {
 
 export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	public targetMineralSource: Mineral;
-	public targetMineralDropOff: Spawn | Structure;
+	public targetMineralDropOff: Structure;
 	public targetExtractor: StructureExtractor;
 	public mineralType: string;
 
@@ -28,7 +28,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		super.setCreep(creep);
 
 		this.targetMineralSource = Game.getObjectById<Mineral>(this.creep.memory.target_source_id);
-		this.targetMineralDropOff = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_dropoff_id);
+		this.targetMineralDropOff = Game.getObjectById<Structure>(this.creep.memory.target_energy_dropoff_id);
 		this.targetExtractor = Game.getObjectById<StructureExtractor>(this.creep.memory.target_extractor_id);
 		this.mineralType = this.creep.memory.target_mineral_type;
 		if (!this.targetMineralSource || !this.mineralType) {
@@ -78,16 +78,15 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public tryMining(): number {
-		if (_.sum(this.creep.carry) > (this.creep.carryCapacity * 0.9)) {
-			let targets: Structure[] = this.creep.room.containers.filter(
-				(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-			);
-			if (targets.length > 0) {
-				this.creep.transfer(targets[0], this.getMineralTypeFromStore(this.creep));
-			}
-		}
 		if (this.targetMineralSource.mineralAmount > 0 && this.targetExtractor.cooldown === 0) {
-
+			if (_.sum(this.creep.carry) > (this.creep.carryCapacity * 0.9)) {
+				let targets: Structure[] = this.creep.room.containers.filter(
+					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
+				);
+				if (targets.length > 0) {
+					this.creep.transfer(targets[0], this.getMineralTypeFromStore(this.creep));
+				}
+			}
 			return this.creep.harvest(this.targetMineralSource);
 		} else {
 			return ERR_NOT_ENOUGH_RESOURCES;

@@ -69,6 +69,21 @@ StructureTerminal.prototype.run = function (): boolean {
 				return true;
 			}
 		});
+
+		if (!sending && storage.store.energy > (2 * global.STORAGE_MIN)) {
+			let transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
+			let transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
+			let status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);
+			if (status === OK) {
+				sending = true;
+				global.sendRegistry.push(RESOURCE_ENERGY);
+				console.log(`Terminal.SupplyForPower, sending ${RESOURCE_ENERGY} x ${transferAmount}`
+					+ ` from ${this.room.name} to ${global.POWER_ROOM}`);
+			}else {
+				console.log(`Terminal.SupplyForPower, error ${global.translateErrorCode(status)} while transferring`
+					+ ` from ${this.room.name} to ${global.POWER_ROOM}`);
+			}
+		}
 	}
 
 	let resourceBlacklist: string[] = global.TERMINAL_SKIP_BALANCE_RESOURCES;

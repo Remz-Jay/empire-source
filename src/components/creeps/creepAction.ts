@@ -238,7 +238,7 @@ export default class CreepAction implements ICreepAction {
 				}
 			}
 			let pos = this.deserializePathFinderPosition(path[0]);
-			while (this.creep.pos.isEqualTo(pos)) {
+			while (this.creep.pos.isEqualTo(pos) || pos.roomName !== this.creep.room.name) {
 				if (path.length > 0) {
 					pos = this.deserializePathFinderPosition(path.shift());
 				} else {
@@ -266,8 +266,7 @@ export default class CreepAction implements ICreepAction {
 					this.creep.memory.lastPosition = undefined;
 					this.creep.memory.moveAttempt = undefined;
 					this.creep.say("Lost. " + distance.toString());
-					let withCreeps = (distance === Infinity) ? false : true;
-					return (retry) ? this.creep.moveTo(pos) : this.moveTo(pfg, withCreeps);
+					return (retry) ? this.creep.moveTo(pos) : this.moveTo(pfg, true);
 				}
 			}
 		} catch (e) {

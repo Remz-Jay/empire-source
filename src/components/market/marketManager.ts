@@ -95,16 +95,6 @@ function findDeals(): void {
 			}
 		}
 	});
-	if (!!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[SUBSCRIPTION_TOKEN]) {
-		let orders = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[SUBSCRIPTION_TOKEN], (order: Order) => order.price >= 3000000) as Order[];
-		if (!!orders && orders.length > 0) {
-			let order = _.sortBy(orders, "price").pop();
-			let status = Game.market.deal(order.id, 1);
-			if (status === OK) {
-				Game.notify(`Sold 1 token at ${order.price}. PROFIT!`);
-			}
-		}
-	}
 	console.log(`MarketManager.findDeals took ${_.round(Game.cpu.getUsed() - before, 2)}`);
 }
 global.findDeals = findDeals;
