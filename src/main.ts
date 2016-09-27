@@ -52,7 +52,9 @@ export function loop() {
 		}
 
 		try {
+			used = Game.cpu.getUsed();
 			OffenseManager.govern();
+			console.log(`Offense: ${_.round(Game.cpu.getUsed() - used, 2)}`);
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}

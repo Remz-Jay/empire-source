@@ -42,7 +42,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getBody() {
-		if (this.room.controller.level >= 7) {
+		if (this.room.controller.level === 8) {
 			this.maxParts = 5;
 		}
 		if (this.room.controller.level < 5) { // Carry more stuff when links aren't available yet.

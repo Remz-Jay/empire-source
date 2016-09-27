@@ -379,13 +379,13 @@ export default class CreepAction implements ICreepAction {
 		if (ignoreRoomConfig) {
 			callback = this.ignoreCallback;
 		}
-		let maxOps = 3000;
-		if (Game.cpu.bucket < global.BUCKET_MIN) {
+		let maxOps = 6000;
+/*		if (Game.cpu.bucket < global.BUCKET_MIN) {
 			maxOps = 1000;
 		}
 		if (Game.cpu.bucket < (global.BUCKET_MIN / 2)) {
 			maxOps = 500;
-		}
+		}*/
 
 		let plainCost = 2;
 		let swampCost = 10;
@@ -409,7 +409,11 @@ export default class CreepAction implements ICreepAction {
 			// We're near the target.
 			return undefined;
 		} else {
-			// console.log("PathFinder", `${maxOps} maxOps, ${path.ops} ops, ${path.cost} cost, ${path.incomplete} incomplete`);
+			if (path.ops > 100 || path.cost > 100 || path.incomplete) {
+				console.log(global.colorWrap("PathFinder", "Red"), this.creep.memory.role, this.creep.room.name, goal[0].pos.roomName,
+					`${maxOps} maxOps, ${path.ops} ops, ${path.cost} cost, ${path.incomplete} incomplete`
+				);
+			}
 			return path.path;
 		}
 	};
