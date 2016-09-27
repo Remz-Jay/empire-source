@@ -1,7 +1,50 @@
 interface StructureTerminal {
 	run(): boolean;
 	autoSell(): boolean;
+	processTransactions(): boolean;
+	formatNumber(value: number): string;
 }
+
+StructureTerminal.prototype.formatNumber = function(value: number): string {
+	let strVal: string = value.toString();
+	if (value > 1000000) {
+		strVal = _.round(value / 1000000, 2).toString() + "M";
+	} else if (value > 1000) {
+		strVal = _.round(value / 1000, 2).toString() + "k";
+	}
+	return strVal;
+};
+
+StructureTerminal.prototype.processTransactions = function(): boolean {
+	let batchSize = global.TERMINAL_MAX;
+	let sending: boolean = false;
+	if (!!Memory.transactions && Memory.transactions.length > 0 && !sending && this.store.energy >= global.TERMINAL_MAX) {
+		Memory.transactions.forEach((t: TerminalTransaction) => {
+			if (t.recipient !== this.room.name && t.totalAmount - t.sentAmount > 0 && this.store[t.resource] >= batchSize) {
+				batchSize = global.clamp(batchSize, 0, (t.totalAmount - t.sentAmount));
+				let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, t.recipient);
+				if (this.store.energy >= transferCosts) {
+					let description = `ID:[${t.id}] - ${t.description} - ` + `${this.formatNumber(t.sentAmount + batchSize)}/${this.formatNumber(t.totalAmount)}`;
+					console.log(t.resource, batchSize, t.recipient, description, description.length);
+					let status = this.send(t.resource, batchSize, t.recipient, description);
+					if (status === OK) {
+						sending = true;
+						global.sendRegistry.push(t.resource);
+						console.log(`Terminal.processTransactions, sending ${t.resource} x ${batchSize}`
+							+ ` from ${this.room.name} to ${t.recipient}`);
+						t.sentAmount = t.sentAmount + batchSize;
+					} else {
+						console.log(`Terminal.processTransactions, error ${global.translateErrorCode(status)} while transferring ${t.resource}`
+							+ ` from ${this.room.name} to ${t.recipient}`);
+					}
+					return true;
+				}
+			}
+		});
+		return false;
+	}
+	return false;
+};
 
 StructureTerminal.prototype.autoSell = function(): boolean {
 	let storage = this.room.storage;
@@ -70,7 +113,7 @@ StructureTerminal.prototype.run = function (): boolean {
 			}
 		});
 
-		if (!sending && storage.store.energy > (2 * global.STORAGE_MIN)) {
+		if (!sending && this.room.name !== global.POWER_ROOM && storage.store.energy > (2 * global.STORAGE_MIN)) {
 			let transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
 			let transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
 			let status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);

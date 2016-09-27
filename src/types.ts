@@ -60,6 +60,16 @@ declare interface RemoteRoomConfig {
 	hasController?: boolean;
 }
 
+declare interface TerminalTransaction {
+	id: string;
+	recipient: string;
+	resource: string;
+	description: string;
+	totalAmount: number;
+	sentAmount: number;
+	transactions?: Transaction[];
+}
+
 declare interface RemoteCreepProperties extends CreepProperties {
 	config: RemoteRoomConfig;
 	container?: string;
@@ -127,6 +137,7 @@ declare interface Memory {
 			[name: string]: any;
 		};
 	};
+	transactions: TerminalTransaction[];
 }
 
 declare interface Game {
