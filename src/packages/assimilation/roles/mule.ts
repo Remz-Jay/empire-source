@@ -31,18 +31,18 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public isBagEmpty(): boolean {
 		delete this.creep.memory.bagFull;
-		return (_.sum(this.creep.carry) === 0);
+		return this.creep.bagEmpty;
 	}
 
 	public isBagFull(): boolean {
 		if (!!this.creep.memory.bagFull) {
-			if (_.sum(this.creep.carry) === 0) {
+			if (this.creep.bagEmpty) {
 				delete this.creep.memory.bagFull;
 				return false;
 			}
 			return true;
 		}
-		if (_.sum(this.creep.carry) === this.creep.carryCapacity) {
+		if (this.creep.bagFull) {
 			this.creep.memory.bagFull = true;
 			return true;
 		}
@@ -108,7 +108,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				case ERR_FULL:
 					break;
 				case ERR_NOT_ENOUGH_RESOURCES:
-					if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
+					if (!(target instanceof StructureStorage) || this.creep.bagEmpty) {
 						delete this.creep.memory.target;
 						// We're empty, drop from idle to pick up new stuff to haul.
 						delete this.creep.memory.idle;
@@ -179,7 +179,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 
 	public action(): boolean {
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
-			if (this.creep.carry.energy === 0 && _.sum(this.creep.carry) > 0) {
+			if (this.creep.carry.energy === 0 && !this.creep.bagEmpty) {
 				this.creep.drop(this.getMineralTypeFromStore(this.creep));
 			}
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {

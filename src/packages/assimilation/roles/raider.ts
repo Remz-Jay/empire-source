@@ -19,18 +19,18 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 
 	public isBagEmpty(): boolean {
 		delete this.creep.memory.bagFull;
-		return (this.creep.carry.energy === 0);
+		return this.creep.bagEmpty;
 	}
 
 	public isBagFull(): boolean {
 		if (!!this.creep.memory.bagFull) {
-			if (this.creep.carry.energy === 0) {
+			if (this.creep.bagEmpty) {
 				delete this.creep.memory.bagFull;
 				return false;
 			}
 			return true;
 		}
-		if (_.sum(this.creep.carry) === this.creep.carryCapacity) {
+		if (this.creep.bagFull) {
 			this.creep.memory.bagFull = true;
 			return true;
 		}
@@ -107,7 +107,7 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 					}
 					break;
 				case ERR_NOT_ENOUGH_RESOURCES:
-					if (!(target instanceof StructureStorage) || _.sum(this.creep.carry) === 0) {
+					if (!(target instanceof StructureStorage) || this.creep.bagEmpty) {
 						delete this.creep.memory.target;
 						// We're empty, drop from idle to pick up new stuff to haul.
 						delete this.creep.memory.idle;

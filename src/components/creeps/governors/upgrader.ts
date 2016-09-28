@@ -24,21 +24,20 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	}
 
 	public getCreepLimit(): number {
-		if (this.room.controller.level === 8) {
-			return 1;
+		switch (this.room.controller.level) {
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+				return 4;
+			case 6:
+			case 7:
+				return 2;
+			case 8:
+				return 1;
+			default:
+				return global.clamp(_.floor(this.room.energyInContainers / 200000), 1, this.maxCreeps);
 		}
-		let num: number;
-		if (this.room.controller.level > 4) {
-			num = _.floor(this.room.energyInContainers / 200000);
-		} else if (this.room.controller.level < 5) {
-			num = 4;
-		} else {
-			num = this.maxCreeps;
-		}
-		if (num > this.maxCreeps && this.room.controller.level > 4) {
-			num = this.maxCreeps;
-		}
-		return (num > 0) ? num : 1;
 	}
 
 	public getBody() {

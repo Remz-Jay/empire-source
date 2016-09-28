@@ -168,14 +168,13 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 
 	public action(): boolean {
 		if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-			if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+			if (!this.creep.bagFull) {
 				this.harvestFromContainersAndSources();
 			} else {
 				this.moveToTargetRoom();
 			}
 		} else {
 			if (this.flee()) {
-				this.nextStepIntoRoom();
 				this.pickupResourcesInRange();
 				this.builderLogic();
 			}

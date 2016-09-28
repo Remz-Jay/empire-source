@@ -5,7 +5,6 @@ export interface IBuilder {
 	targetConstructionSite: ConstructionSite;
 	targetEnergySource: Spawn | Structure;
 
-	isBagEmpty(): boolean;
 	tryBuilding(): number;
 	tryCollectEnergy(): number;
 	moveToCollectEnergy(): void;
@@ -41,10 +40,6 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		} else {
 			return false;
 		}
-	}
-
-	public isBagEmpty(): boolean {
-		return (this.creep.carry.energy === 0);
 	}
 
 	public tryBuilding(): number {
@@ -231,12 +226,6 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		if (super.action() && this.flee()) {
 			this.builderLogic();
 		}
-		// if (this.isBagEmpty()) {
-		// 	this.moveToCollectEnergy();
-		// } else {
-		// 	this.moveToConstructionSite();
-		// }
-
 		return true;
 	}
 

@@ -4,16 +4,16 @@ export default class WarfareCreepGovernor extends CreepGovernor {
 	public maxParts: number = 25;
 	public maxTough: number = 25;
 	public maxCreeps: number = 0;
-	public bodyPart: string[];
-	public toughPart: string[];
-	public basePart: string[];
+	public bodyPart: string[] = [];
+	public toughPart: string[] = [];
+	public basePart: string[] = [];
 
 	constructor(homeRoom: Room, config: RemoteRoomConfig) {
 		super(homeRoom);
 		this.config = config;
 	}
 
-	public getToughBody() {
+	public getToughBody(): string[] {
 		let numParts = _.floor(
 			(this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(this.basePart)) /
 			WarfareCreepGovernor.calculateRequiredEnergy(this.bodyPart));

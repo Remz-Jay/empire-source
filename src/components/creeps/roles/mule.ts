@@ -1,7 +1,6 @@
 import CreepAction, {ICreepAction} from "../creepAction";
 
 export interface IMule {
-	isBagEmpty(): boolean;
 	action(): boolean;
 }
 
@@ -13,14 +12,6 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 		this.storage = this.creep.room.storage || undefined;
-	}
-
-	public isBagEmpty(): boolean {
-		return (_.sum(this.creep.carry) === 0);
-	}
-
-	public isBagFull(): boolean {
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
 	}
 
 	public getTargetList(blackList: string[] = []): Structure[] {
@@ -128,7 +119,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		// Get energy from containers
 		let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
 		!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
-		&& structure.store[RESOURCE_ENERGY] >= (this.creep.carryCapacity - _.sum(this.creep.carry)));
+		&& structure.store[RESOURCE_ENERGY] >= (this.creep.carryCapacity - this.creep.carrySum));
 		let source: StructureContainer = this.creep.pos.findClosestByPath(structs, {
 			algorithm: "astar",
 			maxRooms: 1,
@@ -139,7 +130,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			// No energy in containers found. Get some minerals instead
 			structs = this.creep.room.containers.filter((structure: StructureContainer) =>
 			!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
-			&& _.sum(structure.store) >= (this.creep.carryCapacity - _.sum(this.creep.carry)) / 2);
+			&& _.sum(structure.store) >= (this.creep.carryCapacity - this.creep.carrySum) / 2);
 			source = this.creep.pos.findClosestByPath(structs, {
 				algorithm: "astar",
 				maxRooms: 1,
@@ -165,14 +156,14 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	}
 
 	public muleLogic(): void {
-		if (!!this.creep.memory.dumping && this.isBagEmpty()) {
+		if (!!this.creep.memory.dumping && this.creep.bagEmpty) {
 			delete this.creep.memory.dumping;
 			delete this.creep.memory.target;
 			delete this.creep.memory.source;
 			delete this.creep.memory.idle;
 			this.creep.say("M:COL");
 		}
-		if (!this.creep.memory.dumping && !this.creep.memory.idle && this.isBagFull()) {
+		if (!this.creep.memory.dumping && !this.creep.memory.idle && this.creep.bagFull) {
 			this.creep.memory.dumping = true;
 			delete this.creep.memory.target;
 			delete this.creep.memory.source;
@@ -202,7 +193,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				this.dumpRoutine(target);
 			}
 		} else if (!!this.creep.memory.idle) {
-			if (_.sum(this.creep.carry) - this.creep.carry.energy > 0) {
+			if (this.creep.carrySum - this.creep.carry.energy > 0) {
 				// We're carrying Minerals. Drop them off first before returning to duty.
 				this.dumpAtStorage();
 			} else {
@@ -218,7 +209,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 					this.muleLogic();
 				} else {
 					// scan for dropped energy if we have room
-					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+					if (!this.creep.bagFull) {
 						let target: Resource;
 						if (this.scanForDrops) {
 							let resources = this.creep.room.find(FIND_DROPPED_RESOURCES, {filter: (r: Resource) => r.amount > 100});
@@ -249,7 +240,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 									delete this.creep.memory.source;
 									delete this.creep.memory.mineralType;
 								}
-							} else if (_.sum(this.creep.carry) > 0) {
+							} else if (!this.creep.bagEmpty) {
 								// No sources found, proceed to offload at Storage.
 								this.dumpAtStorage();
 							} else {
@@ -346,16 +337,16 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	}
 
 	public pickupResourcesInRange(): void {
-		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+		if (!this.creep.bagFull) {
 			let targets = this.safeLook(LOOK_RESOURCES, this.creep.pos, 1);
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
-					if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+					if (!this.creep.bagFull) {
 						this.creep.pickup(t.resource);
 					}
 				}, this);
 			} else {
-				if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+				if (!this.creep.bagFull) {
 					let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
 						&& _.sum(s.store) > 50
 						&& s.pos.isNearTo(this.creep.pos)

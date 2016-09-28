@@ -21,4 +21,8 @@ export default class BullyGovernor extends WarfareCreepGovernor {
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
+
+	public getBody(): string[] {
+		return super.getToughBody();
+	}
 }

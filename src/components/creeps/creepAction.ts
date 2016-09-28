@@ -15,9 +15,6 @@ export interface ICreepAction {
 
 	needsRenew(): boolean;
 	pickupResourcesInRange(): void;
-	nextStepIntoRoom(): boolean;
-	isBagFull(): boolean;
-	isBagEmpty(): boolean;
 
 	action(): boolean;
 
@@ -93,43 +90,6 @@ export default class CreepAction implements ICreepAction {
 			return new PathFinder.CostMatrix();
 		}
 	};
-	/**
-	 * If we're on an EXIT_, make sure we do one step into the room before continuing
-	 * To avoid room switching.
-	 * Returns false if we're not on an EXIT_.
-	 * @returns {boolean|RoomPosition}
-	 */
-	public nextStepIntoRoom(): boolean {
-		if (this.creep.pos.x === 0) {
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
-			this.creep.move(RIGHT);
-			return false;
-		}
-		if (this.creep.pos.x === 49) {
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
-			this.creep.move(LEFT);
-			return false;
-		}
-		if (this.creep.pos.y === 0) {
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
-			this.creep.move(BOTTOM);
-			return false;
-		}
-		if (this.creep.pos.y === 49) {
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - nextStepIntoRoom #${++this.moveIterator}`);
-			this.creep.move(TOP);
-			return false;
-		}
-		return true;
-	};
-
-	public isBagEmpty(): boolean {
-		return (this.creep.carry.energy === 0);
-	}
-
-	public isBagFull(): boolean {
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
-	}
 
 	public flee(): boolean {
 		if (this.creep.room.hostileCreeps.length > 0) {
@@ -394,12 +354,12 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public pickupResourcesInRange(skipContainers: boolean = false): void {
-		if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+		if (!this.creep.bagFull) {
 			let targets = this.safeLook(LOOK_RESOURCES, this.creep.pos, 1);
 			if (targets.length > 0) {
 				this.creep.pickup(targets[0].resource);
 			} else if (!skipContainers) {
-				if (_.sum(this.creep.carry) < this.creep.carryCapacity) {
+				if (!this.creep.bagFull) {
 					let containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
 						&& s.store.energy > 0
 						&& s.pos.isNearTo(this.creep.pos)
@@ -508,8 +468,8 @@ export default class CreepAction implements ICreepAction {
 					|| structure.structureType === STRUCTURE_LINK
 				) && (
 					((structure instanceof StructureContainer || structure instanceof StructureStorage)
-					&& !!structure.store && structure.store[RESOURCE_ENERGY] > (this.creep.carryCapacity - _.sum(this.creep.carry))) // containers and storage
-					|| (structure instanceof StructureLink && !!structure.energy && structure.energy >= (this.creep.carryCapacity - _.sum(this.creep.carry))) // links
+					&& !!structure.store && structure.store[RESOURCE_ENERGY] > (this.creep.carryCapacity - this.creep.carrySum)) // containers and storage
+					|| (structure instanceof StructureLink && !!structure.energy && structure.energy >= (this.creep.carryCapacity - this.creep.carrySum)) // links
 				),
 				maxRooms: 1,
 				algorithm: "astar",

@@ -14,7 +14,7 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 	}
 
 	public move() {
-		if (_.sum(this.creep.carry) > (this.creep.carryCapacity / 2)) {
+		if (this.creep.carrySum > (this.creep.carryCapacity / 2)) {
 			let storage = Game.rooms[this.creep.memory.homeRoom].storage;
 			if (!!storage && !this.creep.pos.isNearTo(storage.pos)) {
 				// get in range

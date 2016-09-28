@@ -48,12 +48,6 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		let sources = c.room.sources.filter((s: Source) => s.pos.isNearTo(c));
 		return sources[0];
 	}
-	public isBagFull(): boolean {
-		if (this.creep.getActiveBodyparts(CARRY) < 1) {
-			return false;
-		}
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
-	}
 
 	public tryHarvest(): number {
 		if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && this.container.hits < this.container.hitsMax) {
@@ -147,8 +141,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				this.moveTo(this.container.pos);
 			} else {
-				// this.nextStepIntoRoom();
-				if (this.isBagFull()) {
+				if (this.creep.bagFull) {
 					this.moveToDropEnergy();
 				} else {
 					this.moveToHarvest();

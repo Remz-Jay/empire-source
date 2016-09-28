@@ -25,7 +25,6 @@ export default class Claim extends ASMCreepAction implements IClaim {
 			}
 			return;
 		}
-		// this.nextStepIntoRoom();
 		if (!this.creep.pos.isNearTo(this.targetController)) {
 			this.moveTo(this.targetController.pos);
 		} else {

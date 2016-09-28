@@ -15,13 +15,11 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	public storageMin: number = global.STORAGE_MIN;
 	public terminalMax: number = global.TERMINAL_MAX;
 	public terminalEnergyMax: number = global.TERMINAL_ENERGY_MAX;
-	public carryTotal: number;
 	public canTransfer: number;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
-		this.carryTotal = _.sum(this.creep.carry);
-		this.canTransfer = this.creep.carryCapacity - this.carryTotal;
+		this.canTransfer = this.creep.carryCapacity - this.creep.carrySum;
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;
 		this.nuker = this.creep.room.nuker;
@@ -113,7 +111,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 					linkLimit = link.energyCapacity;
 				}
 			}
-			if (this.carryTotal > 0 && this.getMineralTypeFromStore(this.creep) !== RESOURCE_ENERGY) {
+			if (!this.creep.bagEmpty && this.getMineralTypeFromStore(this.creep) !== RESOURCE_ENERGY) {
 				this.cleanUp();
 				return true;
 			}
@@ -156,7 +154,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 0 && this.carryTotal > 0) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 0 && !this.creep.bagEmpty) {
 			if (this.creep.memory.direction === 1) {
 				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -212,7 +210,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		if (!this.nuker) {
 			return false;
 		}
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 2 && this.carryTotal > 0) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 2 && !this.creep.bagEmpty) {
 			if (this.creep.memory.direction === 3) {
 				this.creep.transfer(this.nuker, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -246,7 +244,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		if (!this.powerSpawn) {
 			return false;
 		}
-		if (!!this.creep.memory.direction && this.creep.memory.direction > 6 && this.carryTotal > 0) {
+		if (!!this.creep.memory.direction && this.creep.memory.direction > 6 && !this.creep.bagEmpty) {
 			if (this.creep.memory.direction === 7) {
 				this.creep.transfer(this.powerSpawn, this.getMineralTypeFromStore(this.creep));
 			} else {
@@ -322,7 +320,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 	}
 	public cleanUp(): boolean {
-		if (this.carryTotal > 0) {
+		if (!this.creep.bagEmpty) {
 			this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
 			return true;
 		}

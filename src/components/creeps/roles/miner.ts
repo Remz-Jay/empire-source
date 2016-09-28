@@ -7,7 +7,6 @@ export interface IMiner {
 	targetExtractor: StructureExtractor;
 	mineralType: string;
 
-	isBagFull(): boolean;
 	tryMining(): number;
 	moveToMine(): void;
 	tryMineralDropOff(): number;
@@ -73,13 +72,9 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		}
 	}
 
-	public isBagFull(): boolean {
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
-	}
-
 	public tryMining(): number {
 		if (this.targetMineralSource.mineralAmount > 0 && this.targetExtractor.cooldown === 0) {
-			if (_.sum(this.creep.carry) > (this.creep.carryCapacity * 0.9)) {
+			if (this.creep.carrySum > (this.creep.carryCapacity * 0.9)) {
 				let targets: Structure[] = this.creep.room.containers.filter(
 					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
 				);
@@ -131,7 +126,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		if (!this.renewCreep() || !this.flee()) {
 			return false;
 		}
-		if (this.isBagFull()) {
+		if (this.creep.bagFull) {
 			this.moveToDropMinerals();
 		} else {
 			this.moveToMine();

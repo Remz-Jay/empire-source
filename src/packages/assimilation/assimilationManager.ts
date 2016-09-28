@@ -325,7 +325,7 @@ function manageBullies(roomName: string, limit: number = 0) {
 	let governor = new BullyGovernor(homeRoom, config);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === BullyGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
-	if (creepsInRole.length > 0) {
+	if (!!creepsInRole && creepsInRole.length > 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
@@ -358,7 +358,7 @@ function manageBullies(roomName: string, limit: number = 0) {
 			}
 		}, this);
 	}
-	if (creepsInRole.length < limit && !isSpawning) {
+	if (!!creepsInRole && creepsInRole.length < limit && !isSpawning) {
 		isSpawning = true;
 		createCreep(governor.getCreepConfig(), true);
 	}

@@ -14,7 +14,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		if (!this.positions) {
 			return false;
 		}
-		if (!this.isBagFull() && this.positionIterator === this.sourcePosition) {
+		if (!this.creep.bagFull && this.positionIterator === this.sourcePosition) {
 			if (this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
 				let mineralSource: Mineral;
 				if (!!this.creep.memory.mineralSource) {
@@ -37,7 +37,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 					return true;
 				}
 			}
-		} else if (this.positionIterator === this.sourcePosition && this.isBagFull()) {
+		} else if (this.positionIterator === this.sourcePosition && this.creep.bagFull) {
 			this.positionIterator = this.creep.memory.positionIterator = this.sourcePosition + 1;
 		} else if (this.creep.pos.isNearTo(this.creep.room.terminal)) {
 			let status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
@@ -69,7 +69,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 	}
 
 	public action(): boolean {
-		if (this.creep.room.name === this.creep.memory.homeRoom && this.isBagEmpty()) {
+		if (this.creep.room.name === this.creep.memory.homeRoom && this.creep.bagEmpty) {
 			if (this.creep.ticksToLive < 550) {
 				this.creep.memory.hasRenewed = false;
 			}

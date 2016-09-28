@@ -6,7 +6,6 @@ export interface IHarvester {
 	targetSource: Source;
 	targetEnergyDropOff: Spawn | Structure;
 
-	isBagFull(): boolean;
 	tryHarvest(): number;
 	moveToHarvest(): void;
 	tryEnergyDropOff(): number;
@@ -66,10 +65,6 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		} else {
 			return false;
 		}
-	}
-
-	public isBagFull(): boolean {
-		return (this.creep.carry.energy === this.creep.carryCapacity);
 	}
 
 	public tryHarvest(): number {
@@ -282,16 +277,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	};
 
 	public action(): boolean {
-		// Don't do super.action here, we don't want to pick up resources.
-		/*if (!this.renewCreep()) {
-			return false;
-		}*/
 		this.harvesterLogic();
-		// if (this.isBagFull()) {
-		// 	this.moveToDropEnergy();
-		// } else {
-		// 	this.moveToHarvest();
-		// }
 		return true;
 	}
 
