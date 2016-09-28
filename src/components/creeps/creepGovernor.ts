@@ -104,13 +104,7 @@ export default class CreepGovernor implements ICreepGovernor {
 	}
 
 	public getBody() {
-		let numParts = _.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
-		if (numParts < 1) {
-			numParts = 1;
-		}
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
+		let numParts = global.clamp(_.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {

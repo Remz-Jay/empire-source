@@ -367,47 +367,48 @@ function manageBullies(roomName: string, limit: number = 0) {
 function manageSourceKeepers(roomName: string, limit: number = 0) {
 	if (!config.hasController) {
 		manageBullies(roomName, limit);
-		limit = 0;
-	}
-	let governor = new FasterminatorGovernor(homeRoom, config);
-	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === FasterminatorGovernor.ROLE.toUpperCase()
-	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
-	if (creepsInRole.length > 0) {
-		_.each(creepsInRole, function (creep: Creep) {
-			try {
-				if (!creep.spawning) {
-					let b = Game.cpu.getUsed();
-					let role: Terminator = new Terminator();
-					role.setCreep(<Creep> creep);
-					role.setGovernor(governor);
-					if (!config.hasController) {
-						role.sourceKeeperDuty = true;
-					}
-					role.action();
-					if (creep.ticksToLive < 200 && (creepsInRole.length === limit) && !isSpawning) {
-						// Do a preemptive spawn if this creep is about to expire.
-						isSpawning = true;
-						// TODO: might wanna remove the true here later
-						let status = createCreep(governor.getCreepConfig(), true);
-						if (_.isNumber(status)) {
-							console.log("manageDefenders.preempt-spawn", global.translateErrorCode(status));
-						} else {
-							console.log("manageDefenders.preempt-spawn", status);
+		return;
+	} else {
+		let governor = new FasterminatorGovernor(homeRoom, config);
+		let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === FasterminatorGovernor.ROLE.toUpperCase()
+		&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
+		if (creepsInRole.length > 0) {
+			_.each(creepsInRole, function (creep: Creep) {
+				try {
+					if (!creep.spawning) {
+						let b = Game.cpu.getUsed();
+						let role: Terminator = new Terminator();
+						role.setCreep(<Creep> creep);
+						role.setGovernor(governor);
+						if (!config.hasController) {
+							role.sourceKeeperDuty = true;
+						}
+						role.action();
+						if (creep.ticksToLive < 200 && (creepsInRole.length === limit) && !isSpawning) {
+							// Do a preemptive spawn if this creep is about to expire.
+							isSpawning = true;
+							// TODO: might wanna remove the true here later
+							let status = createCreep(governor.getCreepConfig(), true);
+							if (_.isNumber(status)) {
+								console.log("manageSourceKeepers.preempt-spawn", global.translateErrorCode(status));
+							} else {
+								console.log("manageSourceKeepers.preempt-spawn", status);
+							}
+						}
+						let a = Game.cpu.getUsed() - b;
+						if (a > 2) {
+							console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 						}
 					}
-					let a = Game.cpu.getUsed() - b;
-					if (a > 2) {
-						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
-					}
+				} catch (e) {
+					console.log("ERROR :: ", FasterminatorGovernor.ROLE, creep.name, creep.room.name, e.message);
 				}
-			} catch (e) {
-				console.log("ERROR :: ", FasterminatorGovernor.ROLE, creep.name, creep.room.name, e.message);
-			}
-		}, this);
-	}
-	if (creepsInRole.length < limit && !isSpawning) {
-		isSpawning = true;
-		createCreep(governor.getCreepConfig(), true);
+			}, this);
+		}
+		if (creepsInRole.length < limit && !isSpawning) {
+			isSpawning = true;
+			createCreep(governor.getCreepConfig(), true);
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IHealer {
 	action(): boolean;
+	move(): void;
 }
 
 export default class Healer extends WarfareCreepAction implements IHealer {
@@ -12,52 +13,7 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
 	];
 
-	public setCreep(creep: Creep, positions: RoomPosition[]) {
-		// We require the next bit to have the healer stand at one checkpoint behind the rest.
-/*		let posarr = positions.slice(); // Need a copy, or pop() and splice() will modify the original.
-		posarr.splice(-1, 1); // Remove the last position, because it's in hostile territory.
-		super.setCreep(creep, posarr);*/
-		super.setCreep(creep, positions);
-	}
-
-	public moveToHeal(): boolean {
-		if (this.creep.hits < this.creep.hitsMax) {
-			this.creep.memory.waitForHealth = true;
-			this.creep.memory.positionIterator = this.positionIterator = (this.positions.length - 1);
-			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				this.moveTo(this.positions[this.positionIterator]);
-			}
-			return false;
-		}
-		return true;
-	}
-
-	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 4, {
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
-			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
-		});
-		if (targets.length > 0) {
-			let goals = _.map(targets, function (t: Creep) {
-				return {pos: t.pos, range: 5};
-			});
-			let path = PathFinder.search(this.creep.pos, goals, {
-				flee: true,
-				maxRooms: 1,
-				plainCost: 2,
-				swampCost: 10,
-				roomCallback: this.creepCallback,
-			});
-			let pos = path.path[0];
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
-			this.creep.move(this.creep.pos.getDirectionTo(pos));
-			delete this.creep.memory.targetPath;
-			return false;
-		}
-		return true;
-	}
-
-	public move() {
+	public move(): void {
 		if (!this.moveUsingPositions()) {
 			delete this.creep.memory.targetPath;
 			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {

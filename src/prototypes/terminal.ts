@@ -2,18 +2,7 @@ interface StructureTerminal {
 	run(): boolean;
 	autoSell(): boolean;
 	processTransactions(): boolean;
-	formatNumber(value: number): string;
 }
-
-StructureTerminal.prototype.formatNumber = function(value: number): string {
-	let strVal: string = value.toString();
-	if (value > 1000000) {
-		strVal = _.round(value / 1000000, 2).toString() + "M";
-	} else if (value > 1000) {
-		strVal = _.round(value / 1000, 2).toString() + "k";
-	}
-	return strVal;
-};
 
 StructureTerminal.prototype.processTransactions = function(): boolean {
 	let batchSize = global.TERMINAL_MAX;
@@ -24,7 +13,7 @@ StructureTerminal.prototype.processTransactions = function(): boolean {
 				batchSize = global.clamp(batchSize, 0, (t.totalAmount - t.sentAmount));
 				let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, t.recipient);
 				if (this.store.energy >= transferCosts) {
-					let description = `ID:[${t.id}] - ${t.description} - ` + `${this.formatNumber(t.sentAmount + batchSize)}/${this.formatNumber(t.totalAmount)}`;
+					let description = `ID:[${t.id}] - ${t.description} - ` + `${global.formatNumber(t.sentAmount + batchSize)}/${global.formatNumber(t.totalAmount)}`;
 					console.log(t.resource, batchSize, t.recipient, description, description.length);
 					let status = this.send(t.resource, batchSize, t.recipient, description);
 					if (status === OK) {

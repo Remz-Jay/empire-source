@@ -24,27 +24,7 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 	}
 
 	public getBody() {
-		let numParts = _.floor(
-			(this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(this.basePart)) /
-			WarfareCreepGovernor.calculateRequiredEnergy(this.bodyPart));
-
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		let body: string[] = this.basePart;
-		for (let i = 0; i < numParts; i++) {
-			if (body.length + this.bodyPart.length <= 50) {
-				body = body.concat(this.bodyPart);
-			}
-		}
-		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
-		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
-		for (let i = 0; i < numTough; i ++) {
-			if (body.length + this.toughPart.length <= 50) {
-				body = body.concat(this.toughPart);
-			}
-		}
-		return WarfareCreepGovernor.sortBodyParts(body);
+		return super.getToughBody();
 	}
 
 	public getCreepLimit(): number {

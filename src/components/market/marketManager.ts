@@ -78,12 +78,12 @@ interface MarketThresholdsObject {
 	[k: string]: number;
 }
 const marketThresholds: MarketThresholdsObject = {
-	H: 1.2,
-	O: 1.2,
-	Z: 1.2,
-	K: 1.2,
-	U: 1.2,
-	L: 1.2,
+	H: 1.0,
+	O: 1.0,
+	Z: 1.0,
+	K: 1.0,
+	U: 1.0,
+	L: 1.0,
 	X: 1.5,
 };
 
@@ -255,12 +255,7 @@ function resourceReport(): void {
 global.resourceReport = resourceReport;
 
 function formatAmount(value: number, cellWidth: number = 0, overrideColor?: string): string {
-	let strVal: string = value.toString();
-	if (value > 1000000) {
-		strVal = _.round(value / 1000000, 2).toString() + "M";
-	} else if (value > 1000) {
-		strVal = _.round(value / 1000, 2).toString() + "k";
-	}
+	let strVal: string = global.formatNumber(value);
 	strVal = _.padRight(strVal, cellWidth);
 	if (_.isString(overrideColor)) {
 		strVal = global.colorWrap(strVal, overrideColor);

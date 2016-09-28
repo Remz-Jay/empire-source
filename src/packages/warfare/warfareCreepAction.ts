@@ -1,12 +1,15 @@
 import CreepAction from "../../components/creeps/creepAction";
 import WarriorGovernor from "./governors/warrior";
-// import * as RoomManager from "../../components/rooms/roomManager";
 
 export interface IWFCreepAction {
 	wait: boolean;
 	squad: Creep[];
 	squadSize: number;
+	checkTough(): boolean;
+	moveToHeal(): boolean;
+	moveToSafeRange(): boolean;
 	moveToTargetRoom(): void;
+	moveUsingPositions(): boolean;
 }
 
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
@@ -29,6 +32,47 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			this.creep.memory.positionIterator = 0;
 		}
 		this.positionIterator = this.creep.memory.positionIterator;
+	}
+
+	public checkTough(): boolean {
+		return (this.creep.getActiveBodyparts(TOUGH) > 0);
+	}
+
+	public moveToHeal(): boolean {
+		if (!this.checkTough() || this.creep.memory.waitForHealth) {
+			this.creep.memory.waitForHealth = true;
+			this.creep.memory.positionIterator = this.positionIterator = 0;
+			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+				this.moveTo(this.positions[this.positionIterator]);
+			}
+			return false;
+		}
+		return true;
+	}
+
+	public moveToSafeRange(): boolean {
+		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2, {
+			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
+			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
+		});
+		if (targets.length > 0) {
+			let goals = _.map(targets, function (t: Creep) {
+				return {pos: t.pos, range: 3};
+			});
+			let path = PathFinder.search(this.creep.pos, goals, {
+				flee: true,
+				maxRooms: 1,
+				plainCost: 2,
+				swampCost: 10,
+				maxOps: 500,
+				roomCallback: this.creepCallback,
+			});
+			let pos = path.path[0];
+			console.log(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
+			this.creep.move(this.creep.pos.getDirectionTo(pos));
+			return false;
+		}
+		return true;
 	}
 
 	public isMyRoom(roomName: string) {
@@ -60,42 +104,6 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return true;
 		}
 		return false;
-	}
-
-	public moveToTargetRoom(): void {
-		let flag = Game.flags[this.creep.memory.config.targetRoom];
-		if (!!flag && !!flag.pos) {
-			this.moveTo(flag.pos);
-			return;
-		}
-		console.log("WARFARE NON FLAG MOVE");
-		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
-			this.nextStepIntoRoom();
-			let index: number = 0;
-			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {
-				if (route.room === this.creep.room.name) {
-					index = idx + 1;
-				}
-			}, this);
-			let route = this.creep.memory.config.route[index];
-			console.log(`finding route to ${route.exit} in ${route.room}`);
-			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit, {
-				costCallback: this.roomCallback,
-			});
-			this.creep.memory.exitRoom = route.room;
-		} else {
-			if (!!this.creep.memory.exit && !!this.creep.memory.exitPath) {
-				let path = this.deserializePathFinderPath(this.creep.memory.exitPath);
-				this.moveByPath(path, this.creep.memory.exit, "exitPath");
-			} else {
-				delete this.creep.memory.exitPath;
-				let path = this.findPathFinderPath(this.creep.memory.exit);
-				if (!!path) {
-					this.creep.memory.exitPath = path;
-					this.moveByPath(path, this.creep.memory.exit, "exitPath");
-				}
-			}
-		}
 	}
 
 	public getPriorityCreep(creeps: Creep[], reverse: boolean = false): Creep {

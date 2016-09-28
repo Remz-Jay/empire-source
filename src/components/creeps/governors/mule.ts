@@ -29,12 +29,7 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 		} else {
 			numParts = _.floor((this.room.energyAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
 		}
-		if (numParts < 3) {
-			numParts = 3;
-		}
-		if (this.maxParts > 3 && numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
+		numParts = global.clamp(numParts, 3, this.maxParts);
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {

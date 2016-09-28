@@ -3,34 +3,10 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IDismantler {
 	action(): boolean;
+	dismantleTarget(target: Structure): void;
+	dismantle(): boolean;
+	move(): boolean;
 }
-
-let roomCallback = function (roomName: string): CostMatrix {
-	try {
-		let room = Game.rooms[roomName];
-		if (!room) {
-			return;
-		}
-		let matrix = room.getCreepMatrix();
-		// avoid the edges
-		for (let i = 1; i < 50; i++) {
-			matrix.set(0, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(49, i, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 0, 50);
-		}
-		for (let i = 1; i < 50; i++) {
-			matrix.set(i, 49, 50);
-		}
-		return matrix;
-	} catch (e) {
-		console.log(e.message, "Dismantler.roomCallback", roomName);
-		return new PathFinder.CostMatrix();
-	}
-};
 
 export default class Dismantler extends WarfareCreepAction implements IDismantler {
 	public noTarget: boolean = false;
@@ -41,49 +17,17 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 		RESOURCE_CATALYZED_ZYNTHIUM_ACID, // +300% dismantle effectiveness
 	];
 
-	public setCreep(creep: Creep, positions?: RoomPosition[]) {
-		super.setCreep(creep, positions);
-	}
-
-	public checkTough(): boolean {
-		return (this.creep.getActiveBodyparts(TOUGH) > 0);
-	}
-
-	public moveToHeal(): boolean {
-		if (!this.checkTough() || this.creep.memory.waitForHealth) {
-			this.creep.memory.waitForHealth = true;
-			this.creep.memory.positionIterator = this.positionIterator = 0;
-			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				this.moveTo(this.positions[this.positionIterator]);
+	public dismantleTarget(target: Structure): void {
+		if (!this.creep.pos.isNearTo(target)) {
+			this.creep.moveTo(target);
+		} else {
+			this.creep.dismantle(target);
+			if (Game.time & 5) {
+				this.creep.say("OM NOM", true);
+			} else if (Game.time & 6) {
+				this.creep.say("NOM!", true);
 			}
-			return false;
 		}
-		return true;
-	}
-
-	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2, {
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
-			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
-		});
-		if (targets.length > 0) {
-			let goals = _.map(targets, function (t: Creep) {
-				return {pos: t.pos, range: 3};
-			});
-			let path = PathFinder.search(this.creep.pos, goals, {
-				flee: true,
-				maxRooms: 1,
-				plainCost: 2,
-				swampCost: 10,
-				maxOps: 500,
-				roomCallback: roomCallback,
-			});
-			let pos = path.path[0];
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
-			this.creep.move(this.creep.pos.getDirectionTo(pos));
-			return false;
-		}
-		return true;
 	}
 
 	public dismantle(): boolean {
@@ -99,30 +43,12 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 		} else if (!this.noTarget && this.positionIterator >= this.positions.length) {
 			let target = this.findTargetStructure();
 			if (!!target) {
-				if (!this.creep.pos.isNearTo(target)) {
-					this.creep.moveTo(target);
-				} else {
-					this.creep.dismantle(target);
-					if (Game.time & 5) {
-						this.creep.say("OM NOM", true);
-					} else if (Game.time & 6) {
-						this.creep.say("NOM!", true);
-					}
-				}
+				this.dismantleTarget(target);
 				return false;
 			} else if (!!this.creep.room.controller && !this.creep.room.controller.my) {
 				WallManager.load(this.creep.room);
 				target =  WallManager.getWeakestWall();
-				if (!this.creep.pos.isNearTo(target)) {
-					this.creep.moveTo(target);
-				} else {
-					this.creep.dismantle(target);
-					if (Game.time & 5) {
-						this.creep.say("OM NOM", true);
-					} else if (Game.time & 6) {
-						this.creep.say("NOM!", true);
-					}
-				}
+				this.dismantleTarget(target);
 			}
 		}
 		return true;

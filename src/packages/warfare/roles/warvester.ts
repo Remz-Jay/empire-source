@@ -2,64 +2,13 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarvester {
 	action(): boolean;
+	move(): boolean;
+	warvest(): boolean;
 }
 
 export default class Warvester extends WarfareCreepAction implements IWarvester {
 
 	public sourcePosition: number = 5;
-	public setCreep(creep: Creep, positions?: RoomPosition[]) {
-		super.setCreep(creep, positions);
-	}
-
-	public checkTough(): boolean {
-		return (this.creep.getActiveBodyparts(TOUGH) > 0);
-	}
-
-	public moveToHeal(): boolean {
-		if (!this.checkTough() || this.creep.memory.waitForHealth) {
-			this.creep.memory.waitForHealth = true;
-			this.creep.memory.positionIterator = this.positionIterator = 0;
-			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				this.moveTo(this.positions[this.positionIterator]);
-			}
-			return false;
-		}
-		return true;
-	}
-
-	public moveToSafeRange(): boolean {
-		let targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2, {
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
-			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
-		});
-		if (targets.length > 0) {
-			let goals = _.map(targets, function (t: Creep) {
-				return {pos: t.pos, range: 3};
-			});
-			let path = PathFinder.search(this.creep.pos, goals, {
-				flee: true,
-				maxRooms: 1,
-				plainCost: 2,
-				swampCost: 10,
-				maxOps: 500,
-				roomCallback: this.creepCallback,
-			});
-			let pos = path.path[0];
-			console.log(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
-			this.creep.move(this.creep.pos.getDirectionTo(pos));
-			return false;
-		}
-		return true;
-	}
-
-	public isBagEmpty(): boolean {
-		delete this.creep.memory.bagFull;
-		return (this.creep.carry.energy === 0);
-	}
-
-	public isBagFull(): boolean {
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity) ? true : false;
-	}
 
 	public warvest(): boolean {
 		if (!this.positions) {

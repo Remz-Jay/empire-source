@@ -50,15 +50,15 @@ export function loop() {
 		} catch (e) {
 			console.log("AssimilationManager Exception", (<Error> e).message);
 		}
-
-		try {
-			used = Game.cpu.getUsed();
-			OffenseManager.govern();
-			console.log(`Offense: ${_.round(Game.cpu.getUsed() - used, 2)}`);
-		} catch (e) {
-			console.log("OffenseManager Exception", (<Error> e).message);
+		if (!!Memory.offense.targets && Memory.offense.targets.length > 0) {
+			try {
+				used = Game.cpu.getUsed();
+				OffenseManager.govern();
+				console.log(`Offense: ${_.round(Game.cpu.getUsed() - used, 2)}`);
+			} catch (e) {
+				console.log("OffenseManager Exception", (<Error> e).message);
+			}
 		}
-
 		try {
 			used = Game.cpu.getUsed();
 			RoomManager.governRooms();

@@ -2,6 +2,7 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarArcher {
 	action(): boolean;
+	move(): void;
 }
 
 export default class WarArcher extends WarfareCreepAction implements IWarArcher {
@@ -15,75 +16,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
 	];
 
-	public setCreep(creep: Creep, positions?: RoomPosition[]) {
-		super.setCreep(creep, positions);
-	}
-
-	public checkTough(): boolean {
-		let tough: number = 0;
-		_.each(this.creep.body, function (part: BodyPartDefinition) {
-			if (part.type === TOUGH) {
-				tough += part.hits;
-			}
-		});
-		return (tough > 50);
-	}
-
-	public moveToHeal(): boolean {
-		if (this.creep.getActiveBodyparts(RANGED_ATTACK) < 3) {
-			this.positionIterator = this.creep.memory.positionIterator = 0;
-			this.moveUsingPositions();
-		}
-		if (!this.checkTough()) {
-			let targets = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3));
-			if (targets.length > 0) {
-				let goals = _.map(targets, function (t: Creep) {
-					return {pos: t.pos, range: 4};
-				});
-				let path = PathFinder.search(this.creep.pos, goals, {
-					flee: true,
-					maxRooms: 1,
-					plainCost: 2,
-					swampCost: 3,
-					roomCallback: this.creepCallback,
-				});
-				let pos = path.path[0];
-				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToHeal #${++this.moveIterator}`);
-				this.creep.move(this.creep.pos.getDirectionTo(pos));
-				this.creep.memory.waitForHealth = true;
-				delete this.creep.memory.targetPath;
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public moveToSafeRange(): boolean {
-		let targets = this.creep.room.hostileCreeps.filter(
-			(c: Creep) => (c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
-			&& c.pos.inRangeTo(this.creep.pos, 2)
-		);
-		if (targets.length > 0) {
-			let goals = _.map(targets, function (t: Creep) {
-				return {pos: t.pos, range: 3};
-			});
-			let path = PathFinder.search(this.creep.pos, goals, {
-				flee: true,
-				maxRooms: 1,
-				plainCost: 2,
-				swampCost: 3,
-				roomCallback: this.creepCallback,
-			});
-			let pos = path.path[0];
-			Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - moveToSafeRange #${++this.moveIterator}`);
-			this.creep.move(this.creep.pos.getDirectionTo(pos));
-			delete this.creep.memory.targetPath;
-			return false;
-		}
-		return true;
-	}
-
-	public move() {
+	public move(): void {
 		if (!this.hasHealer && !this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
 			return;
 		} else if (this.hasHealer && !this.checkTough()) {
@@ -106,10 +39,8 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 				target = this.findTarget() || this.findHealTarget() || this.findTargetStructure() || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
-					delete this.creep.memory.targetPath;
 				} else {
 					delete this.creep.memory.target;
-					delete this.creep.memory.targetPath;
 				}
 			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
@@ -117,10 +48,8 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 					target = this.findTarget();
 					if (!!target) {
 						this.creep.memory.target = target.id;
-						delete this.creep.memory.targetPath;
 					} else {
 						delete this.creep.memory.target;
-						delete this.creep.memory.targetPath;
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
@@ -128,7 +57,6 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 					if (!!t2) {
 						target = t2;
 						this.creep.memory.target = target.id;
-						delete this.creep.memory.targetPath;
 					}
 				}
 			}
@@ -144,28 +72,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
 				let range = (target instanceof Creep && target.my) ? 1 : 3;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
-					if (!!this.creep.memory.targetPath) {
-						if (!this.creep.memory.pathTTL || this.creep.memory.pathTTL < 5) {
-							let path = this.deserializePathFinderPath(this.creep.memory.targetPath);
-							this.creep.memory.pathTTL = (!!this.creep.memory.pathTTL) ? ++this.creep.memory.pathTTL : 1;
-							this.moveByPath(path, target);
-						} else {
-							delete this.creep.memory.targetPath;
-							this.creep.memory.pathTTL = 1;
-							if (!this.findNewPath(target, "targetPath", true, range)) {
-								this.creep.say("HALP!");
-							}
-						}
-					} else {
-						this.creep.memory.pathTTL = 1;
-						delete this.creep.memory.targetPath;
-						if (!this.findNewPath(target, "targetPath", true, range)) {
-							this.creep.say("HALP!");
-						}
-					}
-				} else {
-					// Just sit there.
-					delete this.creep.memory.targetPath;
+					this.moveTo(target.pos);
 				}
 			} else {
 				if (this.creep.room.allConstructionSites.length > 0) {
@@ -178,45 +85,29 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 		}
 	}
 	public action(): boolean {
-		// if (!!this.creep.memory.inCombat || super.renewCreep()) {
-		let blob = true;
-		if (blob) {
-			if (this.creep.room.name === this.creep.memory.homeRoom) {
-				if (this.getBoosted()) {
-					this.move();
-				}
-			} else if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
-				this.moveToTargetRoom();
-			} else {
-				// this.nextStepIntoRoom();
-				// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
-				if (this.heal()) {
-					delete this.creep.memory.waitForHealth;
-					if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
-						this.creep.memory.inCombat = true;
-					} else {
-						delete this.creep.memory.inCombat;
-					}
-				} else {
-					if (!this.rangedAttack(true) || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
-						this.creep.memory.inCombat = true;
-					} else {
-						delete this.creep.memory.inCombat;
-					}
-				}
+		if (this.creep.room.name === this.creep.memory.homeRoom) {
+			if (this.getBoosted()) {
 				this.move();
 			}
+		} else if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
+			this.moveToTargetRoom();
 		} else {
-			if (!!this.creep.memory.lastHealth && this.creep.memory.lastHealth > this.creep.hits) {
-				// Our health changed negatively last tick. Defend before proceeding to renew.
-				this.creep.memory.inCombat = true;
-				this.creep.memory.lastHealth = this.creep.hits;
-				this.heal();
-				this.rangedAttack();
-				this.move();
+			// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
+			if (this.heal()) {
+				delete this.creep.memory.waitForHealth;
+				if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
+					this.creep.memory.inCombat = true;
+				} else {
+					delete this.creep.memory.inCombat;
+				}
 			} else {
-				this.creep.memory.lastHealth = this.creep.hits;
+				if (!this.rangedAttack(true) || !this.rangedStructureAttack(false) || !this.rangedPublicStructureAttack()) {
+					this.creep.memory.inCombat = true;
+				} else {
+					delete this.creep.memory.inCombat;
+				}
 			}
+			this.move();
 		}
 		return true;
 	}

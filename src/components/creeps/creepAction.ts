@@ -16,12 +16,15 @@ export interface ICreepAction {
 	needsRenew(): boolean;
 	pickupResourcesInRange(): void;
 	nextStepIntoRoom(): boolean;
+	isBagFull(): boolean;
+	isBagEmpty(): boolean;
 
 	action(): boolean;
 
 	createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
+	moveToTargetRoom(): void;
 }
 
 export default class CreepAction implements ICreepAction {
@@ -119,6 +122,14 @@ export default class CreepAction implements ICreepAction {
 		}
 		return true;
 	};
+
+	public isBagEmpty(): boolean {
+		return (this.creep.carry.energy === 0);
+	}
+
+	public isBagFull(): boolean {
+		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
+	}
 
 	public flee(): boolean {
 		if (this.creep.room.hostileCreeps.length > 0) {
@@ -278,60 +289,6 @@ export default class CreepAction implements ICreepAction {
 			this.creep.moveTo(<RoomPosition> target, {reusePath: 25});
 		}
 	}
-	public findNewPath(
-		target: RoomObject | RoomPosition,
-		memoryName: string = "targetPath",
-		move: boolean = true,
-		range: number = 1,
-		ignoreCreeps: boolean = false,
-		ignoreRoomConfig: boolean = false
-	): boolean {
-		let pos: RoomPosition = (target instanceof RoomObject) ? target.pos : target;
-		let path = this.findPathFinderPath(this.createPathFinderMap(pos, range), ignoreCreeps, ignoreRoomConfig);
-		if (!!path) {
-			this.creep.memory[memoryName] = path;
-			if (move) {
-				return this.moveByPath(path, target, memoryName);
-			}
-		} else {
-			return false;
-		}
-	};
-	public moveByPath(path: RoomPosition[], target: RoomObject | RoomPosition, memoryName: string = "targetPath"): boolean {
-		if (!!this.creep.memory.lastPosition) {
-			let lp = this.creep.memory.lastPosition;
-			if (lp.x === this.creep.pos.x && lp.y === this.creep.pos.y && lp.roomName === this.creep.pos.roomName) {
-				this.creep.memory.stuckTicks = (!!this.creep.memory.stuckTicks) ? this.creep.memory.stuckTicks + 1 : 1;
-				if (this.creep.memory.stuckTicks > 1) {
-					delete this.creep.memory.stuckTicks;
-					delete this.creep.memory.lastPosition;
-					// TODO: Figure out this recursive mess..
-					this.findNewPath(target, memoryName, false);
-				}
-			} else {
-				delete this.creep.memory.stuckTicks;
-			}
-		}
-		this.creep.memory.lastPosition = this.creep.pos;
-		let status = this.creep.moveByPath(path);
-		switch (status) {
-			case ERR_NOT_FOUND:
-				delete this.creep.memory[memoryName];
-				if (!!target) {
-					this.findNewPath(target, memoryName, false);
-				}
-				break;
-			case ERR_TIRED:
-				// Delete the lastPosition, because the creep hasn"t moved due to it being tired. No need to recalculate route now.
-				delete this.creep.memory.lastPosition;
-				delete this.creep.memory.stuckTicks;
-				return true;
-			case OK:
-				return true;
-			default:
-				console.log("Uncaught moveBy status " + global.translateErrorCode(status) + " in Class.Creep.moveByPath.");
-		}
-	};
 
 	public getMineralTypeFromStore(source: StorageStructure | Creep): string {
 		let resource: string = RESOURCE_ENERGY;
@@ -671,6 +628,33 @@ export default class CreepAction implements ICreepAction {
 		// Forget about this boost and continue with the next, if any
 		this.creep.memory.hasBoosts.push(boost);
 		return true;
+	}
+
+	public moveToTargetRoom(): void {
+		let flag = Game.flags[this.creep.memory.config.targetRoom];
+		if (!!flag && !!flag.pos) {
+			this.moveTo(flag.pos);
+			return;
+		}
+		console.log("NON FLAG MOVE");
+		if (!this.creep.memory.exit || !this.creep.memory.exitRoom || this.creep.memory.exitRoom === this.creep.room.name ) {
+			let index: number = 0;
+			_.each(this.creep.memory.config.route, function(route: findRouteRoute, idx: number) {
+				if (route.room === this.creep.room.name) {
+					index = idx + 1;
+				}
+			}, this);
+			let route = this.creep.memory.config.route[index];
+			console.log(`finding route to ${route.exit} in ${route.room}`);
+			this.creep.memory.exit = this.creep.pos.findClosestByPath(route.exit, {
+				costCallback: this.roomCallback,
+			});
+			this.creep.memory.exitRoom = route.room;
+		} else {
+			if (!!this.creep.memory.exit) {
+				this.moveTo(this.creep.memory.exit);
+			}
+		}
 	}
 
 	public action(): boolean {

@@ -20,7 +20,6 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 	public storage: StructureStorage;
 	public inLab1: StructureLab;
 	public inLab2: StructureLab;
-	public boostLab: StructureLab;
 	public mode: number = 0;
 	public clean: boolean = false;
 	public reaction: string;
@@ -57,12 +56,6 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		} else {
 			this.inLab2 = Game.getObjectById<StructureLab>(this.creep.memory.inLab2);
 		}
-	}
-	public isBagEmpty(): boolean {
-		return (_.sum(this.creep.carry) === 0);
-	}
-	public isBagFull(): boolean {
-		return (_.sum(this.creep.carry) === this.creep.carryCapacity);
 	}
 
 	public getTarget(targetId: string): Structure {

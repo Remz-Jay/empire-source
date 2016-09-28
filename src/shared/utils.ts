@@ -2,6 +2,16 @@ global.colorWrap = function(text: string, color: string) {
 	return `<font color="${color}">${text}</font>`;
 };
 
+global.formatNumber = function(value: number): string {
+	let strVal: string = value.toString();
+	if (value > 1000000) {
+		strVal = _.round(value / 1000000, 2).toString() + "M";
+	} else if (value > 1000) {
+		strVal = _.round(value / 1000, 2).toString() + "k";
+	}
+	return strVal;
+};
+
 // Thanks Dissi!
 global.getColorBasedOnPercentage = function(thePercentage: number) {
 	let hue = Math.floor((100 - thePercentage) * 120 / 100);  // go from green to red

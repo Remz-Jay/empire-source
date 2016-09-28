@@ -1,6 +1,4 @@
 import WarfareCreepAction from "../../warfareCreepAction";
-
-// import SentinelGovernor from "../../governors/sentinel";
 import FasterminatorGovernor from "../../governors/fasterminator";
 import Terminator from "../../roles/terminator";
 

@@ -21,25 +21,4 @@ export default class WarriorGovernor extends WarfareCreepGovernor {
 		};
 		return {body: bodyParts, name: name, properties: properties};
 	}
-
-	public getCreepLimit(): number {
-		return this.maxCreeps;
-	}
-
-	public getBody() {
-		let numParts = _.floor(
-			(this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(this.basePart)) /
-			WarfareCreepGovernor.calculateRequiredEnergy(this.bodyPart));
-
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		let body: string[] = this.basePart;
-		for (let i = 0; i < numParts; i++) {
-			if (body.length + this.bodyPart.length <= 50) {
-				body = body.concat(this.bodyPart);
-			}
-		}
-		return WarfareCreepGovernor.sortBodyParts(body);
-	}
 }
