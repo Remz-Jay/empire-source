@@ -112,8 +112,11 @@ StructureTerminal.prototype.run = function (): boolean {
 				return true;
 			}
 		});
-
-		if (!sending && this.room.name !== global.POWER_ROOM && storage.store.energy > (2 * global.STORAGE_MIN)) {
+		let powerRoom = Game.rooms[global.POWER_ROOM];
+		if (!sending && this.room.name !== global.POWER_ROOM
+			&& storage.store.energy > (2 * global.STORAGE_MIN)
+			&& powerRoom.storage.store.energy <= (2 * global.STORAGE_MIN)
+		) {
 			let transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
 			let transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
 			let status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);

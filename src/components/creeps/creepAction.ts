@@ -379,7 +379,7 @@ export default class CreepAction implements ICreepAction {
 		if (ignoreRoomConfig) {
 			callback = this.ignoreCallback;
 		}
-		let maxOps = 6000;
+		let maxOps = 4000;
 /*		if (Game.cpu.bucket < global.BUCKET_MIN) {
 			maxOps = 1000;
 		}

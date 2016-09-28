@@ -1,6 +1,8 @@
 export function governMarket(): void {
-	processTransactionLogs();
-	runTransactions();
+	if (!!Memory.transactions && Memory.transactions.length > 0) {
+		processTransactionLogs();
+		runTransactions();
+	}
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
 		if (global.time % 50 === 0) {
 			console.log(`[MARKET] Running actions`);
