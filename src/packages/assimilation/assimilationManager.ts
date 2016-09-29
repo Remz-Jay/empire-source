@@ -39,18 +39,14 @@ let CpuObject: any;
 export function setup() {
 	initMemory();
 	global.assman = {
-		add(roomName: string, claim: boolean = false, hasController = true, homeRoomName?: string) {
-			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
-				Memory.assimilation.targets.push(roomName);
-				if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
-					getConfigForRemoteTarget(roomName, claim, hasController, homeRoomName);
-				} else {
-					getConfigForRemoteTarget(roomName, claim, hasController);
-				}
-				console.log(`Added ${roomName} for assimilation.`);
-			} else {
-				console.log(`Room ${roomName} does not exist.`);
+		add(roomName: string, homeRoomName: string, claim: boolean = false, hasController = true, reserveOnly = false) {
+			if (_.isNaN(Game.map.getRoomLinearDistance(roomName, homeRoomName))) {
+				console.log(`ASM.add error. Invalid roomName for either ${roomName} or ${homeRoomName}.`);
+				return;
 			}
+			Memory.assimilation.targets.push(roomName);
+			getConfigForRemoteTarget(roomName, homeRoomName, claim, hasController, reserveOnly);
+			console.log(`Added ${roomName} for assimilation.`);
 		},
 		remove(roomName: string) {
 			Memory.assimilation.targets = _.pull(Memory.assimilation.targets, roomName);
@@ -75,32 +71,24 @@ function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
 		},
 	});
 }
-function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false, hasController = true, homeRoomName?: string): RemoteRoomConfig {
+function getConfigForRemoteTarget(
+		remoteRoomName: string,
+		homeRoomName?: string,
+		claim: boolean = false,
+		hasController = true,
+		reserveOnly = false
+	): RemoteRoomConfig {
 	if (!!Memory.assimilation.config[remoteRoomName]) {
 		return Memory.assimilation.config[remoteRoomName];
-	} else {
-		// Find the nearest owned room.
+	} else if (!!homeRoomName) {
 		let distance: number = Infinity;
 		let target: string = undefined;
 		let optimalRoute: findRouteArray = undefined;
-		if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
-			let route = findRoute(homeRoomName, remoteRoomName);
-			if (!_.isNumber(route) && route.length < distance) {
-				distance = route.length;
-				optimalRoute = route;
-				target = homeRoomName;
-			}
-		} else {
-			for (let room in Game.rooms) {
-				if (room !== remoteRoomName) {
-					let route = findRoute(room, remoteRoomName);
-					if (!_.isNumber(route) && route.length < distance) {
-						distance = route.length;
-						optimalRoute = route;
-						target = room;
-					}
-				}
-			}
+		let route = findRoute(homeRoomName, remoteRoomName);
+		if (!_.isNumber(route) && route.length < distance) {
+			distance = route.length;
+			optimalRoute = route;
+			target = homeRoomName;
 		}
 		let roomConfig: RemoteRoomConfig = {
 			homeRoom: target,
@@ -109,9 +97,12 @@ function getConfigForRemoteTarget(remoteRoomName: string, claim: boolean = false
 			route: optimalRoute,
 			claim: claim,
 			hasController: hasController,
+			reserveOnly: reserveOnly,
 		};
 		Memory.assimilation.config[remoteRoomName] = roomConfig;
 		return roomConfig;
+	} else {
+		console.log(`ASM.getConfigForRemoteTarget error: no homeRoomName supplied, but config is not yet present.`);
 	}
 }
 
@@ -135,8 +126,8 @@ function createCreep(creepConfig: CreepConfiguration, priority: boolean = false)
 	return status;
 }
 
-function manageClaim(roomName: string, claim: boolean = false) {
-	let governor = new ClaimGovernor(homeRoom, config, claim);
+function manageClaim(roomName: string, claim: boolean = false, reserveOnly = false) {
+	let governor = new ClaimGovernor(homeRoom, config, claim, reserveOnly);
 	let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === ClaimGovernor.ROLE.toUpperCase()
 	&& creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
 	if (creepsInRole.length > 0) {
@@ -451,6 +442,7 @@ export function govern(): void {
 			if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 				config = getConfigForRemoteTarget(roomName);
 				config.hasController = _.get(config, "hasController", true);
+				config.reserveOnly = _.get(config, "reserveOnly", false);
 				homeRoom = Game.rooms[config.homeRoom];
 				targetRoom = Game.rooms[roomName];
 				isSpawning = false;
@@ -459,12 +451,12 @@ export function govern(): void {
 				// Only manage claim in rooms with a controller (not in SK rooms).
 				if (config.hasController && (!targetRoom || !targetRoom.controller || targetRoom.controller.level < 1)) {
 					try {
-						manageClaim(roomName, config.claim);
+						manageClaim(roomName, config.claim, config.reserveOnly);
 					} catch (e) {
 						console.log(`ERROR :: ASM in room ${roomName}: [CLAIM] ${e.message}`);
 					}
 				}
-				if (!!targetRoom && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
+				if (!!targetRoom && !config.reserveOnly && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
 						goHome = true;
 						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
@@ -510,25 +502,27 @@ export function govern(): void {
 						+ `(${targetRoom.energyPercentage}%) in storage.`
 					);
 				}
-				try {
-					if (goHome) {
-						manageSourceKeepers(roomName, 2);
-						manageDefenders(roomName, 0);
-					} else {
-						if (config.claim) {
-							manageDefenders(roomName, 1);
-							manageSourceKeepers(roomName, 0);
-						} else if (!config.hasController) {
-							manageSourceKeepers(roomName, 1);
-						} else if (roomName === "W4N42") { // surrounded by owned rooms, no invaders.
+				if (!config.reserveOnly) {
+					try {
+						if (goHome) {
+							manageSourceKeepers(roomName, 2);
 							manageDefenders(roomName, 0);
 						} else {
-							manageDefenders(roomName, 1);
-							manageSourceKeepers(roomName, 0);
+							if (config.claim) {
+								manageDefenders(roomName, 1);
+								manageSourceKeepers(roomName, 0);
+							} else if (!config.hasController) {
+								manageSourceKeepers(roomName, 1);
+							} else if (roomName === "W4N42" || roomName === "W2N45") { // surrounded by owned rooms, no invaders.
+								manageDefenders(roomName, 0);
+							} else {
+								manageDefenders(roomName, 1);
+								manageSourceKeepers(roomName, 0);
+							}
 						}
+					} catch (e) {
+						console.log(`ERROR :: ASM in room ${roomName}: [DEFENDERS] ${e.message}`);
 					}
-				} catch (e) {
-					console.log(`ERROR :: ASM in room ${roomName}: [DEFENDERS] ${e.message}`);
 				}
 			}
 		} catch (e) {

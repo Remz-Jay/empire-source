@@ -12,7 +12,7 @@ export default class Claim extends ASMCreepAction implements IClaim {
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 		this.doClaim = false;
-		this.targetController = Game.rooms[this.creep.memory.config.targetRoom].controller || undefined;
+		this.targetController = Game.rooms[this.creep.memory.config.targetRoom] ? Game.rooms[this.creep.memory.config.targetRoom].controller || undefined : undefined;
 	}
 
 	public assimilateRoom() {

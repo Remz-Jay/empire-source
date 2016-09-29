@@ -7,13 +7,15 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 	public static ROLE: string = "Claim";
 
 	public claim: boolean = false;
+	public reserveOnly: boolean = false;
 	public maxParts = 5;
 	public maxCreeps = 1;
 	public bodyPart = [CLAIM, MOVE];
 
-	constructor(homeRoom: Room, config: RemoteRoomConfig, claim: boolean = false) {
+	constructor(homeRoom: Room, config: RemoteRoomConfig, claim: boolean = false, reserveOnly = false) {
 		super(homeRoom, config);
 		this.claim = claim;
+		this.reserveOnly = reserveOnly;
 	}
 
 	public getCreepConfig(): CreepConfiguration {
@@ -34,6 +36,9 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 				MOVE, MOVE, CLAIM,
 			]);
 		} else {
+			if (this.reserveOnly) {
+				this.maxParts = 3;
+			}
 			return super.getBody();
 		}
 	}

@@ -58,6 +58,7 @@ declare interface RemoteRoomConfig {
 	route: findRouteArray;
 	claim?: boolean;
 	hasController?: boolean;
+	reserveOnly?: boolean;
 }
 
 declare interface TerminalTransaction {
