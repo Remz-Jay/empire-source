@@ -21,9 +21,14 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 	}
 	public passingRepair(): void {
 		if (this.creep.carry.energy > 0) {
-			let lookTargets = this.creep.pos.lookFor(LOOK_STRUCTURES).filter((s: Structure) => s.hits < s.hitsMax) as Structure[];
-			if (lookTargets.length > 0) {
-				this.creep.repair(lookTargets.shift());
+			let repairTarget = _(this.creep.pos.lookFor(LOOK_STRUCTURES)).filter((s: Structure) => s.hits < s.hitsMax).first() as Structure;
+			if (!!repairTarget) {
+				this.creep.repair(repairTarget);
+			} else {
+				let buildTarget = _(this.creep.pos.lookFor(LOOK_CONSTRUCTION_SITES)).first() as ConstructionSite;
+				if (!!buildTarget) {
+					this.creep.build(buildTarget);
+				}
 			}
 		}
 	}

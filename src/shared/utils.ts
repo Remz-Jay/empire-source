@@ -56,6 +56,33 @@ global.hsv2rgb = function(h: number, s: number, v: number) {
 		}).join("");
 };
 
+global.planRoute = function(from: RoomPosition, to: RoomPosition) {
+	let route = PathFinder.search(from, to, {
+		roomCallback: function (roomName: string): CostMatrix | boolean {
+			try {
+				let room = Game.rooms[roomName];
+				if (!room) {
+					return;
+				}
+				return room.getCostMatrix(false); // The cached one without per-tick creeps.
+			} catch (e) {
+				console.log(e.message, "creepAction.roomCallback", roomName);
+				return new PathFinder.CostMatrix();
+			}
+		},
+		plainCost: 2,
+		swampCost: 2,
+		maxOps: 10000,
+	});
+	if (!!route && !route.incomplete) {
+		route.path.forEach((r: RoomPosition) => {
+			if (r.lookFor(LOOK_STRUCTURES).length === 0) {
+				r.createConstructionSite(STRUCTURE_ROAD);
+			}
+		});
+	}
+};
+
 // Thanks ags131 !
 // console.log(`<span style="line-height:1">${utils.table(incoming)}</span>`)
 global.table = function(data: any[], widths?: number[]){

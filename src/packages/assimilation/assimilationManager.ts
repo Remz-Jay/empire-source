@@ -491,9 +491,9 @@ export function govern(): void {
 						if (config.claim) {
 							manageConstructions(0);
 						} else if (!config.hasController) {
-							manageConstructions(3);
+							// manageConstructions(3);
 						} else {
-							manageConstructions(1);
+							// manageConstructions(1);
 						}
 					} catch (e) {
 						console.log(`ERROR :: ASM in room ${roomName}: [CONSTRUCTION] ${e.message}`);

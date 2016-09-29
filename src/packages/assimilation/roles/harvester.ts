@@ -141,7 +141,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				this.moveTo(this.container.pos);
 			} else {
-				if (this.creep.bagFull) {
+				if (this.creep.getActiveBodyparts(CARRY) > 0 && this.creep.bagFull) {
 					this.moveToDropEnergy();
 				} else {
 					this.moveToHarvest();

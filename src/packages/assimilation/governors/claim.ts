@@ -37,7 +37,7 @@ export default class ClaimGovernor extends AssimilationCreepGovernor {
 			]);
 		} else {
 			if (this.reserveOnly) {
-				this.maxParts = 3;
+				this.maxParts = 2;
 			}
 			return super.getBody();
 		}
