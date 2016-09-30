@@ -153,7 +153,7 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public moveTo(target: RoomPosition|PathFinderGoal, retry: boolean = false): string | number {
-		if (this.creep.fatigue > 0 || this.creep.getActiveBodyparts(MOVE) < 1) {
+		if (this.creep.fatigue > 0 || this.creep.getActiveBodyparts(MOVE) === 0) {
 			return ERR_TIRED;
 		}
 		try {
@@ -304,16 +304,17 @@ export default class CreepAction implements ICreepAction {
 			maxOps = 500;
 		}*/
 
-		let plainCost = 2;
+		let plainCost = 3;
 		let swampCost = 10;
 
-		let moveParts = this.creep.getActiveBodyparts(MOVE);
+/*		let moveParts = this.creep.getActiveBodyparts(MOVE);
 		let totalParts = this.creep.body.length;
+
 		// If we have a 1:1 ratio on MOVE parts, ignore roads.
 		if ((totalParts / moveParts) <= 2) {
 			plainCost = 1;
 			swampCost = 5;
-		}
+		}*/
 		let path = PathFinder.search(this.creep.pos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`

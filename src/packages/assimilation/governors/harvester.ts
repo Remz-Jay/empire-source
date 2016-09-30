@@ -48,7 +48,7 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${ASMHarvesterGovernor.ROLE}-${global.time}`;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: ASMHarvesterGovernor.ROLE,

@@ -10,7 +10,7 @@ export interface IDismantler {
 
 export default class Dismantler extends WarfareCreepAction implements IDismantler {
 	public noTarget: boolean = false;
-	public hasHealer: boolean = true;
+	public hasHealer: boolean = false;
 	public hardPath: boolean = true;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
@@ -55,37 +55,20 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 	}
 
 	public move(): boolean {
-		if (!this.hasHealer && (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth)) {
-			return;
-		} else if (this.hasHealer && !this.checkTough()) {
-			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
-				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) > 5,
-			});
-			if (!!closest && !this.creep.pos.isNearTo(closest)) {
-				// get in range
-				this.creep.moveTo(closest);
-				return false;
-			} else if (!!closest) {
-				// stay in range
-				this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
-				return false;
-			}
-		} else {
-			if (!this.positions) {
-				return false;
-			}
-			if (this.positionIterator < this.positions.length) {
-				if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 1);
-					this.moveTo(pfg);
-				} else {
-					this.positionIterator = ++this.creep.memory.positionIterator;
-					return this.move();
-				}
-				return true;
-			}
+		if (!this.positions) {
 			return false;
 		}
+		if (this.positionIterator < this.positions.length) {
+			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 1);
+				this.moveTo(pfg);
+			} else {
+				this.positionIterator = ++this.creep.memory.positionIterator;
+				return this.move();
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public action(): boolean {

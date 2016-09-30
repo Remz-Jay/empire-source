@@ -111,7 +111,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 
 	public fleeFromKeeperLair(): boolean {
 		if (!!this.keeperLair) {
-			if (this.keeperLair.ticksToSpawn < 6) {
+			if (this.keeperLair.ticksToSpawn <= 10) {
 				let fleeRange = 6;
 				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
 					let goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });

@@ -12,7 +12,7 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${LinkerGovernor.ROLE}-${global.time}`;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: LinkerGovernor.ROLE,

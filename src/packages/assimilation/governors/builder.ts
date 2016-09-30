@@ -13,7 +13,7 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${ASMBuilderGovernor.ROLE}-${global.time}`;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: ASMBuilderGovernor.ROLE,

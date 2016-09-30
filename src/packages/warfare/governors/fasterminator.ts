@@ -15,7 +15,7 @@ export default class FasterminatorGovernor extends WarfareCreepGovernor {
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${FasterminatorGovernor.ROLE}-${global.time}`;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: FasterminatorGovernor.ROLE,

@@ -233,6 +233,15 @@ let W12N43Positions: RoomPosition[] = [
 	new RoomPosition(44, 35, "W13N44"),
 	new RoomPosition(3, 35, "W12N44"),
 ];
+
+let W4N49Positions: RoomPosition[] = [
+	new RoomPosition(2, 26, "W4N49"),
+	new RoomPosition(21, 48, "W4N49"),
+	new RoomPosition(7, 47, "W4N48"),
+	new RoomPosition(7, 2, "W4N47"),
+	new RoomPosition(14, 46, "W3N49"),
+	new RoomPosition(2, 5, "W2N48"),
+];
 export function setup() {
 	initMemory();
 	global.offense = {
@@ -428,6 +437,9 @@ export function govern(): void {
 					break;
 				case "W12N43": // SirLovi East
 					manageSquad(roomName, healTestConfig, W12N43Positions);
+					break;
+				case "W4N49":
+					manageSquad(roomName, healTestConfig, W4N49Positions);
 					break;
 				case "W5N42":
 				case "W6N42":

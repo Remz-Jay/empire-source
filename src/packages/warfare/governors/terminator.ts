@@ -14,7 +14,7 @@ export default class TerminatorGovernor extends WarfareCreepGovernor {
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${TerminatorGovernor.ROLE}-${global.time}`;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: TerminatorGovernor.ROLE,

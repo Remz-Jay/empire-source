@@ -36,7 +36,9 @@ export function loop() {
 		global.time = Game.time - global.TIME_OFFSET;
 		PathFinder.use(true);
 		MemoryManager.loadMemory();
-		MemoryManager.cleanMemory();
+		if (global.time & 5) {
+			MemoryManager.cleanMemory();
+		}
 		let used = Game.cpu.getUsed();
 		try {
 			RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!

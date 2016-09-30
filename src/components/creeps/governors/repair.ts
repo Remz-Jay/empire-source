@@ -11,7 +11,7 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${RepairGovernor.ROLE}-${global.time}`;
 		let spawn = this.room.getFreeSpawn();
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,

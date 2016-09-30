@@ -15,7 +15,7 @@ export default class WarClaimerGovernor extends WarfareCreepGovernor {
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${WarClaimerGovernor.ROLE}-${global.time}`;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: WarClaimerGovernor.ROLE,

@@ -12,7 +12,7 @@ export default class MinerGovernor extends CreepGovernor implements ICreepGovern
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${MinerGovernor.ROLE}-${global.time}`;
 		let properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: MinerGovernor.ROLE,

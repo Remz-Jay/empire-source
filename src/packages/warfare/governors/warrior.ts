@@ -13,12 +13,15 @@ export default class WarriorGovernor extends WarfareCreepGovernor {
 
 	public getCreepConfig(): CreepConfiguration {
 		let bodyParts: string[] = this.getBody();
-		let name: string = null;
+		let name: string = `${this.room.name}-${WarriorGovernor.ROLE}-${global.time}`;
 		let properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: WarriorGovernor.ROLE,
 			config: this.config,
 		};
 		return {body: bodyParts, name: name, properties: properties};
+	}
+	public getBody(): string[] {
+		return super.getToughBody();
 	}
 }
