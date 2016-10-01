@@ -19,7 +19,7 @@ import ScientistGovernor from "./governors/scientist";
 import Biter from "./roles/biter";
 import BiterGovernor from "./governors/biter";
 
-let roles: {[key: string]: typeof CreepAction } = {
+const roles: {[key: string]: typeof CreepAction } = {
 	Builder: Builder,
 	Harvester: Harvester,
 	Upgrader: Upgrader,
@@ -31,7 +31,7 @@ let roles: {[key: string]: typeof CreepAction } = {
 	Biter: Biter,
 };
 
-let governors: {[key: string]: typeof CreepGovernor } = {
+const governors: {[key: string]: typeof CreepGovernor } = {
 	BuilderGovernor: BuilderGovernor,
 	HarvesterGovernor: HarvesterGovernor,
 	UpgraderGovernor: UpgraderGovernor,
@@ -44,7 +44,7 @@ let governors: {[key: string]: typeof CreepGovernor } = {
 };
 
 export function createCreep(room: Room, config: CreepConfiguration): string|number {
-	let spawn = room.getFreeSpawn();
+	const spawn = room.getFreeSpawn();
 	if (!!spawn) {
 		let status: number | string = spawn.canCreateCreep(config.body, config.name);
 		if (status === OK) {
@@ -65,24 +65,24 @@ export function createCreep(room: Room, config: CreepConfiguration): string|numb
 
 export function governCreeps(room: Room) {
 	let isSpawning = false;
-	let prioritizedGovernors = _.sortBy(governors, "PRIORITY");
-	for (let index in prioritizedGovernors) {
+	const prioritizedGovernors = _.sortBy(governors, "PRIORITY");
+	for (const index in prioritizedGovernors) {
 		if (room.controller.level >= prioritizedGovernors[index].MINRCL // Skip roles that aren't meant for this RCL
 			&& (
 				prioritizedGovernors[index].PRIORITY < global.PRIORITY_TRESHOLD // Always execute roles that have priority
 				|| Game.cpu.bucket > global.BUCKET_MIN // Execute auxiliary roles when bucket allows for it
 			)
 		) {
-			let governor: CreepGovernor = new prioritizedGovernors[index](room);
-			let creepRole: string = prioritizedGovernors[index].ROLE;
-			let creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === creepRole.toUpperCase()
+			const governor: CreepGovernor = new prioritizedGovernors[index](room);
+			const creepRole: string = prioritizedGovernors[index].ROLE;
+			const creepsInRole: Creep[] = _.filter(Game.creeps, (creep: Creep) => creep.memory.role.toUpperCase() === creepRole.toUpperCase()
 			&& creep.memory.homeRoom === room.name);
-			let numCreeps: number = creepsInRole.length;
-			let creepLimit: number = governor.getCreepLimit();
+			const numCreeps: number = creepsInRole.length;
+			const creepLimit: number = governor.getCreepLimit();
 
 			if (global.CREEPSTATS) {
-				let body: string[] = governor.getBody();
-				let requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
+				const body: string[] = governor.getBody();
+				const requiredEnergy: number = CreepGovernor.calculateRequiredEnergy(body);
 				console.log(
 					_.padLeft(creepRole, 9) + ":\t" + numCreeps
 					+ " (max:" + creepLimit
@@ -92,7 +92,7 @@ export function governCreeps(room: Room) {
 				);
 			}
 			if (numCreeps < creepLimit && !isSpawning && room.mySpawns.length > 0) {
-				let config: CreepConfiguration = governor.getCreepConfig();
+				const config: CreepConfiguration = governor.getCreepConfig();
 				if (!_.isNumber(this.createCreep(room, config))) {
 					isSpawning = true;
 				} else if (governor.emergency) {
@@ -101,8 +101,8 @@ export function governCreeps(room: Room) {
 			}
 			_.each(creepsInRole, function (creep: Creep) {
 				if (!creep.spawning) {
-					let b = Game.cpu.getUsed();
-					let role: CreepAction = <CreepAction> new roles[<any> creepRole]();
+					const b = Game.cpu.getUsed();
+					const role: CreepAction = <CreepAction> new roles[<any> creepRole]();
 					try {
 						role.setCreep(<Creep> creep);
 						role.setGovernor(governor);
@@ -110,7 +110,7 @@ export function governCreeps(room: Room) {
 					} catch (e) {
 						console.log(`ERROR :: ${creepRole}: ${creep.name} ${creep.room.name} ${e.message}`);
 					}
-					let a = Game.cpu.getUsed() - b;
+					const a = Game.cpu.getUsed() - b;
 					if (a > 2) {
 						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}

@@ -14,15 +14,15 @@ export default class ObserverManager {
 				this.observers[0].observeRoom(roomName);
 			}
 			if (!!Game.rooms[roomName]) {
-				let observationRoom = Game.rooms[roomName];
-				let hostileString = `${observationRoom.hostileCreeps.length} hostiles`;
+				const observationRoom = Game.rooms[roomName];
+				const hostileString = `${observationRoom.hostileCreeps.length} hostiles`;
 				let controllerString: string;
 				if (!!observationRoom.controller && !!observationRoom.controller.owner) {
 					controllerString = `Controller at RCL ${observationRoom.controller.level} (TTD: ${observationRoom.controller.ticksToDowngrade})`;
 				} else {
 					controllerString = "No Controller";
 				}
-				let m = observationRoom.minerals[0];
+				const m = observationRoom.minerals[0];
 				let mineralString: string = `${m.mineralType} Mineral with `;
 				if (m.mineralAmount > 0) {
 					mineralString = mineralString.concat(`${m.mineralAmount} remaining.`);
@@ -31,7 +31,7 @@ export default class ObserverManager {
 				}
 				console.log(`ObservationRoom ${roomName} has ${[hostileString, controllerString, mineralString].join(", ")}`);
 			}
-			++index;
+			index = index + 1;
 		});
 
 	}

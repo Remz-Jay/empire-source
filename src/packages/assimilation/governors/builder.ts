@@ -12,9 +12,9 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 	public bodyPart = [WORK, MOVE, CARRY, MOVE, CARRY, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${ASMBuilderGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${ASMBuilderGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: ASMBuilderGovernor.ROLE,
 			config: this.config,
@@ -24,8 +24,8 @@ export default class ASMBuilderGovernor extends AssimilationCreepGovernor {
 
 	public getCreepLimit(): number {
 		return 1;
-/*		let targetRoom = RoomManager.getRoomByName(this.config.targetRoom);
-		let num: number;
+/*		const targetRoom = RoomManager.getRoomByName(this.config.targetRoom);
+		const num: number;
 		if (targetRoom.controller.level > 4) {
 			num = _.floor(targetRoom.energyInContainers / 10000);
 		} else if (targetRoom.controller.level < 3) {

@@ -67,7 +67,7 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 			this.moveToController();
 			if (this.creep.carry.energy < 50) {
 				// see if we can get some from a nearby link
-				let target = this.creep.room.myStructures.filter((l: StructureLink) => l.structureType === STRUCTURE_LINK
+				const target = this.creep.room.myStructures.filter((l: StructureLink) => l.structureType === STRUCTURE_LINK
 					&& l.energy > 0
 					&& l.pos.isNearTo(this.creep.pos)
 				);

@@ -14,9 +14,9 @@ export default class SentinelGovernor extends WarfareCreepGovernor {
 	public basePart = [HEAL, HEAL, HEAL, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${SentinelGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${SentinelGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: SentinelGovernor.ROLE,
 			config: this.config,

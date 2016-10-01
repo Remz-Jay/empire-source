@@ -19,7 +19,7 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 		this.containers = containers;
 	}
 	public getBody() {
-		let numParts = global.clamp(_.floor(
+		const numParts = global.clamp(_.floor(
 			(this.room.energyCapacityAvailable - AssimilationCreepGovernor.calculateRequiredEnergy(this.basePart)) /
 			AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart)), 0, this.maxParts);
 		let body: string[] = this.basePart;
@@ -32,9 +32,9 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${ASMMuleGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${ASMMuleGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: ASMMuleGovernor.ROLE,
 			config: this.config,
@@ -45,7 +45,7 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	public checkContainerAssignment(): string {
 		let freeContainer: string = undefined;
 		_.each(this.containers, function(c: StructureContainer) {
-			let mules = this.checkAssignedMules(c);
+			const mules = this.checkAssignedMules(c);
 			if (!mules || mules.length < this.multiplier) {
 				freeContainer = c.id;
 			}

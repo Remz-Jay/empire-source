@@ -27,16 +27,16 @@ export function addStat(key: string, value: string|Object): void {
 }
 
 export function flattenObject(ob: any): any {
-	let toReturn: any = {};
+	const toReturn: any = {};
 
-	for (let i in ob) {
+	for (const i in ob) {
 		if (!ob.hasOwnProperty(i)) {
 			continue;
 		}
 
 		if ((typeof ob[i]) === "object") {
-			let flatObject = this.flattenObject(ob[i]);
-			for (let x in flatObject) {
+			const flatObject = this.flattenObject(ob[i]);
+			for (const x in flatObject) {
 				if (!flatObject.hasOwnProperty(x)) {
 					continue;
 				}
@@ -53,7 +53,7 @@ export function flattenObject(ob: any): any {
 export function runBuiltinStats(runExpensive: boolean = false) {
 
 	clean();
-	let stats: StatsObject = {
+	const stats: StatsObject = {
 		time: new Date().toISOString(),
 		tick: Game.time,
 		cpu: {
@@ -85,7 +85,7 @@ export function runBuiltinStats(runExpensive: boolean = false) {
 		if (_.isEmpty(room.controller)) {
 			return;
 		}
-		let controller = room.controller;
+		const controller = room.controller;
 
 		// Is hostile room? Continue
 		if (!controller.my && !!controller.reservation && controller.reservation.username === this.username) {
@@ -143,12 +143,12 @@ export function runBuiltinStats(runExpensive: boolean = false) {
 						resources: {},
 						id: room.storage.id,
 					};
-					for (let resourceType in room.storage.store) {
+					for (const resourceType in room.storage.store) {
 						if (room.storage.store.hasOwnProperty(resourceType)) {
 							stats.rooms[room.name].storage.resources[resourceType] = room.storage.store[resourceType];
 							stats.rooms[room.name].storage[resourceType] = room.storage.store[resourceType];
 							if (resourceType === RESOURCE_ENERGY) {
-								stats.rooms[room.name].storedEnergy += room.storage.store[resourceType];
+								stats.rooms[room.name].storedEnergy = stats.rooms[room.name].storedEnergy + room.storage.store[resourceType];
 							}
 						}
 					}
@@ -164,7 +164,7 @@ export function runBuiltinStats(runExpensive: boolean = false) {
 						store: _.sum(room.terminal.store),
 						resources: {},
 					};
-					for (let resourceType in room.terminal.store) {
+					for (const resourceType in room.terminal.store) {
 						if (room.terminal.store.hasOwnProperty(resourceType)) {
 							stats.terminal[room.terminal.id].resources[resourceType] = room.terminal.store[resourceType];
 							stats.terminal[room.terminal.id][resourceType] = room.terminal.store[resourceType];
@@ -191,11 +191,11 @@ export function runBuiltinStats(runExpensive: boolean = false) {
 	});
 	stats.room = stats.rooms;
 	delete stats.rooms;
-	for (let key in stats.room) {
+	for (const key in stats.room) {
 		if (!stats.room.hasOwnProperty(key)) {
 			continue;
 		}
-		let r = stats.room[key];
+		const r = stats.room[key];
 		if (r.myRoom === 0) {
 			if (!stats.reservedRoom[key]) {
 				stats.reservedRoom[key] = {};
@@ -216,7 +216,7 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 	});
 
 	stats.rooms[room.name].sources = {};
-	let sources = room.sources;
+	const sources = room.sources;
 
 	_.forEach(sources, (source: Source) => {
 		stats.sources[source.id] = {
@@ -226,20 +226,20 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 			ticksToRegeneration: source.ticksToRegeneration,
 		};
 		if (source.energy < source.energyCapacity && source.ticksToRegeneration) {
-			let energyHarvested = source.energyCapacity - source.energy;
+			const energyHarvested = source.energyCapacity - source.energy;
 			if (source.ticksToRegeneration < ENERGY_REGEN_TIME) {
-				let ticksHarvested = ENERGY_REGEN_TIME - source.ticksToRegeneration;
+				const ticksHarvested = ENERGY_REGEN_TIME - source.ticksToRegeneration;
 				stats.sources[source.id].averageHarvest = energyHarvested / ticksHarvested;
 			}
 		} else {
 			stats.sources[source.id].averageHarvest = 0;
 		}
-		stats.rooms[room.name].energy += source.energy;
-		stats.rooms[room.name].energyCapacity += source.energyCapacity;
+		stats.rooms[room.name].energy = stats.rooms[room.name].energy + source.energy;
+		stats.rooms[room.name].energyCapacity = stats.rooms[room.name].energyCapacity + source.energyCapacity;
 	});
 
 	// Mineral Mining
-	let minerals = room.minerals;
+	const minerals = room.minerals;
 	stats.rooms[room.name].minerals = {};
 	_.forEach(minerals, (mineral: Mineral) => {
 		stats.minerals[mineral.id] = {
@@ -248,18 +248,18 @@ export function roomExpensive(stats: StatsObject, room: Room) {
 			mineralAmount: mineral.mineralAmount,
 			ticksToRegeneration: mineral.ticksToRegeneration,
 		};
-		stats.rooms[room.name].mineralAmount += mineral.mineralAmount;
-		stats.rooms[room.name].mineralType += mineral.mineralType;
+		stats.rooms[room.name].mineralAmount = stats.rooms[room.name].mineralAmount + mineral.mineralAmount;
+		stats.rooms[room.name].mineralType = stats.rooms[room.name].mineralType + mineral.mineralType;
 	});
 
 	// Hostiles in Room
-	let hostiles = room.hostileCreeps;
+	const hostiles = room.hostileCreeps;
 	stats.rooms[room.name].hostiles = {};
 	_.forEach(hostiles, (hostile: Creep) => {
 		if (!stats.rooms[room.name].hostiles[hostile.owner.username]) {
 			stats.rooms[room.name].hostiles[hostile.owner.username] = 1;
 		} else {
-			stats.rooms[room.name].hostiles[hostile.owner.username]++;
+			stats.rooms[room.name].hostiles[hostile.owner.username] = stats.rooms[room.name].hostiles[hostile.owner.username] + 1;
 		}
 	});
 

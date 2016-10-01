@@ -14,7 +14,7 @@ export default class Bully extends WarfareCreepAction implements IBully {
 
 	public move() {
 		if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
-			let flag = Game.flags[this.creep.memory.config.targetRoom];
+			const flag = Game.flags[this.creep.memory.config.targetRoom];
 			if (!!flag && !!flag.pos) {
 				this.moveTo(flag.pos);
 				return;
@@ -53,7 +53,7 @@ export default class Bully extends WarfareCreepAction implements IBully {
 				}
 			} else {
 				if (this.sourceKeeperDuty) {
-					let lairs = this.creep.room.allStructures.filter(
+					const lairs = this.creep.room.allStructures.filter(
 						(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
 						&& s.ticksToSpawn < 50
 						&& (s.pos.findInRange(this.creep.room.sources, 5).length > 0)

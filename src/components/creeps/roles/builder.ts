@@ -30,7 +30,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 	}
 
 	public assignNewTarget(): boolean {
-		let target: ConstructionSite = <ConstructionSite> this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+		const target: ConstructionSite = <ConstructionSite> this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
 			costCallback: this.roomCallback,
 		});
 		if (!!target) {
@@ -62,7 +62,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		if (!this.creep.pos.inRangeTo(this.targetConstructionSite.pos, 3)) {
 			this.moveTo(this.targetConstructionSite.pos);
 		} else {
-			let status: number = this.tryBuilding();
+			const status: number = this.tryBuilding();
 			switch (status) {
 				case ERR_INVALID_TARGET:
 					this.assignNewTarget();
@@ -95,7 +95,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 
 		if (this.creep.memory.building) {
 			if (!this.creep.memory.target) {
-				let target: ConstructionSite = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+				const target: ConstructionSite = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
 					costCallback: this.roomCallback,
 				}) as ConstructionSite;
 				if (!!target) {
@@ -109,7 +109,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 					this.creep.say("B:IDLE");
 				}
 			}
-			let target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
+			const target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
 			if (!!target) {
 				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 					this.moveTo(target.pos);
@@ -121,7 +121,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			}
 		} else if (this.creep.memory.idle) {
 			// scan for sites and return to active duty when found
-			let target = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
+			const target = this.creep.pos.findClosestByPath(this.creep.room.myConstructionSites, {
 				costCallback: this.roomCallback,
 			}) as ConstructionSite;
 			if (!!target) {
@@ -134,7 +134,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 				this.creep.memory.idle = true;
 				delete this.creep.memory.target;
 				delete this.creep.memory.source;
-				let spawn = this.creep.pos.findClosestByPath(this.creep.room.mySpawns) as Spawn;
+				const spawn = this.creep.pos.findClosestByPath(this.creep.room.mySpawns) as Spawn;
 				if (this.creep.pos.isNearTo(spawn)) {
 					spawn.recycleCreep(this.creep);
 					// this.creep.memory.role = "Upgrader";
@@ -164,18 +164,18 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 				}
 			}
 			if (!!this.creep.memory.source) {
-				let source: RoomObject = Game.getObjectById(this.creep.memory.source) as RoomObject;
+				const source: RoomObject = Game.getObjectById(this.creep.memory.source) as RoomObject;
 				if (source instanceof Structure) { // Sources aren't structures
 					if (!this.creep.pos.isNearTo(source)) {
 						this.moveTo(source.pos);
 					} else {
-						let drops = source.pos.lookFor(LOOK_RESOURCES);
+						const drops = source.pos.lookFor(LOOK_RESOURCES);
 						if (drops.length > 0) {
 							_.forEach(drops, (drop: Resource) => {
 								this.creep.pickup(drop);
 							});
 						} else {
-							let status = this.creep.withdraw(source, RESOURCE_ENERGY);
+							const status = this.creep.withdraw(source, RESOURCE_ENERGY);
 							switch (status) {
 								case ERR_NOT_ENOUGH_RESOURCES:
 								case ERR_INVALID_TARGET:
@@ -194,7 +194,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 					if (!this.creep.pos.isNearTo(source)) {
 						this.moveTo(source.pos);
 					} else {
-						let status = this.creep.harvest(source as Source);
+						const status = this.creep.harvest(source as Source);
 						switch (status) {
 							case ERR_NOT_ENOUGH_RESOURCES:
 							case ERR_INVALID_TARGET:

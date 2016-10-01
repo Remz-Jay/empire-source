@@ -14,9 +14,9 @@ export default class WarArcherGovernor extends WarfareCreepGovernor {
 	public basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${WarArcherGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${WarArcherGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: WarArcherGovernor.ROLE,
 			config: this.config,

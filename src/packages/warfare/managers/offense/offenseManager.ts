@@ -33,7 +33,7 @@ let config: RemoteRoomConfig;
 let homeRoom: Room;
 let targetRoom: Room;
 
-let W2N46Positions: RoomPosition[] = [
+const W2N46Positions: RoomPosition[] = [
 	new RoomPosition(24, 37, "W5N44"),
 	new RoomPosition(22, 9, "W5N44"),
 	new RoomPosition(30, 43, "W5N45"),
@@ -46,13 +46,13 @@ let W2N46Positions: RoomPosition[] = [
 	new RoomPosition(43, 13, "W3N46"),
 	new RoomPosition(3, 11, "W2N46"),
 ];
-let W9N48Positions: RoomPosition[] = [
+const W9N48Positions: RoomPosition[] = [
 	new RoomPosition(16, 1, "W9N47"),
 	new RoomPosition(16, 47, "W9N48"),
 	new RoomPosition(23, 27, "W9N48"),
 	new RoomPosition(27, 19, "W9N48"),
 ];
-let W9N49Positions: RoomPosition[] = [
+const W9N49Positions: RoomPosition[] = [
 	new RoomPosition(30, 7, "W9N45"),
 	new RoomPosition(6, 2, "W8N46"),
 	new RoomPosition(18, 2, "W8N47"),
@@ -60,11 +60,11 @@ let W9N49Positions: RoomPosition[] = [
 	new RoomPosition(12, 46, "W8N49"),
 	new RoomPosition(20, 31, "W7N49"),
 ];
-let W9N49Positions2: RoomPosition[] = [
+const W9N49Positions2: RoomPosition[] = [
 	new RoomPosition(27, 16, "W7N43"),
 ].concat(W9N49Positions);
 
-let W7N46Positions: RoomPosition[] = [
+const W7N46Positions: RoomPosition[] = [
 	new RoomPosition(7, 2, "W6N44"),
 	new RoomPosition(14, 20, "W6N45"),
 	new RoomPosition(25, 14, "W6N45"),
@@ -78,7 +78,7 @@ let W7N46Positions: RoomPosition[] = [
 	new RoomPosition(2, 14, "W6N46"),
 	new RoomPosition(45, 10, "W7N46"),
 ];
-let W7N47Positions: RoomPosition[] =
+const W7N47Positions: RoomPosition[] =
 	W7N46Positions.concat([
 		new RoomPosition(35, 2, "W7N47"),
 		new RoomPosition(34, 47, "W7N48"),
@@ -88,7 +88,7 @@ let W7N47Positions: RoomPosition[] =
 		new RoomPosition(28, 12, "W3N49"),
 	]);
 
-let powerSquad = {
+const powerSquad = {
 	roles: [
 		{
 			"governor": WarriorGovernor,
@@ -109,7 +109,7 @@ let powerSquad = {
 	wait: false,
 };
 
-let claimSquad = {
+const claimSquad = {
 	roles: [
 		{
 			"governor": WarUpgraderGovernor,
@@ -120,7 +120,7 @@ let claimSquad = {
 	wait: false,
 };
 
-let defenderConfig = {
+const defenderConfig = {
 	roles: [
 		{
 			"governor": FasterminatorGovernor,
@@ -130,7 +130,7 @@ let defenderConfig = {
 	],
 	wait: false,
 };
-let warArcherConfig = {
+const warArcherConfig = {
 	roles: [
 		{
 			"governor": WarArcherGovernor,
@@ -140,7 +140,7 @@ let warArcherConfig = {
 	],
 	wait: false,
 };
-let healTestConfig = {
+const healTestConfig = {
 	roles: [
 		{
 			"governor": WarArcherGovernor,
@@ -160,7 +160,7 @@ let healTestConfig = {
 	],
 	wait: false,
 };
-let warvestConfig = {
+const warvestConfig = {
 	roles: [
 		{
 			"governor": WarvesterGovernor,
@@ -170,7 +170,7 @@ let warvestConfig = {
 	],
 	wait: false,
 };
-let squadConfig = {
+const squadConfig = {
 	roles: [
 		{
 			"governor": FasterminatorGovernor,
@@ -180,12 +180,12 @@ let squadConfig = {
 	],
 	wait: false,
 };
-let boo: RoomPosition[] = [
+const boo: RoomPosition[] = [
 	new RoomPosition(2, 37, "W7N43"),
 	new RoomPosition(41, 47, "W8N43"),
 	new RoomPosition(18, 28, "W8N42"),
 ];
-let warvestPositions: RoomPosition[] = [
+const warvestPositions: RoomPosition[] = [
 	new RoomPosition(1, 3, "W6N45"),
 	new RoomPosition(23, 3, "W6N45"),
 	new RoomPosition(33, 2, "W6N45"),
@@ -200,7 +200,7 @@ let warvestPositions: RoomPosition[] = [
 	new RoomPosition(24, 21, "W7N45"), // Terminal
 ];
 
-let positions: RoomPosition[] = [
+const positions: RoomPosition[] = [
 	new RoomPosition(14, 2, "W3N42"),
 	new RoomPosition(14, 43, "W3N43"),
 	new RoomPosition(2, 41, "W4N43"),
@@ -213,18 +213,18 @@ let powerPositions: RoomPosition[] = [
 	new RoomPosition(30, 21, "W6N40"),
 ];
 
-let flagPositions: RoomPosition[] = [
+const flagPositions: RoomPosition[] = [
 	new RoomPosition(36, 47, "W12N54"),
 	new RoomPosition(34, 43, "W12N53"),
 ];
 
-let W15N41Positions: RoomPosition[] = [
+const W15N41Positions: RoomPosition[] = [
 	new RoomPosition(2, 16, "W10N40"),
 	new RoomPosition(27, 7, "W15N40"),
 	new RoomPosition(42, 8, "W15N41"),
 	new RoomPosition(43, 3, "W13N41"),
 ];
-let W12N43Positions: RoomPosition[] = [
+const W12N43Positions: RoomPosition[] = [
 	new RoomPosition(47, 43, "W11N44"),
 	new RoomPosition(6, 7, "W11N43"),
 	new RoomPosition(47, 9, "W12N43"),
@@ -266,16 +266,16 @@ export function setup() {
 function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
 	return Game.map.findRoute(fromRoom, toRoom, {
 		routeCallback(roomName) {
-			let parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-			let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-			let username = _.get(
+			const parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+			const isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
+			const username = _.get(
 				_.find(Game.structures, (s) => true), "owner.username",
 				_.get(_.find(Game.creeps, (s) => true), "owner.username")
 			) as string;
-			let isMyRoom = Game.rooms[roomName] &&
+			const isMyRoom = Game.rooms[roomName] &&
 				Game.rooms[roomName].controller &&
 				Game.rooms[roomName].controller.my;
-			let isMyReservedRoom = Game.rooms[roomName] &&
+			const isMyReservedRoom = Game.rooms[roomName] &&
 				Game.rooms[roomName].controller &&
 				Game.rooms[roomName].controller.reservation &&
 				Game.rooms[roomName].controller.reservation.username === username;
@@ -298,16 +298,16 @@ function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string)
 		let target: string = undefined;
 		let optimalRoute: findRouteArray = undefined;
 		if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
-			let route = findRoute(homeRoomName, remoteRoomName);
+			const route = findRoute(homeRoomName, remoteRoomName);
 			if (!_.isNumber(route) && route.length < distance) {
 				distance = route.length;
 				optimalRoute = route;
 				target = homeRoomName;
 			}
 		} else {
-			for (let room in Game.rooms) {
+			for (const room in Game.rooms) {
 				if (room !== remoteRoomName) {
-					let route = findRoute(room, remoteRoomName);
+					const route = findRoute(room, remoteRoomName);
 					if (!_.isNumber(route) && route.length < distance) {
 						distance = route.length;
 						optimalRoute = route;
@@ -316,7 +316,7 @@ function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string)
 				}
 			}
 		}
-		let roomConfig: RemoteRoomConfig = {
+		const roomConfig: RemoteRoomConfig = {
 			homeRoom: target,
 			targetRoom: remoteRoomName,
 			homeDistance: distance,
@@ -328,7 +328,7 @@ function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string)
 }
 
 function createCreep(creepConfig: CreepConfiguration): string|number {
-	let spawn = homeRoom.getFreeSpawn();
+	const spawn = homeRoom.getFreeSpawn();
 	let status: number | string = spawn.canCreateCreep(creepConfig.body, creepConfig.name);
 	if (status === OK) {
 		status = spawn.createCreepWhenIdle(creepConfig.body, creepConfig.name, creepConfig.properties);
@@ -355,18 +355,18 @@ function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	return creeps;
 }
 function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosition[]) {
-	let resetIterator = false;
-	let creeps = loadCreeps(targetRoomName, sq);
+	const resetIterator = false;
+	const creeps = loadCreeps(targetRoomName, sq);
 	// TODO: Make the squad wait for the last spawning member.
-	let squadSize = _.sum(sq.roles, "maxCreeps");
+	const squadSize = _.sum(sq.roles, "maxCreeps");
 	_.each(sq.roles, function(squadRole) {
-		let governor = new squadRole.governor(homeRoom, config);
-		let creepsInRole = _.filter(creeps, (c: Creep) => c.memory.role === squadRole.governor.ROLE);
+		const governor = new squadRole.governor(homeRoom, config);
+		const creepsInRole = _.filter(creeps, (c: Creep) => c.memory.role === squadRole.governor.ROLE);
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
-				let b = Game.cpu.getUsed();
-				let role: WarfareCreepAction = new squadRole.role();
+				const b = Game.cpu.getUsed();
+				const role: WarfareCreepAction = new squadRole.role();
 				role.setCreep(<Creep> c, targetPositions);
 				role.squad = creeps;
 				role.squadSize = squadSize;
@@ -377,21 +377,21 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
-					let status = createCreep(governor.getCreepConfig());
+					const status = createCreep(governor.getCreepConfig());
 					if (_.isNumber(status)) {
 						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
 					} else {
 						console.log("manageSquad.preempt-spawn", status, squadRole.governor.ROLE);
 					}
 				}
-				let a = Game.cpu.getUsed() - b;
+				const a = Game.cpu.getUsed() - b;
 				if (a > 2) {
 					console.log(global.colorWrap(`Creep ${c.name} (${c.memory.role} in ${c.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 				}
 			}
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
-			let status = createCreep(governor.getCreepConfig());
+			const status = createCreep(governor.getCreepConfig());
 			if (_.isNumber(status)) {
 				console.log("manageSquad.spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
 			} else {
@@ -402,7 +402,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 }
 
 export function govern(): void {
-	// let flags = _(Game.flags).filter((f: Flag) => _.includes(f.name, "A_")).sortBy("name").value();
+	// const flags = _(Game.flags).filter((f: Flag) => _.includes(f.name, "A_")).sortBy("name").value();
 	/*flags.forEach((f: Flag) => {
 		flagPositions.push(f.pos);
 	});*/
@@ -450,8 +450,8 @@ export function govern(): void {
 					manageSquad(roomName, defenderConfig, undefined);
 					break;
 				case "W6N40":
-					let powerFlagName = "P";
-					let powerFlag = Game.flags[powerFlagName];
+					const powerFlagName = "P";
+					const powerFlag = Game.flags[powerFlagName];
 					if (!!powerFlag) {
 						powerPositions = [powerFlag.pos];
 					}
@@ -460,16 +460,14 @@ export function govern(): void {
 				default:
 					manageSquad(roomName, squadConfig, positions);
 			}
-			let vision: boolean = false;
 			if (!!targetRoom) {
 				// We have vision of the room, that's good.
-				vision = true;
-				let hostiles = targetRoom.hostileCreeps;
-				let towers = targetRoom.hostileStructures.filter((s: Structure) => s.structureType === STRUCTURE_TOWER);
+				const hostiles = targetRoom.hostileCreeps;
+				const towers = targetRoom.hostileStructures.filter((s: Structure) => s.structureType === STRUCTURE_TOWER);
 				let energyInTowers: number = 0;
 				if (towers.length > 0) {
 					energyInTowers = towers.reduce<number>(function(result: number, n: StructureTower): number {
-						result += n.energy;
+						result = result + n.energy;
 						return result;
 					}, energyInTowers);
 				}

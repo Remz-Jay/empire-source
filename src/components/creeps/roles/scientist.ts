@@ -20,7 +20,6 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 	public storage: StructureStorage;
 	public inLab1: StructureLab;
 	public inLab2: StructureLab;
-	public boostLab: StructureLab;
 	public mode: number = 0;
 	public clean: boolean = false;
 	public reaction: string;
@@ -75,8 +74,8 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			this.creep.memory.moveToId = lab.id;
 			return true;
 		} else if (this.mode === MODE.CLEANUP && !!this.creep.memory.targetId && this.creep.bagEmpty && this.creep.pos.isNearTo(lab.pos)) {
-			let amount = global.clamp(lab.mineralAmount, 0, this.creep.carryCapacity);
-			let status = this.creep.withdraw(lab, lab.mineralType, amount);
+			const amount = global.clamp(lab.mineralAmount, 0, this.creep.carryCapacity);
+			const status = this.creep.withdraw(lab, lab.mineralType, amount);
 			if (status === OK) {
 				this.creep.memory.moveToId = this.terminal.id;
 				return true;
@@ -96,7 +95,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 	}
 	public mineralize(): boolean {
 		if (!this.clean && !!this.reaction && ((this.mode === MODE.IDLE && !this.creep.memory.targetId) || this.mode === MODE.CLEANUP)) {
-			let reagents = this.creep.room.labReagents;
+			const reagents = this.creep.room.labReagents;
 			if (!!reagents) {
 				if (!!this.inLab1.mineralType && this.inLab1.mineralType !== reagents[0]) {
 					return this.cleanUp(this.inLab1);
@@ -129,7 +128,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				return true;
 			}
 		} else if (this.mode === MODE.MINERALIZE && !!this.creep.memory.targetId && !this.creep.bagEmpty) {
-			let t = this.getTarget(this.creep.memory.targetId);
+			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, this.creep.memory.mineralType) === OK) {
 					this.creep.say("\u0CA0\u203F\u0CA0", true);
@@ -163,7 +162,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				}
 			}
 		} else if (this.mode === MODE.PROFITIZE && !!this.creep.memory.targetId && this.creep.bagEmpty) {
-			let t = this.getTarget(this.creep.memory.targetId);
+			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.withdraw(t, this.reaction) === OK) {
 					this.creep.memory.moveToId = this.terminal.id;
@@ -186,8 +185,8 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		if ((this.mode === MODE.IDLE && !this.creep.memory.targetId) || this.mode === MODE.CLEANUP) {
 			let found: boolean = false;
 			this.creep.room.boostLabs.forEach((lab: StructureLab) => {
-				let flag = lab.pos.lookFor<Flag>(LOOK_FLAGS).shift();
-				let mineralType = global.labColors.resource(flag.color, flag.secondaryColor);
+				const flag = lab.pos.lookFor<Flag>(LOOK_FLAGS).shift();
+				const mineralType = global.labColors.resource(flag.color, flag.secondaryColor);
 				if (lab.mineralAmount > 0 && lab.mineralType !== mineralType) {
 					this.cleanUp(lab);
 					return true;
@@ -210,7 +209,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				return true;
 			}
 		} else if (this.mode === MODE.FILLBOOST && !!this.creep.memory.targetId && !this.creep.bagEmpty) {
-			let t = this.getTarget(this.creep.memory.targetId);
+			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, this.creep.memory.mineralType) === OK) {
 					this.creep.say("BÖÖÖST!", true);
@@ -231,11 +230,11 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		} else if (this.mode === MODE.IDLE && !this.creep.bagEmpty) {
 			this.reset();
 		} else {
-			let labs = this.creep.room.myLabs.filter(
+			const labs = this.creep.room.myLabs.filter(
 				(l: StructureLab) => l.mineralAmount > 0
 			);
 			if (labs.length > 0) {
-				let lab = labs.shift();
+				const lab = labs.shift();
 				this.cleanUp(lab);
 				return true;
 			}
@@ -245,7 +244,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 
 	public energize(): boolean {
 		if (this.mode === MODE.IDLE && !this.creep.memory.targetId) {
-			let t = this.findEnergizeTarget();
+			const t = this.findEnergizeTarget();
 			if (!!t) {
 				this.creep.memory.targetId = t.id;
 				this.creep.memory.mode = MODE.ENERGIZE;
@@ -262,7 +261,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				return true;
 			}
 		} else if (this.mode === MODE.ENERGIZE && !!this.creep.memory.targetId && !this.creep.bagEmpty) {
-			let t = this.getTarget(this.creep.memory.targetId);
+			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, RESOURCE_ENERGY) === OK) {
 					// this.creep.say(t.id.substr(t.id.length - 5));
@@ -282,7 +281,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 
 	public move(): boolean {
 		if (!!this.creep.memory.moveToId) {
-			let pos = this.getTarget(this.creep.memory.moveToId).pos;
+			const pos = this.getTarget(this.creep.memory.moveToId).pos;
 			if (!this.creep.pos.isNearTo(pos)) {
 				this.moveTo(pos);
 				return true;
@@ -307,7 +306,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 
 	public action(): boolean {
 		if (this.renewCreep() && this.flee()) {
-			let status = (!this.fillBoostLabs() && !this.cleanAll() && !this.profitize() && !this.mineralize() && !this.energize());
+			const status = (!this.fillBoostLabs() && !this.cleanAll() && !this.profitize() && !this.mineralize() && !this.energize());
 			if (!this.move() && status) {
 				this.reset();
 			}

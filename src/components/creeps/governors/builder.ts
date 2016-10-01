@@ -15,10 +15,10 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 	}
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${BuilderGovernor.ROLE}-${global.time}`;
-		let spawn = this.room.getFreeSpawn();
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${BuilderGovernor.ROLE}-${global.time}`;
+		const spawn = this.room.getFreeSpawn();
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: BuilderGovernor.ROLE,
 			target_construction_site_id: this.room.myConstructionSites[0].id,
@@ -28,7 +28,7 @@ export default class BuilderGovernor extends CreepGovernor implements ICreepGove
 	}
 
 	public getCreepLimit(): number {
-		let sites = this.room.myConstructionSites;
+		const sites = this.room.myConstructionSites;
 		return (sites.length > 0) ? 1 : 0;
 	}
 }

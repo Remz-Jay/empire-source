@@ -43,7 +43,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	}
 
 	public assignNewSource(): boolean {
-		let target: Mineral = <Mineral> this.creep.pos.findClosestByPath(this.creep.room.minerals, {
+		const target: Mineral = <Mineral> this.creep.pos.findClosestByPath(this.creep.room.minerals, {
 			filter: (source: Mineral) => {
 				return !!source.pos.lookFor(LOOK_STRUCTURES);
 			},
@@ -75,7 +75,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 	public tryMining(): number {
 		if (this.targetMineralSource.mineralAmount > 0 && this.targetExtractor.cooldown === 0) {
 			if (this.creep.carrySum > (this.creep.carryCapacity * 0.9)) {
-				let targets: Structure[] = this.creep.room.containers.filter(
+				const targets: Structure[] = this.creep.room.containers.filter(
 					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
 				);
 				if (targets.length > 0) {
@@ -107,7 +107,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		if (!this.creep.pos.isNearTo(this.targetMineralDropOff)) {
 			this.moveTo(this.targetMineralDropOff.pos);
 		} else {
-			let status = this.tryMineralDropOff();
+			const status = this.tryMineralDropOff();
 			switch (status) {
 				case ERR_NOT_ENOUGH_RESOURCES:
 				case OK:

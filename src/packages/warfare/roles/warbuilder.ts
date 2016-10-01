@@ -29,8 +29,8 @@ export default class WarBuilder extends WarfareCreepAction implements IWarBuilde
 						this.harvestFromContainersAndSources();
 					}
 				} else {
-					/*let positions = this.safeLook(LOOK_STRUCTURES, this.creep.pos, 3);
-					let rampart: StructureRampart;
+					/*const positions = this.safeLook(LOOK_STRUCTURES, this.creep.pos, 3);
+					const rampart: StructureRampart;
 					positions.forEach((pos: any) => {
 						if (pos.structure.structureType === STRUCTURE_RAMPART) {
 							rampart = pos.structure;

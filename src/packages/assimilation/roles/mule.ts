@@ -19,7 +19,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			this.storage = Game.getObjectById<StructureStorage>(this.creep.memory.storage);
 		}
 		if (!this.container) {
-			let containerId = this.governor.checkContainerAssignment();
+			const containerId = this.governor.checkContainerAssignment();
 			if (!!containerId) {
 				this.creep.memory.container = containerId;
 				this.setCreep(creep);
@@ -53,11 +53,11 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		if (!this.creep.memory.target) {
 			// find a link that's closer than storage
 			if (!!this.storage && this.creep.carry.energy > 0) {
-				let storageRange = this.creep.pos.getRangeTo(this.storage.pos);
-				let links = this.creep.room.myStructures.filter(
+				const storageRange = this.creep.pos.getRangeTo(this.storage.pos);
+				const links = this.creep.room.myStructures.filter(
 					(s: StructureLink) => s.structureType === STRUCTURE_LINK
 					&& s.energy <= (s.energyCapacity / 2));
-				let target: OwnedStructure = this.creep.pos.findClosestByPath<OwnedStructure>(links, {
+				const target: OwnedStructure = this.creep.pos.findClosestByPath<OwnedStructure>(links, {
 					filter: (l: StructureLink) => l.pos.getRangeTo(this.creep.pos) < storageRange,
 					algorithm: "astar",
 					costCallback: this.roomCallback,
@@ -70,7 +70,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				}
 			}
 		}
-		let target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
+		const target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
 		if (!target) {
 			delete this.creep.memory.target;
 		} else {
@@ -86,7 +86,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		} else {
 			switch (target.structureType) {
 				case STRUCTURE_LINK:
-					let link = <StructureLink> target;
+					const link = <StructureLink> target;
 					if (link.energy < link.energyCapacity) {
 						status = this.creep.transfer(link, RESOURCE_ENERGY);
 					} else {
@@ -128,11 +128,11 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			return true;
 		}
 		if (!this.creep.memory.dropTarget) {
-			let drops = this.creep.room.find(FIND_DROPPED_RESOURCES,
+			const drops = this.creep.room.find(FIND_DROPPED_RESOURCES,
 				{filter: (r: Resource) => r.amount >= (this.creep.carryCapacity / 2)}
 			) as Resource[];
 			if (drops.length > 0) {
-				let drop = this.creep.pos.findClosestByPath(drops, {
+				const drop = this.creep.pos.findClosestByPath(drops, {
 					maxRooms: 1,
 					costCallback: this.roomCallback,
 				});
@@ -140,7 +140,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			}
 		}
 		if (!!this.creep.memory.dropTarget) {
-			let drop = Game.getObjectById(this.creep.memory.dropTarget) as Resource;
+			const drop = Game.getObjectById(this.creep.memory.dropTarget) as Resource;
 			if (!!drop && drop.amount > 100) {
 				if (!this.creep.pos.isNearTo(drop.pos)) {
 					this.moveTo(drop.pos);
@@ -162,7 +162,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			if (!this.creep.pos.isNearTo(this.container.pos)) {
 				this.moveTo(this.container.pos);
 			} else {
-				let drops = this.container.pos.lookFor(LOOK_RESOURCES);
+				const drops = this.container.pos.lookFor(LOOK_RESOURCES);
 				if (drops.length > 0) {
 					_.forEach(drops, (drop: Resource) => {
 						this.creep.pickup(drop);

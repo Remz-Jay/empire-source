@@ -11,11 +11,11 @@ export default class Biter extends WarfareCreepAction implements IBiter {
 	}
 	public move(): boolean {
 		if (this.creep.room.hostileCreeps.length > 0) {
-			let hostile = this.creep.pos.findClosestByRange(this.creep.room.hostileCreeps);
-			let rampart = hostile.pos.findClosestByRange(this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_RAMPART));
+			const hostile = this.creep.pos.findClosestByRange(this.creep.room.hostileCreeps);
+			const rampart = hostile.pos.findClosestByRange(this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_RAMPART));
 			if (!!rampart) {
 				if (!this.creep.pos.isEqualTo(rampart.pos)) {
-					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> rampart.pos, 0);
+					const pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> rampart.pos, 0);
 					this.moveTo(pfg);
 					return false;
 				} else {

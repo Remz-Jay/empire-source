@@ -10,10 +10,10 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 	public maxParts = 10;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${MuleGovernor.ROLE}-${global.time}`;
-		let spawn = this.room.getFreeSpawn();
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${MuleGovernor.ROLE}-${global.time}`;
+		const spawn = this.room.getFreeSpawn();
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: MuleGovernor.ROLE,
 			target_controller_id: this.room.controller.id,
@@ -62,7 +62,7 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 			return global.targetBlackList[MuleGovernor.ROLE];
 		} else {
 			global.targetBlackList[MuleGovernor.ROLE] = [];
-			let allMules: Creep[] = _.filter(Game.creeps, (c: Creep) => c.memory.role === MuleGovernor.ROLE);
+			const allMules: Creep[] = _.filter(Game.creeps, (c: Creep) => c.memory.role === MuleGovernor.ROLE);
 			allMules.forEach((c: Creep) => {
 				if (!!c.memory.target) {
 					global.targetBlackList[MuleGovernor.ROLE].push(c.memory.target);

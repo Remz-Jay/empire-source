@@ -92,10 +92,10 @@ export function loop() {
 			});
 		}
 		delete Memory.log;
-		let perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
-		let cpuUsed = _.ceil(Game.cpu.getUsed());
-		let cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";
-		let bucket = Game.cpu.bucket || 0;
+		const perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
+		const cpuUsed = _.ceil(Game.cpu.getUsed());
+		const cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";
+		const bucket = Game.cpu.bucket || 0;
 		let bucketColor = "Tomato";
 		if (bucket > global.BUCKET_MIN / 4) {
 			bucketColor = "Salmon";
@@ -106,13 +106,12 @@ export function loop() {
 		if (bucket > global.BUCKET_MIN) {
 			bucketColor = "LightGreen";
 		}
-		let credits = Game.market.credits || 0; // Sim doesn't have this.
+		const credits = Game.market.credits || 0; // Sim doesn't have this.
 		console.log(`End of tick ${Game.time}.\t`
 			+ global.colorWrap(`GCL:${Game.gcl.level}@${perc}%\t`, "DodgerBlue")
 			+ global.colorWrap(`CPU:${cpuUsed}/${Game.cpu.limit}\t`, cpuColor)
 			+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${bucket.toLocaleString()}\t`, bucketColor)
 			+ global.colorWrap(`MKT:${credits.toLocaleString()}`, "CornflowerBlue")
 		);
-		Memory.resetCounter += reset;
 		reset = 0;
 }

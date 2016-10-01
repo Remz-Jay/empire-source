@@ -12,9 +12,9 @@ export default class BullyGovernor extends WarfareCreepGovernor {
 	public basePart = [HEAL, HEAL, HEAL, HEAL, HEAL, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${BullyGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${BullyGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: BullyGovernor.ROLE,
 			config: this.config,

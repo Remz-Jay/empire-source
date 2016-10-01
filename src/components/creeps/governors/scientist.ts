@@ -11,9 +11,9 @@ export default class ScientistGovernor extends CreepGovernor implements ICreepGo
 	public maxParts = 2;
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${ScientistGovernor.ROLE}-${global.time}`;
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${ScientistGovernor.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: ScientistGovernor.ROLE,
 		};

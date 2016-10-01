@@ -23,7 +23,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		}
 		this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
 		if (!this.creep.memory.source && !!this.container) {
-			let source = this.findSourceNearContainer(this.container);
+			const source = this.findSourceNearContainer(this.container);
 			this.source = source;
 			this.creep.memory.source = source.id;
 		} else {
@@ -33,7 +33,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			if (!!this.creep.memory.keeperLair) {
 				this.keeperLair = Game.getObjectById<StructureKeeperLair>(this.creep.memory.keeperLair);
 			} else {
-				let lairs = this.creep.room.allStructures.filter(
+				const lairs = this.creep.room.allStructures.filter(
 					(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
 					&& s.pos.inRangeTo(this.source.pos, 5)
 				) as StructureKeeperLair[];
@@ -45,7 +45,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		}
 	}
 	public findSourceNearContainer(c: StructureContainer): Source {
-		let sources = c.room.sources.filter((s: Source) => s.pos.isNearTo(c));
+		const sources = c.room.sources.filter((s: Source) => s.pos.isNearTo(c));
 		return sources[0];
 	}
 
@@ -71,7 +71,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	public moveToHarvest(): void {
 		if (!!this.container) {
 			if (!this.creep.pos.isEqualTo(this.container.pos)) {
-				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.container.pos, 0);
+				const pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.container.pos, 0);
 				this.moveTo(pfg);
 			} else {
 				this.tryHarvest();
@@ -92,7 +92,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		if (!this.creep.pos.isNearTo(this.container.pos)) {
 			this.moveTo(this.container.pos);
 		} else if (this.creep.carry.energy > 0) {
-			let status = this.tryEnergyDropOff();
+			const status = this.tryEnergyDropOff();
 			switch (status) {
 				case OK:
 					break;
@@ -112,10 +112,10 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 	public fleeFromKeeperLair(): boolean {
 		if (!!this.keeperLair) {
 			if (this.keeperLair.ticksToSpawn <= 10) {
-				let fleeRange = 6;
+				const fleeRange = 6;
 				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
-					let goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
-					let path = PathFinder.search(this.creep.pos, goals, {
+					const goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
+					const path = PathFinder.search(this.creep.pos, goals, {
 						flee: true,
 						maxRooms: 1,
 						plainCost: 1,

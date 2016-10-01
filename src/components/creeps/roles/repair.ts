@@ -16,7 +16,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 	}
 
 	public isTaken(target: Structure) {
-		let taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
+		const taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
 		&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
 		&& (!!c.memory.target && c.memory.target === target.id));
 		return (!!taken && taken.length > 0) ? true : false;
@@ -26,7 +26,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		let target: Structure = undefined;
 		// See if any owned buildings are damaged.
 		if (this.creep.room.myStructures.length > 0) {
-			let targets = this.creep.room.myStructures.filter((s: OwnedStructure) =>
+			const targets = this.creep.room.myStructures.filter((s: OwnedStructure) =>
 				!_.includes(blackList, s.id)
 				&& s.hits < (s.hitsMax * this.myStructureMultiplier)
 				&& s.structureType !== STRUCTURE_RAMPART
@@ -41,7 +41,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		}
 		// No? Try to repair a neutral structure instead.
 		if (!target) {
-			let targets = this.creep.room.allStructures.filter((s: Structure) =>
+			const targets = this.creep.room.allStructures.filter((s: Structure) =>
 				!_.includes(blackList, s.id)
 				&& s.hits < (s.hitsMax * this.publicStructureMultiplier) &&
 				(   s.structureType === STRUCTURE_ROAD ||
@@ -59,12 +59,12 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		}
 		// Still nothing? Fortify Ramparts and Walls if we have spare energy.
 		if (!target && this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
-			let avgRampart = RampartManager.getAverageStrength();
-			let avgWall = WallManager.getAverageStrength();
+			const avgRampart = RampartManager.getAverageStrength();
+			const avgWall = WallManager.getAverageStrength();
 			if (avgWall < avgRampart) {
 				target = WallManager.getWeakestWall();
 			} else {
-				let rampart = RampartManager.getWeakestRampart();
+				const rampart = RampartManager.getWeakestRampart();
 				if (
 					!_.includes(blackList, rampart.id)
 					&& (rampart.hits < RampartManager.getAverageStrength() && rampart.hits < WallManager.getAverageStrength())
@@ -95,11 +95,11 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 
 		if (!!this.creep.memory.repairing) {
 			if (!this.creep.memory.target) {
-				let target = this.findNewTarget();
+				const target = this.findNewTarget();
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
-					let spawn: Spawn = this.creep.room.mySpawns[0];
+					const spawn: Spawn = this.creep.room.mySpawns[0];
 					if (!!spawn) {
 						if (this.creep.pos.isNearTo(spawn)) {
 							if (this.creep.carry.energy > 0) {
@@ -113,21 +113,21 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 					}
 				}
 			}
-			let target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
+			const target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
 			if (!!target) {
 				if (target.hits === target.hitsMax) {
 					delete this.creep.memory.target;
 				}
 				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 					this.moveTo(target.pos);
-					let movingTargets = _.map(this.safeLook(LOOK_STRUCTURES, this.creep.pos, 3), "structure").filter(
+					const movingTargets = _.map(this.safeLook(LOOK_STRUCTURES, this.creep.pos, 3), "structure").filter(
 						(s: Structure) => s.hits < (s.hitsMax * 0.91)
 					) as Structure[];
 					if (movingTargets.length) {
 						this.creep.repair(_.sortBy(movingTargets, "hits").shift());
 					}
 				} else {
-					let status = this.creep.repair(target);
+					const status = this.creep.repair(target);
 					switch (status) {
 						case OK:
 							break;

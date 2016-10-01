@@ -18,8 +18,8 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	}
 
 	public getBody() {
-		let hasController = _.get(this.config, "hasController", true);
-		let hasClaim = _.get(this.config, "claim", false);
+		const hasController = _.get(this.config, "hasController", true);
+		const hasClaim = _.get(this.config, "claim", false);
 		if (!hasController || hasClaim) {
 			this.bodyPart = [WORK, WORK, MOVE, MOVE];
 			let body: string[] = [CARRY, MOVE];
@@ -28,15 +28,9 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 			}
 			return AssimilationCreepGovernor.sortBodyParts(body);
 		}
-		let numParts: number = _.floor(
+		const numParts: number = global.clamp(_.floor(
 				(this.room.energyCapacityAvailable - AssimilationCreepGovernor.calculateRequiredEnergy(this.basePart)) /
-				AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart));
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		if (numParts < 1) {
-			numParts = 1;
-		}
+				AssimilationCreepGovernor.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
 		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
@@ -47,9 +41,9 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	}
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${ASMHarvesterGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${ASMHarvesterGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: ASMHarvesterGovernor.ROLE,
 			config: this.config,
@@ -60,7 +54,7 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	public checkContainerAssignment(): string {
 		let freeContainer: string = undefined;
 		_.each(this.containers, function(c: StructureContainer) {
-			let h = this.checkAssignedHarvester(c);
+			const h = this.checkAssignedHarvester(c);
 			if (!h) {
 				freeContainer = c.id;
 			}
@@ -69,7 +63,7 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	}
 
 	public checkAssignedHarvester(c: StructureContainer): Creep {
-		let harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === ASMHarvesterGovernor.ROLE.toUpperCase());
+		const harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === ASMHarvesterGovernor.ROLE.toUpperCase());
 		return harvesters.find((h: Creep) => (!!h.memory.container) && c.id === h.memory.container);
 	}
 

@@ -14,25 +14,19 @@ export default class WarfareCreepGovernor extends CreepGovernor {
 	}
 
 	public getToughBody(): string[] {
-		let numParts = _.floor(
+		const numParts = global.clamp(_.floor(
 			(this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(this.basePart)) /
-			WarfareCreepGovernor.calculateRequiredEnergy(this.bodyPart));
+			WarfareCreepGovernor.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
 
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
 		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
 				body = body.concat(this.bodyPart);
 			}
 		}
-		let remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
-		let numTough = _.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart));
-		if (numTough > this.maxTough) {
-			numTough = this.maxTough;
-		}
-		for (let i = 0; i < numTough; i ++) {
+		const remainingEnergy = this.room.energyCapacityAvailable - WarfareCreepGovernor.calculateRequiredEnergy(body);
+		const numTough = global.clamp(_.floor(remainingEnergy / WarfareCreepGovernor.calculateRequiredEnergy(this.toughPart)), 0, this.maxTough);
+		for (let i = 0; i < numTough; i++) {
 			if (body.length + this.toughPart.length <= 50) {
 				body = body.concat(this.toughPart);
 			}

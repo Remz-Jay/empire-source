@@ -25,12 +25,7 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 			this.bodyPart = [WORK, CARRY, MOVE];
 			numParts = _.floor((this.room.energyAvailable) / CreepGovernor.calculateRequiredEnergy(this.bodyPart));
 		}
-		if (numParts > this.maxParts) {
-			numParts = this.maxParts;
-		}
-		if (numParts < 1) {
-			numParts = 1;
-		}
+		numParts = global.clamp(numParts, 1, this.maxParts);
 		let body: string[] = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
@@ -40,10 +35,10 @@ export default class HarvesterGovernor extends CreepGovernor implements ICreepGo
 		return CreepGovernor.sortBodyParts(body);
 	}
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${HarvesterGovernor.ROLE}-${global.time}`;
-		let spawn = this.room.getFreeSpawn();
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${HarvesterGovernor.ROLE}-${global.time}`;
+		const spawn = this.room.getFreeSpawn();
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: HarvesterGovernor.ROLE,
 			target_energy_dropoff_id: spawn.id,

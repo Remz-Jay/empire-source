@@ -39,14 +39,14 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 	public move() {
 		if (!this.moveUsingPositions()) {
 			if (this.powerBankDuty) {
-				let target = this.creep.pos.findClosestByRange(this.creep.room.allStructures, {filter: (s: Structure) => s.structureType === STRUCTURE_POWER_BANK });
-				let healer = _(this.safeLook(LOOK_CREEPS, this.creep.pos, 1)).map("creep").filter((c: Creep) => c.getActiveBodyparts(HEAL) > 0).first();
+				const target = this.creep.pos.findClosestByRange(this.creep.room.allStructures, {filter: (s: Structure) => s.structureType === STRUCTURE_POWER_BANK });
+				const healer = _(this.safeLook(LOOK_CREEPS, this.creep.pos, 1)).map("creep").filter((c: Creep) => c.getActiveBodyparts(HEAL) > 0).first();
 				if (!!target && !this.creep.pos.isNearTo(target)) {
 					// get in range
 					this.moveTo(target.pos);
 				} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2) && !!healer) {
 					if (target.hits < 10000) {
-						let mules = _.filter(this.creep.room.myCreeps, (c: Creep) => c.memory.role === "WarMule");
+						const mules = _.filter(this.creep.room.myCreeps, (c: Creep) => c.memory.role === "WarMule");
 						if (!mules || mules.length < 2) {
 							// Don't break the PowerBank until we have mules present to prevent decay.
 							return;

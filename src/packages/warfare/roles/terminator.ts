@@ -36,7 +36,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
-					let t2 = this.findTarget();
+					const t2 = this.findTarget();
 					if (!!t2) {
 						target = t2;
 						this.creep.memory.target = target.id;
@@ -45,21 +45,19 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			}
 			// Just moveTo when we're safely behind walls
 			if (!!target && !this.hardPath) {
-				// this.moveTo(target.pos);
-				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - noHardPath #${++this.moveIterator}`);
 				this.creep.move(this.creep.pos.getDirectionTo(target));
 				return;
 			}
 
 			// Otherwise, use a pathFinder path to get there.
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				let range = (target instanceof Creep && target.my) ? 1 : 3;
+				const range = (target instanceof Creep && target.my) ? 1 : 3;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					this.moveTo(target.pos);
 				}
 			} else {
 				if (this.sourceKeeperDuty) {
-					let lairs = this.creep.room.allStructures.filter(
+					const lairs = this.creep.room.allStructures.filter(
 						(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
 						&& s.ticksToSpawn < 50
 						&& (s.pos.findInRange(this.creep.room.sources, 5).length > 0)

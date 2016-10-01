@@ -31,12 +31,12 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public findSpot(): RoomPosition {
-		let flag = Game.flags[this.creep.room.name + "_LS"];
+		const flag = Game.flags[this.creep.room.name + "_LS"];
 		if (!!flag) {
 			return flag.pos;
 		} else {
-			let storPos = this.storage.pos;
-			let positions = this.safeLook(LOOK_STRUCTURES, storPos, 1);
+			const storPos = this.storage.pos;
+			const positions = this.safeLook(LOOK_STRUCTURES, storPos, 1);
 			let linkPos: RoomPosition;
 			let termPos: RoomPosition;
 			let creepPos: RoomPosition;
@@ -91,7 +91,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 		let link: StructureLink;
 		if (!this.creep.memory.link) {
-			let linkResult: StructureLink[] = _.filter(this.creep.room.myStructures,
+			const linkResult: StructureLink[] = _.filter(this.creep.room.myStructures,
 				(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.storage)) as StructureLink[];
 			if (linkResult.length > 0) {
 				link = linkResult[0];
@@ -104,9 +104,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 		if (!!link) {
 			let linkLimit: number = 413;
-			let flagSearch = link.pos.lookFor<Flag>(LOOK_FLAGS);
+			const flagSearch = link.pos.lookFor<Flag>(LOOK_FLAGS);
 			if (flagSearch.length > 0) {
-				let flag = flagSearch.pop();
+				const flag = flagSearch.pop();
 				if (flag.color === COLOR_PURPLE && flag.secondaryColor === COLOR_PURPLE) {
 					linkLimit = link.energyCapacity;
 				}
@@ -117,7 +117,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			}
 			if (link.energy < linkLimit) {
 				if (this.creep.carry.energy === 0) {
-					let transferValue = global.clamp((linkLimit - link.energy), 0, this.canTransfer);
+					const transferValue = global.clamp((linkLimit - link.energy), 0, this.canTransfer);
 					if (this.storage.store.energy >= transferValue) {
 						this.creep.withdraw(this.storage, RESOURCE_ENERGY, transferValue);
 					} else {
@@ -129,7 +129,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				return true;
 			} else if (link.energy > linkLimit) {
 				if (this.creep.carry.energy === 0) {
-					let transferValue = global.clamp((link.energy - linkLimit), 0, this.canTransfer);
+					const transferValue = global.clamp((link.energy - linkLimit), 0, this.canTransfer);
 					this.creep.withdraw(link, RESOURCE_ENERGY, transferValue);
 				} else {
 					this.creep.transfer(this.storage, RESOURCE_ENERGY);
@@ -166,13 +166,13 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 
 		if (this.storage.store.energy > (this.storageMin / 10) && this.terminal.store.energy < this.terminalEnergyMax) {
-			let amount: number = global.clamp(this.terminalEnergyMax - this.terminal.store.energy, 0, this.canTransfer);
+			const amount: number = global.clamp(this.terminalEnergyMax - this.terminal.store.energy, 0, this.canTransfer);
 			this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
 			this.creep.memory.direction = 1;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
 			return true;
 		} else if (this.terminal.store.energy > this.terminalEnergyMax) {
-			let amount: number = global.clamp(this.terminal.store.energy - this.terminalEnergyMax, 0, this.canTransfer);
+			const amount: number = global.clamp(this.terminal.store.energy - this.terminalEnergyMax, 0, this.canTransfer);
 			this.creep.withdraw(this.terminal, RESOURCE_ENERGY, amount);
 			this.creep.memory.direction = 2;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -184,7 +184,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				return;
 			}
 			if (!!this.storage.store[r] && (!this.terminal.store[r] || this.terminal.store[r] < this.terminalMax)) {
-				let amount: number = global.clamp(
+				const amount: number = global.clamp(
 					this.terminalMax - (this.terminal.store[r] || 0),
 					0,
 					_.min([this.canTransfer, this.storage.store[r]])
@@ -194,7 +194,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				this.creep.memory.carryType = r;
 				done = true;
 			} else if (!!this.terminal.store[r] && this.terminal.store[r] > this.terminalMax) {
-				let amount: number = global.clamp(this.terminal.store[r] - this.terminalMax, 0, this.canTransfer);
+				const amount: number = global.clamp(this.terminal.store[r] - this.terminalMax, 0, this.canTransfer);
 				this.creep.withdraw(this.terminal, r, amount);
 				this.creep.memory.direction = 2;
 				this.creep.memory.carryType = r;
@@ -221,7 +221,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		if (this.nuker.ghodium < this.nuker.ghodiumCapacity && !!this.terminal.store[RESOURCE_GHODIUM] && this.terminal.store[RESOURCE_GHODIUM] > 0) {
-			let amount: number = global.clamp(
+			const amount: number = global.clamp(
 				this.nuker.ghodiumCapacity - this.nuker.ghodium,
 				0,
 				_.min([this.canTransfer, this.terminal.store[RESOURCE_GHODIUM]])
@@ -232,7 +232,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		if (this.nuker.energy < this.nuker.energyCapacity && this.storage.store.energy > global.STORAGE_MIN) {
-			let amount: number = global.clamp(this.nuker.energyCapacity - this.nuker.energy, 0, this.canTransfer);
+			const amount: number = global.clamp(this.nuker.energyCapacity - this.nuker.energy, 0, this.canTransfer);
 			this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
 			this.creep.memory.direction = 3;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -255,7 +255,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		if (this.powerSpawn.power < (this.powerSpawn.powerCapacity / 2) && !!this.terminal.store[RESOURCE_POWER] && this.terminal.store[RESOURCE_POWER] > 0) {
-			let amount: number = global.clamp(
+			const amount: number = global.clamp(
 				this.powerSpawn.powerCapacity - this.powerSpawn.power,
 				0,
 				_.min([this.canTransfer, this.terminal.store[RESOURCE_POWER]])
@@ -266,7 +266,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return true;
 		}
 		if (this.powerSpawn.energy < (this.powerSpawn.energyCapacity / 2) && this.storage.store.energy > (global.STORAGE_MIN)) {
-			let amount: number = global.clamp(this.powerSpawn.energyCapacity - this.powerSpawn.energy, 0, this.canTransfer);
+			const amount: number = global.clamp(this.powerSpawn.energyCapacity - this.powerSpawn.energy, 0, this.canTransfer);
 			this.creep.withdraw(this.storage, RESOURCE_ENERGY, amount);
 			this.creep.memory.direction = 7;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -279,7 +279,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 		if (!this.creep.memory.tower) {
-			let towers = this.creep.room.myStructures.filter(
+			const towers = this.creep.room.myStructures.filter(
 				(s: OwnedStructure) => s.structureType === STRUCTURE_TOWER && s.pos.isNearTo(this.creep.pos)
 			) as StructureTower[];
 			if (towers.length > 0) {
@@ -304,7 +304,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 				return true;
 			}
 			if (this.tower.energy < this.tower.energyCapacity && this.storage.store.energy > 0) {
-				let amount: number = global.clamp(
+				const amount: number = global.clamp(
 					this.tower.energyCapacity - this.tower.energy,
 					0,
 					_.min([this.canTransfer, this.storage.store.energy])

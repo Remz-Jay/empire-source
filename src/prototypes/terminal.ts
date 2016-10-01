@@ -11,11 +11,11 @@ StructureTerminal.prototype.processTransactions = function(): boolean {
 		Memory.transactions.forEach((t: TerminalTransaction) => {
 			if (t.recipient !== this.room.name && t.totalAmount - t.sentAmount > 0 && this.store[t.resource] >= batchSize) {
 				batchSize = global.clamp(batchSize, 0, (t.totalAmount - t.sentAmount));
-				let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, t.recipient);
+				const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, t.recipient);
 				if (this.store.energy >= transferCosts) {
-					let description = `ID:[${t.id}] - ${t.description} - ` + `${global.formatNumber(t.sentAmount + batchSize)}/${global.formatNumber(t.totalAmount)}`;
+					const description = `ID:[${t.id}] - ${t.description} - ` + `${global.formatNumber(t.sentAmount + batchSize)}/${global.formatNumber(t.totalAmount)}`;
 					console.log(t.resource, batchSize, t.recipient, description, description.length);
-					let status = this.send(t.resource, batchSize, t.recipient, description);
+					const status = this.send(t.resource, batchSize, t.recipient, description);
 					if (status === OK) {
 						sending = true;
 						global.sendRegistry.push(t.resource);
@@ -36,9 +36,9 @@ StructureTerminal.prototype.processTransactions = function(): boolean {
 };
 
 StructureTerminal.prototype.autoSell = function(): boolean {
-	let storage = this.room.storage;
-	let sending: boolean = false;
-	let minType: string = this.room.minerals[0].mineralType;
+	const storage = this.room.storage;
+	const sending: boolean = false;
+	const minType: string = this.room.minerals[0].mineralType;
 	if (!sending
 		&& Game.cpu.bucket > global.BUCKET_MIN
 		&& this.store.energy >= global.TERMINAL_MAX
@@ -46,16 +46,16 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 		&& this.store[minType] >= global.TERMINAL_MAX
 	) {
 		try {
-			let threshold = global.tradeTreshold(minType);
+			const threshold = global.tradeTreshold(minType);
 			if (_.isNumber(threshold)) {
-				let offers = Game.market.getAllOrders({resourceType: minType, type: ORDER_BUY}).filter((order: Order) =>
+				const offers = Game.market.getAllOrders({resourceType: minType, type: ORDER_BUY}).filter((order: Order) =>
 					order.price >= threshold
 					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName) < 50 // At 70 the energy costs equal the amount to transfer.
 				) as Order[];
 				if (offers.length > 0) {
-					let offer = _.sortBy(offers, "price").shift();
-					let amount = global.clamp(offer.remainingAmount, 0, this.store[minType]);
-					let status = Game.market.deal(offer.id, amount, this.room.name);
+					const offer = _.sortBy(offers, "price").shift();
+					const amount = global.clamp(offer.remainingAmount, 0, this.store[minType]);
+					const status = Game.market.deal(offer.id, amount, this.room.name);
 					if (status === OK) {
 						console.log(global.colorWrap(`[MARKET] AutoSelling ${amount} ${minType} in ${this.room.name} at price ${offer.price}`
 							+ ` - order ${offer.id}.`, "DeepPink"));
@@ -71,11 +71,11 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 };
 
 StructureTerminal.prototype.run = function (): boolean {
-	let storage = this.room.storage;
+	const storage = this.room.storage;
 	let sending: boolean = false;
-	let batchSize: number = 1000;
+	const batchSize: number = 1000;
 
-	let roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
+	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_ENERGY_MAX
 		&& storage.store.energy >= (global.STORAGE_MIN + global.TERMINAL_ENERGY_MAX)
 	) {
@@ -86,9 +86,9 @@ StructureTerminal.prototype.run = function (): boolean {
 				&& !_.includes(global.sendRegistry, RESOURCE_ENERGY)
 				&& room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_ENERGY_MAX)
 			) {
-				let transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, room.name);
-				let transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
-				let status = this.send(RESOURCE_ENERGY, transferAmount, room.name);
+				const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, room.name);
+				const transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
+				const status = this.send(RESOURCE_ENERGY, transferAmount, room.name);
 				if (status === OK) {
 					sending = true;
 					global.sendRegistry.push(RESOURCE_ENERGY);
@@ -101,14 +101,14 @@ StructureTerminal.prototype.run = function (): boolean {
 				return true;
 			}
 		});
-		let powerRoom = Game.rooms[global.POWER_ROOM];
+		const powerRoom = Game.rooms[global.POWER_ROOM];
 		if (!sending && this.room.name !== global.POWER_ROOM
 			&& storage.store.energy > (2 * global.STORAGE_MIN)
 			&& powerRoom.storage.store.energy <= (2 * global.STORAGE_MIN)
 		) {
-			let transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
-			let transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
-			let status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);
+			const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
+			const transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
+			const status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);
 			if (status === OK) {
 				sending = true;
 				global.sendRegistry.push(RESOURCE_ENERGY);
@@ -132,9 +132,9 @@ StructureTerminal.prototype.run = function (): boolean {
 				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < global.TERMINAL_MAX)
 				&& !br.room.storage.store[br.reagent]
 			) {
-				let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, br.room.name);
+				const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, br.room.name);
 				if (this.store.energy >= transferCosts) {
-					let status = this.send(br.reagent, batchSize, br.room.name);
+					const status = this.send(br.reagent, batchSize, br.room.name);
 					if (status === OK) {
 						sending = true;
 						global.sendRegistry.push(br.reagent);
@@ -161,9 +161,9 @@ StructureTerminal.prototype.run = function (): boolean {
 					&& (!lr.room.terminal.store[reagent] || lr.room.terminal.store[reagent] < global.TERMINAL_MAX)
 					&& !lr.room.storage.store[reagent]
 				) {
-					let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, lr.room.name);
+					const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, lr.room.name);
 					if (this.store.energy >= transferCosts) {
-						let status = this.send(reagent, batchSize, lr.room.name);
+						const status = this.send(reagent, batchSize, lr.room.name);
 						if (status === OK) {
 							sending = true;
 							global.sendRegistry.push(reagent);
@@ -180,8 +180,7 @@ StructureTerminal.prototype.run = function (): boolean {
 		}
 	});
 	if (!sending && Game.cpu.bucket > global.BUCKET_MIN) {
-		let resources = _.difference(RESOURCES_ALL, resourceBlacklist);
-		resources = _.difference(resources, global.sendRegistry);
+		let resources: string[] = _(RESOURCES_ALL).difference(resourceBlacklist).difference(global.sendRegistry).value();
 		resources.forEach((resource: string) => {
 			if (sending) {
 				return;
@@ -195,9 +194,9 @@ StructureTerminal.prototype.run = function (): boolean {
 						&& !room.storage.store[resource]
 						&& (!room.terminal.store[resource] || room.terminal.store[resource] < global.TERMINAL_MAX)
 					) {
-						let transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, room.name);
+						const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, room.name);
 						if (this.store.energy >= transferCosts) {
-							let status = this.send(resource, batchSize, room.name);
+							const status = this.send(resource, batchSize, room.name);
 							if (status === OK) {
 								sending = true;
 								global.sendRegistry.push(resource);

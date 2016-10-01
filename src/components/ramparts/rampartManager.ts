@@ -19,21 +19,21 @@ export function getWeakestRampart() {
 	});
 }
 export function openRamparts() {
-	let list = _.filter(ramparts, (r: StructureRampart) => !r.isPublic);
+	const list = _.filter(ramparts, (r: StructureRampart) => !r.isPublic);
 	list.forEach((r: Rampart) => {
 		r.setPublic(true);
 	});
 }
 export function closeRamparts() {
-	let list = _.filter(ramparts, (r: StructureRampart) => !!r.isPublic);
+	const list = _.filter(ramparts, (r: StructureRampart) => !!r.isPublic);
 	list.forEach((r: Rampart) => {
 		r.setPublic(false);
 	});
 }
 export function adjustStrength() {
-	let current = Memory.config.Rampart[room.name].strength;
-	let avg = getAverageStrength();
-	let avgWall = WallManager.getAverageStrength();
+	const current = Memory.config.Rampart[room.name].strength;
+	const avg = getAverageStrength();
+	const avgWall = WallManager.getAverageStrength();
 	// if walls are stronger than ramparts and ramparts aren"t at max strength:
 	if (avg < avgWall && avg < _.sample(ramparts).hitsMax && avg > current) {
 		Memory.config.Rampart[room.name].strength = avg;
@@ -42,7 +42,7 @@ export function adjustStrength() {
 }
 
 function getRamparts(): StructureRampart[] {
-	let r = room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_RAMPART) as StructureRampart[];
+	const r = room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_RAMPART) as StructureRampart[];
 	if (Memory.config.Rampart === undefined) {
 		Memory.config.Rampart = {};
 	}

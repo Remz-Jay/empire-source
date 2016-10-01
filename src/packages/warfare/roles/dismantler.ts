@@ -35,7 +35,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 			return false;
 		}
 		if (this.positionIterator < this.positions.length && this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-			let structures  = this.creep.room.lookForAt<Structure>(LOOK_STRUCTURES, this.positions[this.positionIterator]);
+			const structures  = this.creep.room.lookForAt<Structure>(LOOK_STRUCTURES, this.positions[this.positionIterator]);
 			if (structures.length) {
 				this.creep.dismantle(structures[0]);
 				return false;
@@ -58,7 +58,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 		if (!this.hasHealer && (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth)) {
 			return;
 		} else if (this.hasHealer && !this.checkTough()) {
-			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
+			const closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
 				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) > 5,
 			});
 			if (!!closest && !this.creep.pos.isNearTo(closest)) {
@@ -76,7 +76,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 			}
 			if (this.positionIterator < this.positions.length) {
 				if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 1);
+					const pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 1);
 					this.moveTo(pfg);
 				} else {
 					this.positionIterator = ++this.creep.memory.positionIterator;

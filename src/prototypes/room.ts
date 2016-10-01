@@ -76,7 +76,7 @@ Room.prototype.getCreepMatrix = function () {
 		if (!!this.creepMatrix) {
 			return this.creepMatrix;
 		}
-		let costMatrix = this.getCostMatrix();
+		const costMatrix = this.getCostMatrix();
 		// Avoid creeps in the room
 		_.union(this.myCreeps, this.alliedCreeps).forEach((creep: Creep) => {
 			costMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
@@ -99,7 +99,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 		return global.costMatrix[this.name];
 	}
 	try {
-		let costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
+		const costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
 		if (!ignoreRoomConfig && !!costMatrix) {
 			// console.log("Returning existing CostMatrix for room " + this.name);
 			global.costMatrix[this.name] = costMatrix;
@@ -144,9 +144,9 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				}
 				this.roomConfig.W6N45 = positions;
 			}
-			let costs = new PathFinder.CostMatrix();
+			const costs = new PathFinder.CostMatrix();
 
-			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
+			const hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
 			// Prefer walking on hostile construction sites
 			hostileConstructionSites.forEach((s: ConstructionSite) => {
 				costs.set(s.pos.x, s.pos.y, 1);
@@ -181,7 +181,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 					costs.set(obj.x, obj.y, obj.w);
 				});
 			}
-			let linkerFlag = Game.flags[this.name + "_LS"];
+			const linkerFlag = Game.flags[this.name + "_LS"];
 			if (!!linkerFlag) {
 				costs.set(linkerFlag.pos.x, linkerFlag.pos.y, global.PF_CREEP); // Assume there's a linker on the spot
 			}
@@ -219,14 +219,14 @@ Room.prototype.getHostileCreeps = function(): Creep[] {
 	return _.difference<Creep>(this.allCreeps, this.myCreeps);
 };
 Room.prototype.getAlliedCreeps = function(): Creep[] {
-	let allies: Creep[] = this.hostileCreeps.filter((c: Creep) => _.includes(global.alliedPlayers, c.owner.username));
+	const allies: Creep[] = this.hostileCreeps.filter((c: Creep) => _.includes(global.alliedPlayers, c.owner.username));
 	this.hostileCreeps = _.difference(this.hostileCreeps, allies);
 	return allies;
 };
 Room.prototype.getAllStructures = function(): Structure[] {
 	return this.find(FIND_STRUCTURES) as Structure[];
 	/*
-	let allStructures: Structure[] = [];
+	const allStructures: Structure[] = [];
 	if (!global.structures) {
 		global.structures = [];
 	}
@@ -254,7 +254,7 @@ Room.prototype.getHostileStructures = function (): OwnedStructure[] {
 	!!s && undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
-	let spawns = this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+	const spawns = this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
 	spawns.forEach((s: StructureSpawn) => {
 		if (!!s.spawning) {
 			s.isBusy = true;
@@ -268,10 +268,10 @@ Room.prototype.getMyLabs = function(): StructureLab[] {
 Room.prototype.getBoostLabs = function(): StructureLab[] {
 	let boostLabs: StructureLab[] = [];
 	this.myLabs.forEach((l: StructureLab) => {
-		let flag = l.pos.lookFor<Flag>(LOOK_FLAGS).shift();
+		const flag = l.pos.lookFor<Flag>(LOOK_FLAGS).shift();
 		if (!!flag && _.includes(flag.name, "_B")) {
 			boostLabs.push(l);
-			let reagent = global.labColors.resource(flag.color, flag.secondaryColor);
+			const reagent = global.labColors.resource(flag.color, flag.secondaryColor);
 			global.boostReagents.push({room: this, reagent: reagent});
 		}
 	});
@@ -318,7 +318,7 @@ Room.prototype.getSources = function(): Source[] {
 	return allSources;
 };
 Room.prototype.getNuker = function(): StructureNuker {
-	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_NUKER);
+	const sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_NUKER);
 	if (sn.length > 0) {
 		return sn.pop();
 	} else {
@@ -326,7 +326,7 @@ Room.prototype.getNuker = function(): StructureNuker {
 	}
 };
 Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
-	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_POWER_SPAWN);
+	const sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_POWER_SPAWN);
 	if (sn.length > 0) {
 		return sn.pop();
 	} else {
@@ -334,7 +334,7 @@ Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
 	}
 };
 Room.prototype.getObserver = function(): StructureObserver {
-	let sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_OBSERVER);
+	const sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_OBSERVER);
 	if (sn.length > 0) {
 		return sn.pop();
 	} else {
@@ -343,7 +343,7 @@ Room.prototype.getObserver = function(): StructureObserver {
 };
 Room.prototype.getLabReaction = function(): string {
 	if (!!Game.flags[this.name + "_LR"]) {
-		let flag = Game.flags[this.name + "_LR"];
+		const flag = Game.flags[this.name + "_LR"];
 		if (!(flag.color === COLOR_WHITE && flag.secondaryColor === COLOR_RED)) { // Clean All
 			return global.labColors.resource(flag.color, flag.secondaryColor);
 		}

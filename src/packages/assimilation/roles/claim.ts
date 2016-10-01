@@ -17,7 +17,7 @@ export default class Claim extends ASMCreepAction implements IClaim {
 
 	public assimilateRoom() {
 		if (!this.targetController) {
-			let flag = Game.flags[this.creep.memory.config.targetRoom];
+			const flag = Game.flags[this.creep.memory.config.targetRoom];
 			if (!!flag) {
 				this.moveTo(flag.pos);
 			} else {

@@ -1,5 +1,4 @@
 export let sources: ISource[];
-export let sourceCount: number;
 export let sourceRoom: Room;
 
 interface ISource extends Source {
@@ -30,7 +29,7 @@ export function getFirstSource(): Source {
 
 export function blacklistSources(sourceIds: string[]): boolean {
 	_.each(sourceIds, function (s: string) {
-		let removed = _.remove(sources, {
+		const removed = _.remove(sources, {
 			id: s,
 		});
 		if (removed.length > 0) {
@@ -43,17 +42,17 @@ export function blacklistSources(sourceIds: string[]): boolean {
 }
 
 export function findAvailableHarvester(s: Source) {
-	let harvesters = _.filter(s.room.myCreeps, (c: Creep) => c.memory.role.toUpperCase() === "Harvester".toUpperCase());
+	const harvesters = _.filter(s.room.myCreeps, (c: Creep) => c.memory.role.toUpperCase() === "Harvester".toUpperCase());
 	return harvesters.find((h: Creep) => !h.memory.preferredSource);
 }
 
 export function updateHarvesterPreference() {
-	let mhps = getMaxHarvestersPerSource();
+	const mhps = getMaxHarvestersPerSource();
 	_.each(sources, function (s: ISource) {
 		for (let i = 1; i <= global.MAX_HARVESTERS_PER_SOURCE; i++) {
 			if (i > mhps || i > getMiningSlots(s).length) {
 				if (!s.memory[`preferredHarvester${i}`]) {
-					let preferredHarvester: string = s.memory[`preferredHarvester${i}`];
+					const preferredHarvester: string = s.memory[`preferredHarvester${i}`];
 					delete s.memory[`preferredHarvester${i}`];
 					if (!!Game.creeps[preferredHarvester]) {
 						delete Game.creeps[preferredHarvester].memory.preferredSource;
@@ -68,9 +67,9 @@ export function updateHarvesterPreference() {
 						// || Game.creeps[s.memory.preferredHarvester].memory.preferredSource != s.id // Harvester doesn't know about this source.
 					)
 				) {
-					let ph = findAvailableHarvester(s);
+					const ph = findAvailableHarvester(s);
 					if (!!ph) {
-						let preferredHarvester = ph.name;
+						const preferredHarvester = ph.name;
 						console.log(`Found ${preferredHarvester} for  ${s.id}`);
 						Game.creeps[preferredHarvester].memory.preferredSource = s.id;
 						Game.creeps[preferredHarvester].memory.target_source_id = s.id;
@@ -85,7 +84,7 @@ export function getMiningSlots(source: ISource): LookAtResultWithPos[] {
 	if (!!source.memory.slots && _.isArray(source.memory.slots)) {
 		return source.memory.slots;
 	} else {
-		let lookResults: LookAtResultWithPos[] = source.room.lookForAtArea(
+		const lookResults: LookAtResultWithPos[] = source.room.lookForAtArea(
 			LOOK_TERRAIN,
 			source.pos.y - 1,
 			source.pos.x - 1,
@@ -94,7 +93,7 @@ export function getMiningSlots(source: ISource): LookAtResultWithPos[] {
 			true // returns a LookAtResultWithPos[]
 		) as LookAtResultWithPos[];
 		let slots: LookAtResultWithPos[] = [];
-		for (let result of lookResults) {
+		for (const result of lookResults) {
 			if (result.terrain === "plain" || result.terrain === "swamp") {
 				slots.push(result);
 			}
@@ -106,8 +105,8 @@ export function getMiningSlots(source: ISource): LookAtResultWithPos[] {
 
 export function getMaxHarvestersPerSource(): number {
 	return 1;
-/*	let capacity: number = sourceRoom.energyCapacityAvailable;
-	let max: number = 1;
+/*	const capacity: number = sourceRoom.energyCapacityAvailable;
+	const max: number = 1;
 	if (capacity < 1200) {
 		max = 2;
 	}
@@ -118,14 +117,14 @@ export function getMaxHarvestersPerSource(): number {
 }
 
 export function getNumberOfRequiredHarvesters(): number {
-	let max: number = getMaxHarvestersPerSource();
+	const max: number = getMaxHarvestersPerSource();
 	let num: number = 0;
 	_.each(sources, function(s: Source) {
-		let maxPos: number = getMiningSlots(s).length;
+		const maxPos: number = getMiningSlots(s).length;
 		if (max > maxPos) {
-			num += maxPos;
+			num = num + maxPos;
 		} else {
-			num += max;
+			num = num + max;
 		}
 	}, this);
 	return num;

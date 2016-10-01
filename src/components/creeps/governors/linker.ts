@@ -11,9 +11,9 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 	public maxParts = 5;
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${LinkerGovernor.ROLE}-${global.time}`;
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${LinkerGovernor.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: LinkerGovernor.ROLE,
 			target_link_id: this.getStorageLink().id,
@@ -23,16 +23,12 @@ export default class LinkerGovernor extends CreepGovernor implements ICreepGover
 	}
 
 	public getCreepLimit(): number {
-		let limit = 0;
-		if (!!this.getStorageLink()) {
-				limit = this.maxCreeps;
-		}
-		return limit;
+		return (!!this.getStorageLink()) ? this.maxCreeps : 0;
 	}
 
 	public getStorageLink(): StructureLink {
 		if (!!this.room.storage) {
-			let link: StructureLink[] = _.filter(this.room.myStructures,
+			const link: StructureLink[] = _.filter(this.room.myStructures,
 				(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.room.storage)) as StructureLink[];
 			if (link.length > 0) {
 				return link[0];

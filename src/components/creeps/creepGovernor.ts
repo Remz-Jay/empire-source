@@ -20,38 +20,9 @@ export default class CreepGovernor implements ICreepGovernor {
 	public static MINRCL: number = global.MINRCL_CREEP;
 	public static PRIORITY: number = global.PRIORITY_CREEP;
 	public static ROLE: string = "Creep";
-	public static calculateRequiredEnergy(body: string[]): number {
-		let cost = 0;
-		_.forEach(body, function (n) {
-			switch (n) {
-				case CARRY:
-				case MOVE:
-					cost += 50;
-					break;
-				case WORK:
-					cost += 100;
-					break;
-				case ATTACK:
-					cost += 80;
-					break;
-				case RANGED_ATTACK:
-					cost += 150;
-					break;
-				case HEAL:
-					cost += 250;
-					break;
-				case CLAIM:
-					cost += 600;
-					break;
-				case TOUGH:
-					cost += 10;
-					break;
-				default:
-					console.log(`Unknown BODY_PART: ${n}`);
-			}
-		});
 
-		return cost;
+	public static calculateRequiredEnergy(body: string[]): number {
+		return _.sum(body, (b: string) => BODYPART_COST[b]);
 	};
 
 	public static sortBodyParts(bodyParts: string[]): string[] {
@@ -104,7 +75,7 @@ export default class CreepGovernor implements ICreepGovernor {
 	}
 
 	public getBody() {
-		let numParts = global.clamp(_.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+		const numParts = global.clamp(_.floor(this.room.energyCapacityAvailable / CreepGovernor.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {

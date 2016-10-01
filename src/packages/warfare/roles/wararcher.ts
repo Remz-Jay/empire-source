@@ -20,17 +20,15 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 		if (!this.hasHealer && !this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
 			return;
 		} else if (this.hasHealer && !this.checkTough()) {
-			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
+			const closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
 				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) > 5,
 			});
 			if (!!closest && !this.creep.pos.isNearTo(closest)) {
 				// get in range
-				this.creep.say('MTH');
 				this.creep.moveTo(closest);
 				return;
 			} else if (!!closest) {
 				// stay in range
-				this.creep.say('SWH');
 				this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
 				return;
 			}
@@ -55,7 +53,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
-					let t2 = this.findTarget();
+					const t2 = this.findTarget();
 					if (!!t2) {
 						target = t2;
 						this.creep.memory.target = target.id;
@@ -64,18 +62,14 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			}
 			// Just moveTo when we're safely behind walls
 			if (!!target && !this.hardPath) {
-				// this.moveTo(target.pos);
-				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - noHardPath #${++this.moveIterator}`);
-				this.creep.say('MTT');
 				this.creep.move(this.creep.pos.getDirectionTo(target));
 				return;
 			}
 
 			// Otherwise, use a pathFinder path to get there.
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				let range = (target instanceof Creep && target.my) ? 1 : 3;
+				const range = (target instanceof Creep && target.my) ? 1 : 3;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
-					this.creep.say('MTT2');
 					this.moveTo(target.pos);
 				}
 			} else {

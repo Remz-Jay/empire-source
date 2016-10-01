@@ -17,8 +17,8 @@ export function getWeakestWall() {
 	});
 }
 export function adjustStrength() {
-	let current = Memory.config.Wall[room.name].strength;
-	let avg = getAverageStrength();
+	const current = Memory.config.Wall[room.name].strength;
+	const avg = getAverageStrength();
 	if (avg > current) {
 		Memory.config.Wall[room.name].strength = avg;
 		console.log("Adjusting Wall Strength for room " + room.name + " to " + avg);
@@ -26,7 +26,7 @@ export function adjustStrength() {
 }
 
 function getWalls(): StructureWall[] {
-	let w = room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL) as StructureWall[];
+	const w = room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL) as StructureWall[];
 	if (Memory.config.Wall === undefined) {
 		Memory.config.Wall = {};
 	}

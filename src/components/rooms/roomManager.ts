@@ -28,7 +28,7 @@ export function getRoomByName(roomName: string): Room {
 	if (rooms.hasOwnProperty(roomName))  {
 		return rooms[roomName];
 	} else if (!!Game.rooms[roomName]) {
-		let r = Game.rooms[roomName];
+		const r = Game.rooms[roomName];
 		r.addProperties();
 		rooms[r.name] = r;
 		return r;
@@ -38,8 +38,8 @@ export function getRoomByName(roomName: string): Room {
 }
 
 export function governRooms(): void {
-	for (let roomName in Game.rooms) {
-		let room = getRoomByName(roomName);
+	for (const roomName in Game.rooms) {
+		const room = getRoomByName(roomName);
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
 			try {
 				WallManager.load(room);
@@ -78,7 +78,7 @@ export function governRooms(): void {
 			}
 
 			try {
-				let towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
+				const towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
 				_.each(towers, (t: StructureTower) => {
 					t.run();
 				});
@@ -89,7 +89,7 @@ export function governRooms(): void {
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
 					if (!!room.storage) {
-						let links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
+						const links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
 						_.each(links, (l: StructureLink) => {
 							l.run();
 						});
@@ -112,10 +112,10 @@ export function governRooms(): void {
 				if (room.myLabs.length > 2) {
 					try {
 						if (!!room.labReaction) {
-							let inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= 10).pop();
-							let inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= 10).pop();
+							const inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= 10).pop();
+							const inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= 10).pop();
 							if (!!inLab1 && !!inLab2) {
-								let labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
+								const labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
 								labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));
 							}
 						}

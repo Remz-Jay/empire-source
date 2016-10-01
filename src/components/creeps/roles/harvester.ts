@@ -28,7 +28,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public assignNewSource(): boolean {
-		let target: Source = <Source> this.creep.pos.findClosestByPath(this.creep.room.sources, {
+		const target: Source = <Source> this.creep.pos.findClosestByPath(this.creep.room.sources, {
 			filter: (source: Source) => {
 				return (
 					_.includes(SourceManager.sources, source)
@@ -46,7 +46,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public assignNewDropOff(): boolean {
-		let target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
+		const target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
 			filter: (structure: EnergyStructure) => {
 				return (
 						structure.structureType === STRUCTURE_EXTENSION ||
@@ -87,7 +87,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		if (!this.creep.pos.isNearTo(this.targetEnergyDropOff.pos)) {
 			this.moveTo(this.targetEnergyDropOff.pos);
 		} else {
-			let status = this.tryEnergyDropOff();
+			const status = this.tryEnergyDropOff();
 			switch (status) {
 				case OK:
 					break;
@@ -142,7 +142,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 					this.creep.memory.target = this.creep.room.controller.id;
 				}
 			}
-			let target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
+			const target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
 			if (!target) {
 				delete this.creep.memory.target;
 			} else {
@@ -154,7 +154,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						if (!this.creep.pos.isNearTo(target)) {
 							this.moveTo(target.pos);
 						} else {
-							let status = this.creep.transfer(target, RESOURCE_ENERGY);
+							const status = this.creep.transfer(target, RESOURCE_ENERGY);
 							switch (status) {
 								case ERR_FULL:
 									delete this.creep.memory.target;
@@ -193,7 +193,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 				}
 			}
 			if (!!this.creep.memory.source) {
-				let source: Source = Game.getObjectById(this.creep.memory.source) as Source;
+				const source: Source = Game.getObjectById(this.creep.memory.source) as Source;
 				let container: StructureContainer;
 				let link: StructureLink;
 				if (!!this.creep.memory[`link_${this.creep.memory.source}`]) {
@@ -205,15 +205,15 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						delete this.creep.memory[`cont_${this.creep.memory.source}`];
 					}
 				} else {
-					let lr = this.safeLook(LOOK_STRUCTURES, source.pos, 2);
+					const lr = this.safeLook(LOOK_STRUCTURES, source.pos, 2);
 					if (lr.length > 0) {
-						let s = _.map(lr, "structure");
-						let containers = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_CONTAINER);
+						const s = _.map(lr, "structure");
+						const containers = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_CONTAINER);
 						if (containers.length > 0) {
 							container = source.pos.findClosestByRange(containers) as StructureContainer;
 							this.creep.memory[`cont_${this.creep.memory.source}`] = container.id;
 						}
-						let links = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_LINK);
+						const links = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_LINK);
 						if (links.length > 0) {
 							link = source.pos.findClosestByRange(links) as StructureLink;
 							this.creep.memory[`link_${this.creep.memory.source}`] = link.id;
@@ -221,7 +221,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 					}
 				}
 				if (!!container && !this.creep.pos.isEqualTo(container.pos)) {
-					let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> container.pos, 0);
+					const pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> container.pos, 0);
 					this.moveTo(pfg);
 				} else if (!this.creep.pos.isNearTo(source)) {
 					this.moveTo(source.pos);
@@ -240,7 +240,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						}
 					}
 					if (source.energy > 0) {
-						let status = this.creep.harvest(source);
+						const status = this.creep.harvest(source);
 						switch (status) {
 							case ERR_NOT_ENOUGH_RESOURCES:
 							case ERR_INVALID_TARGET:

@@ -11,10 +11,10 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 	public bodyPart = [CARRY, MOVE, WORK, WORK, WORK, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${UpgraderGovernor.ROLE}-${global.time}`;
-		let spawn = this.room.getFreeSpawn();
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${UpgraderGovernor.ROLE}-${global.time}`;
+		const spawn = this.room.getFreeSpawn();
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: UpgraderGovernor.ROLE,
 			target_controller_id: this.room.controller.id,

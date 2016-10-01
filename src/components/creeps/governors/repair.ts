@@ -10,10 +10,10 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 	public maxParts = 4;
 	public maxCreeps = 2;
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${RepairGovernor.ROLE}-${global.time}`;
-		let spawn = this.room.getFreeSpawn();
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${RepairGovernor.ROLE}-${global.time}`;
+		const spawn = this.room.getFreeSpawn();
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: RepairGovernor.ROLE,
 			target_controller_id: this.room.controller.id,
@@ -26,12 +26,6 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 		if (this.room.controller.level === 8 && this.room.myConstructionSites.length === 0) {
 			return 1;
 		}
-		let num: number = 0;
-		if (this.room.controller.level < 5) {
-			num = 0;
-		} else {
-			num = _.floor(this.room.energyInContainers / 200000);
-		}
-		return num;
+		return (this.room.controller.level < 5) ? 0 : _.floor(this.room.energyInContainers / 200000);
 	};
 }

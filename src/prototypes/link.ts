@@ -8,21 +8,20 @@ StructureLink.prototype.calcTotal = function(input: number): number {
 };
 
 StructureLink.prototype.send = function(): boolean {
-	let receivers = this.room.myStructures.filter(
+	const receivers: Structure[] = _(this.room.myStructures).filter(
 		(s: Structure) => s.structureType === STRUCTURE_LINK
 		&& !_.includes(global.linkBlackList, s.id)
 		&& s.id !== this.id
-	);
-	receivers = _.sortBy(receivers, "energy");
+	).sortBy("energy").value();
 	let sending: boolean = false;
 	receivers.forEach((r: StructureLink) => {
 		if (sending) {
 			return true;
 		}
 		let transferValue: number = 400;
-		let flags = r.pos.lookFor<Flag>(LOOK_FLAGS);
+		const flags = r.pos.lookFor<Flag>(LOOK_FLAGS);
 		if (flags.length > 0) {
-			let flag = flags.shift();
+			const flag = flags.shift();
 			if (flag.color === COLOR_BLUE) { // IN link
 				transferValue = 0;
 			} else if (flag.color === COLOR_RED) { // OUT link
@@ -34,7 +33,7 @@ StructureLink.prototype.send = function(): boolean {
 		if (r.energy < transferValue) {
 			transferValue = global.clamp(this.calcTotal(transferValue - r.energy), 0, this.energy);
 			if (transferValue > 0) {
-				let status = this.transferEnergy(r, transferValue);
+				const status = this.transferEnergy(r, transferValue);
 				if (status !== OK) {
 					this.transferEnergy(r);
 				}
@@ -48,7 +47,7 @@ StructureLink.prototype.send = function(): boolean {
 };
 
 StructureLink.prototype.run = function () {
-	let storage = this.room.storage;
+	const storage = this.room.storage;
 	if (!!storage && this.cooldown === 0) {
 		if (this.pos.isNearTo(storage)) {
 			if (this.energy >= this.calcTotal(400)) {
@@ -56,9 +55,9 @@ StructureLink.prototype.run = function () {
 			}
 		} else {
 			let transferValue: number = 400;
-			let flags = this.pos.lookFor(LOOK_FLAGS);
+			const flags = this.pos.lookFor(LOOK_FLAGS);
 			if (flags.length > 0) {
-				let flag = flags.shift();
+				const flag = flags.shift();
 				if (flag.color === COLOR_BLUE) { // IN link
 					transferValue = 600;
 				} else if (flag.color === COLOR_RED) { // OUT link

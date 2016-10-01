@@ -43,7 +43,7 @@ function resetMemory() {
 }
 
 function overloadCPUCalc() {
-	let simName: string = "sim";
+	const simName: string = "sim";
 	if (Game.rooms[simName]) {
 		usedOnStart = 0; // This needs to be reset, but only in the sim.
 		Game.cpu.getUsed = function getUsed() {
@@ -62,7 +62,7 @@ function wrapFunction(name: string, originalFunction: any) {
 			const nameMatchesFilter = name === getFilter();
 			const start = Game.cpu.getUsed();
 			if (nameMatchesFilter) {
-				depth++;
+				depth = depth + 1;
 			}
 			const result = originalFunction.apply(this, arguments);
 			if (depth > 0 || !getFilter()) {
@@ -70,7 +70,7 @@ function wrapFunction(name: string, originalFunction: any) {
 				Profiler.record(name, end - start);
 			}
 			if (nameMatchesFilter) {
-				depth--;
+				depth = depth - 1;
 			}
 			return result;
 		}
@@ -178,14 +178,14 @@ const Profiler = {
 				calls: 0,
 			};
 		}
-		Memory.profiler.map[functionName].calls++;
-		Memory.profiler.map[functionName].time += time;
+		Memory.profiler.map[functionName].calls = Memory.profiler.map[functionName].calls + 1;
+		Memory.profiler.map[functionName].time = Memory.profiler.map[functionName].time + time;
 	},
 
 	endTick() {
 		if (Game.time >= Memory.profiler.enabledTick) {
 			const cpuUsed = Game.cpu.getUsed();
-			Memory.profiler.totalTime += cpuUsed;
+			Memory.profiler.totalTime = Memory.profiler.totalTime + cpuUsed;
 			Profiler.report();
 		}
 	},

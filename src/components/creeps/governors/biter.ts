@@ -11,9 +11,9 @@ export default class BiterGovernor extends CreepGovernor implements ICreepGovern
 	public maxParts = 9;
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${BiterGovernor.ROLE}-${global.time}`;
-		let properties: CreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${BiterGovernor.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
 			homeRoom: this.room.name,
 			role: BiterGovernor.ROLE,
 		};

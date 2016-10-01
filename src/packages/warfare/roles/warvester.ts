@@ -20,14 +20,14 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 				if (!!this.creep.memory.mineralSource) {
 					mineralSource = Game.getObjectById(this.creep.memory.mineralSource) as Mineral;
 				} else {
-					let mineral = this.creep.room.lookForAt<Mineral>(LOOK_MINERALS, this.positions[this.positionIterator]);
+					const mineral = this.creep.room.lookForAt<Mineral>(LOOK_MINERALS, this.positions[this.positionIterator]);
 					if (mineral.length > 0) {
 						this.creep.memory.mineralSource = mineral[0].id;
 						mineralSource = mineral[0];
 					}
 				}
 				if (!!mineralSource) {
-					let status = this.creep.harvest(mineralSource);
+					const status = this.creep.harvest(mineralSource);
 					if (status === ERR_NOT_ENOUGH_RESOURCES) {
 						this.positionIterator = this.creep.memory.positionIterator = this.sourcePosition + 1;
 						return true;
@@ -40,7 +40,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		} else if (this.positionIterator === this.sourcePosition && this.creep.bagFull) {
 			this.positionIterator = this.creep.memory.positionIterator = this.sourcePosition + 1;
 		} else if (this.creep.pos.isNearTo(this.creep.room.terminal)) {
-			let status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
+			const status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
 			if (status === OK) {
 				this.creep.say("Dump");
 				this.positionIterator = this.creep.memory.positionIterator = 0;
@@ -56,7 +56,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		}
 		if (this.positionIterator < this.positions.length) {
 			if (!this.creep.pos.isEqualTo(this.positions[this.positionIterator])) {
-				let pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
+				const pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> this.positions[this.positionIterator], 0);
 				// this.creep.say(pfg[0].pos.x + "," + pfg[0].pos.y + "," + pfg[0].range);
 				this.moveTo(pfg);
 			} else {

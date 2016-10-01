@@ -14,8 +14,8 @@ global.formatNumber = function(value: number): string {
 
 // Thanks Dissi!
 global.getColorBasedOnPercentage = function(thePercentage: number) {
-	let hue = Math.floor((100 - thePercentage) * 120 / 100);  // go from green to red
-	let saturation = Math.abs(thePercentage - 50) / 50;
+	const hue = Math.floor((100 - thePercentage) * 120 / 100);  // go from green to red
+	const saturation = Math.abs(thePercentage - 50) / 50;
 	return global.hsv2rgb(hue, saturation, 1);
 };
 
@@ -57,10 +57,10 @@ global.hsv2rgb = function(h: number, s: number, v: number) {
 };
 
 global.planRoute = function(from: RoomPosition, to: RoomPosition) {
-	let route = PathFinder.search(from, to, {
+	const route = PathFinder.search(from, to, {
 		roomCallback: function (roomName: string): CostMatrix | boolean {
 			try {
-				let room = Game.rooms[roomName];
+				const room = Game.rooms[roomName];
 				if (!room) {
 					return;
 				}
@@ -86,16 +86,16 @@ global.planRoute = function(from: RoomPosition, to: RoomPosition) {
 // Thanks ags131 !
 // console.log(`<span style="line-height:1">${utils.table(incoming)}</span>`)
 global.table = function(data: any[], widths?: number[]){
-	let leftTopCorner = "╔";
-	let rightTopCorner = "╗";
-	let leftBottomCorner = "╚";
-	let rightBottomCorner = "╝";
-	let hBar = "═";
-	let vBar = "║";
-	// let hSBar = "─";
-	let vSBar = "│";
-	let bottomDSTee = "╧";
-	let topDSTee = "╤";
+	const leftTopCorner = "╔";
+	const rightTopCorner = "╗";
+	const leftBottomCorner = "╚";
+	const rightBottomCorner = "╝";
+	const hBar = "═";
+	const vBar = "║";
+	// const hSBar = "─";
+	const vSBar = "│";
+	const bottomDSTee = "╧";
+	const topDSTee = "╤";
 	let rows: any[] = [];
 	let width = 0;
 	if (!widths) {
@@ -112,14 +112,14 @@ global.table = function(data: any[], widths?: number[]){
 		// console.log(widths)
 	}
 	data.forEach(d => {
-		let arr = d instanceof Array ? d : _.values(d);
-		let r = `${vBar} ` + arr.map((v: string, i: number) => (" ".repeat(widths[i]) + v).slice(-widths[i])).join(` ${vSBar} `) + ` ${vBar}`;
+		const arr = d instanceof Array ? d : _.values(d);
+		const r = `${vBar} ` + arr.map((v: string, i: number) => (" ".repeat(widths[i]) + v).slice(-widths[i])).join(` ${vSBar} `) + ` ${vBar}`;
 		width = r.length;
 		// console.log(r)
 		rows.push(r);
 	});
-	let topBar = widths.map(w => hBar.repeat(w + 2)).join(topDSTee);
-	let bottomBar = widths.map(w => hBar.repeat(w + 2)).join(bottomDSTee);
+	const topBar = widths.map(w => hBar.repeat(w + 2)).join(topDSTee);
+	const bottomBar = widths.map(w => hBar.repeat(w + 2)).join(bottomDSTee);
 	rows.unshift(`${leftTopCorner}${topBar}${rightTopCorner}`);
 	rows.push(`${leftBottomCorner}${bottomBar}${rightBottomCorner}`);
 	return rows.join("\n");

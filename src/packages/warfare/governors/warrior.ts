@@ -12,9 +12,9 @@ export default class WarriorGovernor extends WarfareCreepGovernor {
 	public basePart = [TOUGH, MOVE]; // TODO: 8x TOUGH = optimized for powerSpawns
 
 	public getCreepConfig(): CreepConfiguration {
-		let bodyParts: string[] = this.getBody();
-		let name: string = `${this.room.name}-${WarriorGovernor.ROLE}-${global.time}`;
-		let properties: RemoteCreepProperties = {
+		const bodyParts: string[] = this.getBody();
+		const name: string = `${this.room.name}-${WarriorGovernor.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
 			homeRoom: this.room.name,
 			role: WarriorGovernor.ROLE,
 			config: this.config,
