@@ -9,7 +9,7 @@ export default class DismantlerGovernor extends WarfareCreepGovernor {
 	public maxParts = 20;
 	public maxCreeps = 2;
 	public bodyPart = [WORK, WORK, WORK, MOVE];
-	public toughPart = [TOUGH, TOUGH, TOUGH, MOVE];
+	public toughPart = [TOUGH, MOVE];
 	public basePart = [TOUGH, TOUGH, TOUGH, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {

@@ -145,6 +145,21 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				this.roomConfig.W6N45 = positions;
 			}
 			let costs = new PathFinder.CostMatrix();
+
+			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
+			// Prefer walking on hostile construction sites
+			hostileConstructionSites.forEach((s: ConstructionSite) => {
+				costs.set(s.pos.x, s.pos.y, 1);
+			});
+			// But avoid our own.
+			this.myConstructionSites.forEach(function (site: ConstructionSite) {
+				if (!!site && (site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_RAMPART)) {
+					costs.set(site.pos.x, site.pos.y, 1);
+				} else {
+					costs.set(site.pos.x, site.pos.y, 0xff);
+				}
+			});
+
 			this.allStructures.forEach((structure: OwnedStructure) => {
 				if (structure.structureType === STRUCTURE_ROAD) {
 					// Favor roads over plain tiles
@@ -160,19 +175,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 					costs.set(structure.pos.x, structure.pos.y, global.PF_CREEP); // Assume there's a harvester on the container
 				}
 			});
-			let hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
-			// Prefer walking on hostile construction sites
-			hostileConstructionSites.forEach((s: ConstructionSite) => {
-				costs.set(s.pos.x, s.pos.y, 1);
-			});
-			// But avoid our own.
-			this.myConstructionSites.forEach(function (site: ConstructionSite) {
-				if (!!site && (site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_RAMPART)) {
-					costs.set(site.pos.x, site.pos.y, 1);
-				} else {
-					costs.set(site.pos.x, site.pos.y, 0xff);
-				}
-			});
+
 			if (!ignoreRoomConfig && !!this.roomConfig[this.name]) {
 				this.roomConfig[this.name].forEach((obj: any) => {
 					costs.set(obj.x, obj.y, obj.w);

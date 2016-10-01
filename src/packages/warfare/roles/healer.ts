@@ -15,7 +15,6 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 
 	public move(): void {
 		if (!this.moveUsingPositions()) {
-			delete this.creep.memory.targetPath;
 			let closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
 				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(WORK) > 1,
 			});
@@ -25,9 +24,11 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 				});
 			}
 			if (!!closest && !this.creep.pos.isNearTo(closest)) {
+				this.creep.say('MTC');
 				// get in range
 				this.creep.moveTo(closest);
 			} else if (!!closest) {
+				this.creep.say('SWC');
 				// stay in range
 				this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
 			}

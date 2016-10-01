@@ -6,9 +6,9 @@ export interface IWarArcher {
 }
 
 export default class WarArcher extends WarfareCreepAction implements IWarArcher {
-	public hasHealer: boolean = false;
+	public hasHealer: boolean = true;
 	public hardPath: boolean = true;
-	public noTarget: boolean = false;
+	public noTarget: boolean = true;
 	public sourceKeeperDuty: boolean = false;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_KEANIUM_ALKALIDE, // +300% rangedAttack and rangedMassAttack effectiveness
@@ -25,10 +25,12 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			});
 			if (!!closest && !this.creep.pos.isNearTo(closest)) {
 				// get in range
+				this.creep.say('MTH');
 				this.creep.moveTo(closest);
 				return;
 			} else if (!!closest) {
 				// stay in range
+				this.creep.say('SWH');
 				this.creep.move(this.creep.pos.getDirectionTo(closest.pos));
 				return;
 			}
@@ -64,6 +66,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			if (!!target && !this.hardPath) {
 				// this.moveTo(target.pos);
 				Memory.log.move.push(`${this.creep.name} - ${this.creep.memory.role} - noHardPath #${++this.moveIterator}`);
+				this.creep.say('MTT');
 				this.creep.move(this.creep.pos.getDirectionTo(target));
 				return;
 			}
@@ -72,6 +75,7 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
 				let range = (target instanceof Creep && target.my) ? 1 : 3;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
+					this.creep.say('MTT2');
 					this.moveTo(target.pos);
 				}
 			} else {

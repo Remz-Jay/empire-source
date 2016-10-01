@@ -213,6 +213,11 @@ let powerPositions: RoomPosition[] = [
 	new RoomPosition(30, 21, "W6N40"),
 ];
 
+let flagPositions: RoomPosition[] = [
+	new RoomPosition(36, 47, "W12N54"),
+	new RoomPosition(34, 43, "W12N53"),
+];
+
 let W15N41Positions: RoomPosition[] = [
 	new RoomPosition(2, 16, "W10N40"),
 	new RoomPosition(27, 7, "W15N40"),
@@ -234,14 +239,6 @@ let W12N43Positions: RoomPosition[] = [
 	new RoomPosition(3, 35, "W12N44"),
 ];
 
-let W4N49Positions: RoomPosition[] = [
-	new RoomPosition(2, 26, "W4N49"),
-	new RoomPosition(21, 48, "W4N49"),
-	new RoomPosition(7, 47, "W4N48"),
-	new RoomPosition(7, 2, "W4N47"),
-	new RoomPosition(14, 46, "W3N49"),
-	new RoomPosition(2, 5, "W2N48"),
-];
 export function setup() {
 	initMemory();
 	global.offense = {
@@ -405,6 +402,11 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 }
 
 export function govern(): void {
+	// let flags = _(Game.flags).filter((f: Flag) => _.includes(f.name, "A_")).sortBy("name").value();
+	/*flags.forEach((f: Flag) => {
+		flagPositions.push(f.pos);
+	});*/
+
 	_.each(Memory.offense.targets, function(roomName) {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);
@@ -438,8 +440,8 @@ export function govern(): void {
 				case "W12N43": // SirLovi East
 					manageSquad(roomName, healTestConfig, W12N43Positions);
 					break;
-				case "W4N49":
-					manageSquad(roomName, healTestConfig, W4N49Positions);
+				case "W11N56":
+					manageSquad(roomName, healTestConfig, flagPositions);
 					break;
 				case "W5N42":
 				case "W6N42":

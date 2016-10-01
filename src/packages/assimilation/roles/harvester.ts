@@ -118,7 +118,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 					let path = PathFinder.search(this.creep.pos, goals, {
 						flee: true,
 						maxRooms: 1,
-						plainCost: 2,
+						plainCost: 1,
 						swampCost: 10,
 						maxOps: 500,
 						roomCallback: this.roomCallback,

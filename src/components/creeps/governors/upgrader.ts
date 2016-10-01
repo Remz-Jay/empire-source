@@ -31,7 +31,7 @@ export default class UpgraderGovernor extends CreepGovernor implements ICreepGov
 			case 4:
 				return 4;
 			case 6:
-				return 2;
+				return 3;
 			case 7:
 				return 1;
 			case 8:
