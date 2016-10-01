@@ -47,8 +47,8 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 	) {
 		try {
 			let threshold = global.tradeTreshold(minType);
-			if (_.isNumber(threshold) && !!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType]) {
-				let offers = _.filter(global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE[minType], (order: Order) =>
+			if (_.isNumber(threshold)) {
+				let offers = Game.market.getAllOrders({resourceType: minType, type: ORDER_BUY}).filter((order: Order) =>
 					order.price >= threshold
 					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName) < 50 // At 70 the energy costs equal the amount to transfer.
 				) as Order[];

@@ -18,12 +18,6 @@ delete Memory.log;
 if (!global.costMatrix) {
 	global.costMatrix = {};
 }
-if (!global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE) {
-	global.CACHE_SELL_ORDERS_BY_MINERAL_TYPE = [];
-}
-if (!global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE) {
-	global.CACHE_BUY_ORDERS_BY_MINERAL_TYPE = [];
-}
 
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
 // RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
