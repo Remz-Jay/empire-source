@@ -396,7 +396,8 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (!this.renewCreep()) {
 			return false;
 		} else {

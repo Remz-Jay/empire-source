@@ -6,8 +6,7 @@ export default class AssimilationCreepGovernor extends CreepGovernor {
 		this.config = config;
 	}
 	public getCreepsInRole(): Creep[] {
-		return _.filter(Game.creeps,
-			(creep: Creep) => creep.memory.role.toUpperCase() === Object.getPrototypeOf(this).constructor.ROLE.toUpperCase()
-			&& creep.memory.config.homeRoom === this.room.name && creep.memory.config.targetRoom === this.config.targetRoom);
+		return _.filter(global.tickCache.roles[Object.getPrototypeOf(this).constructor.ROLE],
+			(creep: Creep) => creep.memory.config.homeRoom === this.room.name && creep.memory.config.targetRoom === this.config.targetRoom);
 	}
 }

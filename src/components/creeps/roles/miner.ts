@@ -14,7 +14,7 @@ export interface IMiner {
 	assignNewDropOff(): boolean;
 	assignNewSource(): boolean;
 
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class Miner extends CreepAction implements IMiner, ICreepAction {
@@ -121,7 +121,8 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		// Don't do super.action here, we don't want to pick up resources.
 		if (!this.renewCreep() || !this.flee()) {
 			return false;

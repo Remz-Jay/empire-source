@@ -346,10 +346,8 @@ function createCreep(creepConfig: CreepConfiguration): string|number {
 function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	let creeps: Creep[] = [];
 	_.each(sq.roles, function(role) {
-		creeps = creeps.concat(_.filter(Game.creeps, (c: Creep) =>
-			c.memory.role === role.governor.ROLE
-			&& c.memory.homeRoom === homeRoom.name
-			&& c.memory.config.targetRoom === targetRoomName
+		creeps = creeps.concat(_.filter(global.tickCache.roles[role.governor.ROLE], (c: Creep) =>
+			c.memory.homeRoom === homeRoom.name && c.memory.config.targetRoom === targetRoomName
 		));
 	}, this);
 	return creeps;
@@ -363,10 +361,10 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 		const governor = new squadRole.governor(homeRoom, config);
 		const creepsInRole = _.filter(creeps, (c: Creep) => c.memory.role === squadRole.governor.ROLE);
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
+		const role: WarfareCreepAction = new squadRole.role();
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
 				const b = Game.cpu.getUsed();
-				const role: WarfareCreepAction = new squadRole.role();
 				role.setCreep(<Creep> c, targetPositions);
 				role.squad = creeps;
 				role.squadSize = squadSize;
@@ -374,7 +372,7 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 					c.memory.positionIterator = 0;
 				}
 				role.setGovernor(governor);
-				role.action();
+				role.action(b);
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
 					const status = createCreep(governor.getCreepConfig());

@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarArcher {
-	action(): boolean;
+	action(startCpu: number): boolean;
 	move(): void;
 }
 
@@ -82,7 +82,8 @@ export default class WarArcher extends WarfareCreepAction implements IWarArcher 
 			}
 		}
 	}
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.creep.room.name === this.creep.memory.homeRoom) {
 			if (this.getBoosted()) {
 				this.move();

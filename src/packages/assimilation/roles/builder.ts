@@ -1,7 +1,7 @@
 import ASMCreepAction from "../assimilationCreepAction";
 
 export interface IASMBuilder {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
@@ -162,7 +162,8 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 		}
 	};
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 			if (!this.creep.bagFull) {
 				this.harvestFromContainersAndSources();

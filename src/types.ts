@@ -59,6 +59,7 @@ declare interface RemoteRoomConfig {
 	claim?: boolean;
 	hasController?: boolean;
 	reserveOnly?: boolean;
+	controllerTTL?: number;
 }
 
 declare interface TerminalTransaction {
@@ -137,6 +138,11 @@ declare interface Memory {
 		Rampart: {
 			[name: string]: any;
 		};
+	};
+	pathCache: {
+		[from: string]: {
+			[to: string]: number[];
+		}
 	};
 	transactions: TerminalTransaction[];
 }

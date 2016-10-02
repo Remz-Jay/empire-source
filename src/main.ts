@@ -29,6 +29,9 @@ OffenseManager.setup();
 export function loop() {
 		global.time = Game.time - global.TIME_OFFSET;
 		PathFinder.use(true);
+		global.tickCache = {
+			roles: _.groupBy(Game.creeps, "memory.role"),
+		};
 		MemoryManager.loadMemory();
 		if (global.time & 5) {
 			MemoryManager.cleanMemory();

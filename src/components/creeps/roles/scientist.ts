@@ -1,7 +1,7 @@
 import CreepAction, {ICreepAction} from "../creepAction";
 
 export interface IScientist {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 const MODE = {
@@ -304,7 +304,8 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		return false;
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.renewCreep() && this.flee()) {
 			const status = (!this.fillBoostLabs() && !this.cleanAll() && !this.profitize() && !this.mineralize() && !this.energize());
 			if (!this.move() && status) {

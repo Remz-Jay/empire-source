@@ -4,7 +4,6 @@ export interface ICreepAction {
 	creep: Creep;
 	governor: CreepGovernor;
 	renewStation: Spawn;
-	_minLifeBeforeNeedsRenew: number;
 
 	setCreep(creep: Creep): void;
 	setGovernor(governor: CreepGovernor): void;
@@ -12,11 +11,9 @@ export interface ICreepAction {
 	 * Wrapper for Creep.moveTo() method.
 	 */
 	moveTo(target: RoomPosition|PathFinderGoal): string | number;
-
-	needsRenew(): boolean;
 	pickupResourcesInRange(): void;
 
-	action(): boolean;
+	action(startCpu: number): boolean;
 
 	createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
@@ -29,10 +26,10 @@ export default class CreepAction implements ICreepAction {
 	public renewStation: Spawn;
 	public governor: CreepGovernor;
 	public fleeRange: number = 5;
-	public _minLifeBeforeNeedsRenew: number = global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL;
 	public moveIterator: number = 0;
 	public boosts: string[] = [];
 	public hasBoosts: string[] = [];
+	public startCpu: number = 0;
 
 	public setCreep(creep: Creep) {
 		this.creep = creep;
@@ -141,6 +138,14 @@ export default class CreepAction implements ICreepAction {
 		return true;
 	}
 
+	public serializePathFinderPath(pfgPath: RoomPosition[]): number[] {
+		let serialized: number[] = [];
+		pfgPath.forEach((r: RoomPosition) => {
+			serialized.push(global.cantorPair(r.x, r.y));
+		});
+		return serialized;
+	}
+
 	public comparePfg(l: PathFinderGoal, r: PathFinderGoal): boolean {
 		let retVal = true;
 		l.forEach((pi: PathFinderItem, idx: number) => {
@@ -151,15 +156,58 @@ export default class CreepAction implements ICreepAction {
 		return retVal;
 	}
 
+	public getRouteCache(from: Structure | Source, to: Structure | Source): number[] {
+		let route: number[] = [];
+		if (!!Memory.pathCache[from.id] && !!Memory.pathCache[from.id][to.id]) {
+			route = Memory.pathCache[from.id][to.id];
+		} else if (!!Memory.pathCache[to.id] && !!Memory.pathCache[to.id][from.id]) {
+			route = Memory.pathCache[to.id][from.id].reverse();
+		} else {
+			const path = this.findPathFinderPath(this.createPathFinderMap(<RoomPosition> to.pos), true, false, from.pos, 10, 20);
+			if (!!path && path.length > 0) {
+				route = this.serializePathFinderPath(path);
+				if (!!Memory.pathCache[from.id]) {
+					Memory.pathCache[from.id][to.id] = route;
+				} else if (!!Memory.pathCache[to.id]) {
+					Memory.pathCache[to.id][from.id] = route.reverse();
+				} else {
+					Memory.pathCache[from.id] = {};
+					Memory.pathCache[from.id][to.id] = route;
+				}
+			} else {
+				return undefined;
+			}
+		}
+		return route;
+	}
+	public cachedMoveTo(from: Structure | Source, to: Structure | Source) {
+		const range = (to instanceof Source
+		|| (to.structureType !== STRUCTURE_CONTAINER && to.structureType !== STRUCTURE_ROAD && to.structureType !== STRUCTURE_RAMPART)) ? 1 : 0;
+		const pfg: PathFinderGoal = this.createPathFinderMap(<RoomPosition> to.pos, range);
+		if (!!this.creep.memory.pfg && _.isArray(this.creep.memory.pfgPath) && this.creep.memory.pfgPath.length > 0 && this.comparePfg(pfg, this.creep.memory.pfg)) {
+			return this.moveTo(pfg);
+		} else {
+			let route = this.getRouteCache(from, to);
+			if (!!route) {
+				this.creep.memory.pfgPath = route;
+				this.creep.memory.pfg = pfg;
+				return this.moveTo(pfg);
+			} else {
+				this.creep.memory.pfgPath = undefined;
+				return ERR_NOT_FOUND;
+			}
+		}
+	}
 	public moveTo(target: RoomPosition|PathFinderGoal, retry: boolean = false): string | number {
 		if (this.creep.fatigue > 0 || this.creep.getActiveBodyparts(MOVE) === 0) {
 			return ERR_TIRED;
 		}
 		try {
 			const pfg: PathFinderGoal = (target instanceof RoomPosition) ? this.createPathFinderMap(<RoomPosition> target ) : target;
-			let path: RoomPosition[] = [];
+			let path: number[] = [];
 			if (!!this.creep.memory.pfg && _.isArray(this.creep.memory.pfgPath) && this.creep.memory.pfgPath.length > 0 && this.comparePfg(pfg, this.creep.memory.pfg)) {
-				path = this.creep.memory.pfgPath as Array<any>;
+
+				path = this.creep.memory.pfgPath as number[];
 				if (path.length < 1) {
 					this.creep.memory.pfgPath = undefined;
 					this.creep.memory.pfg = undefined;
@@ -172,13 +220,21 @@ export default class CreepAction implements ICreepAction {
 				if (this.creep.pos.getRangeTo(pfg[0].pos) < 3) {
 					ignoreCreeps = false;
 				}
-				path = this.findPathFinderPath(pfg, ignoreCreeps);
-				if (!!path && path.length > 0) {
+				const pfPath = this.findPathFinderPath(pfg, ignoreCreeps);
+				if (!!pfPath && pfPath.length > 0) {
 					this.creep.memory.pfg = pfg;
+					path = this.serializePathFinderPath(pfPath);
 				} else {
 					this.creep.memory.pfgPath = undefined;
 					return ERR_NOT_FOUND;
 				}
+			}
+			if (!_.isNumber(path[0])) {
+				this.creep.memory.stuckTicks = undefined;
+				this.creep.memory.lastPosition = undefined;
+				this.creep.memory.pfgPath = undefined;
+				this.creep.memory.moveAttempt = undefined;
+				return this.moveTo(pfg, true);
 			}
 			if (!!this.creep.memory.lastPosition) {
 				const lp = this.creep.memory.lastPosition;
@@ -222,7 +278,7 @@ export default class CreepAction implements ICreepAction {
 			if (this.creep.pos.isNearTo(pos)) {
 				this.creep.memory.lastPosition = this.creep.pos;
 				this.creep.memory.pfgPath = path;
-				this.creep.memory.moveAttempt = pos;
+				this.creep.memory.moveAttempt = global.cantorPair(pos.x, pos.y);
 				return this.creep.move(this.creep.pos.getDirectionTo(pos));
 			} else {
 				this.creep.memory.lastPosition = undefined;
@@ -262,10 +318,6 @@ export default class CreepAction implements ICreepAction {
 		return resource;
 	}
 
-	public needsRenew(): boolean {
-		return (this.creep.ticksToLive < this._minLifeBeforeNeedsRenew);
-	}
-
 	public createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number = 1): PathFinderGoal {
 		let goalsList: List<RoomPosition>;
 		if (!_.isArray(goals)) {
@@ -280,8 +332,21 @@ export default class CreepAction implements ICreepAction {
 		});
 	};
 	public deserializePathFinderPosition(pFP: any): RoomPosition {
-		return new RoomPosition(pFP.x, pFP.y, pFP.roomName);
+		if (_.isNumber(pFP)) {
+			const rcp = global.reverseCantorPair(<number> pFP);
+			return new RoomPosition(rcp[0], rcp[1], this.creep.room.name);
+		} else {
+			return new RoomPosition(pFP.x, pFP.y, pFP.roomName);
+		}
 	};
+	public deserializeCantorPathArray(arr: number[]): RoomPosition[] {
+		let path: RoomPosition[] = [];
+		arr.forEach((n: number) => {
+			const rcp = global.reverseCantorPair(n);
+			path.push(new RoomPosition(rcp[0], rcp[1], this.creep.room.name));
+		});
+		return path;
+	}
 	public deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[] {
 		let path: RoomPosition[] = [];
 		_.each(pathFinderArray, function (x) {
@@ -290,7 +355,14 @@ export default class CreepAction implements ICreepAction {
 		return path;
 	};
 
-	public findPathFinderPath(goal: PathFinderGoal, ignoreCreeps: boolean = false, ignoreRoomConfig: boolean = false): RoomPosition[] {
+	public findPathFinderPath(
+		goal: PathFinderGoal,
+		ignoreCreeps: boolean = false,
+		ignoreRoomConfig: boolean = false,
+		startPos: RoomPosition = this.creep.pos,
+		plainCost: number = 3,
+		swampCost: number = 10,
+	): RoomPosition[] {
 		let callback = (ignoreCreeps) ? this.roomCallback : this.creepCallback;
 		if (ignoreRoomConfig) {
 			callback = this.ignoreCallback;
@@ -303,9 +375,6 @@ export default class CreepAction implements ICreepAction {
 			maxOps = 500;
 		}*/
 
-		const plainCost = 3;
-		const swampCost = 10;
-
 /*		const moveParts = this.creep.getActiveBodyparts(MOVE);
 		const totalParts = this.creep.body.length;
 
@@ -314,7 +383,7 @@ export default class CreepAction implements ICreepAction {
 			plainCost = 1;
 			swampCost = 5;
 		}*/
-		const path = PathFinder.search(this.creep.pos, goal, {
+		const path = PathFinder.search(startPos, goal, {
 			// We need to set the defaults costs higher so that we
 			// can set the road cost lower in `roomCallback`
 			maxOps: maxOps,
@@ -326,7 +395,7 @@ export default class CreepAction implements ICreepAction {
 			// We're near the target.
 			return undefined;
 		} else {
-			if (path.ops > 100 || path.cost > 100 || path.incomplete) {
+			if (path.ops > 500 || path.cost > 150 || path.incomplete) {
 				console.log(global.colorWrap("PathFinder", "Red"), this.creep.memory.role, this.creep.room.name, goal[0].pos.roomName,
 					`${maxOps} maxOps, ${path.ops} ops, ${path.cost} cost, ${path.incomplete} incomplete`
 				);
@@ -408,6 +477,9 @@ export default class CreepAction implements ICreepAction {
 		}
 		if (this.creep.memory.hasRenewed === true) {
 			return true;
+		}
+		if (!this.checkCpu()) {
+			return false;
 		}
 		const homeRoom = Game.rooms[this.creep.memory.homeRoom];
 		if (!homeRoom) {
@@ -539,6 +611,9 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public getBoosted(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (this.boosts.length < 1) {
 			return true;
 		}
@@ -606,8 +681,22 @@ export default class CreepAction implements ICreepAction {
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		this.pickupResourcesInRange();
-		return this.renewCreep();
+		if (this.checkCpu()) {
+			return this.renewCreep();
+		} else {
+			return false;
+		}
+	}
+
+	protected checkCpu(): boolean {
+		const cpuUsage = _.round(Game.cpu.getUsed() - this.startCpu, 2);
+		const overCpuLimit = (cpuUsage > 3);
+		if (overCpuLimit) {
+			console.log(global.colorWrap("CPU WARNING", "Red"), this.creep.name, this.creep.room.name, this.creep.memory.role, cpuUsage);
+		}
+		return (overCpuLimit) ? false : true;
 	}
 }

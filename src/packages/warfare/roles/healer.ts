@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IHealer {
-	action(): boolean;
+	action(startCpu: number): boolean;
 	move(): void;
 }
 
@@ -27,7 +27,8 @@ export default class Healer extends WarfareCreepAction implements IHealer {
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.creep.hits === this.creep.hitsMax) {
 			delete this.creep.memory.waitForHealth;
 		}

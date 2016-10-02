@@ -15,6 +15,9 @@ export function loadMemory(): void {
 			Wall: [],
 		};
 	}
+	if (!this.memory.pathCache) {
+		this.memory.pathCache = {};
+	}
 }
 
 export function cleanMemory(): void {

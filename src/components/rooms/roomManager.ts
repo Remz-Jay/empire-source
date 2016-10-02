@@ -39,6 +39,9 @@ export function getRoomByName(roomName: string): Room {
 
 export function governRooms(): void {
 	for (const roomName in Game.rooms) {
+		if (roomName === "sim") {
+			Game.cpu.bucket = 10000;
+		}
 		const room = getRoomByName(roomName);
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
 			try {

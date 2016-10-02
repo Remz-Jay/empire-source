@@ -33,7 +33,7 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
 		if (!this.renewCreep() || !this.flee() || this.shouldIGoHome()) {
 			return false;
 		}

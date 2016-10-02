@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarMule {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class WarMule extends WarfareCreepAction implements IWarMule {
@@ -42,7 +42,8 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.getBoosted()) {
 			this.move();
 		}

@@ -1,6 +1,6 @@
 import ASMCreepAction from "../assimilationCreepAction";
 export interface IASMMule {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class ASMMule extends ASMCreepAction implements IASMMule {
@@ -177,8 +177,12 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
+			if (!this.checkCpu()) {
+				return false;
+			}
 			if (this.creep.carry.energy === 0 && !this.creep.bagEmpty) {
 				this.creep.drop(this.getMineralTypeFromStore(this.creep));
 			}

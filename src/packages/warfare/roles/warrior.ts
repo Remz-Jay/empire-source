@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarrior {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class Warrior extends WarfareCreepAction implements IWarrior {
@@ -58,7 +58,8 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 		}
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.getBoosted()) {
 			this.move();
 		}

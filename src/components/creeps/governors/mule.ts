@@ -62,7 +62,7 @@ export default class MuleGovernor extends CreepGovernor implements ICreepGoverno
 			return global.targetBlackList[MuleGovernor.ROLE];
 		} else {
 			global.targetBlackList[MuleGovernor.ROLE] = [];
-			const allMules: Creep[] = _.filter(Game.creeps, (c: Creep) => c.memory.role === MuleGovernor.ROLE);
+			const allMules: Creep[] = global.tickCache.roles[MuleGovernor.ROLE];
 			allMules.forEach((c: Creep) => {
 				if (!!c.memory.target) {
 					global.targetBlackList[MuleGovernor.ROLE].push(c.memory.target);

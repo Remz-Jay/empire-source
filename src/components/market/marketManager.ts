@@ -104,7 +104,7 @@ function resourceReport(): void {
 					if (!!resources[key]) {
 						resources[key] = resources[key] + value;
 					} else {
-						resources[key] = resources[key] + value;
+						resources[key] = value;
 					}
 				});
 			}
@@ -113,7 +113,7 @@ function resourceReport(): void {
 					if (!!resources[key]) {
 						resources[key] = resources[key] + value;
 					} else {
-						resources[key] = resources[key] + value;
+						resources[key] = value;
 					}
 				});
 			}

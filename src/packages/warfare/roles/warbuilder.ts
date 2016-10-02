@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarBuilder {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class WarBuilder extends WarfareCreepAction implements IWarBuilder {
@@ -15,7 +15,8 @@ export default class WarBuilder extends WarfareCreepAction implements IWarBuilde
 		this.storage = this.creep.room.storage;
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.getBoosted()) {
 			if (!this.moveUsingPositions()) {
 				if (this.creep.carry.energy === 0) {

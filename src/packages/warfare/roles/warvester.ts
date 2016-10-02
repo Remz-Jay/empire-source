@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IWarvester {
-	action(): boolean;
+	action(startCpu: number): boolean;
 	move(): boolean;
 	warvest(): boolean;
 }
@@ -68,7 +68,8 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		return false;
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.creep.room.name === this.creep.memory.homeRoom && this.creep.bagEmpty) {
 			if (this.creep.ticksToLive < 550) {
 				this.creep.memory.hasRenewed = false;

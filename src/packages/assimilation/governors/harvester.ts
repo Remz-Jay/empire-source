@@ -63,7 +63,7 @@ export default class ASMHarvesterGovernor extends AssimilationCreepGovernor {
 	}
 
 	public checkAssignedHarvester(c: StructureContainer): Creep {
-		const harvesters = _.filter(Game.creeps, creep => creep.memory.role.toUpperCase() === ASMHarvesterGovernor.ROLE.toUpperCase());
+		const harvesters = global.tickCache.roles[ASMHarvesterGovernor.ROLE];
 		return harvesters.find((h: Creep) => (!!h.memory.container) && c.id === h.memory.container);
 	}
 

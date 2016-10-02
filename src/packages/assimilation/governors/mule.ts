@@ -54,10 +54,7 @@ export default class ASMMuleGovernor extends AssimilationCreepGovernor {
 	}
 
 	public checkAssignedMules(c: StructureContainer): Creep[] {
-		return _.filter(Game.creeps, creep =>
-			(creep.memory.role.toUpperCase() === ASMMuleGovernor.ROLE.toUpperCase())
-			&& (!!creep.memory.container && c.id === creep.memory.container)
-		);
+		return _.filter(global.tickCache.roles[ASMMuleGovernor.ROLE], (creep: Creep) => !!creep.memory.container && c.id === creep.memory.container);
 	}
 	public getCreepLimit(): number {
 		return this.containers.length * this.multiplier;

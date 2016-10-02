@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IBully {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class Bully extends WarfareCreepAction implements IBully {
@@ -78,7 +78,8 @@ export default class Bully extends WarfareCreepAction implements IBully {
 			}
 		}
 	}
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.attack()) {
 			this.heal();
 			this.move();

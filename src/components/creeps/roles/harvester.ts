@@ -7,13 +7,12 @@ export interface IHarvester {
 	targetEnergyDropOff: Spawn | Structure;
 
 	tryHarvest(): number;
-	moveToHarvest(): void;
 	tryEnergyDropOff(): number;
 	moveToDropEnergy(): void;
 	assignNewDropOff(): boolean;
 	assignNewSource(): boolean;
 
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class Harvester extends CreepAction implements IHarvester, ICreepAction {
@@ -69,14 +68,6 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 
 	public tryHarvest(): number {
 		return this.creep.harvest(this.targetSource);
-	}
-
-	public moveToHarvest(): void {
-		if (!this.creep.pos.isNearTo(this.targetSource.pos)) {
-			this.moveTo(this.targetSource.pos);
-		} else {
-			this.tryHarvest();
-		}
 	}
 
 	public tryEnergyDropOff(): number {
@@ -276,9 +267,14 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		}
 	};
 
-	public action(): boolean {
-		this.harvesterLogic();
-		return true;
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
+		if (this.checkCpu()) {
+			this.harvesterLogic();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }

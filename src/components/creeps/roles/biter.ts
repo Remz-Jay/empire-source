@@ -1,7 +1,7 @@
 import WarfareCreepAction from "../../../packages/warfare/warfareCreepAction";
 
 export interface IBiter {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class Biter extends WarfareCreepAction implements IBiter {
@@ -33,7 +33,8 @@ export default class Biter extends WarfareCreepAction implements IBiter {
 			return true;
 		}
 	}
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		this.move();
 		this.attack();
 		return true;

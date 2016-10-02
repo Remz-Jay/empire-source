@@ -116,10 +116,10 @@ global.PRIORITY_WF_HEALER       = 30;
  * @type {number}
  */
 global.MINRCL_CREEP             = 0;
-global.MINRCL_BUILDER           = 1;
+global.MINRCL_BUILDER           = 2;
 global.MINRCL_HARVESTER         = 1;
-global.MINRCL_MULE              = 1;
-global.MINRCL_UPGRADER          = 1;
+global.MINRCL_MULE              = 2;
+global.MINRCL_UPGRADER          = 2;
 global.MINRCL_LINKER            = 5;
 global.MINRCL_REPAIR            = 9;
 global.MINRCL_MINER             = 6;

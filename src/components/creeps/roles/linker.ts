@@ -1,7 +1,7 @@
 import CreepAction, {ICreepAction} from "../creepAction";
 
 export interface ILinker {
-	action(): boolean;
+	action(startCpu: number): boolean;
 }
 
 export default class Linker extends CreepAction implements ILinker, ICreepAction {
@@ -78,6 +78,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public move(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!this.isAtSpot()) {
 			this.moveTo([{pos: this.spot, range: 0}]);
 			return false;
@@ -86,6 +89,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public link(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 0) {
 			return false;
 		}
@@ -147,6 +153,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 	}
 
 	public balanceTerminal(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) { // busy with fillNuker
 			return false;
 		}
@@ -204,6 +213,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		return !!(done);
 	}
 	public fillNuker(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 4) { // busy with fillTower
 			return false;
 		}
@@ -241,6 +253,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		return false;
 	}
 	public fillPowerSpawn(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!this.powerSpawn) {
 			return false;
 		}
@@ -275,6 +290,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		return false;
 	}
 	public fillTower(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 6) { // busy with fillNuker
 			return false;
 		}
@@ -320,6 +338,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 	}
 	public cleanUp(): boolean {
+		if (!this.checkCpu()) {
+			return false;
+		}
 		if (!this.creep.bagEmpty) {
 			this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
 			return true;
@@ -327,7 +348,8 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		return false;
 	}
 
-	public action(): boolean {
+	public action(startCpu: number): boolean {
+		this.startCpu = startCpu;
 		if (this.renewCreep() && this.move()) {
 			if (!this.link() && !this.balanceTerminal() && !this.fillNuker() && !this.fillTower() && !this.fillPowerSpawn()) {
 				this.cleanUp();
