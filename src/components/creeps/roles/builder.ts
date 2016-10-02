@@ -140,7 +140,12 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		} else {
 			if (!this.creep.memory.source) {
 				// Prefer energy from containers
-				let source: Source | StorageStructure = this.creep.pos.findClosestByRange(this.creep.room.allStructures, {
+				const storageStructures = _.union(
+					this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
+					this.creep.room.groupedStructures[STRUCTURE_STORAGE],
+					this.creep.room.groupedStructures[STRUCTURE_SPAWN],
+				);
+				let source: Source | StorageStructure = this.creep.pos.findClosestByRange(storageStructures, {
 					filter: (structure: StorageStructure) => ((structure instanceof StructureContainer
 					|| structure instanceof StructureStorage) && structure.store[RESOURCE_ENERGY] > 100)
 					|| (structure instanceof StructureSpawn && structure.energy  >= (structure.energyCapacity * 0.8)),

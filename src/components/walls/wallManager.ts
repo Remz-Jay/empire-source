@@ -26,7 +26,7 @@ export function adjustStrength() {
 }
 
 function getWalls(): StructureWall[] {
-	const w = room.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_WALL) as StructureWall[];
+	const w = room.groupedStructures[STRUCTURE_WALL] as StructureWall[];
 	if (Memory.config.Wall === undefined) {
 		Memory.config.Wall = {};
 	}

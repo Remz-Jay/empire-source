@@ -53,9 +53,8 @@ export default class Bully extends WarfareCreepAction implements IBully {
 				}
 			} else {
 				if (this.sourceKeeperDuty) {
-					const lairs = this.creep.room.allStructures.filter(
-						(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
-						&& s.ticksToSpawn < 50
+					const lairs = this.creep.room.groupedStructures[STRUCTURE_KEEPER_LAIR].filter(
+						(s: StructureKeeperLair) => s.ticksToSpawn < 50
 						&& (s.pos.findInRange(this.creep.room.sources, 5).length > 0)
 					);
 					if (lairs.length > 0) {

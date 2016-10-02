@@ -43,7 +43,7 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 			if (!!this.storage && this.creep.carry.energy > 0) {
 				const storageRange = this.creep.pos.getRangeTo(this.storage.pos);
 				const target: OwnedStructure = this.creep.pos.findClosestByRange<OwnedStructure>(
-					this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_LINK && s.pos.getRangeTo(this.creep.pos) < storageRange)
+					this.creep.room.myGroupedStructures[STRUCTURE_LINK].filter((s: OwnedStructure) => s.pos.getRangeTo(this.creep.pos) < storageRange)
 				);
 				if (!!target) {
 					this.creep.memory.target = target.id;

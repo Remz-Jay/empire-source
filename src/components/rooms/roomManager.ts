@@ -81,7 +81,7 @@ export function governRooms(): void {
 			}
 
 			try {
-				const towers = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_TOWER);
+				const towers = room.myGroupedStructures[STRUCTURE_TOWER];
 				_.each(towers, (t: StructureTower) => {
 					t.run();
 				});
@@ -92,7 +92,7 @@ export function governRooms(): void {
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
 					if (!!room.storage) {
-						const links = _.filter(room.myStructures, (s: Structure) => s.structureType === STRUCTURE_LINK);
+						const links = room.myGroupedStructures[STRUCTURE_LINK];
 						_.each(links, (l: StructureLink) => {
 							l.run();
 						});

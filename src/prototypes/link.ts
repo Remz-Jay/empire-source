@@ -8,10 +8,8 @@ StructureLink.prototype.calcTotal = function(input: number): number {
 };
 
 StructureLink.prototype.send = function(): boolean {
-	const receivers: Structure[] = _(this.room.myStructures).filter(
-		(s: Structure) => s.structureType === STRUCTURE_LINK
-		&& !_.includes(global.linkBlackList, s.id)
-		&& s.id !== this.id
+	const receivers: Structure[] = _(this.room.myGroupedStructures[STRUCTURE_LINK]).filter(
+		(s: Structure) => !_.includes(global.linkBlackList, s.id) && s.id !== this.id
 	).sortBy("energy").value();
 	let sending: boolean = false;
 	receivers.forEach((r: StructureLink) => {

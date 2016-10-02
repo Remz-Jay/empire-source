@@ -42,7 +42,7 @@ export function adjustStrength() {
 }
 
 function getRamparts(): StructureRampart[] {
-	const r = room.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_RAMPART) as StructureRampart[];
+	const r = room.myGroupedStructures[STRUCTURE_RAMPART] as StructureRampart[];
 	if (Memory.config.Rampart === undefined) {
 		Memory.config.Rampart = {};
 	}

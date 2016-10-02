@@ -11,7 +11,9 @@ interface Room {
 	alliedCreeps: Creep[];
 	numberOfCreeps: number;
 	allStructures: Structure[];
+	groupedStructures: GroupedStructures;
 	myStructures: OwnedStructure[];
+	myGroupedStructures: GroupedOwnedStructures;
 	hostileStructures: OwnedStructure[];
 	mySpawns: StructureSpawn[];
 	myLabs: StructureLab[];
@@ -43,7 +45,9 @@ interface Room {
 	getHostileCreeps(): Creep[];
 	getAlliedCreeps(): Creep[];
 	getAllStructures(): Structure[];
+	groupAllStructures(): GroupedStructures;
 	getMyStructures(): OwnedStructure[];
+	groupMyStructures(): GroupedOwnedStructures;
 	getHostileStructures(): OwnedStructure[];
 	getMySpawns(): StructureSpawn[];
 	getMyLabs(): StructureLab[];
@@ -198,7 +202,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 };
 
 Room.prototype.getContainers = function (): Structure[] {
-	return this.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE);
+	return _.union(this.groupedStructures[STRUCTURE_CONTAINER], this.groupedStructures[STRUCTURE_STORAGE]) as Structure[];
 };
 Room.prototype.getContainerCapacityAvailable = function () {
 	return _.sum(this.containers, "storeCapacity");
@@ -246,15 +250,33 @@ Room.prototype.getAllStructures = function(): Structure[] {
 	return allStructures;
 	*/
 };
+Room.prototype.groupAllStructures = function(): GroupedStructures {
+	let gs = _.groupBy(this.allStructures, "structureType") as GroupedStructures;
+	global.STRUCTURES_ALL.forEach((s: string) => {
+		if (!gs[s]) {
+			gs[s] = [];
+		}
+	});
+	return gs;
+};
 Room.prototype.getMyStructures = function(): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) => !!s.my);
+};
+Room.prototype.groupMyStructures = function(): GroupedOwnedStructures {
+	let gs = _.groupBy(this.myStructures, "structureType") as GroupedOwnedStructures;
+	global.STRUCTURES_ALL.forEach((s: string) => {
+		if (!gs[s]) {
+			gs[s] = [];
+		}
+	});
+	return gs;
 };
 Room.prototype.getHostileStructures = function (): OwnedStructure[] {
 	return this.allStructures.filter((s: OwnedStructure) =>
 	!!s && undefined !== s.my && s.my === false && s.structureType !== STRUCTURE_CONTROLLER);
 };
 Room.prototype.getMySpawns = function(): StructureSpawn[] {
-	const spawns = this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_SPAWN);
+	const spawns = this.myGroupedStructures[STRUCTURE_SPAWN];
 	spawns.forEach((s: StructureSpawn) => {
 		if (!!s.spawning) {
 			s.isBusy = true;
@@ -263,7 +285,7 @@ Room.prototype.getMySpawns = function(): StructureSpawn[] {
 	return spawns;
 };
 Room.prototype.getMyLabs = function(): StructureLab[] {
-	return this.myStructures.filter((s: Structure) => s.structureType === STRUCTURE_LAB);
+	return this.myGroupedStructures[STRUCTURE_LAB];
 };
 Room.prototype.getBoostLabs = function(): StructureLab[] {
 	let boostLabs: StructureLab[] = [];
@@ -318,7 +340,7 @@ Room.prototype.getSources = function(): Source[] {
 	return allSources;
 };
 Room.prototype.getNuker = function(): StructureNuker {
-	const sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_NUKER);
+	const sn = this.myGroupedStructures[STRUCTURE_NUKER];
 	if (sn.length > 0) {
 		return sn.pop();
 	} else {
@@ -326,7 +348,7 @@ Room.prototype.getNuker = function(): StructureNuker {
 	}
 };
 Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
-	const sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_POWER_SPAWN);
+	const sn = this.myGroupedStructures[STRUCTURE_POWER_SPAWN];
 	if (sn.length > 0) {
 		return sn.pop();
 	} else {
@@ -334,7 +356,7 @@ Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
 	}
 };
 Room.prototype.getObserver = function(): StructureObserver {
-	const sn = this.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_OBSERVER);
+	const sn = this.myGroupedStructures[STRUCTURE_OBSERVER];
 	if (sn.length > 0) {
 		return sn.pop();
 	} else {
@@ -372,12 +394,14 @@ Room.prototype.addProperties = function () {
 	this.towerTargets = [];
 
 	this.allStructures =        this.getAllStructures();
+	this.groupedStructures =    this.groupAllStructures();
 	this.allCreeps =            this.getAllCreeps();
 	this.allConstructionSites = this.getAllConstructionSites();
 	this.minerals =             this.getMinerals();
 	this.sources =              this.getSources();
 
 	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+	this.myGroupedStructures  = (!!this.controller && !!this.controller.my && this.myStructures.length > 0) ? this.groupMyStructures() : undefined;
 	this.nuker =                (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getNuker() : undefined;
 	this.powerSpawn =           (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getPowerSpawn() : undefined;
 	this.observer =             (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getObserver() : undefined;

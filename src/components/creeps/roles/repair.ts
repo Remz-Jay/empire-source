@@ -41,13 +41,14 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		}
 		// No? Try to repair a neutral structure instead.
 		if (!target) {
-			const targets = this.creep.room.allStructures.filter((s: Structure) =>
+			const repairStructures = _.union(
+				this.creep.room.groupedStructures[STRUCTURE_ROAD],
+				this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
+				this.creep.room.groupedStructures[STRUCTURE_STORAGE],
+			);
+			const targets = repairStructures.filter((s: Structure) =>
 				!_.includes(blackList, s.id)
-				&& s.hits < (s.hitsMax * this.publicStructureMultiplier) &&
-				(   s.structureType === STRUCTURE_ROAD ||
-					s.structureType === STRUCTURE_CONTAINER ||
-					s.structureType === STRUCTURE_STORAGE
-				)
+				&& s.hits < (s.hitsMax * this.publicStructureMultiplier)
 			);
 			if (targets.length > 0) {
 				target = _.sortBy(targets, "hits").shift();

@@ -97,8 +97,8 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 		let link: StructureLink;
 		if (!this.creep.memory.link) {
-			const linkResult: StructureLink[] = _.filter(this.creep.room.myStructures,
-				(s: Structure) => s.structureType === STRUCTURE_LINK && s.pos.isNearTo(this.storage)) as StructureLink[];
+			const linkResult: StructureLink[] = _.filter(this.creep.room.myGroupedStructures[STRUCTURE_LINK],
+				(s: Structure) => s.pos.isNearTo(this.storage)) as StructureLink[];
 			if (linkResult.length > 0) {
 				link = linkResult[0];
 				this.creep.memory.link = link.id;
@@ -297,8 +297,8 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 		if (!this.creep.memory.tower) {
-			const towers = this.creep.room.myStructures.filter(
-				(s: OwnedStructure) => s.structureType === STRUCTURE_TOWER && s.pos.isNearTo(this.creep.pos)
+			const towers = this.creep.room.myGroupedStructures[STRUCTURE_TOWER].filter(
+				(s: OwnedStructure) => s.pos.isNearTo(this.creep.pos)
 			) as StructureTower[];
 			if (towers.length > 0) {
 				this.tower = towers.pop();

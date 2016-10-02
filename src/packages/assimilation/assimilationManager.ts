@@ -152,11 +152,13 @@ function manageClaim(roomName: string, claim: boolean = false, reserveOnly = fal
 		}, this);
 	} else {
 		if (
-			(config.reserveOnly && !!config.controllerTTL && config.controllerTTL < 1000 && !isSpawning && !goHome)
-			|| !Game.rooms[roomName]
-			|| !Game.rooms[roomName].controller
-			|| !Game.rooms[roomName].controller.reservation
-			|| (Game.rooms[roomName].controller.reservation.ticksToEnd < 1000 && !isSpawning && !goHome)
+			(config.reserveOnly && (!config.controllerTTL || config.controllerTTL < 1000) && !isSpawning && !goHome)
+			|| (!config.reserveOnly && (
+				!Game.rooms[roomName]
+				|| !Game.rooms[roomName].controller
+				|| !Game.rooms[roomName].controller.reservation
+				|| (Game.rooms[roomName].controller.reservation.ticksToEnd < 1000 && !isSpawning && !goHome)
+			))
 		) {
 			isSpawning = true;
 			createCreep(governor.getCreepConfig(), true);
@@ -166,9 +168,7 @@ function manageClaim(roomName: string, claim: boolean = false, reserveOnly = fal
 function manageContainers(): StructureContainer[] {
 	let allContainers: StructureContainer[] = [];
 	_.each(SourceManager.sources, function(source: Source) {
-		const containers = targetRoom.allStructures.filter((s: Structure) => s.structureType === STRUCTURE_CONTAINER
-			&& s.pos.isNearTo(source.pos)
-		) as StructureContainer[];
+		const containers = targetRoom.groupedStructures[STRUCTURE_CONTAINER].filter((s: Structure) => s.pos.isNearTo(source.pos)) as StructureContainer[];
 		if (containers.length < 1) {
 			// No containers yet. See if we're constructing one.
 			const p = source.pos;

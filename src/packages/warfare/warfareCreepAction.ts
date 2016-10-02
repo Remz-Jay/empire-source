@@ -196,10 +196,11 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return true;
 		}
 		if (this.creep.room.allStructures.length > 0) {
-			const targets = this.creep.room.allStructures.filter((s: Structure) =>
-				(s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
-				&& s.pos.isNearTo(this.creep)
+			const targetStructures = _.union(
+				this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
+				this.creep.room.groupedStructures[STRUCTURE_WALL],
 			);
+			const targets = targetStructures.filter((s: Structure) => s.pos.isNearTo(this.creep));
 			if (targets.length > 0 ) {
 				const target = this.getPriorityStructure(targets);
 				this.creep.attack(target);
@@ -249,10 +250,12 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			return true;
 		}
 		if (this.creep.room.allStructures.length > 0) {
-			const targets = this.creep.room.allStructures.filter(
-				(s: Structure) => (s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_WALL || s.structureType === STRUCTURE_CONTAINER)
-				&& s.pos.inRangeTo(this.creep.pos, 3)
+			const targetStructures = _.union(
+				this.creep.room.groupedStructures[STRUCTURE_ROAD],
+				this.creep.room.groupedStructures[STRUCTURE_WALL],
+				this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
 			);
+			const targets = targetStructures.filter((s: Structure) => s.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0 ) {
 				const target = this.getPriorityStructure(targets);
 				this.creep.rangedAttack(target);
@@ -323,8 +326,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 
 	public findPublicStructure(structureType: string): Structure {
 		if (this.creep.room.allStructures.length > 0) {
-			const hostiles = this.creep.room.allStructures.filter((c: Structure) => c.structureType === structureType);
-			const hostile = this.creep.pos.findClosestByRange<Structure>(hostiles);
+			const hostile = this.creep.pos.findClosestByRange<Structure>(this.creep.room.groupedStructures[structureType]);
 			return (!!hostile) ? hostile : undefined;
 		}
 		return undefined;
@@ -362,11 +364,12 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 				if (!!hostile) {
 					return hostile;
 				} else if (!!this.creep.room.controller && !!this.creep.room.controller.owner && this.creep.room.controller.my === false) {
-					hostile = this.creep.pos.findClosestByPath<Structure>(this.creep.room.allStructures, {
-						filter: (s: Structure) =>
-							// s.structureType === STRUCTURE_WALL
-							s.structureType === STRUCTURE_ROAD
-							|| s.structureType === STRUCTURE_CONTAINER,
+					const targetStructures = _.union(
+						this.creep.room.groupedStructures[STRUCTURE_ROAD],
+						this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
+						// this.creep.room.groupedStructures[STRUCTURE_WALL],
+					);
+					hostile = this.creep.pos.findClosestByPath<Structure>(targetStructures, {
 						costCallback: this.roomCallback,
 					});
 				}

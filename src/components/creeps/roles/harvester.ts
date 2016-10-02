@@ -45,16 +45,13 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public assignNewDropOff(): boolean {
-		const target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
-			filter: (structure: EnergyStructure) => {
-				return (
-						structure.structureType === STRUCTURE_EXTENSION ||
-						structure.structureType === STRUCTURE_SPAWN ||
-						structure.structureType === STRUCTURE_TOWER
-						// structure.structureType === STRUCTURE_CONTAINER ||
-						// structure.structureType === STRUCTURE_STORAGE
-					) && structure.energy < structure.energyCapacity;
-			},
+		let energyStructures = _.union(
+			this.creep.room.myGroupedStructures[STRUCTURE_EXTENSION],
+			this.creep.room.myGroupedStructures[STRUCTURE_SPAWN],
+			this.creep.room.myGroupedStructures[STRUCTURE_TOWER],
+		);
+		const target: EnergyStructure = <EnergyStructure> this.creep.pos.findClosestByPath(energyStructures, {
+			filter: (structure: EnergyStructure) => structure.energy < structure.energyCapacity,
 			costCallback: this.roomCallback,
 		});
 		if (target != null) {
@@ -107,23 +104,19 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		if (this.creep.memory.dumping) {
 			if (!this.creep.memory.target) {
 				// Containers are nearby, fill them first.
-				let target: Structure = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
-					filter: (structure: StructureContainer) => {
-						return structure.structureType === STRUCTURE_CONTAINER &&
-							_.sum(structure.store) < structure.storeCapacity;
-					},
+				let target: Structure = this.creep.pos.findClosestByPath(this.creep.room.groupedStructures[STRUCTURE_CONTAINER], {
+					filter: (structure: StructureContainer) => _.sum(structure.store) < structure.storeCapacity,
 					costCallback: this.roomCallback,
 				}) as StructureContainer;
 				// If all containers are full, move directly to an owned structure.
 				if (!target) {
-					target = this.creep.pos.findClosestByPath(this.creep.room.myStructures, {
-						filter: (structure: EnergyStructure) => {
-							return (
-									structure.structureType === STRUCTURE_EXTENSION ||
-									structure.structureType === STRUCTURE_SPAWN ||
-									structure.structureType === STRUCTURE_TOWER
-								) && structure.energy < structure.energyCapacity;
-						},
+					const energyStructures = _.union(
+						this.creep.room.myGroupedStructures[STRUCTURE_EXTENSION],
+						this.creep.room.myGroupedStructures[STRUCTURE_SPAWN],
+						this.creep.room.myGroupedStructures[STRUCTURE_TOWER],
+					);
+					target = this.creep.pos.findClosestByPath(energyStructures, {
+						filter: (structure: EnergyStructure) => structure.energy < structure.energyCapacity,
 						costCallback: this.roomCallback,
 					}) as EnergyStructure;
 				}

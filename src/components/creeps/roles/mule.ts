@@ -15,13 +15,13 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 	}
 
 	public getTargetList(blackList: string[] = []): Structure[] {
-		return this.creep.room.myStructures.filter((structure: EnergyStructure) => (
-			!_.includes(blackList, structure.id) && (
-				(structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
-				|| (structure.structureType === STRUCTURE_TOWER && structure.energy < (structure.energyCapacity * 0.75))
-				|| (structure.structureType === STRUCTURE_SPAWN && structure.energy < (structure.energyCapacity * 0.85))
-			)
-		));
+		const energyStructures = _.union(
+			this.creep.room.myGroupedStructures[STRUCTURE_EXTENSION],
+			this.creep.room.myGroupedStructures[STRUCTURE_TOWER],
+			this.creep.room.myGroupedStructures[STRUCTURE_SPAWN],
+		);
+		return energyStructures.filter((structure: EnergyStructure) =>
+		!_.includes(blackList, structure.id) && structure.energy < (structure.energyCapacity * 0.8));
 	}
 	public scanForTargets(): Structure {
 		const blackList = this.governor.getBlackList();
@@ -83,7 +83,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			if (!!this.storage && this.creep.carry.energy > 0) {
 				const storageRange = this.creep.pos.getRangeTo(this.storage.pos);
 				const target: OwnedStructure = this.creep.pos.findClosestByRange<OwnedStructure>(
-					this.creep.room.myStructures.filter((s: OwnedStructure) => s.structureType === STRUCTURE_LINK && s.pos.getRangeTo(this.creep.pos) < storageRange)
+					this.creep.room.myGroupedStructures[STRUCTURE_LINK].filter((s: OwnedStructure) => s.pos.getRangeTo(this.creep.pos) < storageRange)
 				);
 				if (!!target) {
 					this.creep.memory.target = target.id;

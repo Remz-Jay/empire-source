@@ -33,10 +33,8 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 			if (!!this.creep.memory.keeperLair) {
 				this.keeperLair = Game.getObjectById<StructureKeeperLair>(this.creep.memory.keeperLair);
 			} else {
-				const lairs = this.creep.room.allStructures.filter(
-					(s: StructureKeeperLair) => s.structureType === STRUCTURE_KEEPER_LAIR
-					&& s.pos.inRangeTo(this.source.pos, 5)
-				) as StructureKeeperLair[];
+				const lairs = this.creep.room.groupedStructures[STRUCTURE_KEEPER_LAIR].filter(
+					(s: StructureKeeperLair) => s.pos.inRangeTo(this.source.pos, 5)) as StructureKeeperLair[];
 				if (lairs.length > 0) {
 					this.keeperLair = lairs.shift();
 					this.creep.memory.keeperLair = this.keeperLair.id;

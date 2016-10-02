@@ -523,15 +523,15 @@ export default class CreepAction implements ICreepAction {
 	public harvestFromContainersAndSources() {
 		if (!this.creep.memory.source) {
 			// Prefer energy from containers
-			let source: Structure | Source = this.creep.pos.findClosestByPath(this.creep.room.allStructures, {
-				filter: (structure: StorageStructure | StructureLink) => (structure.structureType === STRUCTURE_CONTAINER
-					|| structure.structureType === STRUCTURE_STORAGE
-					|| structure.structureType === STRUCTURE_LINK
-				) && (
-					((structure instanceof StructureContainer || structure instanceof StructureStorage)
+			const storageStructures = _.union(
+				this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
+				this.creep.room.groupedStructures[STRUCTURE_STORAGE],
+				this.creep.room.groupedStructures[STRUCTURE_LINK],
+			);
+			let source: Structure | Source = this.creep.pos.findClosestByPath(storageStructures, {
+				filter: (structure: StorageStructure | StructureLink) => ((structure instanceof StructureContainer || structure instanceof StructureStorage)
 					&& !!structure.store && structure.store[RESOURCE_ENERGY] > (this.creep.carryCapacity - this.creep.carrySum)) // containers and storage
-					|| (structure instanceof StructureLink && !!structure.energy && structure.energy >= (this.creep.carryCapacity - this.creep.carrySum)) // links
-				),
+					|| (structure instanceof StructureLink && !!structure.energy && structure.energy >= (this.creep.carryCapacity - this.creep.carrySum)), // links
 				maxRooms: 1,
 				algorithm: "astar",
 				ignoreCreeps: true,
