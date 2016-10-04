@@ -73,7 +73,7 @@ function updateLabReactions() {
 				room.stopLabReaction();
 			} else {
 				// Check if we have enough reagents in the empire to supply the reaction running
-				if (resources[room.labReagents[0]] < 100 || resources[room.labReagents[1]] < 100) {
+				if (resources[room.labReagents[0]] < TERMINAL_MIN_SEND || resources[room.labReagents[1]] < TERMINAL_MIN_SEND) {
 					// If we don't, check if the labs have sufficient reagents to run another round. if not, just stop so we can switch.
 					const inLab1 = room.myLabs.find((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= LAB_REACTION_AMOUNT);
 					const inLab2 = room.myLabs.find((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= LAB_REACTION_AMOUNT);

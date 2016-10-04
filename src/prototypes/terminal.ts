@@ -142,11 +142,11 @@ StructureTerminal.prototype.run = function (): boolean {
 			if (!this.sending
 				&& br.room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, br.reagent)
-				&& this.store[br.reagent] >= 100
+				&& this.store[br.reagent] >= TERMINAL_MIN_SEND
 				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < global.TERMINAL_MAX)
 				&& !br.room.storage.store[br.reagent]
 			) {
-				let transferAmount: number = global.clamp(batchSize, 100, this.store[br.reagent]);
+				let transferAmount: number = global.clamp(batchSize, TERMINAL_MIN_SEND, this.store[br.reagent]);
 				const transferCosts: number = Game.market.calcTransactionCost(transferAmount, this.room.name, br.room.name);
 				if (this.store.energy >= transferCosts) {
 					const status = this.send(br.reagent, transferAmount, br.room.name);
@@ -175,11 +175,11 @@ StructureTerminal.prototype.run = function (): boolean {
 				if (!this.sending
 					&& lr.room.name !== this.room.name
 					&& !_.includes(global.sendRegistry, reagent)
-					&& this.store[reagent] >= 100
+					&& this.store[reagent] >= TERMINAL_MIN_SEND
 					&& (!lr.room.terminal.store[reagent] || lr.room.terminal.store[reagent] < global.TERMINAL_MAX)
 					&& !lr.room.storage.store[reagent]
 				) {
-					let transferAmount: number = global.clamp(batchSize, 100, this.store[reagent]);
+					let transferAmount: number = global.clamp(batchSize, TERMINAL_MIN_SEND, this.store[reagent]);
 					const transferCosts: number = Game.market.calcTransactionCost(transferAmount, this.room.name, lr.room.name);
 					if (this.store.energy >= transferCosts) {
 						const status = this.send(reagent, transferAmount, lr.room.name);
