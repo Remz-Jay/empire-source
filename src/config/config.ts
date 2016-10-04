@@ -58,12 +58,6 @@ global.DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 200;
 global.MAX_TTL = 1400;
 
 /**
- * Static room configuration to redirect excess energy to, so we can use it to process power.
- * @type {string}
- */
-global.POWER_ROOM = "W6N42";
-
-/**
  * An array of players whose creeps will be excluded from Room.prototype.hostileCreeps
  * and will be added to Room.prototype.alliedCreeps instead.
  * @type {string[]}
@@ -338,6 +332,15 @@ global.labColors = {
 
 	resource(color: number, secondaryColor: number) {
 		return eval(_.findKey(this, { color : color, secondaryColor })); // tslint:disable-line
+	},
+	colors(resourceKey: string) {
+		let retVal: string = undefined;
+		_.forOwn(this, (v: any, k: string) => {
+			if (!_.isFunction(v) && eval(k) === resourceKey) { // tslint:disable-line
+				retVal = v;
+			}
+		});
+		return retVal;
 	},
 };
 

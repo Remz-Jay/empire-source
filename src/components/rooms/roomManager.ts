@@ -115,8 +115,8 @@ export function governRooms(): void {
 				if (room.myLabs.length > 2) {
 					try {
 						if (!!room.labReaction) {
-							const inLab1 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= 10).pop();
-							const inLab2 = room.myLabs.filter((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= 10).pop();
+							const inLab1 = room.myLabs.find((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= LAB_REACTION_AMOUNT);
+							const inLab2 = room.myLabs.find((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= LAB_REACTION_AMOUNT);
 							if (!!inLab1 && !!inLab2) {
 								const labs = room.myLabs.filter((l: StructureLab) => l.cooldown === 0 && l.id !== inLab1.id && l.id !== inLab2.id);
 								labs.forEach((l: StructureLab) => l.runReaction(inLab1, inLab2));

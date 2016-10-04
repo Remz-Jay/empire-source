@@ -113,44 +113,47 @@ StructureTerminal.prototype.run = function (): boolean {
 				return true;
 			}
 		});
-		const powerRoom = Game.rooms[global.POWER_ROOM];
-		if (!this.sending && this.room.name !== global.POWER_ROOM
+		const powerRoom: Room = roomList.find((r: Room) => !!r.powerSpawn && r.storage.store.energy <= (2 * global.STORAGE_MIN));
+		if (!this.sending && !!powerRoom && this.room.name !== powerRoom.name
 			&& this.storage.store.energy > (2 * global.STORAGE_MIN)
-			&& powerRoom.storage.store.energy <= (2 * global.STORAGE_MIN)
 		) {
-			const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
+			const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, powerRoom.name);
 			const transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
-			const status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);
+			const status = this.send(RESOURCE_ENERGY, transferAmount, powerRoom.name);
 			if (status === OK) {
 				this.sending = true;
 				global.sendRegistry.push(RESOURCE_ENERGY);
 				console.log(`Terminal.SupplyForPower, sending ${RESOURCE_ENERGY} x ${transferAmount}`
-					+ ` from ${this.room.name} to ${global.POWER_ROOM}`);
+					+ ` from ${this.room.name} to ${powerRoom.name}`);
 			}else {
 				console.log(`Terminal.SupplyForPower, error ${global.translateErrorCode(status)} while transferring`
-					+ ` from ${this.room.name} to ${global.POWER_ROOM}`);
+					+ ` from ${this.room.name} to ${powerRoom.name}`);
 			}
 		}
 	}
 
 	let resourceBlacklist: string[] = global.TERMINAL_SKIP_BALANCE_RESOURCES;
+	/**
+	 * Supply rooms that have active BoostLabs with the required compound if they're low on that resource.
+	 */
 	global.boostReagents.forEach((br: any) => {
 		resourceBlacklist.push(br.reagent);
 		if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
 			if (!this.sending
 				&& br.room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, br.reagent)
-				&& this.store[br.reagent] >= batchSize
+				&& this.store[br.reagent] >= 100
 				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < global.TERMINAL_MAX)
 				&& !br.room.storage.store[br.reagent]
 			) {
-				const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, br.room.name);
+				let transferAmount: number = global.clamp(batchSize, 100, this.store[br.reagent]);
+				const transferCosts: number = Game.market.calcTransactionCost(transferAmount, this.room.name, br.room.name);
 				if (this.store.energy >= transferCosts) {
-					const status = this.send(br.reagent, batchSize, br.room.name);
+					const status = this.send(br.reagent, transferAmount, br.room.name);
 					if (status === OK) {
 						this.sending = true;
 						global.sendRegistry.push(br.reagent);
-						console.log(`Terminal.RefillBoost, sending ${br.reagent} x ${batchSize}`
+						console.log(`Terminal.RefillBoost, sending ${br.reagent} x ${transferAmount}`
 						+ ` from ${this.room.name} to ${br.room.name}`);
 					} else {
 						console.log(`Terminal.RefillBoost, error ${global.translateErrorCode(status)} while transferring ${br.reagent}`
@@ -161,6 +164,9 @@ StructureTerminal.prototype.run = function (): boolean {
 			}
 		}
 	});
+	/**
+	 * Supply rooms that have a labReaction running with it's reagents if the room is low on either of those resources.
+	 */
 	global.labReactions.forEach((lr: any) => {
 		resourceBlacklist = _.union(resourceBlacklist, lr.reagents);
 		resourceBlacklist.push(lr.reaction);
@@ -169,17 +175,18 @@ StructureTerminal.prototype.run = function (): boolean {
 				if (!this.sending
 					&& lr.room.name !== this.room.name
 					&& !_.includes(global.sendRegistry, reagent)
-					&& this.store[reagent] >= batchSize
+					&& this.store[reagent] >= 100
 					&& (!lr.room.terminal.store[reagent] || lr.room.terminal.store[reagent] < global.TERMINAL_MAX)
 					&& !lr.room.storage.store[reagent]
 				) {
-					const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, lr.room.name);
+					let transferAmount: number = global.clamp(batchSize, 100, this.store[reagent]);
+					const transferCosts: number = Game.market.calcTransactionCost(transferAmount, this.room.name, lr.room.name);
 					if (this.store.energy >= transferCosts) {
-						const status = this.send(reagent, batchSize, lr.room.name);
+						const status = this.send(reagent, transferAmount, lr.room.name);
 						if (status === OK) {
 							this.sending = true;
 							global.sendRegistry.push(reagent);
-							console.log(`Terminal.LabReaction, sending ${reagent} x ${batchSize} to run ${lr.reaction}`
+							console.log(`Terminal.LabReaction, sending ${reagent} x ${transferAmount} to run ${lr.reaction}`
 							+ ` from ${this.room.name} to ${lr.room.name}`);
 						} else {
 							console.log(`Terminal.LabReaction, error ${global.translateErrorCode(status)} while transferring ${reagent}`

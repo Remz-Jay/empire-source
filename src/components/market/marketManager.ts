@@ -1,8 +1,25 @@
-const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
+const reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+const roomList = _.filter(reportRoomList, (r: Room) => r.controller.level > 5 && !!r.storage && !!r.terminal);
+const baseMinerals = [
+	RESOURCE_ENERGY,
+	RESOURCE_POWER,
+
+	RESOURCE_HYDROGEN,
+	RESOURCE_OXYGEN,
+	RESOURCE_UTRIUM,
+	RESOURCE_KEANIUM,
+	RESOURCE_LEMERGIUM,
+	RESOURCE_ZYNTHIUM,
+	RESOURCE_CATALYST,
+	RESOURCE_GHODIUM,
+];
 export function governMarket(): void {
 	if (!!Memory.transactions && Memory.transactions.length > 0) {
 		processTransactionLogs();
 		runTransactions();
+	}
+	if (global.time % 10 === 0) {
+		updateLabReactions();
 	}
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
 		if (global.time % 25 === 0) {
@@ -15,6 +32,71 @@ export function governMarket(): void {
 			findDeals();
 		}
 	}
+}
+
+function getResourceInventory(): ResourceList {
+	let resources: ResourceList = {};
+	RESOURCES_ALL.forEach((r: string) => {
+		resources[r] = 0;
+	});
+	_.forEach(reportRoomList, (r: Room) => {
+		if (!!r.storage) {
+			_.forEach(r.storage.store, (value: number, key: string) => {
+				if (!!resources[key]) {
+					resources[key] = resources[key] + value;
+				} else {
+					resources[key] = value;
+				}
+			});
+		}
+		if (!!r.terminal) {
+			_.forEach(r.terminal.store, (value: number, key: string) => {
+				if (!!resources[key]) {
+					resources[key] = resources[key] + value;
+				} else {
+					resources[key] = value;
+				}
+			});
+		}
+	});
+	return resources;
+}
+function updateLabReactions() {
+	const before = Game.cpu.getUsed();
+	console.log(`[MARKET]: Running updateLabReactions`);
+	let resources = getResourceInventory();
+	// check if any of the reactions is over target
+	_.forEach(roomList, (room: Room) => {
+		if (!!room.labReaction) {
+			// Stop the reaction if we're over Target
+			if (resources[room.labReaction] > Memory.config.ResourceTargets[room.labReaction]) {
+				room.stopLabReaction();
+			} else {
+				// Check if we have enough reagents in the empire to supply the reaction running
+				if (resources[room.labReagents[0]] < 100 || resources[room.labReagents[1]] < 100) {
+					// If we don't, check if the labs have sufficient reagents to run another round. if not, just stop so we can switch.
+					const inLab1 = room.myLabs.find((l: StructureLab) => l.mineralType === room.labReagents[0] && l.mineralAmount >= LAB_REACTION_AMOUNT);
+					const inLab2 = room.myLabs.find((l: StructureLab) => l.mineralType === room.labReagents[1] && l.mineralAmount >= LAB_REACTION_AMOUNT);
+					if (!inLab1 || !inLab2) {
+						room.stopLabReaction();
+					}
+				}
+			}
+		}
+	});
+	_.forEach(_.difference(RESOURCES_ALL, baseMinerals), (r: string) => {
+		if (resources[r] < (Memory.config.ResourceTargets[r] - LAB_MINERAL_CAPACITY)) {
+			let reagents = global.findReagents(r);
+			// Start a reaction if we're under Target and we have sufficient reagents to run a full batch.
+			if (resources[reagents[0]] >= LAB_MINERAL_CAPACITY && resources[reagents[1]] >= LAB_MINERAL_CAPACITY) {
+				let freeRoom = roomList.find((room: Room) => !room.labReaction && room.myLabs.length >= 3);
+				if (!!freeRoom) {
+					freeRoom.setLabReaction(r);
+				}
+			}
+		}
+	});
+	console.log(`MarketManager.updateLabReactions took ${_.round(Game.cpu.getUsed() - before, 2)}`);
 }
 function runTransactions() {
 	const before = Game.cpu.getUsed();
@@ -89,37 +171,13 @@ global.findDeals = findDeals;
 
 function resourceReport(): void {
 	let outputBuffer: string[] = [];
-	let resources: ResourceList = {"energy": 0};
-	const reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	let resources = getResourceInventory();
 	const numRooms = reportRoomList.length;
 	let elementList: string[] = [
 		"Resource",
 		"Total",
 		"Target",
-	];
-	_.forEach(reportRoomList, (r: Room) => {
-		if (!!r.controller && r.controller.my) {
-			elementList.push(r.name);
-			if (!!r.storage) {
-				_.forEach(r.storage.store, (value: number, key: string) => {
-					if (!!resources[key]) {
-						resources[key] = resources[key] + value;
-					} else {
-						resources[key] = value;
-					}
-				});
-			}
-			if (!!r.terminal) {
-				_.forEach(r.terminal.store, (value: number, key: string) => {
-					if (!!resources[key]) {
-						resources[key] = resources[key] + value;
-					} else {
-						resources[key] = value;
-					}
-				});
-			}
-		}
-	});
+	].concat(_.map(reportRoomList, "name") as string[]);
 	const cellWidth: number = 9;
 	let header: string = "\u2551";
 	let topLine: string = "\u2554";
@@ -145,7 +203,8 @@ function resourceReport(): void {
 		if (value > 1000) {
 			let line: string = "";
 			line = line.concat(" " + formatAmount(value, cellWidth, target) + "\u2551");
-			line = line.concat(" " + formatAmount(target, cellWidth, target) + "\u2551");
+			let targetColor = (value >= target) ? "LightGreen" : "Salmon";
+			line = line.concat(" " + formatAmount(target, cellWidth, target, targetColor) + "\u2551");
 			reportRoomList.forEach((r: Room) => {
 				let roomRunning: boolean = false;
 				if (!!r.labReaction && r.labReaction === key) {

@@ -61,6 +61,8 @@ interface Room {
 	getPowerSpawn(): StructurePowerSpawn;
 	getObserver(): StructureObserver;
 	getLabReaction(): string;
+	setLabReaction(reaction: string): boolean;
+	stopLabReaction(): boolean;
 	getLabReagents(): string[];
 	addProperties(): void;
 }
@@ -371,6 +373,27 @@ Room.prototype.getLabReaction = function(): string {
 		}
 	}
 	return undefined;
+};
+Room.prototype.setLabReaction = function(reaction: string): boolean {
+	if (!!Game.flags[this.name + "_LR"] && RESOURCES_ALL.indexOf(reaction) !== -1) {
+		const flag = Game.flags[this.name + "_LR"];
+		let colors = global.labColors.colors(reaction);
+		flag.setColor(colors.color, colors.secondaryColor);
+		this.labReaction = reaction;
+		this.labReagents = this.getLabReagents();
+		return true;
+	}
+	return false;
+};
+Room.prototype.stopLabReaction = function(): boolean {
+	if (!!Game.flags[this.name + "_LR"]) {
+		const flag = Game.flags[this.name + "_LR"];
+		flag.setColor(COLOR_WHITE, COLOR_RED);
+		this.labReaction = undefined;
+		this.labReagents = this.getLabReagents();
+		return true;
+	}
+	return false;
 };
 Room.prototype.getLabReagents = function(): string[] {
 	if (!!this.labReaction) {
