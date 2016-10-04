@@ -15,6 +15,12 @@ export function loadMemory(): void {
 			Wall: [],
 		};
 	}
+	if (!this.memory.config.ResourceTargets) {
+		this.memory.config.ResourceTargets = {};
+		RESOURCES_ALL.forEach((r: string) => {
+			this.memory.config.ResourceTargets[r] = 10000;
+		});
+	}
 	if (!this.memory.pathCache) {
 		this.memory.pathCache = {};
 	}

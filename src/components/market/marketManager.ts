@@ -91,9 +91,11 @@ function resourceReport(): void {
 	let outputBuffer: string[] = [];
 	let resources: ResourceList = {"energy": 0};
 	const reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	const numRooms = reportRoomList.length;
 	let elementList: string[] = [
 		"Resource",
 		"Total",
+		"Target",
 	];
 	_.forEach(reportRoomList, (r: Room) => {
 		if (!!r.controller && r.controller.my) {
@@ -138,10 +140,12 @@ function resourceReport(): void {
 	let tracers: string[] = [];
 	RESOURCES_ALL.forEach((key: string) => {
 		let globalRunning: boolean = false;
+		let target = Memory.config.ResourceTargets[key];
 		const value: number = resources[key] || 0;
 		if (value > 1000) {
 			let line: string = "";
-			line = line.concat(" " + formatAmount(value, cellWidth) + "\u2551");
+			line = line.concat(" " + formatAmount(value, cellWidth, target) + "\u2551");
+			line = line.concat(" " + formatAmount(target, cellWidth, target) + "\u2551");
 			reportRoomList.forEach((r: Room) => {
 				let roomRunning: boolean = false;
 				if (!!r.labReaction && r.labReaction === key) {
@@ -152,9 +156,9 @@ function resourceReport(): void {
 				const terminalVal: number = (!!r.terminal) ? r.terminal.store[key] || 0 : 0;
 				const totalVal: number = storageVal + terminalVal;
 				if (roomRunning) {
-					line = line.concat(" " + formatAmount(totalVal, cellWidth, "CornflowerBlue") + "\u2551");
+					line = line.concat(" " + formatAmount(totalVal, cellWidth, (target / numRooms), "CornflowerBlue") + "\u2551");
 				} else {
-					line = line.concat(" " + formatAmount(totalVal, cellWidth) + "\u2551");
+					line = line.concat(" " + formatAmount(totalVal, cellWidth, (target / numRooms))  + "\u2551");
 				}
 			});
 			if (globalRunning) {
@@ -185,7 +189,7 @@ function resourceReport(): void {
 				storages = storages + 1;
 				storageTotal = storageTotal + _.sum(r.storage.store);
 			} else {
-				storageLine = storageLine.concat(" " + formatAmount(NaN, cellWidth) + "\u2551");
+				storageLine = storageLine.concat(" " + formatAmount(NaN, cellWidth, 0, "White") + "\u2551");
 			}
 			if (!!r.terminal) {
 				const terminalPercentage = _.round(_.sum(r.terminal.store) / (r.terminal.storeCapacity / 100));
@@ -196,7 +200,7 @@ function resourceReport(): void {
 				terminals = terminals + 1;
 				terminalTotal = terminalTotal + _.sum(r.terminal.store);
 			} else {
-				terminalLine = terminalLine.concat(" " + formatAmount(NaN, cellWidth) + "\u2551");
+				terminalLine = terminalLine.concat(" " + formatAmount(NaN, cellWidth, 0, "White") + "\u2551");
 			}
 		}
 	});
@@ -206,9 +210,9 @@ function resourceReport(): void {
 	const totalTerminalPercentage = _.round(terminalTotal / ((TERMINAL_CAPACITY * terminals) / 100));
 	const totalTerminalChunk = global.colorWrap(_.padRight(" " + totalTerminalPercentage + "%", cellWidth),
 		global.getColorBasedOnPercentage(totalTerminalPercentage));
-	storageLine = "\u2551 <b>" + _.padRight("Storage", cellWidth) + "</b>\u2551 "
+	storageLine = "\u2551 <b>" + _.padRight("Storage", cellWidth) + "</b>\u2551 " + _.padRight(" ---", cellWidth) + "\u2551 "
 		+ totalStorageChunk + "\u2551".concat(storageLine);
-	terminalLine = "\u2551 <b>" + _.padRight("Terminal", cellWidth) + "</b>\u2551 "
+	terminalLine = "\u2551 <b>" + _.padRight("Terminal", cellWidth) + "</b>\u2551 " + _.padRight(" ---", cellWidth) + "\u2551 "
 		+ totalTerminalChunk + "\u2551".concat(terminalLine);
 	outputBuffer.push(storageLine);
 	outputBuffer.push(terminalLine);
@@ -225,27 +229,21 @@ function resourceReport(): void {
 }
 global.resourceReport = resourceReport;
 
-function formatAmount(value: number, cellWidth: number = 0, overrideColor?: string): string {
+function formatAmount(value: number, cellWidth: number = 0, valueMax: number = global.STORAGE_MIN, overrideColor?: string): string {
 	let strVal: string = global.formatNumber(value);
 	strVal = _.padRight(strVal, cellWidth);
+	let color: string = "White";
+	const percentage = value / (valueMax / 100);
 	if (_.isString(overrideColor)) {
-		strVal = global.colorWrap(strVal, overrideColor);
+		color = overrideColor;
+	} else if (percentage > 100) {
+		color = "#ff0066";
 	} else {
-		let percentage = value / (global.STORAGE_MIN / 100);
-		if (percentage > 100) {
-			percentage = percentage + 50;
-		}
-		strVal = global.colorWrap(strVal, global.getColorBasedOnPercentage(100 - percentage));
-		/*if (value > global.STORAGE_MIN) {
-			strVal = global.colorWrap(strVal, "LightGreen");
-		} else if (value > global.STORAGE_MIN / 2) {
-			strVal = global.colorWrap(strVal, "Orange");
-		} else {
-			strVal = global.colorWrap(strVal, "Salmon");
-		}*/
+		color = global.getColorBasedOnPercentage(100 - percentage);
 	}
-	return strVal;
+	return global.colorWrap(strVal, color);
 }
+
 function dumpResource(resource: string) {
 	const before = Game.cpu.getUsed();
 	const perBatch: number = 2000;
@@ -373,5 +371,9 @@ function processTransactionLogs() {
 		}
 	});
 }
+function setTarget(resourceName: string, target: number) {
+	Memory.config.ResourceTargets[resourceName] = target;
+}
+global.setTarget = setTarget;
 // Object.defineProperty(global, "rr", { get: function () { return global.resourceReport(); } });
 // Object.defineProperty(global, "tr", { get: function () { return global.transactionReport(); } });

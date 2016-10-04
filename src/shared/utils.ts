@@ -4,9 +4,9 @@ global.colorWrap = function(text: string, color: string) {
 
 global.formatNumber = function(value: number): string {
 	let strVal: string = value.toString();
-	if (value > 1000000) {
+	if (value >= 1000000) {
 		strVal = _.round(value / 1000000, 2).toString() + "M";
-	} else if (value > 1000) {
+	} else if (value >= 1000) {
 		strVal = _.round(value / 1000, 2).toString() + "k";
 	}
 	return strVal;

@@ -140,6 +140,9 @@ declare interface Memory {
 		Rampart: {
 			[name: string]: any;
 		};
+		ResourceTargets: {
+			[resourceName: string]: number;
+		}
 	};
 	pathCache: {
 		[from: string]: {
