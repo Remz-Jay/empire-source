@@ -1,5 +1,6 @@
 import "./shared/utils";
 import "./config/config";
+import "./prototypes/ownedstructure";
 import "./prototypes/room";
 import "./prototypes/creep";
 import "./prototypes/link";
@@ -31,7 +32,13 @@ export function loop() {
 		PathFinder.use(true);
 		global.tickCache = {
 			roles: _.groupBy(Game.creeps, "memory.role"),
+			rolesByRoom: {},
+			storageLink: {},
+			storageTower: {},
 		};
+		_.forOwn(global.tickCache.roles, (ca: Creep[], key: string) => {
+			global.tickCache.rolesByRoom[key] = _.groupBy(ca, "memory.homeRoom");
+		});
 		MemoryManager.loadMemory();
 		if (global.time & 5) {
 			MemoryManager.cleanMemory();

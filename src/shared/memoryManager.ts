@@ -21,10 +21,16 @@ export function loadMemory(): void {
 }
 
 export function cleanMemory(): void {
-	for (const name in this.memory.creeps) {
+	for (let name in this.memory.creeps) {
 		if (!Game.creeps[name]) {
 			delete this.memory.creeps[name];
 			console.log(`Clearing non-existing creep memory: ${name}`);
+		}
+	}
+	for (let id in this.memory.structures ) {
+		if (!Game.structures[id]) {
+			console.log("Garbage collecting structure " + id);
+			delete Memory.structures[id];
 		}
 	}
 }

@@ -1,13 +1,29 @@
 interface StructureTerminal {
+	storage: StructureStorage;
+	sending: boolean;
 	run(): boolean;
 	autoSell(): boolean;
 	processTransactions(): boolean;
 }
 
+Object.defineProperty(StructureTerminal.prototype, "storage", {
+		get: function storage() {
+			delete this.storage;
+			return this.storage = this.room.storage;
+		},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(StructureTerminal.prototype, "sending", {
+	value: false,
+	writable: true,
+	configurable: true,
+	enumerable: false,
+});
+
 StructureTerminal.prototype.processTransactions = function(): boolean {
 	let batchSize = global.TERMINAL_MAX;
-	let sending: boolean = false;
-	if (!!Memory.transactions && Memory.transactions.length > 0 && !sending && this.store.energy >= global.TERMINAL_MAX) {
+	if (!!Memory.transactions && Memory.transactions.length > 0 && !this.sending && this.store.energy >= global.TERMINAL_MAX) {
 		Memory.transactions.forEach((t: TerminalTransaction) => {
 			if (t.recipient !== this.room.name && t.totalAmount - t.sentAmount > 0 && this.store[t.resource] >= batchSize) {
 				batchSize = global.clamp(batchSize, 0, (t.totalAmount - t.sentAmount));
@@ -17,7 +33,7 @@ StructureTerminal.prototype.processTransactions = function(): boolean {
 					console.log(t.resource, batchSize, t.recipient, description, description.length);
 					const status = this.send(t.resource, batchSize, t.recipient, description);
 					if (status === OK) {
-						sending = true;
+						this.sending = true;
 						global.sendRegistry.push(t.resource);
 						console.log(`Terminal.processTransactions, sending ${t.resource} x ${batchSize}`
 							+ ` from ${this.room.name} to ${t.recipient}`);
@@ -36,13 +52,11 @@ StructureTerminal.prototype.processTransactions = function(): boolean {
 };
 
 StructureTerminal.prototype.autoSell = function(): boolean {
-	const storage = this.room.storage;
-	const sending: boolean = false;
 	const minType: string = this.room.minerals[0].mineralType;
-	if (!sending
+	if (!this.sending
 		&& Game.cpu.bucket > global.BUCKET_MIN
 		&& this.store.energy >= global.TERMINAL_MAX
-		&& storage.store[minType] > global.STORAGE_MIN
+		&& this.storage.store[minType] > global.STORAGE_MIN
 		&& this.store[minType] >= global.TERMINAL_MAX
 	) {
 		try {
@@ -59,6 +73,7 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 					if (status === OK) {
 						console.log(global.colorWrap(`[MARKET] AutoSelling ${amount} ${minType} in ${this.room.name} at price ${offer.price}`
 							+ ` - order ${offer.id}.`, "DeepPink"));
+						this.sending = true;
 					}
 					return true;
 				}
@@ -71,17 +86,14 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 };
 
 StructureTerminal.prototype.run = function (): boolean {
-	const storage = this.room.storage;
-	let sending: boolean = false;
 	const batchSize: number = 1000;
-
 	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_ENERGY_MAX
-		&& storage.store.energy >= (global.STORAGE_MIN + global.TERMINAL_ENERGY_MAX)
+		&& this.storage.store.energy >= (global.STORAGE_MIN + global.TERMINAL_ENERGY_MAX)
 	) {
 		// Find a room that needs energy.
 		_.forEach(roomList, (room: Room) => {
-			if (!sending
+			if (!this.sending
 				&& room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, RESOURCE_ENERGY)
 				&& room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_ENERGY_MAX)
@@ -90,7 +102,7 @@ StructureTerminal.prototype.run = function (): boolean {
 				const transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
 				const status = this.send(RESOURCE_ENERGY, transferAmount, room.name);
 				if (status === OK) {
-					sending = true;
+					this.sending = true;
 					global.sendRegistry.push(RESOURCE_ENERGY);
 					console.log(`Terminal.RefillEnergy, sending ${RESOURCE_ENERGY} x ${transferAmount}`
 					+ ` from ${this.room.name} to ${room.name}`);
@@ -102,15 +114,15 @@ StructureTerminal.prototype.run = function (): boolean {
 			}
 		});
 		const powerRoom = Game.rooms[global.POWER_ROOM];
-		if (!sending && this.room.name !== global.POWER_ROOM
-			&& storage.store.energy > (2 * global.STORAGE_MIN)
+		if (!this.sending && this.room.name !== global.POWER_ROOM
+			&& this.storage.store.energy > (2 * global.STORAGE_MIN)
 			&& powerRoom.storage.store.energy <= (2 * global.STORAGE_MIN)
 		) {
 			const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, global.POWER_ROOM);
 			const transferAmount: number = global.TERMINAL_ENERGY_MAX - transferCosts;
 			const status = this.send(RESOURCE_ENERGY, transferAmount, global.POWER_ROOM);
 			if (status === OK) {
-				sending = true;
+				this.sending = true;
 				global.sendRegistry.push(RESOURCE_ENERGY);
 				console.log(`Terminal.SupplyForPower, sending ${RESOURCE_ENERGY} x ${transferAmount}`
 					+ ` from ${this.room.name} to ${global.POWER_ROOM}`);
@@ -124,8 +136,8 @@ StructureTerminal.prototype.run = function (): boolean {
 	let resourceBlacklist: string[] = global.TERMINAL_SKIP_BALANCE_RESOURCES;
 	global.boostReagents.forEach((br: any) => {
 		resourceBlacklist.push(br.reagent);
-		if (!sending && Game.cpu.bucket > global.BUCKET_MIN) {
-			if (!sending
+		if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
+			if (!this.sending
 				&& br.room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, br.reagent)
 				&& this.store[br.reagent] >= batchSize
@@ -136,7 +148,7 @@ StructureTerminal.prototype.run = function (): boolean {
 				if (this.store.energy >= transferCosts) {
 					const status = this.send(br.reagent, batchSize, br.room.name);
 					if (status === OK) {
-						sending = true;
+						this.sending = true;
 						global.sendRegistry.push(br.reagent);
 						console.log(`Terminal.RefillBoost, sending ${br.reagent} x ${batchSize}`
 						+ ` from ${this.room.name} to ${br.room.name}`);
@@ -152,9 +164,9 @@ StructureTerminal.prototype.run = function (): boolean {
 	global.labReactions.forEach((lr: any) => {
 		resourceBlacklist = _.union(resourceBlacklist, lr.reagents);
 		resourceBlacklist.push(lr.reaction);
-		if (!sending && Game.cpu.bucket > global.BUCKET_MIN) {
+		if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
 			lr.reagents.forEach((reagent: string) => {
-				if (!sending
+				if (!this.sending
 					&& lr.room.name !== this.room.name
 					&& !_.includes(global.sendRegistry, reagent)
 					&& this.store[reagent] >= batchSize
@@ -165,7 +177,7 @@ StructureTerminal.prototype.run = function (): boolean {
 					if (this.store.energy >= transferCosts) {
 						const status = this.send(reagent, batchSize, lr.room.name);
 						if (status === OK) {
-							sending = true;
+							this.sending = true;
 							global.sendRegistry.push(reagent);
 							console.log(`Terminal.LabReaction, sending ${reagent} x ${batchSize} to run ${lr.reaction}`
 							+ ` from ${this.room.name} to ${lr.room.name}`);
@@ -179,18 +191,18 @@ StructureTerminal.prototype.run = function (): boolean {
 			});
 		}
 	});
-	if (!sending && Game.cpu.bucket > global.BUCKET_MIN) {
+	if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
 		let resources: string[] = _(RESOURCES_ALL).difference(resourceBlacklist).difference(global.sendRegistry).value();
 		resources.forEach((resource: string) => {
-			if (sending) {
+			if (this.sending) {
 				return;
 			}
-			if (!!storage.store[resource]
-				&& storage.store[resource] > global.TERMINAL_MAX
+			if (!!this.storage.store[resource]
+				&& this.storage.store[resource] > global.TERMINAL_MAX
 				&& this.store[resource] >= global.TERMINAL_MAX
 			) {
 				_.forEach(roomList, (room: Room) => {
-					if (!sending
+					if (!this.sending
 						&& !room.storage.store[resource]
 						&& (!room.terminal.store[resource] || room.terminal.store[resource] < global.TERMINAL_MAX)
 					) {
@@ -198,7 +210,7 @@ StructureTerminal.prototype.run = function (): boolean {
 						if (this.store.energy >= transferCosts) {
 							const status = this.send(resource, batchSize, room.name);
 							if (status === OK) {
-								sending = true;
+								this.sending = true;
 								global.sendRegistry.push(resource);
 								console.log(`Terminal.BalanceRooms, sending ${resource} x ${batchSize}`
 								+ ` from ${this.room.name} to ${room.name}`);

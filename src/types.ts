@@ -147,6 +147,9 @@ declare interface Memory {
 		}
 	};
 	transactions: TerminalTransaction[];
+	structures: {
+		[id: string]: any;
+	};
 }
 
 declare interface Game {

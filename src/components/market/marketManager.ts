@@ -1,15 +1,16 @@
+const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 export function governMarket(): void {
 	if (!!Memory.transactions && Memory.transactions.length > 0) {
 		processTransactionLogs();
 		runTransactions();
 	}
 	if (Game.cpu.bucket > global.BUCKET_MIN) {
-		if (global.time % 20 === 0) {
+		if (global.time % 25 === 0) {
 			console.log(`[MARKET] Running actions`);
 			cleanupOrders();
-			dumpResource("O");
+			// dumpResource("O");
 			// dumpResource("H");
-			dumpResource("Z");
+			// dumpResource("Z");
 			autoSell();
 			findDeals();
 		}
@@ -17,7 +18,6 @@ export function governMarket(): void {
 }
 function runTransactions() {
 	const before = Game.cpu.getUsed();
-	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
 		try {
 			r.terminal.processTransactions();
@@ -30,7 +30,6 @@ function runTransactions() {
 
 function autoSell() {
 	const before = Game.cpu.getUsed();
-	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
 		try {
 			r.terminal.autoSell();
@@ -91,12 +90,12 @@ global.findDeals = findDeals;
 function resourceReport(): void {
 	let outputBuffer: string[] = [];
 	let resources: ResourceList = {"energy": 0};
-	const roomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	const reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
 	let elementList: string[] = [
 		"Resource",
 		"Total",
 	];
-	_.forEach(roomList, (r: Room) => {
+	_.forEach(reportRoomList, (r: Room) => {
 		if (!!r.controller && r.controller.my) {
 			elementList.push(r.name);
 			if (!!r.storage) {
@@ -143,7 +142,7 @@ function resourceReport(): void {
 		if (value > 1000) {
 			let line: string = "";
 			line = line.concat(" " + formatAmount(value, cellWidth) + "\u2551");
-			roomList.forEach((r: Room) => {
+			reportRoomList.forEach((r: Room) => {
 				let roomRunning: boolean = false;
 				if (!!r.labReaction && r.labReaction === key) {
 					roomRunning = true;
@@ -175,7 +174,7 @@ function resourceReport(): void {
 	let storageTotal = 0;
 	let terminals = 0;
 	let terminalTotal = 0;
-	_.forEach(roomList, (r: Room) => {
+	_.forEach(reportRoomList, (r: Room) => {
 		if (!!r.controller && r.controller.my) {
 			if (!!r.storage) {
 				const storagePercentage = _.round(_.sum(r.storage.store) / (r.storage.storeCapacity / 100));
@@ -250,7 +249,6 @@ function formatAmount(value: number, cellWidth: number = 0, overrideColor?: stri
 function dumpResource(resource: string) {
 	const before = Game.cpu.getUsed();
 	const perBatch: number = 2000;
-	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	roomList.forEach((r: Room) => {
 		if (!!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.2)
 			&& r.terminal.store[resource] && r.terminal.store[resource] >= perBatch
@@ -375,5 +373,5 @@ function processTransactionLogs() {
 		}
 	});
 }
-Object.defineProperty(global, "rr", { get: function () { return global.resourceReport(); } });
-Object.defineProperty(global, "tr", { get: function () { return global.transactionReport(); } });
+// Object.defineProperty(global, "rr", { get: function () { return global.resourceReport(); } });
+// Object.defineProperty(global, "tr", { get: function () { return global.transactionReport(); } });

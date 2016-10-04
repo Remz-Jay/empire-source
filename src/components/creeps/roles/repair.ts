@@ -160,9 +160,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		if (this.creep.room.myConstructionSites.length > 0) {
 			this.creep.memory.role = "Builder";
 		}
-		if (!this.renewCreep() || !this.flee()) {
-			return false;
-		}
 		this.repairLogic();
+		return true;
 	}
 }

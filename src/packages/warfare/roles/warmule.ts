@@ -14,16 +14,20 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 	}
 
 	public move() {
-		if (this.creep.carrySum > (this.creep.carryCapacity / 2)) {
+		if (!!this.creep.memory.full || (this.creep.carrySum > (this.creep.carryCapacity / 2))) {
 			const storage = Game.rooms[this.creep.memory.homeRoom].storage;
 			if (!!storage && !this.creep.pos.isNearTo(storage.pos)) {
 				// get in range
 				this.moveTo(storage.pos);
 				this.creep.say("Storage");
 			} else {
-				const status = this.creep.transfer(storage, this.getMineralTypeFromStore(this.creep));
-				if (status === OK) {
-					this.positionIterator = this.creep.memory.positionIterator = 0;
+				if (this.creep.bagEmpty) {
+					delete this.creep.memory.full;
+				} else {
+					const status = this.creep.transfer(storage, this.getMineralTypeFromStore(this.creep));
+					if (status === OK) {
+						this.positionIterator = this.creep.memory.positionIterator = 0;
+					}
 				}
 			}
 		} else if (!this.moveUsingPositions()) {
@@ -35,6 +39,8 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 					this.moveTo(target.pos);
 				} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2)) {
 					this.creep.pickup(target);
+				} else {
+					this.creep.memory.full = true;
 				}
 			}
 		} else {

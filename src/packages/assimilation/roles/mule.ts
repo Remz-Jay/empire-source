@@ -55,9 +55,10 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 			if (!!this.storage && this.creep.carry.energy > 0) {
 				const storageRange = this.creep.pos.getRangeTo(this.storage.pos);
 				const links = this.creep.room.myGroupedStructures[STRUCTURE_LINK].filter(
-					(s: StructureLink) => s.energy <= (s.energyCapacity / 2));
+					(s: StructureLink) => s.energy <= (s.energyCapacity / 2)
+					&& s.pos.getRangeTo(this.creep.pos) < storageRange
+				);
 				const target: OwnedStructure = this.creep.pos.findClosestByPath<OwnedStructure>(links, {
-					filter: (l: StructureLink) => l.pos.getRangeTo(this.creep.pos) < storageRange,
 					algorithm: "astar",
 					costCallback: this.roomCallback,
 					maxOps: 500,

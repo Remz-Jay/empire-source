@@ -499,7 +499,7 @@ export function govern(): void {
 							if (config.claim) {
 								manageConstructions(0);
 							} else if (!config.hasController) {
-								// manageConstructions(3);
+								manageConstructions(3);
 							} else {
 								manageConstructions(1);
 							}

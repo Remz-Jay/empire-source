@@ -42,7 +42,7 @@ export function blacklistSources(sourceIds: string[]): boolean {
 }
 
 export function findAvailableHarvester(s: Source) {
-	const harvesters = _.filter(s.room.myCreeps, (c: Creep) => c.memory.role.toUpperCase() === "Harvester".toUpperCase());
+	const harvesters =  _.get(global.tickCache.rolesByRoom, `Harvester.${s.room.name}`, []);
 	return harvesters.find((h: Creep) => !h.memory.preferredSource);
 }
 

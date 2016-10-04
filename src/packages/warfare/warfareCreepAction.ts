@@ -1,10 +1,7 @@
 import CreepAction from "../../components/creeps/creepAction";
-import WarriorGovernor from "./governors/warrior";
 
 export interface IWFCreepAction {
 	wait: boolean;
-	squad: Creep[];
-	squadSize: number;
 	checkTough(): boolean;
 	moveToHeal(): boolean;
 	moveToSafeRange(): boolean;
@@ -13,8 +10,6 @@ export interface IWFCreepAction {
 }
 
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
-	public squad: Creep[] = [];
-	public squadSize: number = 0;
 	public wait: boolean = false;
 	public ignoreStructures: string[] = [
 		// STRUCTURE_STORAGE,
@@ -51,25 +46,28 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	}
 
 	public moveToSafeRange(): boolean {
-		const targets = this.creep.pos.findInRange(this.creep.room.hostileCreeps, 2, {
-			filter: (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
-			|| c.getActiveBodyparts(RANGED_ATTACK) > 0,
-		});
-		if (targets.length > 0) {
-			const goals = _.map(targets, function (t: Creep) {
-				return {pos: t.pos, range: 3};
-			});
-			const path = PathFinder.search(this.creep.pos, goals, {
-				flee: true,
-				maxRooms: 1,
-				plainCost: 2,
-				swampCost: 10,
-				maxOps: 500,
-				roomCallback: this.creepCallback,
-			});
-			const pos = path.path[0];
-			this.creep.move(this.creep.pos.getDirectionTo(pos));
-			return false;
+		if (this.creep.room.hostileCreeps.length > 0) {
+			const capableTargets = _.filter(this.creep.room.hostileCreeps, (c: Creep) => c.getActiveBodyparts(ATTACK) > 0
+			|| c.getActiveBodyparts(RANGED_ATTACK) > 0);
+			if (!!capableTargets && capableTargets.length > 0) {
+				const targets = this.creep.pos.findInRange(capableTargets, 2);
+				if (targets.length > 0) {
+					const goals = _.map(targets, function (t: Creep) {
+						return {pos: t.pos, range: 3};
+					});
+					const path = PathFinder.search(this.creep.pos, goals, {
+						flee: true,
+						maxRooms: 1,
+						plainCost: 2,
+						swampCost: 10,
+						maxOps: 500,
+						roomCallback: this.creepCallback,
+					});
+					const pos = path.path[0];
+					this.creep.move(this.creep.pos.getDirectionTo(pos));
+					return false;
+				}
+			}
 		}
 		return true;
 	}
@@ -379,13 +377,6 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			}
 		}
 		return undefined;
-	}
-
-	public followWarrior() {
-		const w = this.squad.find((c: Creep) => c.memory.role === WarriorGovernor.ROLE);
-		if (!this.creep.pos.isNearTo(w)) {
-			this.moveTo(w.pos);
-		}
 	}
 
 	public waitAtFlag(roomName: string) {

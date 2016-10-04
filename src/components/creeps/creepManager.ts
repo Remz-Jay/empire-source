@@ -75,7 +75,7 @@ export function governCreeps(room: Room) {
 		) {
 			const governor: CreepGovernor = new prioritizedGovernors[index](room);
 			const creepRole: string = prioritizedGovernors[index].ROLE;
-			const creepsInRole: Creep[] = _.filter(global.tickCache.roles[creepRole], (creep: Creep) => creep.memory.homeRoom === room.name);
+			const creepsInRole: Creep[] = _.get(global.tickCache.rolesByRoom, `${creepRole}.${room.name}`, []);
 			const numCreeps: number = creepsInRole.length;
 			const creepLimit: number = governor.getCreepLimit();
 

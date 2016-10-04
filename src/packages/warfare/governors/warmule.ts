@@ -8,7 +8,7 @@ export default class WarMuleGovernor extends WarfareCreepGovernor {
 
 	public maxParts = 12;
 	public maxCreeps = 3;
-	public bodyPart = [CARRY, CARRY, CARRY, MOVE];
+	public bodyPart = [CARRY, CARRY, CARRY, MOVE]; // 1850 carry total
 	public basePart = [CARRY, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {

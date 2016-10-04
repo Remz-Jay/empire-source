@@ -7,8 +7,8 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 	public static ROLE: string = "Repair";
 
 	public bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
-	public maxParts = 4;
-	public maxCreeps = 2;
+	public maxParts = 8;
+	public maxCreeps = 1;
 	public getCreepConfig(): CreepConfiguration {
 		const bodyParts: string[] = this.getBody();
 		const name: string = `${this.room.name}-${RepairGovernor.ROLE}-${global.time}`;
@@ -24,7 +24,7 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 
 	public getCreepLimit(): number {
 		if (this.room.controller.level === 8 && this.room.myConstructionSites.length === 0) {
-			return 1;
+			return 0;
 		}
 		return (this.room.controller.level < 5) ? 0 : _.floor(this.room.energyInContainers / 200000);
 	};
