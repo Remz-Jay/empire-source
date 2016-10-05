@@ -176,6 +176,7 @@ StructureTerminal.prototype.run = function (): boolean {
 					&& lr.room.name !== this.room.name
 					&& !_.includes(global.sendRegistry, reagent)
 					&& this.store[reagent] >= TERMINAL_MIN_SEND
+					&& (!!this.room.labReagents && !_.includes(this.room.labReagents, reagent))
 					&& (!lr.room.terminal.store[reagent] || lr.room.terminal.store[reagent] < global.TERMINAL_MAX)
 					&& !lr.room.storage.store[reagent]
 				) {

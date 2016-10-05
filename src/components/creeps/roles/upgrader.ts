@@ -26,6 +26,10 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 
 		this.targetController = Game.getObjectById<Controller>(this.creep.memory.target_controller_id);
 		this.targetEnergySource = Game.getObjectById<Spawn | Structure>(this.creep.memory.target_energy_source_id);
+		if (!this.targetController) {
+			this.targetController = this.creep.room.controller;
+			this.creep.memory.target_controller_id = this.targetController.id;
+		}
 	}
 
 	public tryUpgrading(): number {

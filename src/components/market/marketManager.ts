@@ -1,9 +1,8 @@
-const reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
-const roomList = _.filter(reportRoomList, (r: Room) => r.controller.level > 5 && !!r.storage && !!r.terminal);
+let reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+let roomList = _.filter(reportRoomList, (r: Room) => r.controller.level > 5 && !!r.storage && !!r.terminal);
 const baseMinerals = [
 	RESOURCE_ENERGY,
 	RESOURCE_POWER,
-
 	RESOURCE_HYDROGEN,
 	RESOURCE_OXYGEN,
 	RESOURCE_UTRIUM,
@@ -11,9 +10,10 @@ const baseMinerals = [
 	RESOURCE_LEMERGIUM,
 	RESOURCE_ZYNTHIUM,
 	RESOURCE_CATALYST,
-	RESOURCE_GHODIUM,
 ];
 export function governMarket(): void {
+	reportRoomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	roomList = _.filter(reportRoomList, (r: Room) => r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (!!Memory.transactions && Memory.transactions.length > 0) {
 		processTransactionLogs();
 		runTransactions();
@@ -89,9 +89,12 @@ function updateLabReactions() {
 			let reagents = global.findReagents(r);
 			// Start a reaction if we're under Target and we have sufficient reagents to run a full batch.
 			if (resources[reagents[0]] >= LAB_MINERAL_CAPACITY && resources[reagents[1]] >= LAB_MINERAL_CAPACITY) {
-				let freeRoom = roomList.find((room: Room) => !room.labReaction && room.myLabs.length >= 3);
-				if (!!freeRoom) {
-					freeRoom.setLabReaction(r);
+				let runningRoom = roomList.find((room: Room) => room.labReaction === r);
+				if (!runningRoom) {
+					let freeRoom = roomList.find((room: Room) => !room.labReaction && room.myLabs.length >= 3);
+					if (!!freeRoom) {
+						freeRoom.setLabReaction(r);
+					}
 				}
 			}
 		}
@@ -169,6 +172,15 @@ function findDeals(): void {
 }
 global.findDeals = findDeals;
 
+function labReport(): void {
+	roomList.forEach((r: Room) => {
+		if (r.myLabs.length >= 3 || r.boostLabs.length > 0) {
+			console.log(`Room [${r.name}] has ${r.myLabs.length} running ${r.labReaction}`
+			+ ` and ${r.boostLabs.length} boostLabs providing ${_.map(r.boostLabs, "mineralType")}`);
+		}
+	});
+}
+global.labReport = labReport;
 function resourceReport(): void {
 	let outputBuffer: string[] = [];
 	let resources = getResourceInventory();
@@ -284,7 +296,7 @@ function resourceReport(): void {
 		tracerLine = tracerLine.slice(0, -2) + ".";
 		outputBuffer.push(tracerLine);
 	}
-	console.log(outputBuffer.join("<br />"));
+	console.log(`<span style="line-height:1">${outputBuffer.join("<br />")}</span>`);
 }
 global.resourceReport = resourceReport;
 

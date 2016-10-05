@@ -101,7 +101,7 @@ const powerSquad = {
 			"maxCreeps": 0,
 		},
 		{
-			"governor": WarMuleGovernor,
+			"governor": WarMuleGovernor,  // 1850 carry each
 			"role": WarMule,
 			"maxCreeps": 0,
 		},

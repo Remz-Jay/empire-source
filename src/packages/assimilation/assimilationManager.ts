@@ -481,7 +481,7 @@ export function govern(): void {
 							}
 							if (containers.length > 0) {
 								if (config.claim) {
-									// manageHarvest(containers);
+									manageHarvest(containers);
 									// manageMules(containers);
 								} else {
 									manageHarvest(containers);
@@ -497,11 +497,11 @@ export function govern(): void {
 						}
 						try {
 							if (config.claim) {
-								manageConstructions(0);
+								manageConstructions(2);
 							} else if (!config.hasController) {
-								manageConstructions(3);
+								// manageConstructions(3);
 							} else {
-								manageConstructions(1);
+								// manageConstructions(1);
 							}
 						} catch (e) {
 							console.log(`ERROR :: ASM in room ${roomName}: [CONSTRUCTION] ${e.message}`);
