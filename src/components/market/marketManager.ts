@@ -319,7 +319,7 @@ function dumpResource(resource: string) {
 	const before = Game.cpu.getUsed();
 	const perBatch: number = 2000;
 	roomList.forEach((r: Room) => {
-		if (!!r.storage.store[resource] && r.storage.store[resource] > (global.STORAGE_MIN * 1.2)
+		if (!!r.storage.store[resource] && r.storage.store[resource] > (Memory.config.ResourceTargets[resource] * 1.2)
 			&& r.terminal.store[resource] && r.terminal.store[resource] >= perBatch
 		) {
 			let canSell = global.clamp(r.terminal.store[resource], 0, perBatch);

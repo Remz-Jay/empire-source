@@ -33,14 +33,19 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 		} else if (!this.moveUsingPositions()) {
 			if (this.powerBankDuty) {
 				this.creep.say("Collect");
-				const target = this.creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES) as Resource;
-				if (!!target && !this.creep.pos.isNearTo(target)) {
-					// get in range
-					this.moveTo(target.pos);
-				} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2)) {
-					this.creep.pickup(target);
+				const powerBanks = this.creep.room.groupedStructures[STRUCTURE_POWER_BANK];
+				if (!!powerBanks && powerBanks.length > 0 && !this.creep.pos.isNearTo(powerBanks[0])) {
+					this.moveTo(powerBanks[0].pos);
 				} else {
-					this.creep.memory.full = true;
+					const target = this.creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES) as Resource;
+					if (!!target && !this.creep.pos.isNearTo(target)) {
+						// get in range
+						this.moveTo(target.pos);
+					} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2)) {
+						this.creep.pickup(target);
+					} else {
+						this.creep.memory.full = true;
+					}
 				}
 			}
 		} else {

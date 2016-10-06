@@ -51,6 +51,7 @@ StructureTerminal.prototype.processTransactions = function(): boolean {
 	return false;
 };
 
+// TODO: Base this on the ResourceTarget (empire wide) instead of STORAGE_MIN (local room)
 StructureTerminal.prototype.autoSell = function(): boolean {
 	const minType: string = this.room.minerals[0].mineralType;
 	if (!this.sending
