@@ -124,20 +124,24 @@ global.table = function(data: any[], widths?: number[]){
 	rows.push(`${leftBottomCorner}${bottomBar}${rightBottomCorner}`);
 	return rows.join("\n");
 };
-
-global.cantorPair = function(x: number, y: number): number {
-	let z  = ((x + y) * (x + y + 1)) / 2 + y;
-	return z;
+// Thanks Dissi!
+global.coordinateToCharacter = function(thePos: RoomPosition): string {
+	return String.fromCodePoint(thePos.x | (thePos.y << 6));
 };
 
-global.reverseCantorPair = function(z: number): number[] {
-	let pair: number[] = [];
-	let t = Math.floor((-1 + Math.sqrt(1 + 8 * z)) / 2);
-	let x = t * (t + 3) / 2 - z;
-	let y = z - t * (t + 1) / 2;
-	pair[0] = x;
-	pair[1] = y;
-	return pair;
+global.decodeCoordinate = function(theString: string, theIndex: number): {x: number, y: number} {
+	let val = theString.charCodeAt(theIndex);
+	let x = (val &  0x3F);
+	let y = ((val >> 6) & 0x3F);
+	return {x: x, y: y};
+};
+
+global.revStr = function(s: string): string {
+	let o = "";
+	for (let i = s.length - 1; i >= 0; i--) {
+		o = o + s[i];
+	}
+	return o;
 };
 
 // Implementation of Lodash 4.15.0 functions

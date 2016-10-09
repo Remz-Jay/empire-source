@@ -52,6 +52,7 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 							return;
 						}
 					}
+					this.creep.say("💪🏼", true);
 					this.creep.attack(target);
 				}
 			}

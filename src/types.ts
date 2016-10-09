@@ -146,7 +146,7 @@ declare interface Memory {
 	};
 	pathCache: {
 		[from: string]: {
-			[to: string]: number[];
+			[to: string]: string;
 		}
 	};
 	transactions: TerminalTransaction[];

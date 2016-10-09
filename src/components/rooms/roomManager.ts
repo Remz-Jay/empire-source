@@ -69,8 +69,13 @@ export function governRooms(): void {
 				console.log("RoomManager.init", e.message);
 			}
 
-			if (room.controller.level > 3 && room.myCreeps.length < 5) {
-				Game.notify(`Number of creeps in room ${room.name} dropped to ${room.myCreeps.length}`);
+			if (room.controller.level > 3 && room.myCreeps.length < 4) {
+				if (!room.memory.creepAlarm) {
+					Game.notify(`Number of creeps in room ${room.name} dropped to ${room.myCreeps.length}`);
+					room.memory.creepAlarm = true;
+				}
+			} else {
+				delete room.memory.creepAlarm;
 			}
 			if (global.ROOMSTATS) {
 				// this is one of our controlled rooms
@@ -126,6 +131,13 @@ export function governRooms(): void {
 						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.message);
 					}
 				}
+				/*try {
+					if (!!room.observer) {
+						room.observer.run();
+					}
+				} catch (e) {
+					console.log("RoomManager.Observer", room.name, e.message, e.stack);
+				}*/
 			}
 
 			// run the creeps in this room

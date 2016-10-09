@@ -14,7 +14,7 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 	}
 
 	public move() {
-		if (!!this.creep.memory.full || (this.creep.carrySum > (this.creep.carryCapacity / 2))) {
+		if (!!this.creep.memory.full || this.creep.bagFull) {
 			const storage = Game.rooms[this.creep.memory.homeRoom].storage;
 			if (!!storage && !this.creep.pos.isNearTo(storage.pos)) {
 				// get in range
@@ -34,8 +34,10 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 			if (this.powerBankDuty) {
 				this.creep.say("Collect");
 				const powerBanks = this.creep.room.groupedStructures[STRUCTURE_POWER_BANK];
-				if (!!powerBanks && powerBanks.length > 0 && !this.creep.pos.isNearTo(powerBanks[0])) {
-					this.moveTo(powerBanks[0].pos);
+				if (!!powerBanks && powerBanks.length > 0) {
+					if (!this.creep.pos.isNearTo(powerBanks[0])) {
+						this.moveTo(powerBanks[0].pos);
+					}
 				} else {
 					const target = this.creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES) as Resource;
 					if (!!target && !this.creep.pos.isNearTo(target)) {

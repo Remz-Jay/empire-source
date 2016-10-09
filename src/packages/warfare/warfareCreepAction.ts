@@ -147,6 +147,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 
 	public heal(reverse: boolean = false): boolean {
 		if (this.creep.hits < this.creep.hitsMax) {
+			this.creep.say("🙏🏼", true);
 			this.creep.heal(this.creep);
 			return false;
 		} else {
@@ -156,6 +157,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 					(c: Creep) => c.hits < c.hitsMax && c.pos.isNearTo(this.creep));
 				if (targets.length > 0) {
 					const target = this.getPriorityCreep(targets, reverse);
+					this.creep.say("🙌🏼", true);
 					this.creep.heal(target);
 					return false;
 				}
@@ -269,6 +271,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			const targets = friendlies.filter((c: Creep) => c.hits < c.hitsMax && c.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0) {
 				const target = this.getPriorityCreep(targets);
+				this.creep.say("⚡", true);
 				this.creep.rangedHeal(target);
 				return false;
 			}

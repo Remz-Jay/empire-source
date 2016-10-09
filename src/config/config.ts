@@ -110,8 +110,8 @@ global.PRIORITY_WF_HEALER       = 30;
  * @type {number}
  */
 global.MINRCL_CREEP             = 0;
-global.MINRCL_BUILDER           = 6;
-global.MINRCL_HARVESTER         = 6;
+global.MINRCL_BUILDER           = 5;
+global.MINRCL_HARVESTER         = 5;
 global.MINRCL_MULE              = 1;
 global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
@@ -141,7 +141,10 @@ global.BLACKLIST_SOURCES = [
 	"af8ce260e6f676ef1f544211",
 	"cb21e118236d8b2a3f28404d",
 ];
-
+global.ROOM_BLACKLIST = [
+	"W9N49",
+	"W4N43",
+];
 global.translateErrorCode = function(errorCode: number): string {
 	switch (errorCode) {
 		case OK:

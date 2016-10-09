@@ -70,6 +70,7 @@ interface Room {
 Room.prototype.setCostMatrix = function (costMatrix) {
 	global.costMatrix[this.name] = costMatrix;
 	this.memory.costMatrix = costMatrix.serialize();
+	this.memory.matrixTime = Game.time;
 };
 
 Room.prototype.setCreepMatrix = function (costMatrix) {
@@ -83,16 +84,17 @@ Room.prototype.getCreepMatrix = function () {
 			return this.creepMatrix;
 		}
 		const costMatrix = this.getCostMatrix();
+		let creepMatrix = costMatrix.clone();
 		// Avoid creeps in the room
 		_.union(this.myCreeps, this.alliedCreeps).forEach((creep: Creep) => {
-			costMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
+			creepMatrix.set(creep.pos.x, creep.pos.y, global.PF_CREEP);
 		});
 		this.hostileCreeps.forEach((creep: Creep) => {
-			costMatrix.set(creep.pos.x, creep.pos.y, 0xff);
+			creepMatrix.set(creep.pos.x, creep.pos.y, 0xff);
 		});
 		// console.log("Returning NEW CreepMatrix for room " + this.name);
-		this.setCreepMatrix(costMatrix);
-		return costMatrix;
+		this.setCreepMatrix(creepMatrix);
+		return creepMatrix;
 	} catch (e) {
 		console.log(e.message, "Room.Prototype.getCreepMatrix", this.name);
 		return new PathFinder.CostMatrix();
@@ -101,14 +103,20 @@ Room.prototype.getCreepMatrix = function () {
 };
 
 Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
-	if (!ignoreRoomConfig && !!global.costMatrix[this.name]) {
+	let cacheValid: boolean = false;
+	let cacheTTL: number =  (100 - (Game.time - this.memory.matrixTime)) || 0;
+	if (!ignoreRoomConfig && cacheTTL > 0) {
+		cacheValid = true;
+	}
+	if (cacheValid && !!global.costMatrix[this.name]) {
+		// console.log("Returning global cached matrix for " + this.name + ` (${cacheTTL})`);
 		return global.costMatrix[this.name];
 	}
 	try {
-		const costMatrix = (!!this.memory.costMatrix) ? PathFinder.CostMatrix.deserialize(this.memory.costMatrix) : undefined;
-		if (!ignoreRoomConfig && !!costMatrix) {
-			// console.log("Returning existing CostMatrix for room " + this.name);
+		if (cacheValid && !!this.memory.costMatrix) {
+			const costMatrix = PathFinder.CostMatrix.deserialize(this.memory.costMatrix);
 			global.costMatrix[this.name] = costMatrix;
+			// console.log("Returning memory cached matrix for " + this.name + ` (${cacheTTL})`);
 			return costMatrix;
 		} else {
 			this.roomConfig = {
@@ -150,7 +158,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				}
 				this.roomConfig.W6N45 = positions;
 			}
-			const costs = new PathFinder.CostMatrix();
+			let costs = new PathFinder.CostMatrix();
 
 			const hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
 			// Prefer walking on hostile construction sites
@@ -195,6 +203,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			if (!ignoreRoomConfig) {
 				this.setCostMatrix(costs);
 			}
+			console.log("Returning new matrix for " + this.name);
 			return costs;
 		}
 	} catch (e) {
@@ -231,26 +240,6 @@ Room.prototype.getAlliedCreeps = function(): Creep[] {
 };
 Room.prototype.getAllStructures = function(): Structure[] {
 	return this.find(FIND_STRUCTURES) as Structure[];
-	/*
-	const allStructures: Structure[] = [];
-	if (!global.structures) {
-		global.structures = [];
-	}
-	if (!!this.memory.allStructures && _.isArray(this.memory.allStructures)) {
-		if (_.isArray(global.structures[this.name]) && global.structures[this.name].length === this.memory.allStructures.length) {
-			return global.structures[this.name];
-		} else {
-			allStructures = _.map(this.memory.allStructures, (id: string) => Game.getObjectById(id)) as Structure[];
-		}
-	} else {
-		allStructures = this.find(FIND_STRUCTURES) as Structure[];
-		this.memory.allStructures = [];
-		this.memory.allStructures = _.map(allStructures, "id");
-	}
-
-	global.structures[this.name] = allStructures;
-	return allStructures;
-	*/
 };
 Room.prototype.groupAllStructures = function(): GroupedStructures {
 	let gs = _.groupBy(this.allStructures, "structureType") as GroupedStructures;
@@ -308,38 +297,16 @@ Room.prototype.getFreeSpawn = function(): StructureSpawn {
 	return this.mySpawns.find((s: StructureSpawn) => !s.isBusy) || _.sample(this.mySpawns);
 };
 Room.prototype.getAllConstructionSites = function(): ConstructionSite[] {
-	let allConstructionSites: ConstructionSite[] = [];
-	if (!!this.memory.allConstructionSites && _.isArray(this.memory.allConstructionSites)) {
-		allConstructionSites = _.compact(_.map(this.memory.allConstructionSites, (id: string) => Game.getObjectById(id))) as ConstructionSite[];
-	} else {
-		allConstructionSites = this.find(FIND_CONSTRUCTION_SITES) as ConstructionSite[];
-		this.memory.allConstructionSites = [];
-		this.memory.allConstructionSites = _.map(allConstructionSites, "id");
-	}
-	return allConstructionSites;
+	return this.find(FIND_CONSTRUCTION_SITES);
 };
 Room.prototype.getMyConstructionSites = function(): ConstructionSite[] {
 	return this.allConstructionSites.filter((cs: ConstructionSite) => !!cs && !!cs.my);
 };
 Room.prototype.getMinerals = function(): Mineral[] {
-	let allMinerals: Mineral[] = [];
-	if (!!this.memory.allMinerals && _.isArray(this.memory.allMinerals)) {
-		allMinerals = _.compact(_.map(this.memory.allMinerals, (id: string) => Game.getObjectById(id))) as Mineral[];
-	} else {
-		allMinerals = this.find(FIND_MINERALS) as Mineral[];
-		this.memory.allMinerals = _.map(allMinerals, "id");
-	}
-	return allMinerals;
+	return this.find(FIND_MINERALS);
 };
 Room.prototype.getSources = function(): Source[] {
-	let allSources: Source[] = [];
-	if (!!this.memory.allSources && _.isArray(this.memory.allSources)) {
-		allSources = _.compact(_.map(this.memory.allSources, (id: string) => Game.getObjectById(id))) as Source[];
-	} else {
-		allSources = this.find(FIND_SOURCES) as Source[];
-		this.memory.allSources = _.map(allSources, "id");
-	}
-	return allSources;
+	return this.find(FIND_SOURCES);
 };
 Room.prototype.getNuker = function(): StructureNuker {
 	const sn = this.myGroupedStructures[STRUCTURE_NUKER];
@@ -402,18 +369,6 @@ Room.prototype.getLabReagents = function(): string[] {
 	return undefined;
 };
 Room.prototype.addProperties = function () {
-	if (global.time % 500 === 0) {
-		delete this.memory.allSources;
-		delete this.memory.allMinerals;
-	}
-	if (global.time % 50 === 1) {
-		delete this.memory.allStructures;
-		delete this.memory.allConstructionSites;
-		delete this.memory.costMatrix;
-		if (!!global.costMatrix && !!global.costMatrix[this.name]) {
-			delete global.costMatrix[this.name];
-		}
-	}
 	this.towerTargets = [];
 
 	this.allStructures =        this.getAllStructures();
@@ -445,4 +400,7 @@ Room.prototype.addProperties = function () {
 	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
 	this.energyInContainers =   (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
 	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
+
+	// Cache a costMatrix in case we scanned this room using an observer last tick.
+	// this.getCostMatrix();
 };
