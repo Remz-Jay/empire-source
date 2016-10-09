@@ -65,6 +65,7 @@ interface Room {
 	stopLabReaction(): boolean;
 	getLabReagents(): string[];
 	addProperties(): void;
+	observe(): void;
 }
 
 Room.prototype.setCostMatrix = function (costMatrix: CostMatrix, nopass: string, pass: string) {
@@ -109,14 +110,14 @@ Room.prototype.getCreepMatrix = function () {
 
 };
 
-Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refreshOnly: boolean = false) {
+Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refreshOnly: boolean = false): CostMatrix {
 	let cacheValid: boolean = false;
 	let t = Game.time - _.get(Memory.matrixCache, `${this.name}.t`, Infinity);
 	let cacheTTL: number =  (100 - t) || 0;
 	if (!ignoreRoomConfig && cacheTTL > 0) {
 		cacheValid = true;
 		if (refreshOnly) {
-			return true;
+			return;
 		}
 	}
 	if (cacheValid && !!global.costMatrix[this.name]) {
@@ -345,7 +346,7 @@ Room.prototype.getSources = function(): Source[] {
 Room.prototype.getNuker = function(): StructureNuker {
 	const sn = this.myGroupedStructures[STRUCTURE_NUKER];
 	if (sn.length > 0) {
-		return sn.pop();
+		return _.first(sn) as StructureNuker;
 	} else {
 		return undefined;
 	}
@@ -353,7 +354,7 @@ Room.prototype.getNuker = function(): StructureNuker {
 Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
 	const sn = this.myGroupedStructures[STRUCTURE_POWER_SPAWN];
 	if (sn.length > 0) {
-		return sn.pop();
+		return _.first(sn) as StructurePowerSpawn;
 	} else {
 		return undefined;
 	}
@@ -361,7 +362,7 @@ Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
 Room.prototype.getObserver = function(): StructureObserver {
 	const sn = this.myGroupedStructures[STRUCTURE_OBSERVER];
 	if (sn.length > 0) {
-		return sn.pop();
+		return _.first(sn) as StructureObserver;
 	} else {
 		return undefined;
 	}
@@ -402,6 +403,15 @@ Room.prototype.getLabReagents = function(): string[] {
 	}
 	return undefined;
 };
+Room.prototype.observe = function(): void {
+	if (this.groupedStructures[STRUCTURE_POWER_BANK].length > 0) {
+		let pb: StructurePowerBank = this.groupedStructures[STRUCTURE_POWER_BANK][0];
+		if (pb.power > 500) {
+			Game.notify(`PowerBank found in room ${this.name}. ${pb.power} power, ${pb.ticksToDecay} to decay,`
+			+ ` ${global.formatNumber(pb.hits)} hits to go.`);
+		}
+	}
+};
 Room.prototype.addProperties = function () {
 	this.towerTargets = [];
 
@@ -437,4 +447,5 @@ Room.prototype.addProperties = function () {
 
 	// Cache a costMatrix in case we scanned this room using an observer last tick.
 	this.getCostMatrix();
+	this.observe();
 };

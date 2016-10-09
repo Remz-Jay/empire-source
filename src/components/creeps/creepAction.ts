@@ -392,7 +392,7 @@ export default class CreepAction implements ICreepAction {
 			callback = this.ignoreCallback;
 		}
 		const targetDistance = Game.map.getRoomLinearDistance(this.creep.room.name, goal[0].pos.roomName);
-		const maxOps = 2000 * targetDistance;
+		const maxOps = global.clamp(2000 * targetDistance, 2000, 10000);
 /*		if (Game.cpu.bucket < global.BUCKET_MIN) {
 			maxOps = 1000;
 		}

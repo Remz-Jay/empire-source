@@ -9,7 +9,7 @@ export function loadRooms() {
 	global.labReactions = [];
 	global.boostReagents = [];
 	global.sendRegistry = [];
-	global.targetBlackList = [];
+	global.targetBlackList = {};
 	global.linkBlackList = [];
 	_.each(Game.rooms, function(r: Room) {
 		r.addProperties();
