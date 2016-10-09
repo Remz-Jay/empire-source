@@ -7,10 +7,10 @@ interface StructureTerminal {
 }
 
 Object.defineProperty(StructureTerminal.prototype, "storage", {
-		get: function storage() {
-			delete this.storage;
-			return this.storage = this.room.storage;
-		},
+	get: function storage() {
+		delete this.storage;
+		return this.storage = this.room.storage;
+	},
 	configurable: true,
 	enumerable: false,
 });

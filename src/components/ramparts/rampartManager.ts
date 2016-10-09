@@ -37,7 +37,7 @@ export function adjustStrength() {
 	// if walls are stronger than ramparts and ramparts aren"t at max strength:
 	if (avg < avgWall && avg < _.sample(ramparts).hitsMax && avg > current) {
 		Memory.config.Rampart[room.name].strength = avg;
-		console.log("Adjusting Rampart Strength for room " + room.name + " to " + avg);
+		console.log("Adjusting Rampart Strength for room " + room.name + " to " + global.formatNumber(avg));
 	}
 }
 

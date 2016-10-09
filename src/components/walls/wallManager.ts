@@ -21,7 +21,7 @@ export function adjustStrength() {
 	const avg = getAverageStrength();
 	if (avg > current) {
 		Memory.config.Wall[room.name].strength = avg;
-		console.log("Adjusting Wall Strength for room " + room.name + " to " + avg);
+		console.log("Adjusting Wall Strength for room " + room.name + " to " + global.formatNumber(avg));
 	}
 }
 
