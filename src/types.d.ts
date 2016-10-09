@@ -163,6 +163,13 @@ declare interface Memory {
 	sources: {
 		[id: string]: any;
 	};
+	powerBanks: {
+		[id: string]: {
+			power: number;
+			decay: number;
+			indexed: number;
+		}
+	};
 }
 
 declare interface Game {

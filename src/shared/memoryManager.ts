@@ -27,6 +27,9 @@ export function loadMemory(): void {
 	if (!this.memory.matrixCache) {
 		this.memory.matrixCache = {};
 	}
+	if (!this.memory.powerBanks) {
+		this.memory.powerBanks = {};
+	}
 }
 
 export function cleanMemory(): void {
@@ -50,6 +53,15 @@ export function cleanMemory(): void {
 		delete this.memory.rooms[name].scanTime;
 		if (_.isEmpty(this.memory.rooms[name])) {
 			delete this.memory.rooms[name];
+		}
+	}
+	for (let id in this.memory.powerBanks) {
+		if (this.memory.powerBanks[id].indexed + this.memory.powerBanks[id].ticksToDecay <= Game.time) {
+			// powerBank expired
+			delete this.memory.powerBanks[id];
+		} else if (!Game.getObjectById(id)) {
+			// object doesn't exist anymore. someone else got it?
+			delete this.memory.powerBanks[id];
 		}
 	}
 }

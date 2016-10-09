@@ -87,6 +87,7 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 };
 
 StructureTerminal.prototype.run = function (): boolean {
+	// TODO: x = total_amount/(1+(Math.log(0.1*linearDistanceBetweenRooms + 0.9) + 0.1))
 	const batchSize: number = 1000;
 	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_ENERGY_MAX

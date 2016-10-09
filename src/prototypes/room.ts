@@ -407,8 +407,19 @@ Room.prototype.observe = function(): void {
 	if (this.groupedStructures[STRUCTURE_POWER_BANK].length > 0) {
 		let pb: StructurePowerBank = this.groupedStructures[STRUCTURE_POWER_BANK][0];
 		if (pb.power > 500) {
-			Game.notify(`PowerBank found in room ${this.name}. ${pb.power} power, ${pb.ticksToDecay} to decay,`
-			+ ` ${global.formatNumber(pb.hits)} hits to go.`);
+			if (!Memory.powerBanks[pb.id]) {
+				Memory.powerBanks[pb.id] = {
+					power: pb.power,
+					decay: pb.ticksToDecay,
+					indexed: Game.time,
+				};
+				Game.notify(`PowerBank found in room ${this.name}. ${pb.power} power, ${pb.ticksToDecay} to decay,`
+					+ ` ${global.formatNumber(pb.hits)} hits to go.`);
+			}
+		} else {
+			Memory.powerBanks[pb.id].power = pb.power;
+			Memory.powerBanks[pb.id].decay = pb.ticksToDecay;
+			Memory.powerBanks[pb.id].indexed = Game.time;
 		}
 	}
 };
