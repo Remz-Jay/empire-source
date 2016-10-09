@@ -7,7 +7,7 @@ declare type EnergyStructure = Extension | Spawn | Tower;
 declare type StorageStructure = StructureStorage | StructureContainer | StructureTerminal;
 declare type findRouteRoute = {exit: string; room: string; }
 declare type findRouteArray = findRouteRoute[];
-declare var global: any;
+// declare var global: any;
 
 declare interface CreepStats  {
 	roles: number;
@@ -169,4 +169,105 @@ declare interface Game {
 	profiler: any;
 	assman: any;
 	offense: any;
+}
+declare namespace NodeJS {
+	export interface Global {
+		VERBOSE: boolean;
+		CREEPSTATS: boolean;
+		ROOMSTATS: boolean;
+		DEBUG: boolean;
+		MAX_HARVESTERS_PER_SOURCE: number;
+		TIME_OFFSET: number;
+		TERMINAL_ENERGY_MAX: number;
+		TERMINAL_MAX: number;
+		STORAGE_MIN: number;
+		BUCKET_MIN: number;
+		PF_CREEP: number;
+		DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL: number;
+		MAX_TTL: number;
+		PRIORITY_TRESHOLD: number;
+		PRIORITY_CREEP: number;
+		PRIORITY_HARVESTER: number;
+		PRIORITY_MULE: number;
+		PRIORITY_UPGRADER: number;
+		PRIORITY_LINKER: number;
+		PRIORITY_MINER: number;
+		PRIORITY_REPAIR: number;
+		PRIORITY_BUILDER: number;
+		PRIORITY_SCIENTIST: number;
+		PRIORITY_BITER: number;
+		PRIORITY_ASM_CLAIM: number;
+		PRIORITY_ASM_HARVESTER: number;
+		PRIORITY_ASM_MULE: number;
+		PRIORITY_ASM_BUILDER: number;
+		PRIORITY_WF_WARRIOR: number;
+		PRIORITY_WF_RANGER: number;
+		PRIORITY_WF_HEALER: number;
+		MINRCL_CREEP: number;
+		MINRCL_BUILDER: number;
+		MINRCL_HARVESTER: number;
+		MINRCL_MULE: number;
+		MINRCL_UPGRADER: number;
+		MINRCL_LINKER: number;
+		MINRCL_REPAIR: number;
+		MINRCL_MINER: number;
+		MINRCL_SCIENTIST: number;
+		MINRCL_BITER: number;
+		MINRCL_ASM_CLAIM: number;
+		MINRCL_ASM_HARVESTER: number;
+		MINRCL_ASM_MULE: number;
+		MINRCL_ASM_BUILDER: number;
+		MINRCL_WF_WARRIOR: number;
+		MINRCL_WF_RANGER: number;
+		MINRCL_WF_HEALER: number;
+		BLACKLIST_SOURCES: string[];
+		ROOM_BLACKLIST: string[];
+		RESOURCE_TYPES: string[];
+		STRUCTURES_ALL: string[];
+		TERMINAL_SKIP_BALANCE_RESOURCES: string[];
+		labColors: any;
+		time: number;
+		alliedPlayers: string[];
+		sendRegistry: string[];
+		boostReagents: {room: Room, reagent: string}[];
+		labReactions: {room: Room, reaction: string, reagents: string[]}[];
+		linkBlackList: string[];
+		offense: any;
+		assman: any;
+		tickCache: {
+			roles: any;
+			rolesByRoom: any;
+			storageLink: any;
+			storageTower: any;
+		};
+		targetBlackList: {
+			[role: string]: string[];
+		};
+		costMatrix: {
+			[roomName: string]: CostMatrix;
+		};
+		translateErrorCode(errorCode: number): string;
+		tradeTreshold(resourceType: string): number;
+		findReagents(reaction: string): string[];
+		getTowerRange(roomName: string): number;
+		colorWrap(text: string, color: string): string;
+		formatNumber(value: number): string;
+		getColorBasedOnPercentage(thePercentage: number): string;
+		hsv2rgb(h: number, s: number, v: number): string;
+		planRoute(from: RoomPosition, to: RoomPosition): void;
+		table(data: any[], widths?: number[]): string;
+		coordinateToCharacter(thePos: RoomPosition|{x: number, y: number}): string;
+		decodeCoordinate(theString: string, theIndex: number): {x: number, y: number};
+		revStr(s: string): string;
+		baseClamp(n: number, lower: number, upper: number): number;
+		clamp(n: number, lower: number, upper: number): number;
+		findDeals(): void;
+		labReport(): void;
+		resourceReport(): void;
+		dumpResource(resource: string): void;
+		transactionReport(numTransactions: number): void;
+		addTransaction(resource: string, amount: number, recipient: string, description: string): void;
+		transactionStatus(): void;
+		setTarget(resourceName: string, target: number): void;
+	}
 }

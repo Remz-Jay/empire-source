@@ -1,4 +1,4 @@
-global.colorWrap = function(text: string, color: string) {
+global.colorWrap = function(text: string, color: string): string {
 	return `<font color="${color}">${text}</font>`;
 };
 
@@ -13,13 +13,13 @@ global.formatNumber = function(value: number): string {
 };
 
 // Thanks Dissi!
-global.getColorBasedOnPercentage = function(thePercentage: number) {
+global.getColorBasedOnPercentage = function(thePercentage: number): string {
 	const hue = Math.floor((100 - thePercentage) * 120 / 100);  // go from green to red
 	const saturation = Math.abs(thePercentage - 50) / 50;
 	return global.hsv2rgb(hue, saturation, 1);
 };
 
-global.hsv2rgb = function(h: number, s: number, v: number) {
+global.hsv2rgb = function(h: number, s: number, v: number): string {
 	// adapted from http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
 	let rgb: number[] = [];
 	let i: number;
@@ -56,7 +56,7 @@ global.hsv2rgb = function(h: number, s: number, v: number) {
 		}).join("");
 };
 
-global.planRoute = function(from: RoomPosition, to: RoomPosition) {
+global.planRoute = function(from: RoomPosition, to: RoomPosition): void {
 	const route = PathFinder.search(from, to, {
 		roomCallback: function (roomName: string): CostMatrix | boolean {
 			try {
@@ -85,7 +85,7 @@ global.planRoute = function(from: RoomPosition, to: RoomPosition) {
 
 // Thanks ags131 !
 // console.log(`<span style="line-height:1">${utils.table(incoming)}</span>`)
-global.table = function(data: any[], widths?: number[]){
+global.table = function(data: any[], widths?: number[]): string{
 	const leftTopCorner = "╔";
 	const rightTopCorner = "╗";
 	const leftBottomCorner = "╚";

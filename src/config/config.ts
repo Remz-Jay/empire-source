@@ -233,7 +233,7 @@ global.RESOURCE_TYPES = [
 	RESOURCE_CATALYZED_GHODIUM_ACID,
 	RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
 ];
-global.tradeTreshold = function(resourceType: string) {
+global.tradeTreshold = function(resourceType: string): number {
 	switch (resourceType) {
 		case RESOURCE_ENERGY:
 			return 0.6;
@@ -336,7 +336,7 @@ global.labColors = {
 	resource(color: number, secondaryColor: number) {
 		return eval(_.findKey(this, { color : color, secondaryColor })); // tslint:disable-line
 	},
-	colors(resourceKey: string) {
+	colors(resourceKey: string): string {
 		let retVal: string = undefined;
 		_.forOwn(this, (v: any, k: string) => {
 			if (!_.isFunction(v) && eval(k) === resourceKey) { // tslint:disable-line

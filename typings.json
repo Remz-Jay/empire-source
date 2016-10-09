@@ -2,7 +2,11 @@
   "name": "remco-screeps",
   "dependencies": {},
   "globalDependencies": {
+    "chai": "registry:dt/chai#3.4.0+20160601211834",
+    "gulp-mocha": "registry:dt/gulp-mocha#0.0.0+20160316155526",
     "lodash": "registry:dt/lodash#3.10.0+20160819115414",
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353",
+    "node": "registry:dt/node#6.0.0+20161008175459",
     "screeps": "github:screepers/Screeps-Typescript-Declarations/dist/screeps.d.ts#TS2"
   }
 }

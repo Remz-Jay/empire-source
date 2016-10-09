@@ -315,7 +315,7 @@ function formatAmount(value: number, cellWidth: number = 0, valueMax: number = g
 	return global.colorWrap(strVal, color);
 }
 
-function dumpResource(resource: string) {
+function dumpResource(resource: string): void {
 	const before = Game.cpu.getUsed();
 	const perBatch: number = 2000;
 	roomList.forEach((r: Room) => {
