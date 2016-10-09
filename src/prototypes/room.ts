@@ -31,11 +31,11 @@ interface Room {
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;
-	setCostMatrix(costMatrix: CostMatrix): void;
+	setCostMatrix(costMatrix: CostMatrix, pass: string, nopass: string): void;
 	setCreepMatrix(costMatrix: CostMatrix): void;
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
-	getCostMatrix(ignoreRoomConfig?: boolean): CostMatrix;
+	getCostMatrix(ignoreRoomConfig?: boolean, refreshOnly?: boolean): CostMatrix;
 	getContainers(): Structure[];
 	getContainerCapacityAvailable(): number;
 	getEnergyInContainers(): number;
@@ -67,15 +67,22 @@ interface Room {
 	addProperties(): void;
 }
 
-Room.prototype.setCostMatrix = function (costMatrix) {
+Room.prototype.setCostMatrix = function (costMatrix: CostMatrix, nopass: string, pass: string) {
 	global.costMatrix[this.name] = costMatrix;
-	this.memory.costMatrix = costMatrix.serialize();
-	this.memory.matrixTime = Game.time;
+	if (!Memory.matrixCache[this.name]) {
+		Memory.matrixCache[this.name] = {
+			t: 0,
+			s: Game.time,
+			m: [],
+		};
+	}
+	Memory.matrixCache[this.name].m[0] = nopass;
+	Memory.matrixCache[this.name].m[1] = pass;
+	Memory.matrixCache[this.name].t = Game.time;
 };
 
 Room.prototype.setCreepMatrix = function (costMatrix) {
 	this.creepMatrix = costMatrix;
-	// this.memory.creepMatrix = costMatrix.serialize();
 };
 
 Room.prototype.getCreepMatrix = function () {
@@ -102,21 +109,37 @@ Room.prototype.getCreepMatrix = function () {
 
 };
 
-Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
+Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refreshOnly: boolean = false) {
 	let cacheValid: boolean = false;
-	let cacheTTL: number =  (100 - (Game.time - this.memory.matrixTime)) || 0;
+	let t = Game.time - _.get(Memory.matrixCache, `${this.name}.t`, Infinity);
+	let cacheTTL: number =  (100 - t) || 0;
 	if (!ignoreRoomConfig && cacheTTL > 0) {
 		cacheValid = true;
+		if (refreshOnly) {
+			return true;
+		}
 	}
 	if (cacheValid && !!global.costMatrix[this.name]) {
 		// console.log("Returning global cached matrix for " + this.name + ` (${cacheTTL})`);
 		return global.costMatrix[this.name];
 	}
 	try {
-		if (cacheValid && !!this.memory.costMatrix) {
-			const costMatrix = PathFinder.CostMatrix.deserialize(this.memory.costMatrix);
+		if (cacheValid
+			&& !!Memory.matrixCache[this.name]
+			&& _.isString(Memory.matrixCache[this.name].m[0])
+			&& _.isString(Memory.matrixCache[this.name].m[1])
+		) {
+			let costMatrix = new PathFinder.CostMatrix();
+			for (let i = 0; i < Memory.matrixCache[this.name].m[0].length; i++) {
+				let pos = global.decodeCoordinate(Memory.matrixCache[this.name].m[0], i);
+				costMatrix.set(pos.x, pos.y, 0xff);
+			}
+			for (let i = 0; i < Memory.matrixCache[this.name].m[1].length; i++) {
+				let pos = global.decodeCoordinate(Memory.matrixCache[this.name].m[1], i);
+				costMatrix.set(pos.x, pos.y, 1);
+			}
 			global.costMatrix[this.name] = costMatrix;
-			// console.log("Returning memory cached matrix for " + this.name + ` (${cacheTTL})`);
+			console.log("Returning memory cached matrix for " + this.name + ` (${cacheTTL})`);
 			return costMatrix;
 		} else {
 			this.roomConfig = {
@@ -159,40 +182,51 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 				this.roomConfig.W6N45 = positions;
 			}
 			let costs = new PathFinder.CostMatrix();
-
+			let passString: string = "";
+			let nopassString: string = "";
 			const hostileConstructionSites = _.difference(this.allConstructionSites, this.myConstructionSites);
 			// Prefer walking on hostile construction sites
 			hostileConstructionSites.forEach((s: ConstructionSite) => {
 				costs.set(s.pos.x, s.pos.y, 1);
+				passString += global.coordinateToCharacter(s.pos);
 			});
 			// But avoid our own.
 			this.myConstructionSites.forEach(function (site: ConstructionSite) {
 				if (!!site && (site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_RAMPART)) {
 					costs.set(site.pos.x, site.pos.y, 1);
+					passString += global.coordinateToCharacter(site.pos);
 				} else {
 					costs.set(site.pos.x, site.pos.y, 0xff);
+					nopassString += global.coordinateToCharacter(site.pos);
 				}
 			});
 
 			this.allStructures.forEach((structure: OwnedStructure) => {
-				if (structure.structureType === STRUCTURE_ROAD) {
+				if (structure.structureType === STRUCTURE_ROAD || structure.structureType === STRUCTURE_CONTAINER) {
 					// Favor roads over plain tiles
 					costs.set(structure.pos.x, structure.pos.y, 1);
-				} else if (structure.structureType !== STRUCTURE_CONTAINER &&
-					(structure.structureType !== STRUCTURE_RAMPART)) {
+					passString += global.coordinateToCharacter(structure.pos);
+				} else if (structure.structureType !== STRUCTURE_RAMPART) {
 					// Can't walk through non-walkable buildings
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
+					nopassString += global.coordinateToCharacter(structure.pos);
 				} else if (structure.structureType === STRUCTURE_RAMPART && !structure.my) {
 					// Avoid hostile ramparts
 					costs.set(structure.pos.x, structure.pos.y, 0xff);
-				} else if (structure.structureType === STRUCTURE_CONTAINER) {
-					costs.set(structure.pos.x, structure.pos.y, global.PF_CREEP); // Assume there's a harvester on the container
+					nopassString += global.coordinateToCharacter(structure.pos);
+					// NOTE: we do not add our own ramparts. If a rampart is on a road or structure the position is already there,
+					// and if it's on a plain/swamp, the terrain data does not change.
 				}
 			});
 
 			if (!ignoreRoomConfig && !!this.roomConfig[this.name]) {
 				this.roomConfig[this.name].forEach((obj: any) => {
 					costs.set(obj.x, obj.y, obj.w);
+					if (obj.w === 0xff) {
+						nopassString += global.coordinateToCharacter({x: obj.x, y: obj.y});
+					} else {
+						passString += global.coordinateToCharacter({x: obj.x, y: obj.y});
+					}
 				});
 			}
 			const linkerFlag = Game.flags[this.name + "_LS"];
@@ -201,7 +235,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false) {
 			}
 			// console.log("Returning NEW CostMatrix for room " + this.name);
 			if (!ignoreRoomConfig) {
-				this.setCostMatrix(costs);
+				this.setCostMatrix(costs, nopassString, passString);
 			}
 			console.log("Returning new matrix for " + this.name);
 			return costs;
@@ -402,5 +436,5 @@ Room.prototype.addProperties = function () {
 	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
 
 	// Cache a costMatrix in case we scanned this room using an observer last tick.
-	// this.getCostMatrix();
+	this.getCostMatrix();
 };

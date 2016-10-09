@@ -50,8 +50,17 @@ export default class CreepAction implements ICreepAction {
 			const room = Game.rooms[roomName];
 			if (!!room) {
 				return room.getCostMatrix(false); // The cached one without per-tick creeps.
-			} else if (!!Memory.rooms[roomName] && !!Memory.rooms[roomName].costMatrix) {
-				return PathFinder.CostMatrix.deserialize(Memory.rooms[roomName].costMatrix);
+			} else if (!!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].m) {
+				let costMatrix = new PathFinder.CostMatrix();
+				for (let i = 0; i < Memory.matrixCache[roomName].m[0].length; i++) {
+					let pos = global.decodeCoordinate(Memory.matrixCache[roomName].m[0], i);
+					costMatrix.set(pos.x, pos.y, 0xff);
+				}
+				for (let i = 0; i < Memory.matrixCache[roomName].m[1].length; i++) {
+					let pos = global.decodeCoordinate(Memory.matrixCache[roomName].m[1], i);
+					costMatrix.set(pos.x, pos.y, 1);
+				}
+				return costMatrix;
 			} else {
 				return new PathFinder.CostMatrix();
 			}
@@ -68,8 +77,17 @@ export default class CreepAction implements ICreepAction {
 			const room = Game.rooms[roomName];
 			if (!!room) {
 				return room.getCreepMatrix(); // Uncached, with per-tick creep updates.
-			} else if (!!Memory.rooms[roomName] && !!Memory.rooms[roomName].costMatrix) {
-				return PathFinder.CostMatrix.deserialize(Memory.rooms[roomName].costMatrix);
+			} else if (!!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].m) {
+				let costMatrix = new PathFinder.CostMatrix();
+				for (let i = 0; i < Memory.matrixCache[roomName].m[0].length; i++) {
+					let pos = global.decodeCoordinate(Memory.matrixCache[roomName].m[0], i);
+					costMatrix.set(pos.x, pos.y, 0xff);
+				}
+				for (let i = 0; i < Memory.matrixCache[roomName].m[1].length; i++) {
+					let pos = global.decodeCoordinate(Memory.matrixCache[roomName].m[1], i);
+					costMatrix.set(pos.x, pos.y, 1);
+				}
+				return costMatrix;
 			} else {
 				return new PathFinder.CostMatrix();
 			}
@@ -86,8 +104,17 @@ export default class CreepAction implements ICreepAction {
 			const room = Game.rooms[roomName];
 			if (!!room) {
 				return room.getCostMatrix(true); // The cached one without per-tick creeps.
-			} else if (!!Memory.rooms[roomName] && !!Memory.rooms[roomName].costMatrix) {
-				return PathFinder.CostMatrix.deserialize(Memory.rooms[roomName].costMatrix);
+			} else if (!!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].m) {
+				let costMatrix = new PathFinder.CostMatrix();
+				for (let i = 0; i < Memory.matrixCache[roomName].m[0].length; i++) {
+					let pos = global.decodeCoordinate(Memory.matrixCache[roomName].m[0], i);
+					costMatrix.set(pos.x, pos.y, 0xff);
+				}
+				for (let i = 0; i < Memory.matrixCache[roomName].m[1].length; i++) {
+					let pos = global.decodeCoordinate(Memory.matrixCache[roomName].m[1], i);
+					costMatrix.set(pos.x, pos.y, 1);
+				}
+				return costMatrix;
 			} else {
 				return new PathFinder.CostMatrix();
 			}
@@ -357,14 +384,15 @@ export default class CreepAction implements ICreepAction {
 		ignoreCreeps: boolean = false,
 		ignoreRoomConfig: boolean = false,
 		startPos: RoomPosition = this.creep.pos,
-		plainCost: number = 3,
-		swampCost: number = 10,
+		plainCost: number = 2,
+		swampCost: number = 12,
 	): RoomPosition[] {
 		let callback = (ignoreCreeps) ? this.roomCallback : this.creepCallback;
 		if (ignoreRoomConfig) {
 			callback = this.ignoreCallback;
 		}
-		const maxOps = 4000;
+		const targetDistance = Game.map.getRoomLinearDistance(this.creep.room.name, goal[0].pos.roomName);
+		const maxOps = 2000 * targetDistance;
 /*		if (Game.cpu.bucket < global.BUCKET_MIN) {
 			maxOps = 1000;
 		}

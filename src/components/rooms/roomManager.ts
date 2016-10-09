@@ -131,13 +131,13 @@ export function governRooms(): void {
 						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.message);
 					}
 				}
-				/*try {
+				try {
 					if (!!room.observer) {
 						room.observer.run();
 					}
 				} catch (e) {
 					console.log("RoomManager.Observer", room.name, e.message, e.stack);
-				}*/
+				}
 			}
 
 			// run the creeps in this room

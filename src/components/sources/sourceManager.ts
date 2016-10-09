@@ -1,26 +1,10 @@
-export let sources: ISource[];
+export let sources: Source[];
 export let sourceRoom: Room;
-
-interface ISource extends Source {
-	memory?: any;
-}
-export function initMemory(room: Room) {
-	if (!room.memory.sources) {
-		room.memory.sources = {};
-		_.each(sources, function (s: ISource) {
-			s.memory = s.room.memory.sources[s.id] = {};
-		}, this);
-	}
-}
 
 export function load(room: Room) {
 	sourceRoom = room;
 	sources = sourceRoom.sources;
 	blacklistSources(global.BLACKLIST_SOURCES);
-	initMemory(room);
-	_.each(sources, function (s: ISource) {
-		s.memory = s.room.memory.sources[s.id];
-	}, this);
 }
 
 export function getFirstSource(): Source {
@@ -48,7 +32,7 @@ export function findAvailableHarvester(s: Source) {
 
 export function updateHarvesterPreference() {
 	const mhps = getMaxHarvestersPerSource();
-	_.each(sources, function (s: ISource) {
+	_.each(sources, function (s: Source) {
 		for (let i = 1; i <= global.MAX_HARVESTERS_PER_SOURCE; i++) {
 			if (i > mhps || i > getMiningSlots(s).length) {
 				if (!s.memory[`preferredHarvester${i}`]) {
@@ -80,7 +64,7 @@ export function updateHarvesterPreference() {
 		}
 	}, this);
 }
-export function getMiningSlots(source: ISource): LookAtResultWithPos[] {
+export function getMiningSlots(source: Source): LookAtResultWithPos[] {
 	if (!!source.memory.slots && _.isArray(source.memory.slots)) {
 		return source.memory.slots;
 	} else {

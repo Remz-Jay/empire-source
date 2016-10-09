@@ -1,6 +1,7 @@
 import "./shared/utils";
 import "./config/config";
 import "./prototypes/ownedstructure";
+import "./prototypes/source";
 import "./prototypes/room";
 import "./prototypes/creep";
 import "./prototypes/link";

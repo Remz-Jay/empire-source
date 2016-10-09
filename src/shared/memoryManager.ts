@@ -24,6 +24,9 @@ export function loadMemory(): void {
 	if (!this.memory.pathCache) {
 		this.memory.pathCache = {};
 	}
+	if (!this.memory.matrixCache) {
+		this.memory.matrixCache = {};
+	}
 }
 
 export function cleanMemory(): void {
@@ -37,6 +40,16 @@ export function cleanMemory(): void {
 		if (!Game.structures[id]) {
 			console.log("Garbage collecting structure " + id);
 			delete Memory.structures[id];
+		}
+	}
+	for (let name in this.memory.rooms) {
+		delete this.memory.rooms[name].costMatrix;
+		delete this.memory.rooms[name].matrixTime;
+		delete this.memory.rooms[name].sources;
+		delete this.memory.rooms[name].allStructures;
+		delete this.memory.rooms[name].scanTime;
+		if (_.isEmpty(this.memory.rooms[name])) {
+			delete this.memory.rooms[name];
 		}
 	}
 }

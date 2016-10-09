@@ -43,7 +43,7 @@ StructureObserver.prototype.getScanRoom = function(): string {
 	}
 	let roomName = this.getRoomName(this.roomIndex.x + this.memory.scannedX, this.roomIndex.y + this.memory.scannedY);
 	// Skip observing this room if we currently have vision or if we recently scanned it.
-	if (!!Game.rooms[roomName] || (!!Memory.rooms[roomName] && !!Memory.rooms[roomName].scanTime && (Game.time - Memory.rooms[roomName].scanTime) < 100)) {
+	if (!!Game.rooms[roomName] || (!!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].s && (Game.time - Memory.matrixCache[roomName].s) < 100)) {
 		return this.getScanRoom();
 	} else {
 		return roomName;
@@ -51,14 +51,14 @@ StructureObserver.prototype.getScanRoom = function(): string {
 };
 StructureObserver.prototype.run = function () {
 	const roomName = this.getScanRoom();
-	delete this.memory.scanTime;
-	delete this.memory.scannedRoom;
-	if (!Memory.rooms[roomName]) {
-		Memory.rooms[roomName] = {
-			scanTime: Game.time,
+	if (!Memory.matrixCache[roomName]) {
+		Memory.matrixCache[roomName] = {
+			s: Game.time,
+			t: -Infinity,
+			m: [],
 		};
 	} else {
-		Memory.rooms[roomName].scanTime = Game.time;
+		Memory.matrixCache[roomName].s = Game.time;
 	}
 	console.log("[OBSERVER]", this.room.name, "Scanning", roomName);
 	this.observeRoom(roomName);

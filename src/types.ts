@@ -149,8 +149,18 @@ declare interface Memory {
 			[to: string]: string;
 		}
 	};
+	matrixCache: {
+		[room: string]: {
+			t: number, // matrixTime
+			m: string[]; // matrixData
+			s: number, // scanTime
+		}
+	};
 	transactions: TerminalTransaction[];
 	structures: {
+		[id: string]: any;
+	};
+	sources: {
 		[id: string]: any;
 	};
 }
