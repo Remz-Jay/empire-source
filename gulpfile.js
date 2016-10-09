@@ -13,7 +13,8 @@ const ts = require('gulp-typescript');
 const tslint = require('gulp-tslint');
 const tsconfig = ts.createProject('tsconfig.json', { typescript: require('typescript') });
 const webpack = require('webpack-stream');
-
+const istanbul = require('gulp-istanbul');
+const mocha = require('gulp-mocha');
 /********/
 /* INIT */
 /********/
@@ -95,6 +96,22 @@ gulp.task('compile-bundled', gulp.series(
             .pipe(gulp.dest('dist/' + buildTarget));
     }
 ));
+gulp.task('compile-normal', gulp.series(
+    gulp.parallel('lint', 'clean'),
+    function tsc() {
+        global.compileFailed = false;
+        return tsconfig.src()
+            .pipe(ts(tsconfig))
+            .on('error', (err) => global.compileFailed = true)
+            .js.pipe(gulp.dest('dist/tmp'));
+    },
+    function checkTsc(done) {
+        if (!global.compileFailed) {
+            return done();
+        }
+        throw new PluginError("gulp-typescript", "failed to compile: not executing further tasks");
+    }
+));
 
 gulp.task('compile-flattened', gulp.series(
     gulp.parallel('lint', 'clean'),
@@ -136,6 +153,19 @@ gulp.task('watch', function () {
             gutil.log(gutil.colors.green('Error during build tasks: aborting'));
         });
 });
+
+gulp.task('specs', gulp.series('compile-normal', function mochaTests(cb){
+    console.log("Running specs to make sure nothing is broken.")
+    gulp.src(["dist/tmp/**/*.js", "!dist/tmp/specs/**/*.js"])
+        .pipe(istanbul())
+        .pipe(istanbul.hookRequire())
+        .on('finish', function () {
+            gulp.src(['dist/tmp/specs/**/*.js'])
+                .pipe(mocha())
+                .pipe(istanbul.writeReports({reporters: ['text-summary','html'], reportOpts: { dir: "coverage"}}))
+                .on('end', cb);
+        });
+}));
 
 gulp.task('build', gulp.series('upload', function buildDone(done) {
     gutil.log(gutil.colors.green('Build done'));

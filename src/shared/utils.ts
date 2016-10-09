@@ -1,13 +1,25 @@
+import * as _ from "lodash";
 global.colorWrap = function(text: string, color: string): string {
 	return `<font color="${color}">${text}</font>`;
 };
 
 global.formatNumber = function(value: number): string {
+	if (!_.isNumber(value)) {
+		return value;
+	}
+	let inverse: boolean = false;
+	if (value < 0) {
+		inverse = true;
+		value = Math.abs(value);
+	}
 	let strVal: string = value.toString();
 	if (value >= 1000000) {
 		strVal = _.round(value / 1000000, 2).toString() + "M";
 	} else if (value >= 1000) {
 		strVal = _.round(value / 1000, 2).toString() + "k";
+	}
+	if (inverse) {
+		strVal = "-" + strVal;
 	}
 	return strVal;
 };

@@ -56,11 +56,8 @@ export function cleanMemory(): void {
 		}
 	}
 	for (let id in this.memory.powerBanks) {
-		if (this.memory.powerBanks[id].indexed + this.memory.powerBanks[id].ticksToDecay <= Game.time) {
+		if (this.memory.powerBanks[id].indexed + this.memory.powerBanks[id].decay <= Game.time) {
 			// powerBank expired
-			delete this.memory.powerBanks[id];
-		} else if (!Game.getObjectById(id)) {
-			// object doesn't exist anymore. someone else got it?
 			delete this.memory.powerBanks[id];
 		}
 	}
