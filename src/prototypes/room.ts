@@ -411,9 +411,11 @@ Room.prototype.observe = function(): void {
 				Memory.powerBanks[pb.id] = {
 					power: pb.power,
 					decay: pb.ticksToDecay,
+					pos: pb.pos,
 					indexed: Game.time,
+					taken: false,
 				};
-				Game.notify(`PowerBank found in room ${this.name}. ${pb.power} power, ${pb.ticksToDecay} to decay,`
+				console.log(`PowerBank found in room ${this.name}. ${pb.power} power, ${pb.ticksToDecay} to decay,`
 					+ ` ${global.formatNumber(pb.hits)} hits to go.`);
 			}
 		} else {

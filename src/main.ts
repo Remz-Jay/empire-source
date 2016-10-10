@@ -15,6 +15,7 @@ import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
+import PowerManager from "./components/power/powerManager";
 // import ObserverManager from "./components/observers/observerManager";
 let reset: number = 1;
 delete Memory.log;
@@ -86,6 +87,15 @@ export function loop() {
 	} catch (e) {
 		console.log("MarketManager Exception", (<Error> e).message);
 	}
+	try {
+		used = Game.cpu.getUsed();
+		let pm = new PowerManager();
+		pm.govern();
+		console.log(`PowerManager: ${_.round(Game.cpu.getUsed() - used, 2)}`);
+	} catch (e) {
+		console.log("PowerManager Exception", e.stack);
+	}
+
 /*		try {
 		// global.om.observe();
 	} catch (e) {

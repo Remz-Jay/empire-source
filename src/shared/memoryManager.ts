@@ -30,6 +30,9 @@ export function loadMemory(): void {
 	if (!this.memory.powerBanks) {
 		this.memory.powerBanks = {};
 	}
+	if (!this.memory.powerManager) {
+		this.memory.powerManager = {};
+	}
 }
 
 export function cleanMemory(): void {

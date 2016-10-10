@@ -1,6 +1,6 @@
-import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
+import {default as CreepGovernor} from "../creepGovernor";
 
-export default class RepairGovernor extends CreepGovernor implements ICreepGovernor {
+export default class RepairGovernor extends CreepGovernor {
 
 	public static PRIORITY: number = global.PRIORITY_REPAIR;
 	public static MINRCL: number = global.MINRCL_REPAIR;
@@ -24,7 +24,7 @@ export default class RepairGovernor extends CreepGovernor implements ICreepGover
 
 	public getCreepLimit(): number {
 		if (this.room.controller.level === 8 && this.room.myConstructionSites.length === 0) {
-			return 1;
+			return 0;
 		}
 		return (this.room.controller.level < 5) ? 0 : _.floor(this.room.energyInContainers / 200000);
 	};

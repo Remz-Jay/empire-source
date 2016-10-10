@@ -1,7 +1,7 @@
-import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
+import {default as CreepGovernor} from "../creepGovernor";
 import * as SourceManager from "../../sources/sourceManager";
 
-export default class HarvesterGovernor extends CreepGovernor implements ICreepGovernor {
+export default class HarvesterGovernor extends CreepGovernor {
 
 	public static PRIORITY: number = global.PRIORITY_HARVESTER;
 	public static MINRCL: number = global.MINRCL_HARVESTER;

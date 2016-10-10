@@ -145,6 +145,11 @@ global.ROOM_BLACKLIST = [
 	"W9N49",
 	"W4N43",
 ];
+/**
+ * The maximum distance a PowerBank should be from a dispatching room.
+ * @type {number}
+ */
+global.MAX_POWER_DISTANCE = 2;
 global.translateErrorCode = function(errorCode: number): string {
 	switch (errorCode) {
 		case OK:

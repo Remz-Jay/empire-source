@@ -1,6 +1,6 @@
-import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
+import {default as CreepGovernor} from "../creepGovernor";
 
-export default class ScientistGovernor extends CreepGovernor implements ICreepGovernor {
+export default class ScientistGovernor extends CreepGovernor {
 
 	public static PRIORITY: number = global.PRIORITY_SCIENTIST;
 	public static MINRCL: number = global.MINRCL_SCIENTIST;

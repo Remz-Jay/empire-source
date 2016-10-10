@@ -84,7 +84,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			}
 		} else if (this.mode === MODE.CLEANUP && !!this.creep.memory.targetId && !this.creep.bagEmpty && this.creep.pos.isNearTo(this.terminal)) {
 			if (this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep)) === OK) {
-				this.creep.say("Clean!", true);
+				this.creep.say("♻", true);
 				delete this.creep.memory.targetId;
 				delete this.creep.memory.moveToId;
 				this.creep.memory.mode = MODE.IDLE;
@@ -131,7 +131,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, this.creep.memory.mineralType) === OK) {
-					this.creep.say("\u0CA0\u203F\u0CA0", true);
+					this.creep.say("🔰", true);
 					delete this.creep.memory.targetId;
 					delete this.creep.memory.moveToId;
 					delete this.creep.memory.mineralType;
@@ -171,7 +171,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			}
 		} else if (this.mode === MODE.PROFITIZE && !!this.creep.memory.targetId && !this.creep.bagEmpty && this.creep.pos.isNearTo(this.terminal)) {
 			if (this.creep.transfer(this.terminal, this.reaction) === OK) {
-				this.creep.say("\u270FProfit!", true);
+				this.creep.say("💰", true);
 				delete this.creep.memory.targetId;
 				delete this.creep.memory.moveToId;
 				this.creep.memory.mode = MODE.IDLE;
@@ -212,7 +212,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, this.creep.memory.mineralType) === OK) {
-					this.creep.say("BÖÖÖST!", true);
+					this.creep.say("🔥", true);
 					delete this.creep.memory.targetId;
 					delete this.creep.memory.moveToId;
 					delete this.creep.memory.mineralType;
@@ -265,7 +265,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 			if (this.creep.pos.isNearTo(t.pos)) {
 				if (this.creep.transfer(t, RESOURCE_ENERGY) === OK) {
 					// this.creep.say(t.id.substr(t.id.length - 5));
-					this.creep.say("\u2614Energize!", true);
+					this.creep.say("⚡", true);
 					delete this.creep.memory.moveToId;
 					delete this.creep.memory.targetId;
 					this.creep.memory.mode = MODE.IDLE;

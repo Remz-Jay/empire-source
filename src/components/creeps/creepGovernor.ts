@@ -1,20 +1,6 @@
 export interface CreepGovernorConstructor {
 	new (room: Room): ICreepGovernor;
 }
-export interface ICreepGovernor {
-	bodyPart: string[];
-	maxParts: number;
-	maxCreeps: number;
-	emergency: boolean;
-	getCreepConfig(): CreepConfiguration;
-	getCreepLimit(): number;
-	getBody(): string[];
-	getNumberOfCreepsInRole(): number;
-	getCreepsInRole(): Creep[];
-	getBlackList(): string[];
-	addToBlackList(targetId: string): void;
-	checkContainerAssignment(): string;
-}
 
 export default class CreepGovernor implements ICreepGovernor {
 	public static MINRCL: number = global.MINRCL_CREEP;

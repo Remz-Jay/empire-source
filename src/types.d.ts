@@ -56,8 +56,8 @@ declare interface ProfilerObject {
 declare interface RemoteRoomConfig {
 	homeRoom: string;
 	targetRoom: string;
-	homeDistance: number;
-	route: findRouteArray;
+	homeDistance?: number;
+	route?: findRouteArray;
 	claim?: boolean;
 	hasController?: boolean;
 	reserveOnly?: boolean;
@@ -91,7 +91,20 @@ declare interface OffenseObject {
 		[roomName: string]: RemoteRoomConfig
 	};
 }
-
+declare interface ICreepGovernor {
+	bodyPart: string[];
+	maxParts: number;
+	maxCreeps: number;
+	emergency: boolean;
+	getCreepConfig(): CreepConfiguration;
+	getCreepLimit(): number;
+	getBody(): string[];
+	getNumberOfCreepsInRole(): number;
+	getCreepsInRole(): Creep[];
+	getBlackList(): string[];
+	addToBlackList(targetId: string): void;
+	checkContainerAssignment(): string;
+}
 declare interface SquadRole {
 	governor: Object;
 	role: Object;
@@ -99,11 +112,20 @@ declare interface SquadRole {
 }
 declare interface SquadConfig {
 	roles: SquadRole[];
-	wait: boolean;
+	wait?: boolean;
+	target?: PowerBankMemory;
+	source?: string;
 }
 
 declare interface ResourceList {
 	[resource: string]: number;
+}
+declare interface PowerBankMemory {
+	power: number;
+	decay: number;
+	pos: RoomPosition;
+	indexed: number;
+	taken: boolean;
 }
 
 declare interface Memory {
@@ -163,12 +185,9 @@ declare interface Memory {
 	sources: {
 		[id: string]: any;
 	};
-	powerBanks: {
-		[id: string]: {
-			power: number;
-			decay: number;
-			indexed: number;
-		}
+	powerBanks: {[id: string]: PowerBankMemory};
+	powerManager: {
+		squads: SquadConfig[];
 	};
 }
 
@@ -228,6 +247,7 @@ declare namespace NodeJS {
 		MINRCL_WF_RANGER: number;
 		MINRCL_WF_HEALER: number;
 		BLACKLIST_SOURCES: string[];
+		MAX_POWER_DISTANCE: number;
 		ROOM_BLACKLIST: string[];
 		RESOURCE_TYPES: string[];
 		STRUCTURES_ALL: string[];

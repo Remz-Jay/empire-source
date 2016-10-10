@@ -1,6 +1,6 @@
-import {ICreepGovernor, default as CreepGovernor} from "../creepGovernor";
+import {default as CreepGovernor} from "../creepGovernor";
 
-export default class BuilderGovernor extends CreepGovernor implements ICreepGovernor {
+export default class BuilderGovernor extends CreepGovernor {
 
 	public static PRIORITY: number = global.PRIORITY_BUILDER;
 	public static ROLE: string = "Builder";
