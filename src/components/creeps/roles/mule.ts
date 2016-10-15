@@ -21,7 +21,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 			this.creep.room.myGroupedStructures[STRUCTURE_SPAWN],
 		);
 		return energyStructures.filter((structure: EnergyStructure) =>
-		!_.includes(blackList, structure.id) && structure.energy < (structure.energyCapacity * 0.8));
+		!_.includes(blackList, structure.id)
+			&& ((structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
+				|| structure.energy < (structure.energyCapacity * 0.8))
+		);
 	}
 	public scanForTargets(): Structure {
 		const blackList = this.governor.getBlackList();

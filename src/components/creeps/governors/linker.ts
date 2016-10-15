@@ -23,13 +23,16 @@ export default class LinkerGovernor extends CreepGovernor {
 	}
 
 	public getCreepLimit(): number {
+		if (!!Game.flags[this.room.name + "_LS"]) {
+			return this.maxCreeps;
+		}
 		return (!!this.getStorageLink()) ? this.maxCreeps : 0;
 	}
 
 	public getStorageLink(): StructureLink {
 		if (!!this.room.storage) {
 			const link: StructureLink[] = _(this.room.myGroupedStructures[STRUCTURE_LINK])
-				.filter((s: OwnedStructure) => s.pos.isNearTo(this.room.storage)).value() as StructureLink[];
+				.filter((s: OwnedStructure) => s.pos.inRangeTo(this.room.storage.pos, 2)).value() as StructureLink[];
 			if (link.length > 0) {
 				return link[0];
 			} else {

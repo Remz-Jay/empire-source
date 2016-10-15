@@ -227,7 +227,9 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 	public cleanAll(): boolean {
 		if (!this.clean) {
 			return false;
-		} else if (this.mode === MODE.IDLE && !this.creep.bagEmpty) {
+		} else if ((this.mode === MODE.IDLE && !this.creep.bagEmpty)
+			|| (this.creep.room.boostLabs.length === 0 && this.mode !== MODE.CLEANUP && this.mode !== MODE.IDLE && this.mode !== MODE.ENERGIZE)
+		) {
 			this.reset();
 		} else {
 			const labs = this.creep.room.myLabs.filter(

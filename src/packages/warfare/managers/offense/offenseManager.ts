@@ -150,12 +150,12 @@ const healTestConfig = {
 		{
 			"governor": HealerGovernor,
 			"role": Healer,
-			"maxCreeps": 0,
+			"maxCreeps": 1,
 		},
 		{
 			"governor": DismantlerGovernor,
 			"role": Dismantler,
-			"maxCreeps": 0,
+			"maxCreeps": 1,
 		},
 	],
 	wait: false,
@@ -224,19 +224,12 @@ const W15N41Positions: RoomPosition[] = [
 	new RoomPosition(42, 8, "W15N41"),
 	new RoomPosition(43, 3, "W13N41"),
 ];
-const W12N43Positions: RoomPosition[] = [
-	new RoomPosition(47, 43, "W11N44"),
-	new RoomPosition(6, 7, "W11N43"),
-	new RoomPosition(47, 9, "W12N43"),
-	new RoomPosition(30, 47, "W12N43"),
-	new RoomPosition(47, 9, "W12N43"),
-	new RoomPosition(3, 31, "W12N42"),
-	new RoomPosition(35, 34, "W13N42"),
-	new RoomPosition(25, 35, "W13N42"),
-	new RoomPosition(4, 3, "W13N42"),
-	new RoomPosition(19, 40, "W13N43"),
-	new RoomPosition(44, 35, "W13N44"),
-	new RoomPosition(3, 35, "W12N44"),
+const W5N38Positions: RoomPosition[] = [
+	new RoomPosition(30, 46, "W5N39"),
+	new RoomPosition(34, 3, "W5N38"),
+	new RoomPosition(38, 28, "W5N38"),
+	new RoomPosition(47, 38, "W5N37"),
+	new RoomPosition(23, 33, "W4N37"),
 ];
 
 export function setup() {
@@ -431,8 +424,8 @@ export function govern(): void {
 				case "W15N41": // SirLovi south
 					manageSquad(roomName, warArcherConfig, W15N41Positions);
 					break;
-				case "W12N43": // SirLovi East
-					manageSquad(roomName, healTestConfig, W12N43Positions);
+				case "W5N38": // SirLovi East
+					manageSquad(roomName, healTestConfig, W5N38Positions);
 					break;
 				case "W11N56":
 					manageSquad(roomName, healTestConfig, flagPositions);

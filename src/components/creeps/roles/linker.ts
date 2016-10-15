@@ -98,7 +98,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		let link: StructureLink;
 		if (!this.creep.memory.link) {
 			const linkResult: StructureLink[] = _.filter(this.creep.room.myGroupedStructures[STRUCTURE_LINK],
-				(s: Structure) => s.pos.isNearTo(this.storage)) as StructureLink[];
+				(s: Structure) => s.pos.inRangeTo(this.storage.pos, 2)) as StructureLink[];
 			if (linkResult.length > 0) {
 				link = linkResult[0];
 				this.creep.memory.link = link.id;

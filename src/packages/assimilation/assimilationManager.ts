@@ -501,7 +501,7 @@ export function govern(): void {
 							} else if (!config.hasController) {
 								// manageConstructions(3);
 							} else {
-								// manageConstructions(1);
+								manageConstructions(1);
 							}
 						} catch (e) {
 							console.log(`ERROR :: ASM in room ${roomName}: [CONSTRUCTION] ${e.message}`);
@@ -520,8 +520,8 @@ export function govern(): void {
 							manageDefenders(roomName, 0);
 						} else {
 							if (config.claim) {
-								manageDefenders(roomName, 1);
-								manageSourceKeepers(roomName, 0);
+								// manageDefenders(roomName, 1);
+								// manageSourceKeepers(roomName, 0);
 							} else if (!config.hasController) {
 								manageSourceKeepers(roomName, 1);
 							} else if (roomName === "W4N42" || roomName === "W2N45") { // surrounded by owned rooms, no invaders.

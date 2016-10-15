@@ -12,8 +12,9 @@ export interface IWFCreepAction {
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
 	public wait: boolean = false;
 	public ignoreStructures: string[] = [
-		// STRUCTURE_STORAGE,
-		// STRUCTURE_TERMINAL,
+		STRUCTURE_STORAGE,
+		STRUCTURE_TERMINAL,
+		STRUCTURE_WALL,
 		// STRUCTURE_SPAWN,
 		// STRUCTURE_EXTENSION,
 	];
@@ -336,7 +337,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 	public findTargetStructure(): Structure {
 		let structurePriorities: string[] = [
 			STRUCTURE_TOWER,
-			// STRUCTURE_SPAWN,
+			STRUCTURE_SPAWN,
 		];
 		let hostile: Structure = undefined;
 		structurePriorities.forEach(function(p) {

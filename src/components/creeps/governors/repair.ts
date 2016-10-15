@@ -7,7 +7,7 @@ export default class RepairGovernor extends CreepGovernor {
 	public static ROLE: string = "Repair";
 
 	public bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
-	public maxParts = 8;
+	public maxParts = 6;
 	public maxCreeps = 1;
 	public getCreepConfig(): CreepConfiguration {
 		const bodyParts: string[] = this.getBody();
