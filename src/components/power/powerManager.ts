@@ -7,6 +7,9 @@ import PowerMuleGovernor from "./governors/powerMule";
 import PowerMule from "./roles/powerMule";
 
 export default class PowerManager {
+	public static ticksToPreSpawn = 300;
+	public static damagePerTick = 750;
+	public static muleCapacity = 1250;
 	private rooms: Room[];
 	private powerBanks: {[id: string]: PowerBankMemory};
 	private dispatchThreshold: number = 3000;
@@ -23,8 +26,8 @@ export default class PowerManager {
 	constructor() {
 		this.loadFromMemory();
 		// this.rooms = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level === 8);
-		let roomNames = ["W6N42", "W6N49"];
-		this.rooms = [Game.rooms[roomNames[0]], Game.rooms[roomNames[1]]];
+		let roomNames = ["W6N42", "W6N49", "W8N47"];
+		this.rooms = [Game.rooms[roomNames[0]], Game.rooms[roomNames[1]], Game.rooms[roomNames[2]]];
 		this.powerBanks = Memory.powerBanks || {};
 	}
 	public govern() {
@@ -78,6 +81,50 @@ export default class PowerManager {
 	}
 	private manageSquad(squad: SquadConfig): boolean {
 		const creeps = _.groupBy(this.loadCreeps(squad), "memory.role");
+		const targetRoom = Game.rooms[squad.target.pos.roomName];
+
+		let bank: StructurePowerBank;
+		if (!!targetRoom) {
+			// we have vision of the target's Room
+			bank = new RoomPosition(squad.target.pos.x, squad.target.pos.y, squad.target.pos.roomName).lookFor<StructurePowerBank>(LOOK_STRUCTURES).shift();
+			if (!!bank) {
+				console.log(`PowerBank ID: ${bank.id}. Ticks to go: ${_.round(bank.hits / PowerManager.damagePerTick)}/${bank.ticksToDecay}.`);
+				const numMulesRequired = _.round(bank.power / PowerManager.muleCapacity);
+				const timer = _.ceil(numMulesRequired / 2) * PowerManager.ticksToPreSpawn;
+				if (bank.hits <= PowerManager.damagePerTick * timer) {
+					squad.roles = [
+						{
+							"governor": "PowerHarvesterGovernor",
+							"role": "PowerHarvester",
+							"maxCreeps": 1,
+						},
+						{
+							"governor": "PowerHealerGovernor",
+							"role": "PowerHealer",
+							"maxCreeps": 2,
+						},
+						{
+							"governor": "PowerMuleGovernor",  // 1250 carry each
+							"role": "PowerMule",
+							"maxCreeps": numMulesRequired,
+						},
+					];
+				}
+			} else {
+				console.log(`No PowerBank Found`);
+				// kill the harvester and heal team six, they might be in the way.
+				_.get(creeps, "PowerHarvester", []).forEach((c: Creep) => c.suicide());
+				_.get(creeps, "PowerHealer", []).forEach((c: Creep) => c.suicide());
+				squad.roles = [
+					{
+						"governor": "PowerMuleGovernor",  // 1250 carry each
+						"role": "PowerMule",
+						"maxCreeps": 0,
+					},
+				];
+				squad.missionComplete = true;
+			}
+		}
 		_.forEach(squad.roles, (squadRole: SquadRole) => {
 			const config: RemoteRoomConfig = {
 				homeRoom: squad.source,
@@ -86,6 +133,10 @@ export default class PowerManager {
 			const homeRoom = Game.rooms[squad.source];
 			const governor = new this.classes[<string> squadRole.governor](homeRoom, config);
 			const creepsInRole = _.get(creeps, `${squadRole.role}`, []);
+			if (!!squad.missionComplete && squadRole.role === "PowerMule" && creepsInRole.length === 0) {
+				this.squads = _.difference(this.squads, [squad]);
+				return;
+			}
 			console.log("[PowerManager]", squadRole.role, squadRole.maxCreeps, squad.target.pos.roomName, homeRoom.name, creepsInRole.length);
 			const role: WarfareCreepAction = new this.classes[<string> squadRole.role]();
 			_.forEach(creepsInRole, (c: Creep) => {
@@ -97,7 +148,10 @@ export default class PowerManager {
 					role.setCreep(<Creep> c, positions);
 					role.setGovernor(governor);
 					role.action(b);
-					if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
+					if (!!bank && bank.hits > (PowerManager.ticksToPreSpawn * PowerManager.damagePerTick) // Check if the current gen is able to complete the job
+						&& c.ticksToLive < PowerManager.ticksToPreSpawn
+						&& (creepsInRole.length === squadRole.maxCreeps)
+					) {
 						// Do a preemptive spawn if this creep is about to expire.
 						const status = this.createCreep(homeRoom, governor.getCreepConfig());
 						if (_.isNumber(status)) {
@@ -158,15 +212,12 @@ export default class PowerManager {
 								"role": "PowerHealer",
 								"maxCreeps": 2,
 							},
-							{
-								"governor": "PowerMuleGovernor",  // 1850 carry each
-								"role": "PowerMule",
-								"maxCreeps": 0,
-							},
 						],
 						target: closest,
 						source: r.name,
 					});
+					Game.notify(`Dispatching a powerSquad from ${r.name}. Target: ${closest.pos.roomName} at range ${distance}.`
+						+ ` It has ${closest.power} power and decays in ${decay}.`);
 				} else {
 					console.log(`[PowerManager] Unfortunately, no powerBanks with decent TTL's were found in range.`);
 				}

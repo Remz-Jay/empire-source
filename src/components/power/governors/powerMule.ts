@@ -6,9 +6,9 @@ export default class PowerMuleGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "PowerMule";
 
-	public maxParts = 12;
+	public maxParts = 24;
 	public maxCreeps = 3;
-	public bodyPart = [CARRY, CARRY, CARRY, MOVE]; // 1850 carry total
+	public bodyPart = [CARRY, MOVE]; // 1250 carry total
 	public basePart = [CARRY, MOVE];
 
 	public getCreepConfig(): CreepConfiguration {

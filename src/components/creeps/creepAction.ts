@@ -20,6 +20,7 @@ export interface ICreepAction {
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 	moveToTargetRoom(): void;
 }
+let allowedRooms: string[] = undefined;
 
 export default class CreepAction implements ICreepAction {
 	public creep: Creep;
@@ -45,6 +46,9 @@ export default class CreepAction implements ICreepAction {
 	public roomCallback = function (roomName: string): CostMatrix | boolean {
 		try {
 			if (_.includes(global.ROOM_BLACKLIST, roomName)) {
+				return false;
+			}
+			if (!!allowedRooms && !_.includes(allowedRooms, roomName)) {
 				return false;
 			}
 			const room = Game.rooms[roomName];
@@ -74,6 +78,9 @@ export default class CreepAction implements ICreepAction {
 			if (_.includes(global.ROOM_BLACKLIST, roomName)) {
 				return false;
 			}
+			if (!!allowedRooms && !_.includes(allowedRooms, roomName)) {
+				return false;
+			}
 			const room = Game.rooms[roomName];
 			if (!!room) {
 				return room.getCreepMatrix(); // Uncached, with per-tick creep updates.
@@ -99,6 +106,9 @@ export default class CreepAction implements ICreepAction {
 	public ignoreCallback = function (roomName: string): CostMatrix | boolean {
 		try {
 			if (_.includes(global.ROOM_BLACKLIST, roomName)) {
+				return false;
+			}
+			if (!!allowedRooms && !_.includes(allowedRooms, roomName)) {
 				return false;
 			}
 			const room = Game.rooms[roomName];
@@ -391,15 +401,32 @@ export default class CreepAction implements ICreepAction {
 		if (ignoreRoomConfig) {
 			callback = this.ignoreCallback;
 		}
-		const targetDistance = Game.map.getRoomLinearDistance(this.creep.room.name, goal[0].pos.roomName);
-		const maxOps = global.clamp(2000 * targetDistance, 2000, 10000);
-/*		if (Game.cpu.bucket < global.BUCKET_MIN) {
-			maxOps = 1000;
+		allowedRooms = [startPos.roomName];
+		if (startPos.roomName !== goal[0].pos.roomName) {
+			_.forEach(Game.map.findRoute(startPos.roomName, goal[0].pos.roomName, {
+				routeCallback(roomName) {
+					const parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+					const isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
+					const isMyRoom = Game.rooms[roomName] &&
+						Game.rooms[roomName].controller &&
+						Game.rooms[roomName].controller.my;
+					const isAlliedRoom = !!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].a;
+					const isHostileRoom = !!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].h;
+					if (isHighway || isMyRoom) {
+						return 1;
+					} else if (isAlliedRoom) {
+						return 3;
+					} else if (isHostileRoom) {
+						return 5;
+					} else {
+						return 2.5;
+					}
+				},
+			}), (info) => {
+				allowedRooms.push(info.room);
+			});
 		}
-		if (Game.cpu.bucket < (global.BUCKET_MIN / 2)) {
-			maxOps = 500;
-		}*/
-
+		const maxOps = allowedRooms.length * 2000;
 /*		const moveParts = this.creep.getActiveBodyparts(MOVE);
 		const totalParts = this.creep.body.length;
 
@@ -416,6 +443,7 @@ export default class CreepAction implements ICreepAction {
 			swampCost: swampCost,
 			roomCallback: callback,
 		});
+		allowedRooms = undefined;
 		if (path.path.length < 1) {
 			// We're near the target.
 			return undefined;

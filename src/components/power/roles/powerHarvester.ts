@@ -13,8 +13,8 @@ export default class PowerHarvester extends WarfareCreepAction {
 				// get in range
 				this.moveTo(target.pos);
 			} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2) && !!healer) {
-				if (target.hits < 10000) {
-					const mules = _.filter(this.creep.room.myCreeps, (c: Creep) => c.memory.role === "WarMule");
+				if (target.hits < (50 * 750)) {
+					const mules = _.filter(this.creep.room.myCreeps, (c: Creep) => c.memory.role === "PowerMule");
 					if (!mules || mules.length < 2) {
 						// Don't break the PowerBank until we have mules present to prevent decay.
 						return;

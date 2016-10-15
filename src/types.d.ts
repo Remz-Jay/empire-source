@@ -115,6 +115,7 @@ declare interface SquadConfig {
 	wait?: boolean;
 	target?: PowerBankMemory;
 	source?: string;
+	missionComplete?: boolean;
 }
 
 declare interface ResourceList {
@@ -173,9 +174,13 @@ declare interface Memory {
 	};
 	matrixCache: {
 		[room: string]: {
-			t: number, // matrixTime
+			t: number; // matrixTime
 			m: string[]; // matrixData
-			s: number, // scanTime
+			s: number; // scanTime
+			cs: number; // number of Construction Sites
+			st: number; // number of Structures
+			a?: boolean; // owned by an allied player
+			h?: boolean; // owned by a hostile player
 		}
 	};
 	transactions: TerminalTransaction[];

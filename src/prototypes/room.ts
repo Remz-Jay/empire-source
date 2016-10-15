@@ -75,11 +75,15 @@ Room.prototype.setCostMatrix = function (costMatrix: CostMatrix, nopass: string,
 			t: 0,
 			s: Game.time,
 			m: [],
+			cs: 0,
+			st: 0,
 		};
 	}
 	Memory.matrixCache[this.name].m[0] = nopass;
 	Memory.matrixCache[this.name].m[1] = pass;
 	Memory.matrixCache[this.name].t = Game.time;
+	Memory.matrixCache[this.name].st = this.allStructures.length;
+	Memory.matrixCache[this.name].cs = this.allConstructionSites.length;
 };
 
 Room.prototype.setCreepMatrix = function (costMatrix) {
@@ -113,12 +117,18 @@ Room.prototype.getCreepMatrix = function () {
 Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refreshOnly: boolean = false): CostMatrix {
 	let cacheValid: boolean = false;
 	let t = Game.time - _.get(Memory.matrixCache, `${this.name}.t`, Infinity);
-	let cacheTTL: number =  (100 - t) || 0;
+	let cacheTTL: number =  (1500 - t) || 0;
 	if (!ignoreRoomConfig && cacheTTL > 0) {
 		cacheValid = true;
-		if (refreshOnly) {
-			return;
-		}
+	}
+	if (_.get(Memory.matrixCache, `${this.name}.st`, 0) !== this.allStructures.length) {
+		cacheValid = false;
+	}
+	if (_.get(Memory.matrixCache, `${this.name}.cs`, 0) !== this.allConstructionSites.length) {
+		cacheValid = false;
+	}
+	if (cacheValid && refreshOnly) {
+		return;
 	}
 	if (cacheValid && !!global.costMatrix[this.name]) {
 		// console.log("Returning global cached matrix for " + this.name + ` (${cacheTTL})`);
@@ -404,9 +414,27 @@ Room.prototype.getLabReagents = function(): string[] {
 	return undefined;
 };
 Room.prototype.observe = function(): void {
+	/**
+	 * Register if this room is in hostile or allied hands so we can plan routes accordingly.
+	 */
+	if (!!this.controller && !!this.controller.owner && !this.controller.my) {
+		if (_.includes(global.alliedPlayers, this.controller.owner.username)) {
+			Memory.matrixCache[this.name].a = true;
+			delete Memory.matrixCache[this.name].h;
+		} else {
+			Memory.matrixCache[this.name].h = true;
+			delete Memory.matrixCache[this.name].a;
+		}
+	} else {
+		delete Memory.matrixCache[this.name].a;
+		delete Memory.matrixCache[this.name].h;
+	}
+	/**
+	 * Register PowerBanks in this room
+	 */
 	if (this.groupedStructures[STRUCTURE_POWER_BANK].length > 0) {
 		let pb: StructurePowerBank = this.groupedStructures[STRUCTURE_POWER_BANK][0];
-		if (pb.power > 500) {
+		if (pb.power >= (1250 * 1.5)) {
 			if (!Memory.powerBanks[pb.id]) {
 				Memory.powerBanks[pb.id] = {
 					power: pb.power,
@@ -417,11 +445,11 @@ Room.prototype.observe = function(): void {
 				};
 				console.log(`PowerBank found in room ${this.name}. ${pb.power} power, ${pb.ticksToDecay} to decay,`
 					+ ` ${global.formatNumber(pb.hits)} hits to go.`);
+			} else {
+				Memory.powerBanks[pb.id].power = pb.power;
+				Memory.powerBanks[pb.id].decay = pb.ticksToDecay;
+				Memory.powerBanks[pb.id].indexed = Game.time;
 			}
-		} else {
-			Memory.powerBanks[pb.id].power = pb.power;
-			Memory.powerBanks[pb.id].decay = pb.ticksToDecay;
-			Memory.powerBanks[pb.id].indexed = Game.time;
 		}
 	}
 };
@@ -459,6 +487,6 @@ Room.prototype.addProperties = function () {
 	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
 
 	// Cache a costMatrix in case we scanned this room using an observer last tick.
-	this.getCostMatrix();
+	this.getCostMatrix(false, true);
 	this.observe();
 };

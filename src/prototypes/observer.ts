@@ -56,6 +56,8 @@ StructureObserver.prototype.run = function () {
 			s: Game.time,
 			t: -Infinity,
 			m: [],
+			cs: 0,
+			st: 0,
 		};
 	} else {
 		Memory.matrixCache[roomName].s = Game.time;
