@@ -65,6 +65,7 @@ global.MAX_TTL = 1400;
 global.alliedPlayers = [
 	"TranceCake",
 	"Azfaloth",
+	"Garland",
 ];
 
 /**

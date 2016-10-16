@@ -35,7 +35,7 @@ export default class PowerMule extends WarfareCreepAction {
 					}
 				}
 			}
-		} else if (!this.moveUsingPositions()) {
+		} else if (!this.moveUsingPositions(3)) {
 			const powerBanks = this.creep.room.groupedStructures[STRUCTURE_POWER_BANK];
 			if (!!powerBanks && powerBanks.length > 0) {
 				if (this.creep.pos.getRangeTo(powerBanks[0]) > 6) {

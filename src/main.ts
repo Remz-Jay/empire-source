@@ -118,6 +118,7 @@ export function loop() {
 		});
 	}
 	delete Memory.log;
+	global.gclCalc();
 	const perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 	const cpuUsed = _.ceil(Game.cpu.getUsed());
 	const cpuColor = (cpuUsed > Game.cpu.limit) ? "OrangeRed" : "LightGreen";

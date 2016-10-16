@@ -33,6 +33,9 @@ export function loadMemory(): void {
 	if (!this.memory.powerManager) {
 		this.memory.powerManager = {};
 	}
+	if (!Memory.stats) {
+		Memory.stats = {};
+	}
 }
 
 export function cleanMemory(): void {

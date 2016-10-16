@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 global.colorWrap = function(text: string, color: string): string {
 	return `<font color="${color}">${text}</font>`;
 };
@@ -154,6 +153,58 @@ global.revStr = function(s: string): string {
 		o = o + s[i];
 	}
 	return o;
+};
+
+global.gclCalc = function() {
+	let runTimeGCL = 10;
+	if ((Game.time % runTimeGCL) === 0) {
+		let timer = Game.time;
+		let memName = "Estimates";
+		if (Memory.stats[memName] === undefined) {
+			Memory.stats[memName] = {
+				nextGCLLevelTick: 0,
+				currentGCLProgress: 0,
+				lastGCLProgress: 0,
+				estimatedTime: 0,
+			};
+		} else {
+			let GCLData = Memory.stats[memName];
+			if (GCLData.currentGCLProgress === 0) {
+				GCLData.currentGCLProgress = Game.gcl.progress;
+				GCLData.currentTime = Date.now();
+			} else {
+				GCLData.lastGCLProgress = GCLData.currentGCLProgress;
+				GCLData.lastTime = GCLData.currentTime;
+				GCLData.currentGCLProgress = (Game.gcl.progress + GCLData.lastGCLProgress) / 2;
+				GCLData.currentTime = Date.now();
+				let progressPer1kTicks = Number(Game.time) + (Game.gcl.progressTotal - Game.gcl.progress) / ((GCLData.currentGCLProgress - GCLData.lastGCLProgress));
+				GCLData.nextGCLLevelTick = progressPer1kTicks.toFixed(0);
+				let seconds = 3;
+				let milliseconds = 1000 * seconds;
+				let CEST = 1000 * 60 * 60 * 2;
+				let t = new Date();
+				t.setTime(((Game.gcl.progressTotal - Game.gcl.progress) / (GCLData.currentGCLProgress - GCLData.lastGCLProgress) * runTimeGCL) * milliseconds);
+				let options = {
+					weekday: "long",
+					day: "numeric",
+					month: "long",
+					year: "numeric",
+					hour: "numeric",
+					minute: "numeric",
+					timeZone: "Europe/Amsterdam",
+					timeZoneName: "short",
+					hour12: false,
+				};
+				GCLData.estimatedTime = (new Date(Date.now() + t.getTime() + CEST)).toLocaleString("nl", options);
+			}
+			Memory.stats[memName] = GCLData;
+			console.log(`${Game.time} Estimated GCL leveling, Tick: ${GCLData.nextGCLLevelTick}, Date: ${GCLData.estimatedTime} Execution time: ${Game.time - timer}`);
+			if ((Game.time % 50000) === 0) {
+				Game.notify(`(${Game.time}): Estimated GCL leveling, Tick: ${GCLData.nextGCLLevelTick}, `
+				+ `Date: ${GCLData.estimatedTime}\n Execution time: ${Game.time - timer}`);
+			}
+		}
+	}
 };
 
 // Implementation of Lodash 4.15.0 functions

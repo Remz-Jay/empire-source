@@ -13,7 +13,7 @@ export default class PowerManager {
 	private rooms: Room[];
 	private powerBanks: {[id: string]: PowerBankMemory};
 	private dispatchThreshold: number = 3000;
-	private maxActiveSquads: number = 1;
+	private maxActiveSquads: number = 2;
 	private squads: SquadConfig[];
 	private classes: any = {
 		PowerHarvesterGovernor: PowerHarvesterGovernor,
@@ -89,8 +89,8 @@ export default class PowerManager {
 			bank = new RoomPosition(squad.target.pos.x, squad.target.pos.y, squad.target.pos.roomName).lookFor<StructurePowerBank>(LOOK_STRUCTURES).shift();
 			if (!!bank) {
 				console.log(`PowerBank ID: ${bank.id}. Ticks to go: ${_.round(bank.hits / PowerManager.damagePerTick)}/${bank.ticksToDecay}.`);
-				const numMulesRequired = _.round(bank.power / PowerManager.muleCapacity);
-				const timer = _.ceil(numMulesRequired / 2) * PowerManager.ticksToPreSpawn;
+				const numMulesRequired = _.ceil(bank.power / PowerManager.muleCapacity);
+				const timer = _.floor(numMulesRequired / 2) * PowerManager.ticksToPreSpawn;
 				if (bank.hits <= PowerManager.damagePerTick * timer) {
 					squad.roles = [
 						{
@@ -134,6 +134,8 @@ export default class PowerManager {
 			const governor = new this.classes[<string> squadRole.governor](homeRoom, config);
 			const creepsInRole = _.get(creeps, `${squadRole.role}`, []);
 			if (!!squad.missionComplete && squadRole.role === "PowerMule" && creepsInRole.length === 0) {
+				// clean up any remaining creeps that might have been spawning while we cleaned last time before we remove this task from the loop
+				_(this.loadCreeps(squad)).forEach((c: Creep) => c.suicide());
 				this.squads = _.difference(this.squads, [squad]);
 				return;
 			}
@@ -180,8 +182,7 @@ export default class PowerManager {
 	}
 	private dispatchPowerSquad(): boolean {
 		this.rooms.forEach((r: Room) => {
-			let roomFree = _.every(r.mySpawns, {"isBusy": false});
-			if (roomFree) {
+			if (!_.find(this.squads, "source", r.name) && _.every(r.mySpawns, {"isBusy": false})) {
 				console.log(`[PowerManager] Room ${r.name} is capable of dispatching a PowerSquad`);
 				let closest: PowerBankMemory;
 				let distance: number = global.MAX_POWER_DISTANCE + 1;
@@ -198,7 +199,7 @@ export default class PowerManager {
 				if (!!closest) {
 					let decay = closest.decay - (Game.time - closest.indexed);
 					console.log(`[PowerManager] The closest powerBank is in ${closest.pos.roomName} at range ${distance}.`
-					+ ` It has ${closest.power} power and decays in ${decay}.`);
+						+ ` It has ${closest.power} power and decays in ${decay}.`);
 					closest.taken = true;
 					this.squads.push({
 						roles: [

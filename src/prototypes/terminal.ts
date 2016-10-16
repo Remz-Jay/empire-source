@@ -201,6 +201,25 @@ StructureTerminal.prototype.run = function (): boolean {
 			});
 		}
 	});
+	if (!this.sending && !this.room.powerSpawn && this.store[RESOURCE_POWER] >= batchSize) {
+		const powerRoom: Room = roomList.find((r: Room) => !!r.powerSpawn && (!r.terminal.store[RESOURCE_POWER] || r.terminal.store[RESOURCE_POWER] < batchSize));
+		if (!!powerRoom) {
+			const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, powerRoom.name);
+			if (this.store.energy >= transferCosts) {
+				const transferAmount: number = global.clamp(batchSize, 0, this.store[RESOURCE_POWER]);
+				const status = this.send(RESOURCE_POWER, transferAmount, powerRoom.name);
+				if (status === OK) {
+					this.sending = true;
+					global.sendRegistry.push(RESOURCE_POWER);
+					console.log(`Terminal.SupplyPower, sending ${RESOURCE_POWER} x ${transferAmount}`
+						+ ` from ${this.room.name} to ${powerRoom.name}`);
+				} else {
+					console.log(`Terminal.SupplyPower, error ${global.translateErrorCode(status)} while transferring`
+						+ ` from ${this.room.name} to ${powerRoom.name}`);
+				}
+			}
+		}
+	}
 	if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
 		let resources: string[] = _(RESOURCES_ALL).difference(resourceBlacklist).difference(global.sendRegistry).value();
 		resources.forEach((resource: string) => {

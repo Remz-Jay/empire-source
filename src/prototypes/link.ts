@@ -25,7 +25,7 @@ StructureLink.prototype.send = function(): boolean {
 			} else if (flag.color === COLOR_RED) { // OUT link
 				transferValue = 800;
 			}
-		} else if (r.pos.isNearTo(this.room.storage)) {
+		} else if (r.pos.inRangeTo(this.room.storage.pos, 2)) {
 			transferValue = 800;
 		}
 		if (r.energy < transferValue) {
@@ -47,7 +47,7 @@ StructureLink.prototype.send = function(): boolean {
 StructureLink.prototype.run = function () {
 	const storage = this.room.storage;
 	if (!!storage && this.cooldown === 0) {
-		if (this.pos.isNearTo(storage)) {
+		if (this.pos.inRangeTo(storage.pos, 2)) {
 			if (this.energy >= this.calcTotal(400)) {
 				this.send();
 			}

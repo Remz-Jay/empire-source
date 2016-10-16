@@ -3,7 +3,7 @@ import WarfareCreepAction from "../../../packages/warfare/warfareCreepAction";
 export default class PowerHealer extends WarfareCreepAction  {
 
 	public move(): void {
-		if (!this.moveUsingPositions()) {
+		if (!this.moveUsingPositions(2)) {
 			const closest = this.creep.pos.findClosestByRange(_.filter(this.creep.room.myCreeps,
 				(c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(ATTACK) > 1))
 				|| this.creep.pos.findClosestByRange(_.filter(this.creep.room.myCreeps, (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) < 6)

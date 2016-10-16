@@ -88,12 +88,12 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		return (isMyRoom || isMyReservedRoom) ? true : false;
 	}
 
-	public moveUsingPositions(): boolean {
+	public moveUsingPositions(range: number = 1): boolean {
 		if (!this.positions) {
 			return false;
 		}
 		if (this.positionIterator < this.positions.length) {
-			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+			if (!this.creep.pos.inRangeTo(this.positions[this.positionIterator], range)) {
 				this.moveTo(this.positions[this.positionIterator]);
 			} else {
 				this.positionIterator = ++this.creep.memory.positionIterator;

@@ -301,5 +301,6 @@ declare namespace NodeJS {
 		addTransaction(resource: string, amount: number, recipient: string, description: string): void;
 		transactionStatus(): void;
 		setTarget(resourceName: string, target: number): void;
+		gclCalc(): void;
 	}
 }
