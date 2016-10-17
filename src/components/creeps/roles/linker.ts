@@ -130,7 +130,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 						return false;
 					}
 				} else {
-					this.creep.transfer(link, RESOURCE_ENERGY);
+					this.creep.logTransfer(link, RESOURCE_ENERGY);
 				}
 				return true;
 			} else if (link.energy > linkLimit) {
@@ -138,11 +138,11 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 					const transferValue = global.clamp((link.energy - linkLimit), 0, this.canTransfer);
 					this.creep.withdraw(link, RESOURCE_ENERGY, transferValue);
 				} else {
-					this.creep.transfer(this.storage, RESOURCE_ENERGY);
+					this.creep.logTransfer(this.storage, RESOURCE_ENERGY);
 				}
 				return true;
 			} else if (this.creep.carry.energy > 0) {
-				this.creep.transfer(this.storage, RESOURCE_ENERGY);
+				this.creep.logTransfer(this.storage, RESOURCE_ENERGY);
 				return true;
 			} else {
 				return false;
@@ -165,9 +165,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 0 && !this.creep.bagEmpty) {
 			if (this.creep.memory.direction === 1) {
-				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			} else {
-				this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.storage, this.getMineralTypeFromStore(this.creep));
 			}
 			this.creep.memory.direction = 0;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -224,9 +224,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 2 && !this.creep.bagEmpty) {
 			if (this.creep.memory.direction === 3) {
-				this.creep.transfer(this.nuker, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.nuker, this.getMineralTypeFromStore(this.creep));
 			} else {
-				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			}
 			this.creep.memory.direction = 0;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -261,9 +261,9 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 		}
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 6 && !this.creep.bagEmpty) {
 			if (this.creep.memory.direction === 7) {
-				this.creep.transfer(this.powerSpawn, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.powerSpawn, this.getMineralTypeFromStore(this.creep));
 			} else {
-				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			}
 			this.creep.memory.direction = 0;
 			this.creep.memory.carryType = RESOURCE_ENERGY;
@@ -311,10 +311,10 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			if (!!this.creep.memory.direction && this.creep.memory.direction > 4) {
 				if (this.creep.carry.energy > 0) {
 					if (this.creep.memory.direction === 5) {
-						this.creep.transfer(this.tower, RESOURCE_ENERGY);
+						this.creep.logTransfer(this.tower, RESOURCE_ENERGY);
 						this.creep.say("TowerPower", true);
 					} else {
-						this.creep.transfer(this.storage, RESOURCE_ENERGY);
+						this.creep.logTransfer(this.storage, RESOURCE_ENERGY);
 					}
 				}
 				this.creep.memory.direction = 0;
@@ -342,7 +342,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 		if (!this.creep.bagEmpty) {
-			this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
+			this.creep.logTransfer(this.storage, this.getMineralTypeFromStore(this.creep));
 			return true;
 		}
 		return false;

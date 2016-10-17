@@ -268,6 +268,7 @@ declare namespace NodeJS {
 		assman: any;
 		tickCache: {
 			roles: any;
+			creeps: any;
 			rolesByRoom: any;
 			storageLink: any;
 			storageTower: any;

@@ -55,15 +55,15 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 				case STRUCTURE_SPAWN:
 				case STRUCTURE_TOWER:
 				case STRUCTURE_LINK:
-					status = this.creep.transfer(target, RESOURCE_ENERGY);
+					status = this.creep.logTransfer(target, RESOURCE_ENERGY);
 					break;
 				case STRUCTURE_CONTAINER:
 				case STRUCTURE_STORAGE:
 					if (this.creep.carry.energy > 0) {
-						status = this.creep.transfer(target, RESOURCE_ENERGY);
+						status = this.creep.logTransfer(target, RESOURCE_ENERGY);
 					} else {
 						this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
-						status = this.creep.transfer(target, this.creep.memory.mineralType);
+						status = this.creep.logTransfer(target, this.creep.memory.mineralType);
 					}
 					break;
 				default:
@@ -374,6 +374,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		if (this.checkCpu()) {
 			this.muleLogic();
 		}
+		this.dumpToCloseTarget();
 		return true;
 	}
 }

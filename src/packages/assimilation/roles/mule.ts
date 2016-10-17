@@ -88,17 +88,17 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 				case STRUCTURE_LINK:
 					const link = <StructureLink> target;
 					if (link.energy < link.energyCapacity) {
-						status = this.creep.transfer(link, RESOURCE_ENERGY);
+						status = this.creep.logTransfer(link, RESOURCE_ENERGY);
 					} else {
 						return;
 					}
 					break;
 				case STRUCTURE_STORAGE:
 					if (this.creep.carry.energy > 0) {
-						status = this.creep.transfer(target, RESOURCE_ENERGY);
+						status = this.creep.logTransfer(target, RESOURCE_ENERGY);
 					} else {
 						this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
-						status = this.creep.transfer(target, this.creep.memory.mineralType);
+						status = this.creep.logTransfer(target, this.creep.memory.mineralType);
 					}
 					break;
 				default:
@@ -191,6 +191,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 					this.moveTo(this.container.pos);
 				} else {
 					this.passingRepair();
+					this.dumpToCloseTarget([STRUCTURE_LINK, STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
 					if (!!this.creep.memory.resetTarget) {
 						delete this.creep.memory.resetTarget;
 						delete this.creep.memory.target;

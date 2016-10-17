@@ -85,15 +85,15 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 				case STRUCTURE_SPAWN:
 				case STRUCTURE_TOWER:
 				case STRUCTURE_LINK:
-					status = this.creep.transfer(target, RESOURCE_ENERGY);
+					status = this.creep.logTransfer(target, RESOURCE_ENERGY);
 					break;
 				case STRUCTURE_CONTAINER:
 				case STRUCTURE_STORAGE:
 					if (this.creep.carry.energy > 0) {
-						status = this.creep.transfer(target, RESOURCE_ENERGY);
+						status = this.creep.logTransfer(target, RESOURCE_ENERGY);
 					} else {
 						this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
-						status = this.creep.transfer(target, this.creep.memory.mineralType);
+						status = this.creep.logTransfer(target, this.creep.memory.mineralType);
 					}
 					break;
 				default:
@@ -103,7 +103,7 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 				case ERR_FULL:
 					const containers = this.creep.room.containers.filter((c: StorageStructure) => c.pos.isNearTo(this.creep.pos));
 					if (containers.length > 0) {
-						this.creep.transfer(containers[0], RESOURCE_ENERGY);
+						this.creep.logTransfer(containers[0], RESOURCE_ENERGY);
 					}
 					break;
 				case ERR_NOT_ENOUGH_RESOURCES:

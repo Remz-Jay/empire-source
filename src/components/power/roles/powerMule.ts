@@ -29,7 +29,7 @@ export default class PowerMule extends WarfareCreepAction {
 					delete this.creep.memory.storage;
 					this.creep.memory.recycle = true;
 				} else {
-					const status = this.creep.transfer(storage, this.getMineralTypeFromStore(this.creep));
+					const status = this.creep.logTransfer(storage, this.getMineralTypeFromStore(this.creep));
 					if (status === OK) {
 						this.positionIterator = this.creep.memory.positionIterator = 0;
 					}

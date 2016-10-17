@@ -79,7 +79,7 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
 				);
 				if (targets.length > 0) {
-					this.creep.transfer(targets[0], this.getMineralTypeFromStore(this.creep));
+					this.creep.logTransfer(targets[0], this.getMineralTypeFromStore(this.creep));
 				}
 			}
 			return this.creep.harvest(this.targetMineralSource);
@@ -98,9 +98,9 @@ export default class Miner extends CreepAction implements IMiner, ICreepAction {
 
 	public tryMineralDropOff(): number {
 		if (this.creep.carry.energy > 0) {
-			return this.creep.transfer(this.targetMineralDropOff, RESOURCE_ENERGY);
+			return this.creep.logTransfer(this.targetMineralDropOff, RESOURCE_ENERGY);
 		}
-		return this.creep.transfer(this.targetMineralDropOff, this.mineralType);
+		return this.creep.logTransfer(this.targetMineralDropOff, this.mineralType);
 	}
 
 	public moveToDropMinerals(): void {

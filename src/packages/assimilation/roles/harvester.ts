@@ -53,7 +53,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		} else if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
 			if (this.creep.pos.isNearTo(this.container.pos)) {
 				if (_.sum(this.container.store) < this.container.storeCapacity) {
-					this.creep.transfer(this.container, RESOURCE_ENERGY);
+					this.creep.logTransfer(this.container, RESOURCE_ENERGY);
 				} else {
 					this.creep.drop(RESOURCE_ENERGY);
 				}
@@ -83,7 +83,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		}
 	}
 	public tryEnergyDropOff(): number {
-		return this.creep.transfer(this.container, RESOURCE_ENERGY);
+		return this.creep.logTransfer(this.container, RESOURCE_ENERGY);
 	}
 
 	public moveToDropEnergy(): void {

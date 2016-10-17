@@ -19,6 +19,7 @@ export interface ICreepAction {
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 	moveToTargetRoom(): void;
+	dumpToCloseTarget(): boolean;
 }
 let allowedRooms: string[] = undefined;
 
@@ -563,7 +564,7 @@ export default class CreepAction implements ICreepAction {
 					renewStation.recycleCreep(this.creep);
 				} else {
 					if (this.creep.carry.energy > 0 && renewStation.energy < renewStation.energyCapacity * 0.5) {
-						this.creep.transfer(renewStation, RESOURCE_ENERGY);
+						this.creep.logTransfer(renewStation, RESOURCE_ENERGY);
 					}
 				}
 			}
@@ -742,6 +743,34 @@ export default class CreepAction implements ICreepAction {
 		} else {
 			return false;
 		}
+	}
+
+	public dumpToCloseTarget(additionalStructures: string[] = []): boolean {
+		// if in a base room and holding energy
+		if (!!this.creep.room.storage
+			&& !!this.creep.room.storage.my
+			&& this.creep.carry[RESOURCE_ENERGY] > 0
+			&& !_.get(global, `tickCache.creeps.${this.creep.id}.transfered`, false)
+		) {
+			// get first adjacent structure needing energy
+			let needyTypes: string[] = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_LAB, STRUCTURE_TOWER];
+			needyTypes = _.union(needyTypes, additionalStructures);
+			const lookTargets = this.safeLook(LOOK_STRUCTURES, this.creep.pos, 1);
+			const targets = _.map(lookTargets, "structure") as EnergyStructure[];
+			const needyStructure = _.find(targets, (s: EnergyStructure) =>
+				needyTypes.indexOf(s.structureType) > -1
+				&& ((!!s.energy && !!s.energyCapacity && s.energy < s.energyCapacity) || (
+						(s instanceof StructureStorage || s instanceof StructureTerminal || s instanceof StructureContainer)
+						&& (_.sum(s.store) + this.creep.carry.energy) <= s.storeCapacity
+					)
+				)
+			);
+			if (needyStructure) {
+				this.creep.logTransfer(needyStructure, RESOURCE_ENERGY);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected checkCpu(): boolean {

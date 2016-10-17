@@ -83,7 +83,7 @@ export default class ASMBuilder extends ASMCreepAction implements IASMBuilder {
 						this.creep.memory.homeRoom = this.creep.room.name;
 						this.creep.memory.role = "Upgrader";
 						if (this.creep.carry.energy > 0) {
-							this.creep.transfer(spawn, RESOURCE_ENERGY);
+							this.creep.logTransfer(spawn, RESOURCE_ENERGY);
 						} else {
 							// spawn.recycleCreep(this.creep);
 							this.creep.memory.homeRoom = this.creep.room.name;

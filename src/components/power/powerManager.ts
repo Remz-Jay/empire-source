@@ -10,7 +10,7 @@ export default class PowerManager {
 	public static ticksToPreSpawn = 300;
 	public static damagePerTick = 750;
 	public static muleCapacity = 1250;
-	private rooms: Room[];
+	private rooms: Room[] = [];
 	private powerBanks: {[id: string]: PowerBankMemory};
 	private dispatchThreshold: number = 3000;
 	private maxActiveSquads: number = 2;
@@ -26,8 +26,8 @@ export default class PowerManager {
 	constructor() {
 		this.loadFromMemory();
 		// this.rooms = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level === 8);
-		let roomNames = ["W6N42", "W6N49", "W8N47"];
-		this.rooms = [Game.rooms[roomNames[0]], Game.rooms[roomNames[1]], Game.rooms[roomNames[2]]];
+		let roomNames = ["W6N42", "W6N49", "W8N47", "W2N46"];
+		roomNames.forEach((n: string) => this.rooms.push(Game.rooms[n]));
 		this.powerBanks = Memory.powerBanks || {};
 	}
 	public govern() {

@@ -83,7 +83,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				this.creep.say(global.translateErrorCode(status));
 			}
 		} else if (this.mode === MODE.CLEANUP && !!this.creep.memory.targetId && !this.creep.bagEmpty && this.creep.pos.isNearTo(this.terminal)) {
-			if (this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep)) === OK) {
+			if (this.creep.logTransfer(this.terminal, this.getMineralTypeFromStore(this.creep)) === OK) {
 				this.creep.say("♻", true);
 				delete this.creep.memory.targetId;
 				delete this.creep.memory.moveToId;
@@ -130,7 +130,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		} else if (this.mode === MODE.MINERALIZE && !!this.creep.memory.targetId && !this.creep.bagEmpty) {
 			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
-				if (this.creep.transfer(t, this.creep.memory.mineralType) === OK) {
+				if (this.creep.logTransfer(t, this.creep.memory.mineralType) === OK) {
 					this.creep.say("🔰", true);
 					delete this.creep.memory.targetId;
 					delete this.creep.memory.moveToId;
@@ -170,7 +170,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 				}
 			}
 		} else if (this.mode === MODE.PROFITIZE && !!this.creep.memory.targetId && !this.creep.bagEmpty && this.creep.pos.isNearTo(this.terminal)) {
-			if (this.creep.transfer(this.terminal, this.reaction) === OK) {
+			if (this.creep.logTransfer(this.terminal, this.reaction) === OK) {
 				this.creep.say("💰", true);
 				delete this.creep.memory.targetId;
 				delete this.creep.memory.moveToId;
@@ -211,7 +211,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		} else if (this.mode === MODE.FILLBOOST && !!this.creep.memory.targetId && !this.creep.bagEmpty) {
 			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
-				if (this.creep.transfer(t, this.creep.memory.mineralType) === OK) {
+				if (this.creep.logTransfer(t, this.creep.memory.mineralType) === OK) {
 					this.creep.say("🔥", true);
 					delete this.creep.memory.targetId;
 					delete this.creep.memory.moveToId;
@@ -265,7 +265,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		} else if (this.mode === MODE.ENERGIZE && !!this.creep.memory.targetId && !this.creep.bagEmpty) {
 			const t = this.getTarget(this.creep.memory.targetId);
 			if (this.creep.pos.isNearTo(t.pos)) {
-				if (this.creep.transfer(t, RESOURCE_ENERGY) === OK) {
+				if (this.creep.logTransfer(t, RESOURCE_ENERGY) === OK) {
 					// this.creep.say(t.id.substr(t.id.length - 5));
 					this.creep.say("⚡", true);
 					delete this.creep.memory.moveToId;
@@ -295,7 +295,7 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		this.creep.memory.moveToId = this.terminal.id;
 		if (this.creep.pos.isNearTo(this.terminal)) {
 			if (!this.creep.bagEmpty) {
-				this.creep.transfer(this.terminal, this.getMineralTypeFromStore(this.creep));
+				this.creep.logTransfer(this.terminal, this.getMineralTypeFromStore(this.creep));
 			} else {
 				delete this.creep.memory.moveToId;
 				delete this.creep.memory.targetId;

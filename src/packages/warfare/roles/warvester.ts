@@ -40,7 +40,7 @@ export default class Warvester extends WarfareCreepAction implements IWarvester 
 		} else if (this.positionIterator === this.sourcePosition && this.creep.bagFull) {
 			this.positionIterator = this.creep.memory.positionIterator = this.sourcePosition + 1;
 		} else if (this.creep.pos.isNearTo(this.creep.room.terminal)) {
-			const status = this.creep.transfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
+			const status = this.creep.logTransfer(this.creep.room.terminal, this.getMineralTypeFromStore(this.creep));
 			if (status === OK) {
 				this.creep.say("Dump");
 				this.positionIterator = this.creep.memory.positionIterator = 0;

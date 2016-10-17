@@ -104,7 +104,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 					if (!!spawn) {
 						if (this.creep.pos.isNearTo(spawn)) {
 							if (this.creep.carry.energy > 0) {
-								this.creep.transfer(spawn, RESOURCE_ENERGY);
+								this.creep.logTransfer(spawn, RESOURCE_ENERGY);
 							}
 						} else {
 							this.moveTo(spawn.pos);

@@ -24,7 +24,7 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 				if (this.creep.bagEmpty) {
 					delete this.creep.memory.full;
 				} else {
-					const status = this.creep.transfer(storage, this.getMineralTypeFromStore(this.creep));
+					const status = this.creep.logTransfer(storage, this.getMineralTypeFromStore(this.creep));
 					if (status === OK) {
 						this.positionIterator = this.creep.memory.positionIterator = 0;
 					}

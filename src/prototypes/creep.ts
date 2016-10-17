@@ -2,6 +2,7 @@ interface Creep {
 	carrySum: number;
 	bagFull: boolean;
 	bagEmpty: boolean;
+	logTransfer(target: Creep | Spawn | Structure, resourceType: string, amount?: number): number;
 }
 
 Object.defineProperty(Creep.prototype, "carrySum", {
@@ -26,6 +27,23 @@ Object.defineProperty(Creep.prototype, "bagEmpty", {
 	get: function bagEmpty() {
 		delete this.bagEmpty;
 		return this.bagEmpty = (this.carrySum === 0);
+	},
+	configurable: true,
+	enumerable: false,
+});
+
+Object.defineProperty(Creep.prototype, "logTransfer", {
+	value: function(target: Creep | Spawn | Structure, resourceType: string, amount?: number): number {
+		const busy = _.get(global, `tickCache.creeps.${this.id}.transfered`, false);
+		if (!busy) {
+			const status = this.transfer.apply(this, arguments);
+			if (status === OK) {
+				_.set(global, `tickCache.creeps.${this.id}.transfered`, true);
+			}
+			return status;
+		} else {
+			return ERR_BUSY;
+		}
 	},
 	configurable: true,
 	enumerable: false,

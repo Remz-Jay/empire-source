@@ -42,6 +42,7 @@ export function loop() {
 	used = Game.cpu.getUsed();
 	global.tickCache = {
 		roles: _.groupBy(Game.creeps, "memory.role"),
+		creeps: {},
 		rolesByRoom: {},
 		storageLink: {},
 		storageTower: {},

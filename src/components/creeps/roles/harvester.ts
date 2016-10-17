@@ -68,7 +68,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 	}
 
 	public tryEnergyDropOff(): number {
-		return this.creep.transfer(this.targetEnergyDropOff, RESOURCE_ENERGY);
+		return this.creep.logTransfer(this.targetEnergyDropOff, RESOURCE_ENERGY);
 	}
 
 	public moveToDropEnergy(): void {
@@ -138,7 +138,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						if (!this.creep.pos.isNearTo(target)) {
 							this.moveTo(target.pos);
 						} else {
-							const status = this.creep.transfer(target, RESOURCE_ENERGY);
+							const status = this.creep.logTransfer(target, RESOURCE_ENERGY);
 							switch (status) {
 								case ERR_FULL:
 									delete this.creep.memory.target;
@@ -214,10 +214,10 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						return this.creep.repair(container);
 					} else if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
 						if (!!link && link.energy < link.energyCapacity && this.creep.pos.isNearTo(link.pos)) {
-							this.creep.transfer(link, RESOURCE_ENERGY);
+							this.creep.logTransfer(link, RESOURCE_ENERGY);
 						} else if (this.creep.pos.isNearTo(container.pos)) {
 							if (_.sum(container.store) < container.storeCapacity) {
-								this.creep.transfer(container, RESOURCE_ENERGY);
+								this.creep.logTransfer(container, RESOURCE_ENERGY);
 							} else {
 								this.creep.drop(RESOURCE_ENERGY);
 							}
