@@ -26,8 +26,7 @@ export default class PowerHarvester extends WarfareCreepAction {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		this.move();
 		return true;
 	}

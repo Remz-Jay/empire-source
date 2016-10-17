@@ -1,9 +1,6 @@
 import ASMCreepAction from "../assimilationCreepAction";
-export interface IASMRaider {
-	action(startCpu: number): boolean;
-}
 
-export default class ASMRaider extends ASMCreepAction implements IASMRaider {
+export default class ASMRaider extends ASMCreepAction {
 
 	public storage: StructureStorage;
 
@@ -141,8 +138,7 @@ export default class ASMRaider extends ASMCreepAction implements IASMRaider {
 		return true;
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (!this.renewCreep()) {
 			return false;
 		}

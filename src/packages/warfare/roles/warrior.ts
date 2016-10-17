@@ -1,10 +1,6 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface IWarrior {
-	action(startCpu: number): boolean;
-}
-
-export default class Warrior extends WarfareCreepAction implements IWarrior {
+export default class Warrior extends WarfareCreepAction {
 	public powerBankDuty: boolean = true;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_UTRIUM_ACID, // +300% attack effectiveness
@@ -59,8 +55,7 @@ export default class Warrior extends WarfareCreepAction implements IWarrior {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.getBoosted()) {
 			this.move();
 		}

@@ -1,9 +1,6 @@
 import ASMCreepAction from "../assimilationCreepAction";
-export interface IASMMule {
-	action(startCpu: number): boolean;
-}
 
-export default class ASMMule extends ASMCreepAction implements IASMMule {
+export default class ASMMule extends ASMCreepAction {
 
 	public container: StructureContainer;
 	public keeperLair: StructureKeeperLair;
@@ -177,12 +174,8 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
-			if (!this.checkCpu()) {
-				return false;
-			}
 			if (this.creep.carry.energy === 0 && !this.creep.bagEmpty) {
 				this.creep.drop(this.getMineralTypeFromStore(this.creep));
 			}
@@ -191,7 +184,7 @@ export default class ASMMule extends ASMCreepAction implements IASMMule {
 					this.moveTo(this.container.pos);
 				} else {
 					this.passingRepair();
-					this.dumpToCloseTarget([STRUCTURE_LINK, STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
+					// this.dumpToCloseTarget([STRUCTURE_LINK, STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
 					if (!!this.creep.memory.resetTarget) {
 						delete this.creep.memory.resetTarget;
 						delete this.creep.memory.target;

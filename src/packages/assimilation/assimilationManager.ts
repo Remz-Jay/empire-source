@@ -135,16 +135,10 @@ function manageClaim(roomName: string, claim: boolean = false, reserveOnly = fal
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
-					const b = Game.cpu.getUsed();
 					role.setCreep(<Creep> creep);
 					role.setGoHome(goHome);
 					role.doClaim = claim;
 					role.setGovernor(governor);
-					role.action(b);
-					const a = Game.cpu.getUsed() - b;
-					if (a > 2) {
-						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
-					}
 				}
 			} catch (e) {
 				console.log("ERROR :: ", ClaimGovernor.ROLE, creep.name, creep.room.name, e.message);
@@ -204,15 +198,10 @@ function manageConstructions(maxBuilders: number = 1) {
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
-					const b = Game.cpu.getUsed();
 					role.setCreep(<Creep> creep);
 					role.setGoHome(goHome);
 					role.setGovernor(governor);
-					role.action(b);
-					const a = Game.cpu.getUsed() - b;
-					if (a > 2) {
-						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
-					}
+					role.action();
 				}
 			} catch (e) {
 				console.log("ERROR :: ", ASMBuilderGovernor.ROLE, creep.name, creep.room.name, e.message);
@@ -239,14 +228,13 @@ function manageHarvest(containers: StructureContainer[]) {
 			_.each(creepsInRole, function (creep: Creep) {
 				try {
 					if (!creep.spawning) {
-						const b = Game.cpu.getUsed();
 						if (!creep.memory.container) {
 							creep.memory.container = governor.checkContainerAssignment();
 						}
 						role.setGovernor(governor);
 						role.setGoHome(goHome);
 						role.setCreep(<Creep> creep);
-						role.action(b);
+						role.action();
 						if (creep.ticksToLive < 100 && (creepsInRole.length === governor.getCreepLimit()) && !isSpawning && !goHome) {
 							// Do a preemptive spawn if this creep is about to expire.
 							isSpawning = true;
@@ -256,10 +244,6 @@ function manageHarvest(containers: StructureContainer[]) {
 							} else {
 								console.log("manageHarvesters.preempt-spawn", status);
 							}
-						}
-						const a = Game.cpu.getUsed() - b;
-						if (a > 2) {
-							console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 						}
 					}
 				} catch (e) {
@@ -283,10 +267,9 @@ function manageDefenders(roomName: string, limit: number = 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
 				try {
-					const b = Game.cpu.getUsed();
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
-					role.action(b);
+					role.action();
 					if (creep.ticksToLive < 100 && (creepsInRole.length === limit) && !isSpawning) {
 						// Do a preemptive spawn if this creep is about to expire.
 						isSpawning = true;
@@ -297,10 +280,6 @@ function manageDefenders(roomName: string, limit: number = 0) {
 						} else {
 							console.log("manageDefenders.preempt-spawn", status);
 						}
-					}
-					const a = Game.cpu.getUsed() - b;
-					if (a > 2) {
-						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				} catch (e) {
 					console.log("ERROR :: ", SentinelGovernor.ROLE, creep.name, creep.room.name, e.message);
@@ -323,13 +302,12 @@ function manageBullies(roomName: string, limit: number = 0) {
 		_.each(creepsInRole, function (creep: Creep) {
 			try {
 				if (!creep.spawning) {
-					const b = Game.cpu.getUsed();
 					role.setCreep(<Creep> creep);
 					role.setGovernor(governor);
 					if (!config.hasController) {
 						role.sourceKeeperDuty = true;
 					}
-					role.action(b);
+					role.action();
 					if (creep.ticksToLive < 200 && (creepsInRole.length === limit) && !isSpawning) {
 						// Do a preemptive spawn if this creep is about to expire.
 						isSpawning = true;
@@ -340,10 +318,6 @@ function manageBullies(roomName: string, limit: number = 0) {
 						} else {
 							console.log("manageBullies.preempt-spawn", status);
 						}
-					}
-					const a = Game.cpu.getUsed() - b;
-					if (a > 2) {
-						console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				}
 			} catch (e) {
@@ -370,13 +344,12 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 			_.each(creepsInRole, function (creep: Creep) {
 				try {
 					if (!creep.spawning) {
-						const b = Game.cpu.getUsed();
 						role.setCreep(<Creep> creep);
 						role.setGovernor(governor);
 						if (!config.hasController) {
 							role.sourceKeeperDuty = true;
 						}
-						role.action(b);
+						role.action();
 						if (creep.ticksToLive < 200 && (creepsInRole.length === limit) && !isSpawning) {
 							// Do a preemptive spawn if this creep is about to expire.
 							isSpawning = true;
@@ -387,10 +360,6 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 							} else {
 								console.log("manageSourceKeepers.preempt-spawn", status);
 							}
-						}
-						const a = Game.cpu.getUsed() - b;
-						if (a > 2) {
-							console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 						}
 					}
 				} catch (e) {
@@ -416,15 +385,10 @@ function manageMules(containers: StructureContainer[]) {
 			_.each(creepsInRole, function (creep: Creep) {
 				try {
 					if (!creep.spawning) {
-						const b = Game.cpu.getUsed();
 						role.setGovernor(governor);
 						role.setCreep(<Creep> creep);
 						role.setGoHome(goHome);
-						role.action(b);
-						const a = Game.cpu.getUsed() - b;
-						if (a > 2) {
-							console.log(global.colorWrap(`Creep ${creep.name} (${creep.memory.role} in ${creep.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
-						}
+						role.action();
 					}
 				} catch (e) {
 					console.log("ERROR :: ", ASMMuleGovernor.ROLE, creep.name, creep.room.name, e.message);

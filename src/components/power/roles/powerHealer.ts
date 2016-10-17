@@ -18,8 +18,7 @@ export default class PowerHealer extends WarfareCreepAction  {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.heal(true)) { // Reverse targeting for Tanks.
 			this.rangedHeal();
 		}

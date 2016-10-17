@@ -28,6 +28,9 @@ interface Room {
 	towerTargets: Creep|Structure[];
 	labReaction: string;
 	labReagents: string[];
+	// spawnQueue: CreepSpawnDefinition[];
+	// addToSpawnQueue(body: string[], name?: string, memory?: any, priority?: boolean): boolean;
+	// getCreepToSpawn(): CreepSpawnDefinition;
 	getReservedRoom(): Room;
 	getReservedRoomName(): string;
 	setReservedRoom(roomName: string|Room): void;

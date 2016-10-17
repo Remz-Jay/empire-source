@@ -3,7 +3,7 @@ import * as WallManager from "../../walls/wallManager";
 import * as RampartManager from "../../ramparts/rampartManager";
 
 export interface IRepair {
-	action(startCpu: number): boolean;
+	action(): boolean;
 }
 
 export default class Repair extends CreepAction implements IRepair, ICreepAction {
@@ -155,8 +155,7 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 		}
 	};
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.creep.room.myConstructionSites.length > 0) {
 			this.creep.memory.role = "Builder";
 		}

@@ -65,8 +65,7 @@ export default class PowerMule extends WarfareCreepAction {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		this.move();
 		return true;
 	}

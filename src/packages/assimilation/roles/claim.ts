@@ -1,13 +1,8 @@
 import ASMCreepAction from "../assimilationCreepAction";
 
-export interface IClaim {
-	doClaim: boolean;
-	action(startCpu: number): boolean;
-}
-
-export default class Claim extends ASMCreepAction implements IClaim {
-	public doClaim: boolean;
+export default class Claim extends ASMCreepAction {
 	public targetController: StructureController;
+	public doClaim: boolean;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
@@ -37,8 +32,7 @@ export default class Claim extends ASMCreepAction implements IClaim {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		this.creep.say(this.creep.memory.config.targetRoom);
 		if (this.flee()) {
 			this.assimilateRoom();

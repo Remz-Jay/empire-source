@@ -1,10 +1,6 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface IWarMule {
-	action(startCpu: number): boolean;
-}
-
-export default class WarMule extends WarfareCreepAction implements IWarMule {
+export default class WarMule extends WarfareCreepAction {
 	public powerBankDuty: boolean = true;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
@@ -55,8 +51,7 @@ export default class WarMule extends WarfareCreepAction implements IWarMule {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.getBoosted()) {
 			this.move();
 		}

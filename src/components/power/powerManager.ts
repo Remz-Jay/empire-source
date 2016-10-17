@@ -143,13 +143,12 @@ export default class PowerManager {
 			const role: WarfareCreepAction = new this.classes[<string> squadRole.role]();
 			_.forEach(creepsInRole, (c: Creep) => {
 				if (!c.spawning) {
-					const b = Game.cpu.getUsed();
 					let positions: RoomPosition[] = [];
 					let rp = new RoomPosition(squad.target.pos.x, squad.target.pos.y, squad.target.pos.roomName);
 					positions.push(rp);
 					role.setCreep(<Creep> c, positions);
 					role.setGovernor(governor);
-					role.action(b);
+					role.action();
 					if (!!bank && bank.hits > (PowerManager.ticksToPreSpawn * PowerManager.damagePerTick) // Check if the current gen is able to complete the job
 						&& c.ticksToLive < PowerManager.ticksToPreSpawn
 						&& (creepsInRole.length === squadRole.maxCreeps)
@@ -161,10 +160,6 @@ export default class PowerManager {
 						} else {
 							console.log("[PowerManager] managePowerSquad.preempt-spawn", status, squadRole.role);
 						}
-					}
-					const a = Game.cpu.getUsed() - b;
-					if (a > 2) {
-						console.log(global.colorWrap(`[PowerManager] Creep ${c.name} (${c.memory.role} in ${c.room.name}) took ${_.round(a, 2)} to run.`, "Red"));
 					}
 				}
 			});
@@ -217,7 +212,7 @@ export default class PowerManager {
 						target: closest,
 						source: r.name,
 					});
-					Game.notify(`Dispatching a powerSquad from ${r.name}. Target: ${closest.pos.roomName} at range ${distance}.`
+					Game.notify(`${Game.time} - Dispatching a powerSquad from ${r.name}. Target: ${closest.pos.roomName} at range ${distance}.`
 						+ ` It has ${closest.power} power and decays in ${decay}.`);
 				} else {
 					console.log(`[PowerManager] Unfortunately, no powerBanks with decent TTL's were found in range.`);

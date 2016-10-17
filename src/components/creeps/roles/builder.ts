@@ -11,7 +11,7 @@ export interface IBuilder {
 	moveToConstructionSite(): void;
 	assignNewTarget(): boolean;
 
-	action(startCpu: number): boolean;
+	action(): boolean;
 }
 
 export default class Builder extends CreepAction implements IBuilder, ICreepAction {
@@ -219,14 +219,9 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 		}
 	};
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
-		if (super.action(startCpu) && this.flee()) {
-			if (this.checkCpu()) {
-				this.builderLogic();
-			} else {
-				return false;
-			}
+	public action(): boolean {
+		if (super.action() && this.flee()) {
+			this.builderLogic();
 		}
 		return true;
 	}

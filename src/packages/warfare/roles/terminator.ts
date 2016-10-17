@@ -1,12 +1,6 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface ITerminator {
-	action(startCpu: number): boolean;
-	move(): void;
-	rotation(): void;
-}
-
-export default class Terminator extends WarfareCreepAction implements ITerminator {
+export default class Terminator extends WarfareCreepAction {
 
 	public hardPath: boolean = true;
 	public noTarget: boolean = false;
@@ -96,8 +90,7 @@ export default class Terminator extends WarfareCreepAction implements ITerminato
 			}
 		}
 	}
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (!this.positions && this.creep.room.name !== this.creep.memory.config.targetRoom) {
 			this.rotation();
 			this.moveToTargetRoom();

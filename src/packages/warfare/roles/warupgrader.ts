@@ -1,10 +1,6 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface IWarUpgrader {
-	action(startCpu: number): boolean;
-}
-
-export default class WarUpgrader extends WarfareCreepAction implements IWarUpgrader {
+export default class WarUpgrader extends WarfareCreepAction {
 	public targetController: StructureController;
 	public storage: StructureStorage;
 	public boosts: string[] = [
@@ -17,8 +13,7 @@ export default class WarUpgrader extends WarfareCreepAction implements IWarUpgra
 		this.storage = this.creep.room.storage;
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.getBoosted()) {
 			if (!this.moveUsingPositions()) {
 				if (this.creep.carry.energy === 0) {

@@ -31,7 +31,6 @@ export default class CreepAction implements ICreepAction {
 	public moveIterator: number = 0;
 	public boosts: string[] = [];
 	public hasBoosts: string[] = [];
-	public startCpu: number = 0;
 
 	public setCreep(creep: Creep) {
 		this.creep = creep;
@@ -532,9 +531,6 @@ export default class CreepAction implements ICreepAction {
 		if (this.creep.memory.hasRenewed === true) {
 			return true;
 		}
-		if (!this.checkCpu()) {
-			return false;
-		}
 		const homeRoom = Game.rooms[this.creep.memory.homeRoom];
 		if (!homeRoom) {
 			return true;
@@ -665,9 +661,6 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public getBoosted(): boolean {
-		if (!this.checkCpu()) {
-			return false;
-		}
 		if (this.boosts.length < 1) {
 			return true;
 		}
@@ -735,14 +728,9 @@ export default class CreepAction implements ICreepAction {
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		this.pickupResourcesInRange();
-		if (this.checkCpu()) {
-			return this.renewCreep();
-		} else {
-			return false;
-		}
+		return this.renewCreep();
 	}
 
 	public dumpToCloseTarget(additionalStructures: string[] = []): boolean {
@@ -771,14 +759,5 @@ export default class CreepAction implements ICreepAction {
 			}
 		}
 		return false;
-	}
-
-	protected checkCpu(): boolean {
-		const cpuUsage = _.round(Game.cpu.getUsed() - this.startCpu, 2);
-		const overCpuLimit = (cpuUsage > 3);
-		if (overCpuLimit) {
-			console.log(global.colorWrap("CPU WARNING", "Red"), this.creep.name, this.creep.room.name, this.creep.memory.role, cpuUsage);
-		}
-		return (overCpuLimit) ? false : true;
 	}
 }

@@ -7,6 +7,7 @@ declare type EnergyStructure = Extension | Spawn | Tower;
 declare type StorageStructure = StructureStorage | StructureContainer | StructureTerminal;
 declare type findRouteRoute = {exit: string; room: string; }
 declare type findRouteArray = findRouteRoute[];
+declare type CreepSpawnDefinition = {body: string[], name?: string, memory?: any};
 // declare var global: any;
 
 declare interface CreepStats  {
@@ -130,19 +131,8 @@ declare interface PowerBankMemory {
 }
 
 declare interface Memory {
-	resetCounter: number;
-	showTransactions: boolean;
-	showLogCreep: boolean;
-	showLogMove: boolean;
-	showLogAsm: boolean;
 	assimilation?: AssimilationObject;
 	offense?: OffenseObject;
-	log: {
-		creeps: string[];
-		rooms: string[];
-		move: string[];
-		asm: string[];
-	};
 	stats: {
 		[name: string]: any;
 	};

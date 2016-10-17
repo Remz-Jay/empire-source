@@ -12,7 +12,7 @@ export interface IHarvester {
 	assignNewDropOff(): boolean;
 	assignNewSource(): boolean;
 
-	action(startCpu: number): boolean;
+	action(): boolean;
 }
 
 export default class Harvester extends CreepAction implements IHarvester, ICreepAction {
@@ -260,14 +260,9 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 		}
 	};
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
-		if (this.checkCpu()) {
-			this.harvesterLogic();
-			return true;
-		} else {
-			return false;
-		}
+	public action(): boolean {
+		this.harvesterLogic();
+		return true;
 	}
 
 }

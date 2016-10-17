@@ -1,10 +1,6 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface IWarBuilder {
-	action(startCpu: number): boolean;
-}
-
-export default class WarBuilder extends WarfareCreepAction implements IWarBuilder {
+export default class WarBuilder extends WarfareCreepAction {
 	public storage: StructureStorage;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
@@ -15,8 +11,7 @@ export default class WarBuilder extends WarfareCreepAction implements IWarBuilde
 		this.storage = this.creep.room.storage;
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.getBoosted()) {
 			if (!this.moveUsingPositions()) {
 				if (this.creep.carry.energy === 0) {

@@ -27,7 +27,8 @@ Object.defineProperty(StructureObserver.prototype, "getRoomName", {
 	configurable: true,
 });
 
-StructureObserver.prototype.getScanRoom = function(): string {
+StructureObserver.prototype.getScanRoom = function(iterator: number = 0): string {
+	iterator++;
 	if (!_.isNumber(this.memory.scannedX) || !_.isNumber(this.memory.scannedY)) {
 		this.memory.scannedX = -OBSERVER_RANGE;
 		this.memory.scannedY = -OBSERVER_RANGE;
@@ -42,9 +43,12 @@ StructureObserver.prototype.getScanRoom = function(): string {
 		}
 	}
 	let roomName = this.getRoomName(this.roomIndex.x + this.memory.scannedX, this.roomIndex.y + this.memory.scannedY);
+	if (iterator > 10) {
+		return roomName;
+	}
 	// Skip observing this room if we currently have vision or if we recently scanned it.
-	if (!!Game.rooms[roomName] || (!!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].s && (Game.time - Memory.matrixCache[roomName].s) < 100)) {
-		return this.getScanRoom();
+	if (!!Game.rooms[roomName] || (!!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].s && (Game.time - Memory.matrixCache[roomName].s) < 75)) {
+		return this.getScanRoom(iterator);
 	} else {
 		return roomName;
 	}

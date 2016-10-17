@@ -10,7 +10,7 @@ export interface IUpgrader {
 	moveToCollectEnergy(): void;
 	moveToController(): void;
 
-	action(startCpu: number): boolean;
+	action(): boolean;
 }
 
 export default class Upgrader extends CreepAction implements IUpgrader, ICreepAction {
@@ -83,9 +83,8 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 		}
 	};
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
-		if (this.getBoosted() && super.action(startCpu)) {
+	public action(): boolean {
+		if (this.getBoosted() && super.action()) {
 			this.upgraderLogic();
 		}
 		return true;

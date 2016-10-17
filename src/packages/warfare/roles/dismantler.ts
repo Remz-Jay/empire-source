@@ -2,7 +2,7 @@ import * as WallManager from "../../../components/walls/wallManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export interface IDismantler {
-	action(startCpu: number): boolean;
+	action(): boolean;
 	dismantleTarget(target: Structure): void;
 	dismantle(): boolean;
 	move(): boolean;
@@ -88,8 +88,7 @@ export default class Dismantler extends WarfareCreepAction implements IDismantle
 		}
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.creep.room.name === this.creep.memory.homeRoom && !this.getBoosted()) {
 			return false;
 		}

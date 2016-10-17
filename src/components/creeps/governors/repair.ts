@@ -23,6 +23,10 @@ export default class RepairGovernor extends CreepGovernor {
 	}
 
 	public getCreepLimit(): number {
+		let repairRoomList = ["W6N49"];
+		if (_.includes(repairRoomList, this.room.name)) {
+			return 1;
+		}
 		if (this.room.controller.level === 8 && this.room.myConstructionSites.length === 0) {
 			return 0;
 		}

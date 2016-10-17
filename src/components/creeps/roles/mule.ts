@@ -1,7 +1,7 @@
 import CreepAction, {ICreepAction} from "../creepAction";
 
 export interface IMule {
-	action(startCpu: number): boolean;
+	action(): boolean;
 }
 
 export default class Mule extends CreepAction implements IMule, ICreepAction {
@@ -368,13 +368,10 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 		}
 	};
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		this.pickupResourcesInRange();
-		if (this.checkCpu()) {
-			this.muleLogic();
-		}
-		this.dumpToCloseTarget();
+		this.muleLogic();
+		// this.dumpToCloseTarget();
 		return true;
 	}
 }

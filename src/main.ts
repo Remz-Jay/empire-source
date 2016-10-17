@@ -16,16 +16,11 @@ import * as AssimilationManager from "./packages/assimilation/assimilationManage
 import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
 import PowerManager from "./components/power/powerManager";
-// import ObserverManager from "./components/observers/observerManager";
-let reset: number = 1;
-delete Memory.log;
 if (!global.costMatrix) {
 	global.costMatrix = {};
 }
 
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
-// RoomManager.loadRooms(); // This must be done early because we hook a lot of properties to Room.prototype!!
-// global.om = new ObserverManager();
 
 AssimilationManager.setup();
 OffenseManager.setup();
@@ -96,29 +91,6 @@ export function loop() {
 	} catch (e) {
 		console.log("PowerManager Exception", e.stack);
 	}
-
-/*		try {
-		// global.om.observe();
-	} catch (e) {
-		console.log("ObserverManager Exception", (<Error> e).message);
-	}*/
-
-	if (!!Memory.showLogCreep) {
-		Memory.log.creeps.forEach((message: String, index: number) => {
-			console.log("log.creeps", message);
-		});
-	}
-	if (!!Memory.showLogMove) {
-		Memory.log.move.forEach((message: String, index: number) => {
-			console.log("log.move", message);
-		});
-	}
-	if (!!Memory.showLogAsm) {
-		Memory.log.asm.forEach((message: String, index: number) => {
-			console.log("log.ASM", message);
-		});
-	}
-	delete Memory.log;
 	global.gclCalc();
 	const perc = _.floor(Game.gcl.progress / (Game.gcl.progressTotal / 100));
 	const cpuUsed = _.ceil(Game.cpu.getUsed());
@@ -141,5 +113,4 @@ export function loop() {
 		+ global.colorWrap(`RES:${Game.cpu.tickLimit}/${bucket.toLocaleString()}\t`, bucketColor)
 		+ global.colorWrap(`MKT:${credits.toLocaleString()}`, "CornflowerBlue")
 	);
-	reset = 0;
 }

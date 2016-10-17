@@ -1,11 +1,7 @@
 import ASMCreepAction from "../assimilationCreepAction";
 import ASMHarvesterGovernor from "../governors/harvester";
 
-export interface IASMHarvester {
-	action(startCpu: number): boolean;
-}
-
-export default class ASMHarvester extends ASMCreepAction implements IASMHarvester {
+export default class ASMHarvester extends ASMCreepAction {
 
 	public container: StructureContainer;
 	public source: Source;
@@ -130,8 +126,7 @@ export default class ASMHarvester extends ASMCreepAction implements IASMHarveste
 		return true;
 	}
 
-	public action(startCpu: number): boolean {
-		this.startCpu = startCpu;
+	public action(): boolean {
 		if (this.flee() && this.fleeFromKeeperLair() && !this.shouldIGoHome()) {
 			if (!this.source && !!Game.flags[this.creep.memory.config.targetRoom]) {
 				this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
