@@ -10,14 +10,16 @@ import LinkerGovernor from "./governors/linker";
 import MuleGovernor from "./governors/mule";
 import Mule from "./roles/mule";
 import Linker from "./roles/linker";
-import Repair from "./roles/repair";
-import RepairGovernor from "./governors/repair";
+// import Repair from "./roles/repair";
+// import RepairGovernor from "./governors/repair";
 import Miner from "./roles/miner";
 import MinerGovernor from "./governors/miner";
 import Scientist from "./roles/scientist";
 import ScientistGovernor from "./governors/scientist";
 import Biter from "./roles/biter";
 import BiterGovernor from "./governors/biter";
+// import DismantlerGovernor from "./governors/dismantler";
+// import Dismantler from "./roles/dismantler";
 
 const roles: {[key: string]: typeof CreepAction } = {
 	Builder: Builder,
@@ -25,10 +27,11 @@ const roles: {[key: string]: typeof CreepAction } = {
 	Upgrader: Upgrader,
 	Mule: Mule,
 	Linker: Linker,
-	Repair: Repair,
+	// Repair: Repair,
 	Miner: Miner,
 	Scientist: Scientist,
 	Biter: Biter,
+	// Dismantler: Dismantler,
 };
 
 const governors: {[key: string]: typeof CreepGovernor } = {
@@ -37,10 +40,11 @@ const governors: {[key: string]: typeof CreepGovernor } = {
 	UpgraderGovernor: UpgraderGovernor,
 	LinkerGovernor: LinkerGovernor,
 	MuleGovernor: MuleGovernor,
-	RepairGovernor: RepairGovernor,
+	// RepairGovernor: RepairGovernor,
 	MinerGovernor: MinerGovernor,
 	ScientistGovernor: ScientistGovernor,
 	BiterGovernor: BiterGovernor,
+	// DismantlerGovernor: DismantlerGovernor,
 };
 
 export function createCreep(room: Room, config: CreepConfiguration): string|number {

@@ -6,9 +6,12 @@ export default class PowerHarvesterGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "PowerHarvester";
 
-	public maxParts = 25;
-	public maxCreeps = 1;
-	public bodyPart = [ATTACK, MOVE];
+	public maxParts: number = 16;
+	public maxTough: number = 0;
+	public maxCreeps: number = 1;
+	public bodyPart: string[] = [ATTACK, ATTACK, MOVE];
+	public basePart: string[] = [ATTACK, MOVE];
+	public toughPart: string[] = [];
 
 	public getCreepConfig(): CreepConfiguration {
 		const bodyParts: string[] = this.getBody();
@@ -21,6 +24,6 @@ export default class PowerHarvesterGovernor extends WarfareCreepGovernor {
 		return {body: bodyParts, name: name, properties: properties};
 	}
 	public getBody(): string[] {
-		return super.getBody();
+		return super.getToughBody();
 	}
 }

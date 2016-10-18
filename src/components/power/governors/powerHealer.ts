@@ -6,7 +6,7 @@ export default class PowerHealerGovernor extends WarfareCreepGovernor {
 	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "PowerHealer";
 
-	public maxParts = 20;
+	public maxParts = 21;
 	public maxCreeps = 2;
 	public bodyPart = [HEAL, MOVE];
 
@@ -22,6 +22,13 @@ export default class PowerHealerGovernor extends WarfareCreepGovernor {
 	}
 
 	public getBody(): string[] {
-		return super.getBody();
+		const numParts = global.clamp(_.floor(this.room.energyCapacityAvailable / PowerHealerGovernor.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return body;
 	}
 }

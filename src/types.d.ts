@@ -217,6 +217,7 @@ declare namespace NodeJS {
 		PRIORITY_BUILDER: number;
 		PRIORITY_SCIENTIST: number;
 		PRIORITY_BITER: number;
+		PRIORITY_DISMANTLER: number;
 		PRIORITY_ASM_CLAIM: number;
 		PRIORITY_ASM_HARVESTER: number;
 		PRIORITY_ASM_MULE: number;
@@ -234,6 +235,7 @@ declare namespace NodeJS {
 		MINRCL_MINER: number;
 		MINRCL_SCIENTIST: number;
 		MINRCL_BITER: number;
+		MINRCL_DISMANTLER: number;
 		MINRCL_ASM_CLAIM: number;
 		MINRCL_ASM_HARVESTER: number;
 		MINRCL_ASM_MULE: number;

@@ -45,8 +45,9 @@ StructureTower.prototype.run = function(): boolean {
 		const minHits: number = this.room.controller.level * 20000;
 		const damagedStructures = this.room.allStructures.filter((structure: OwnedStructure) =>
 			!_.includes(this.room.towerTargets, structure)
-			&& structure.hits < (structure.hitsMax * 0.8) &&
-			(
+			&& structure.hits < (structure.hitsMax * 0.8)
+			// && !_(structure.pos.lookFor(LOOK_FLAGS)).filter((f: Flag) => f.color === COLOR_YELLOW && f.secondaryColor === COLOR_ORANGE).first()
+			&& (
 				(structure.structureType !== STRUCTURE_RAMPART && structure.structureType !== STRUCTURE_WALL)
 				|| (structure.structureType === STRUCTURE_RAMPART && structure.my && structure.hits < minHits)
 				|| (structure.structureType === STRUCTURE_WALL && structure.hits < minHits)

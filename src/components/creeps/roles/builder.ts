@@ -108,7 +108,7 @@ export default class Builder extends CreepAction implements IBuilder, ICreepActi
 			const target = Game.getObjectById(this.creep.memory.target) as ConstructionSite;
 			if (!!target) {
 				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
-					this.moveTo(target.pos);
+					this.moveTo(this.createPathFinderMap(target.pos, 3));
 				} else {
 					this.creep.build(target);
 				}

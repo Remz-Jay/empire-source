@@ -6,16 +6,22 @@ import PowerHealer from "./roles/powerHealer";
 import PowerMuleGovernor from "./governors/powerMule";
 import PowerMule from "./roles/powerMule";
 
+/**
+ * 17M(boosted) 33 A and 21 M 21 H (boosted)
+ * heals 504, damages 990 (495 reflected) / tick
+ * RESOURCE_LEMERGIUM_OXIDE : { color : COLOR_GREEN , secondaryColor : COLOR_YELLOW }, // 	+100% heal and rangedHeal effectiveness
+ * RESOURCE_ZYNTHIUM_OXIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_YELLOW }, // +100% fatigue decrease speed
+ */
 export default class PowerManager {
-	public static ticksToPreSpawn = 300;
-	public static damagePerTick = 750;
-	public static muleCapacity = 1250;
+	public static readonly ticksToPreSpawn = 300;
+	public static readonly damagePerTick = 990;
+	public static readonly muleCapacity = 1250;
 	private rooms: Room[] = [];
 	private powerBanks: {[id: string]: PowerBankMemory};
-	private dispatchThreshold: number = 3000;
-	private maxActiveSquads: number = 2;
 	private squads: SquadConfig[];
-	private classes: any = {
+	private readonly dispatchThreshold: number = 3500;
+	private readonly maxActiveSquads: number = 2;
+	private readonly classes: any = {
 		PowerHarvesterGovernor: PowerHarvesterGovernor,
 		PowerHarvester: PowerHarvester,
 		PowerHealerGovernor: PowerHealerGovernor,
@@ -101,7 +107,7 @@ export default class PowerManager {
 						{
 							"governor": "PowerHealerGovernor",
 							"role": "PowerHealer",
-							"maxCreeps": 2,
+							"maxCreeps": 1,
 						},
 						{
 							"governor": "PowerMuleGovernor",  // 1250 carry each
@@ -206,7 +212,7 @@ export default class PowerManager {
 							{
 								"governor": "PowerHealerGovernor",
 								"role": "PowerHealer",
-								"maxCreeps": 2,
+								"maxCreeps": 1,
 							},
 						],
 						target: closest,

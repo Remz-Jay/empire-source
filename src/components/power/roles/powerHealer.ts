@@ -1,6 +1,9 @@
 import WarfareCreepAction from "../../../packages/warfare/warfareCreepAction";
 
 export default class PowerHealer extends WarfareCreepAction  {
+	public boosts: string[] = [
+		RESOURCE_LEMERGIUM_OXIDE, // +100% heal and rangedHeal effectiveness
+	];
 
 	public move(): void {
 		if (!this.moveUsingPositions(2)) {
@@ -22,7 +25,9 @@ export default class PowerHealer extends WarfareCreepAction  {
 		if (this.heal(true)) { // Reverse targeting for Tanks.
 			this.rangedHeal();
 		}
-		this.move();
+		if (this.getBoosted()) {
+			this.move();
+		}
 		return true;
 	}
 }

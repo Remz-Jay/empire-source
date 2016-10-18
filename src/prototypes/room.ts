@@ -28,6 +28,7 @@ interface Room {
 	towerTargets: Creep|Structure[];
 	labReaction: string;
 	labReagents: string[];
+	flags: Flag[];
 	// spawnQueue: CreepSpawnDefinition[];
 	// addToSpawnQueue(body: string[], name?: string, memory?: any, priority?: boolean): boolean;
 	// getCreepToSpawn(): CreepSpawnDefinition;
@@ -493,3 +494,12 @@ Room.prototype.addProperties = function () {
 	this.getCostMatrix(false, true);
 	this.observe();
 };
+
+Object.defineProperty(Room.prototype, "flags", {
+	get: function flags() {
+		delete this.flags;
+		return this.flags = this.find(FIND_FLAGS);
+	},
+	configurable: true,
+	enumerable: false,
+});

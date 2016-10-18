@@ -14,7 +14,7 @@ import "./prototypes/observer";
 import * as MemoryManager from "./shared/memoryManager";
 import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";
-import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
+// import * as OffenseManager from "./packages/warfare/managers/offense/offenseManager";
 import * as MarketManager from "./components/market/marketManager";
 import PowerManager from "./components/power/powerManager";
 if (!global.costMatrix) {
@@ -24,7 +24,7 @@ if (!global.costMatrix) {
 console.log(global.colorWrap(`====== RESET ====== RESET ====== RESET ====== RESET ====== RESET ======`, "DeepPink"));
 
 AssimilationManager.setup();
-OffenseManager.setup();
+// OffenseManager.setup();
 
 export function loop() {
 	global.time = Game.time - global.TIME_OFFSET;
@@ -61,7 +61,7 @@ export function loop() {
 	} catch (e) {
 		console.log("AssimilationManager Exception", (<Error> e).message);
 	}
-	if (!!Memory.offense.targets && Memory.offense.targets.length > 0) {
+/*	if (!!Memory.offense.targets && Memory.offense.targets.length > 0) {
 		try {
 			used = Game.cpu.getUsed();
 			OffenseManager.govern();
@@ -69,7 +69,7 @@ export function loop() {
 		} catch (e) {
 			console.log("OffenseManager Exception", (<Error> e).message);
 		}
-	}
+	}*/
 	try {
 		used = Game.cpu.getUsed();
 		RoomManager.governRooms();

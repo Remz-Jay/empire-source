@@ -306,16 +306,16 @@ global.labColors = {
 	RESOURCE_ZYNTHIUM_KEANITE : { color : COLOR_ORANGE , secondaryColor : COLOR_PURPLE },
 	RESOURCE_UTRIUM_LEMERGITE : { color : COLOR_BLUE , secondaryColor : COLOR_GREEN },
 
-	RESOURCE_UTRIUM_HYDRIDE : { color : COLOR_BLUE , secondaryColor : COLOR_GREY },
-	RESOURCE_UTRIUM_OXIDE : { color : COLOR_BLUE , secondaryColor : COLOR_YELLOW },
-	RESOURCE_KEANIUM_HYDRIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_GREY },
-	RESOURCE_KEANIUM_OXIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_YELLOW },
-	RESOURCE_LEMERGIUM_HYDRIDE : { color : COLOR_GREEN , secondaryColor : COLOR_GREY },
-	RESOURCE_LEMERGIUM_OXIDE : { color : COLOR_GREEN , secondaryColor : COLOR_YELLOW },
-	RESOURCE_ZYNTHIUM_HYDRIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_GREY },
-	RESOURCE_ZYNTHIUM_OXIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_YELLOW },
-	RESOURCE_GHODIUM_HYDRIDE : { color : COLOR_BROWN , secondaryColor : COLOR_GREY },
-	RESOURCE_GHODIUM_OXIDE : { color : COLOR_BROWN  , secondaryColor : COLOR_YELLOW },
+	RESOURCE_UTRIUM_HYDRIDE : { color : COLOR_BLUE , secondaryColor : COLOR_GREY },     // +100% attack effectiveness
+	RESOURCE_UTRIUM_OXIDE : { color : COLOR_BLUE , secondaryColor : COLOR_YELLOW },     // +100% harvest effectiveness
+	RESOURCE_KEANIUM_HYDRIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_GREY },  // +50 capacity
+	RESOURCE_KEANIUM_OXIDE : { color : COLOR_PURPLE , secondaryColor : COLOR_YELLOW },  // +100% rangedAttack and rangedMassAttack effectiveness
+	RESOURCE_LEMERGIUM_HYDRIDE : { color : COLOR_GREEN , secondaryColor : COLOR_GREY }, // +30% repair and build effectiveness without increasing the energy cost
+	RESOURCE_LEMERGIUM_OXIDE : { color : COLOR_GREEN , secondaryColor : COLOR_YELLOW }, // 	+100% heal and rangedHeal effectiveness
+	RESOURCE_ZYNTHIUM_HYDRIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_GREY }, // +100% dismantle effectiveness
+	RESOURCE_ZYNTHIUM_OXIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_YELLOW }, // +100% fatigue decrease speed
+	RESOURCE_GHODIUM_HYDRIDE : { color : COLOR_BROWN , secondaryColor : COLOR_GREY },   // +30% upgradeController effectiveness without increasing the energy cost
+	RESOURCE_GHODIUM_OXIDE : { color : COLOR_BROWN  , secondaryColor : COLOR_YELLOW },  // -30% damage taken
 
 	RESOURCE_UTRIUM_ACID : { color : COLOR_BLUE , secondaryColor : COLOR_ORANGE },
 	RESOURCE_UTRIUM_ALKALIDE : { color : COLOR_BLUE , secondaryColor : COLOR_CYAN },
