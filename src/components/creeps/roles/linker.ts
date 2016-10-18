@@ -36,7 +36,7 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return flag.pos;
 		} else {
 			const storPos = this.storage.pos;
-			const positions = this.safeLook(LOOK_STRUCTURES, storPos, 1);
+			const positions = this.storage.safeLook(LOOK_STRUCTURES, 1);
 			let linkPos: RoomPosition;
 			let termPos: RoomPosition;
 			let creepPos: RoomPosition;

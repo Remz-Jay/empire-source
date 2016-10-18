@@ -139,6 +139,7 @@ function manageClaim(roomName: string, claim: boolean = false, reserveOnly = fal
 					role.setGoHome(goHome);
 					role.doClaim = claim;
 					role.setGovernor(governor);
+					role.action();
 				}
 			} catch (e) {
 				console.log("ERROR :: ", ClaimGovernor.ROLE, creep.name, creep.room.name, e.message);

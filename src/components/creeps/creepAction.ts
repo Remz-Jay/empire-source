@@ -4,6 +4,9 @@ export interface ICreepAction {
 	creep: Creep;
 	governor: CreepGovernor;
 	renewStation: Spawn;
+	fleeRange: number;
+	boosts: string[];
+	hasBoosts: string[];
 
 	setCreep(creep: Creep): void;
 	setGovernor(governor: CreepGovernor): void;
@@ -11,9 +14,9 @@ export interface ICreepAction {
 	 * Wrapper for Creep.moveTo() method.
 	 */
 	moveTo(target: RoomPosition|PathFinderGoal): string | number;
-	pickupResourcesInRange(): void;
+	flee(): boolean;
 
-	action(startCpu: number): boolean;
+	action(): boolean;
 
 	createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
@@ -27,12 +30,11 @@ export default class CreepAction implements ICreepAction {
 	public creep: Creep;
 	public renewStation: Spawn;
 	public governor: CreepGovernor;
-	public fleeRange: number = 5;
-	public moveIterator: number = 0;
+	public readonly fleeRange: number = 5;
 	public boosts: string[] = [];
 	public hasBoosts: string[] = [];
 
-	public setCreep(creep: Creep) {
+	public setCreep(creep: Creep): void {
 		this.creep = creep;
 		if (!this.creep.memory.hasBoosts) {
 			this.creep.memory.hasBoosts = [];
@@ -457,43 +459,6 @@ export default class CreepAction implements ICreepAction {
 		}
 	};
 
-	public safeLook(lookFor: string, pos: RoomPosition, range: number = 1): LookAtResultWithPos[] {
-		const positions: any = {
-			top: pos.y - range,
-			left: pos.x - range,
-			bottom: pos.y + range,
-			right: pos.x + range,
-		};
-		_.forOwn(positions, (val: number, key: any) => {
-			if (val < 1) {
-				positions[key] = 1;
-			}
-			if (val > 48) {
-				positions[key] = 48;
-			}
-		});
-		return this.creep.room.lookForAtArea(lookFor, positions.top, positions.left, positions.bottom, positions.right, true) as LookAtResultWithPos[];
-	}
-
-	public pickupResourcesInRange(skipContainers: boolean = false): void {
-		if (!this.creep.bagFull) {
-			const targets = this.safeLook(LOOK_RESOURCES, this.creep.pos, 1);
-			if (targets.length > 0) {
-				this.creep.pickup(targets[0].resource);
-			} else if (!skipContainers) {
-				if (!this.creep.bagFull) {
-					const containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
-						&& s.store.energy > 0
-						&& s.pos.isNearTo(this.creep.pos)
-					);
-					if (containers.length > 0) {
-						this.creep.withdraw(containers[0], RESOURCE_ENERGY);
-					}
-				}
-			}
-		}
-	};
-
 	public expireCreep(): boolean {
 		// see if an upgrade for this creep is available
 		if (!!this.creep.memory.homeRoom) {
@@ -729,7 +694,7 @@ export default class CreepAction implements ICreepAction {
 	}
 
 	public action(): boolean {
-		this.pickupResourcesInRange();
+		this.creep.pickupResourcesInRange();
 		return this.renewCreep();
 	}
 
@@ -743,7 +708,7 @@ export default class CreepAction implements ICreepAction {
 			// get first adjacent structure needing energy
 			let needyTypes: string[] = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_LAB, STRUCTURE_TOWER];
 			needyTypes = _.union(needyTypes, additionalStructures);
-			const lookTargets = this.safeLook(LOOK_STRUCTURES, this.creep.pos, 1);
+			const lookTargets = this.creep.safeLook(LOOK_STRUCTURES, 1);
 			const targets = _.map(lookTargets, "structure") as EnergyStructure[];
 			const needyStructure = _.find(targets, (s: EnergyStructure) =>
 				needyTypes.indexOf(s.structureType) > -1

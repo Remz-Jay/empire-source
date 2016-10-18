@@ -61,6 +61,7 @@ export function governRooms(): void {
 						} else {
 							s.renewCreeps();
 						}
+						s.checkSafeMode();
 					});
 					SourceManager.load(room);
 					SourceManager.updateHarvesterPreference();

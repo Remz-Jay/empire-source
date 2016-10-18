@@ -161,7 +161,7 @@ export default class ASMRaider extends ASMCreepAction {
 				}
 			}
 		} else {
-			this.pickupResourcesInRange();
+			this.creep.pickupResourcesInRange();
 			if (this.isBagFull()) {
 				this.creep.memory.resetTarget = true;
 				this.dumpRoutine(this.storage);

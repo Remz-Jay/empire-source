@@ -1,5 +1,6 @@
 import "./shared/utils";
 import "./config/config";
+import "./prototypes/roomobject";
 import "./prototypes/ownedstructure";
 import "./prototypes/source";
 import "./prototypes/room";

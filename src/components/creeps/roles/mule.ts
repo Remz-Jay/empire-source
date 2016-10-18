@@ -341,7 +341,7 @@ export default class Mule extends CreepAction implements IMule, ICreepAction {
 
 	public pickupResourcesInRange(): void {
 		if (!this.creep.bagFull) {
-			const targets = this.safeLook(LOOK_RESOURCES, this.creep.pos, 1);
+			const targets = this.creep.safeLook(LOOK_RESOURCES, 1);
 			if (targets.length > 0) {
 				_.each(targets, function (t) {
 					if (!this.creep.bagFull) {

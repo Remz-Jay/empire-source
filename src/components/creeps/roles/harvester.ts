@@ -189,7 +189,7 @@ export default class Harvester extends CreepAction implements IHarvester, ICreep
 						delete this.creep.memory[`cont_${this.creep.memory.source}`];
 					}
 				} else {
-					const lr = this.safeLook(LOOK_STRUCTURES, source.pos, 2);
+					const lr = source.safeLook(LOOK_STRUCTURES, 2);
 					if (lr.length > 0) {
 						const s = _.map(lr, "structure");
 						const containers = _.filter(s, (x: Structure) => x.structureType === STRUCTURE_CONTAINER);

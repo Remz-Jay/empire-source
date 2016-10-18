@@ -167,7 +167,7 @@ export default class ASMBuilder extends ASMCreepAction {
 			}
 		} else {
 			if (this.flee()) {
-				this.pickupResourcesInRange();
+				this.creep.pickupResourcesInRange();
 				this.builderLogic();
 			}
 		}

@@ -38,7 +38,7 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			return false;
 		}
 
-		this.pickupResourcesInRange();
+		this.creep.pickupResourcesInRange();
 		return true;
 	}
 }

@@ -200,7 +200,7 @@ export default class ASMMule extends ASMCreepAction {
 					}
 				}
 			} else {
-				this.pickupResourcesInRange(true);
+				this.creep.pickupResourcesInRange(true);
 				if (this.isBagFull()) {
 					this.passingRepair();
 					this.creep.memory.resetTarget = true;

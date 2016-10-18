@@ -121,11 +121,11 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 				}
 				if (!this.creep.pos.inRangeTo(target.pos, 3)) {
 					this.moveTo(target.pos);
-					const movingTargets = _.map(this.safeLook(LOOK_STRUCTURES, this.creep.pos, 3), "structure").filter(
+					const movingTarget: Structure = _(this.creep.safeLook(LOOK_STRUCTURES, 3)).map("structure").filter(
 						(s: Structure) => s.hits < (s.hitsMax * 0.91)
-					) as Structure[];
-					if (movingTargets.length) {
-						this.creep.repair(_.sortBy(movingTargets, "hits").shift());
+					).sortBy("hits").first() as Structure;
+					if (!!movingTarget) {
+						this.creep.repair(movingTarget);
 					}
 				} else {
 					const status = this.creep.repair(target);
@@ -156,9 +156,6 @@ export default class Repair extends CreepAction implements IRepair, ICreepAction
 	};
 
 	public action(): boolean {
-		if (this.creep.room.myConstructionSites.length > 0) {
-			this.creep.memory.role = "Builder";
-		}
 		this.repairLogic();
 		return true;
 	}

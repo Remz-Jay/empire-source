@@ -1,8 +1,13 @@
 import ASMCreepAction from "../assimilationCreepAction";
 
-export default class Claim extends ASMCreepAction {
-	public targetController: StructureController;
+export interface IClaim {
+	doClaim: boolean;
+	action(startCpu: number): boolean;
+}
+
+export default class Claim extends ASMCreepAction implements IClaim {
 	public doClaim: boolean;
+	public targetController: StructureController;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);

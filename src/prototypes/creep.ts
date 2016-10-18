@@ -3,6 +3,7 @@ interface Creep {
 	bagFull: boolean;
 	bagEmpty: boolean;
 	logTransfer(target: Creep | Spawn | Structure, resourceType: string, amount?: number): number;
+	pickupResourcesInRange(skipContainers?: boolean): void;
 }
 
 Object.defineProperty(Creep.prototype, "carrySum", {
@@ -43,6 +44,26 @@ Object.defineProperty(Creep.prototype, "logTransfer", {
 			return status;
 		} else {
 			return ERR_BUSY;
+		}
+	},
+	configurable: true,
+	enumerable: false,
+});
+
+Object.defineProperty(Creep.prototype, "pickupResourcesInRange", {
+	value: function(skipContainers: boolean = false): void {
+		if (!this.bagFull) {
+			const r = _(this.safeLook(LOOK_RESOURCES, 1)).map("resource").first();
+			if (!!r) {
+				this.pickup(r);
+			} else if (!skipContainers) {
+				const container = _(this.room.groupedStructures[STRUCTURE_CONTAINER]).filter((s: StructureContainer) =>
+					s.store.energy > 0 && s.pos.isNearTo(this.pos)
+				).first();
+				if (!!container) {
+					this.withdraw(container, RESOURCE_ENERGY);
+				}
+			}
 		}
 	},
 	configurable: true,
