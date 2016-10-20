@@ -11,6 +11,11 @@ import WarMule from "../../roles/warmule";
 import WarUpgrader from "../../roles/warupgrader";*/
 // import WarBuilder from "../../roles/warbuilder";
 
+const roles: {[id: string]: any } = {
+	Terminator: Terminator,
+	Warvester: Warvester,
+};
+
 function initMemory(): void {
 	if (!Memory.offense) {
 		Memory.offense = {
@@ -34,10 +39,10 @@ let targetRoom: Room;
 	wait: false,
 };*/
 
-const defenderConfig = {
+const defenderConfig: SquadConfig = {
 	roles: [
 		{
-			"role": Terminator,
+			"role": "Terminator",
 			"maxCreeps": 3,
 		},
 	],
@@ -69,19 +74,19 @@ const healTestConfig = {
 	],
 	wait: false,
 };*/
-const warvestConfig = {
+const warvestConfig: SquadConfig = {
 	roles: [
 		{
-			"role": Warvester,
+			"role": "Warvester",
 			"maxCreeps": 2,
 		},
 	],
 	wait: false,
 };
-const squadConfig = {
+const squadConfig: SquadConfig = {
 	roles: [
 		{
-			"role": Terminator,
+			"role": "Terminator",
 			"maxCreeps": 1,
 		},
 	],
@@ -224,16 +229,15 @@ function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	}, this);
 	return creeps;
 }
-function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosition[]) {
+function manageSquad(targetRoomName: string, sq: SquadConfig, targetPositions: RoomPosition[]) {
 	const resetIterator = false;
 	const creeps = _.groupBy(loadCreeps(targetRoomName, sq), "memory.role");
 	_.each(sq.roles, function(squadRole) {
-		const ctor = squadRole.role as WarfareCreepAction;
+		const ctor: any = roles[squadRole.role];
 		ctor.setConfig(config);
-		const governor = new squadRole.governor(homeRoom, config);
 		const creepsInRole = _.get(creeps, `${ctor.ROLE}`, []);
-		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
-		const role: WarfareCreepAction = new squadRole.role();
+		console.log(ctor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
+		const role: WarfareCreepAction = new ctor();
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
 				role.setCreep(<Creep> c, targetPositions);
@@ -243,21 +247,21 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
-					const status = createCreep(governor.getCreepConfig());
+					const status = createCreep(ctor.getCreepConfig(homeRoom));
 					if (_.isNumber(status)) {
-						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
+						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), ctor.ROLE);
 					} else {
-						console.log("manageSquad.preempt-spawn", status, squadRole.governor.ROLE);
+						console.log("manageSquad.preempt-spawn", status, ctor.ROLE);
 					}
 				}
 			}
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
-			const status = createCreep(governor.getCreepConfig());
+			const status = createCreep(ctor.getCreepConfig(homeRoom));
 			if (_.isNumber(status)) {
-				console.log("manageSquad.spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
+				console.log("manageSquad.spawn", global.translateErrorCode(status), ctor.ROLE);
 			} else {
-				console.log("manageSquad.spawn", status, squadRole.governor.ROLE);
+				console.log("manageSquad.spawn", status, ctor.ROLE);
 			}
 		}
 	}, this);

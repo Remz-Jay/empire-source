@@ -29,7 +29,6 @@ export default class CreepAction implements ICreepAction {
 	public static maxCreeps: number = 0;
 	public static bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
 	public static maxParts: number = -1;
-	public static emergency: boolean = false;
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		return {body: [], name: "", properties: {role: null, homeRoom: null}};

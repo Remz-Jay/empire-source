@@ -93,7 +93,7 @@ declare interface OffenseObject {
 	};
 }
 declare interface SquadRole {
-	role: Object;
+	role: string;
 	maxCreeps: number;
 }
 declare interface SquadConfig {

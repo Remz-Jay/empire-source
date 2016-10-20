@@ -9,7 +9,6 @@ export default class Mule extends CreepAction {
 	public static bodyPart = [CARRY, CARRY, MOVE];
 	public static maxParts = 10;
 	public static maxCreeps = 2;
-	public static emergency: boolean = false; // TODO: Does this work on static?
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		const bodyParts: string[] = this.getBody(room);
 		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
@@ -24,8 +23,9 @@ export default class Mule extends CreepAction {
 	}
 
 	public static getBody(room: Room): string[] {
+		const emergency = this.getCreepsInRole(room).length < 1 || (room.energyInContainers + room.energyAvailable)  < (room.energyCapacityAvailable * 0.8);
 		let numParts: number;
-		if (this.getNumberOfCreepsInRole(room) > 0 && !this.emergency) {
+		if (this.getNumberOfCreepsInRole(room) > 0 && !emergency) {
 			numParts = _.floor((room.energyCapacityAvailable) / global.calculateRequiredEnergy(this.bodyPart));
 		} else {
 			numParts = _.floor((room.energyAvailable) / global.calculateRequiredEnergy(this.bodyPart));
@@ -42,20 +42,9 @@ export default class Mule extends CreepAction {
 
 	public static getCreepLimit(room: Room): number {
 		if (room.name === "W6N42") {
-			++this.maxCreeps;
+			return 3;
 		}
-		if (room.name === "W2N46") {
-			return 2;
-		}
-		if (room.containers.length > 0) {
-			if (this.getCreepsInRole(room).length < 1 || (room.energyInContainers + room.energyAvailable)  < (room.energyCapacityAvailable * 0.8)) {
-				this.emergency = true;
-				this.maxCreeps = 2;
-			}
-			return (room.controller.level < 5) ? 2 : this.maxCreeps;
-		} else {
-			return 0;
-		}
+		return (room.containers.length > 0) ? this.maxCreeps : 0;
 	};
 
 	public static getBlackList(): string[] {

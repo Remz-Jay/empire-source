@@ -73,8 +73,6 @@ export function governCreeps(room: Room) {
 				const config: CreepConfiguration = prioritizedRoles[index].getCreepConfig(room);
 				if (!_.isNumber(this.createCreep(room, config))) {
 					isSpawning = true;
-				} else if (prioritizedRoles[index].emergency) {
-					isSpawning = true; // prevent spawning of other roles until the emergency is over.
 				}
 			}
 			if (numCreeps > 0) {
