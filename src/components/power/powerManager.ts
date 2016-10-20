@@ -1,9 +1,6 @@
 import WarfareCreepAction from "../../packages/warfare/warfareCreepAction";
-import PowerHarvesterGovernor from "./governors/powerHarvester";
 import PowerHarvester from "./roles/powerHarvester";
-import PowerHealerGovernor from "./governors/powerHealer";
 import PowerHealer from "./roles/powerHealer";
-import PowerMuleGovernor from "./governors/powerMule";
 import PowerMule from "./roles/powerMule";
 
 /**
@@ -22,11 +19,8 @@ export default class PowerManager {
 	private readonly dispatchThreshold: number = 3500;
 	private readonly maxActiveSquads: number = 2;
 	private readonly classes: any = {
-		PowerHarvesterGovernor: PowerHarvesterGovernor,
 		PowerHarvester: PowerHarvester,
-		PowerHealerGovernor: PowerHealerGovernor,
 		PowerHealer: PowerHealer,
-		PowerMuleGovernor: PowerMuleGovernor,
 		PowerMule: PowerMule,
 	};
 	constructor() {
@@ -100,17 +94,14 @@ export default class PowerManager {
 				if (bank.hits <= PowerManager.damagePerTick * timer) {
 					squad.roles = [
 						{
-							"governor": "PowerHarvesterGovernor",
 							"role": "PowerHarvester",
 							"maxCreeps": 1,
 						},
 						{
-							"governor": "PowerHealerGovernor",
 							"role": "PowerHealer",
 							"maxCreeps": 1,
 						},
 						{
-							"governor": "PowerMuleGovernor",  // 1250 carry each
 							"role": "PowerMule",
 							"maxCreeps": numMulesRequired,
 						},
@@ -123,7 +114,6 @@ export default class PowerManager {
 				_.get(creeps, "PowerHealer", []).forEach((c: Creep) => c.suicide());
 				squad.roles = [
 					{
-						"governor": "PowerMuleGovernor",  // 1250 carry each
 						"role": "PowerMule",
 						"maxCreeps": 0,
 					},
@@ -137,7 +127,6 @@ export default class PowerManager {
 				targetRoom: squad.target.pos.roomName,
 			};
 			const homeRoom = Game.rooms[squad.source];
-			const governor = new this.classes[<string> squadRole.governor](homeRoom, config);
 			const creepsInRole = _.get(creeps, `${squadRole.role}`, []);
 			if (!!squad.missionComplete && squadRole.role === "PowerMule" && creepsInRole.length === 0) {
 				// clean up any remaining creeps that might have been spawning while we cleaned last time before we remove this task from the loop
@@ -146,21 +135,22 @@ export default class PowerManager {
 				return;
 			}
 			console.log("[PowerManager]", squadRole.role, squadRole.maxCreeps, squad.target.pos.roomName, homeRoom.name, creepsInRole.length);
-			const role: WarfareCreepAction = new this.classes[<string> squadRole.role]();
+			const roleCtor = this.classes[<string> squadRole.role];
+			roleCtor.setConfig(config);
+			const role: WarfareCreepAction = new roleCtor();
 			_.forEach(creepsInRole, (c: Creep) => {
 				if (!c.spawning) {
 					let positions: RoomPosition[] = [];
 					let rp = new RoomPosition(squad.target.pos.x, squad.target.pos.y, squad.target.pos.roomName);
 					positions.push(rp);
 					role.setCreep(<Creep> c, positions);
-					role.setGovernor(governor);
 					role.action();
 					if (!!bank && bank.hits > (PowerManager.ticksToPreSpawn * PowerManager.damagePerTick) // Check if the current gen is able to complete the job
 						&& c.ticksToLive < PowerManager.ticksToPreSpawn
 						&& (creepsInRole.length === squadRole.maxCreeps)
 					) {
 						// Do a preemptive spawn if this creep is about to expire.
-						const status = this.createCreep(homeRoom, governor.getCreepConfig());
+						const status = this.createCreep(homeRoom, roleCtor.getCreepConfig(homeRoom));
 						if (_.isNumber(status)) {
 							console.log("[PowerManager] managePowerSquad.preempt-spawn", global.translateErrorCode(status), squadRole.role);
 						} else {
@@ -170,7 +160,7 @@ export default class PowerManager {
 				}
 			});
 			if (creepsInRole.length < squadRole.maxCreeps) {
-				let creepConfig = governor.getCreepConfig();
+				let creepConfig = roleCtor.getCreepConfig(homeRoom);
 				const status = this.createCreep(homeRoom, creepConfig);
 				if (_.isNumber(status)) {
 					console.log("[PowerManager] managePowerSquad.spawn", global.translateErrorCode(status), squadRole.role, JSON.stringify(creepConfig));
@@ -205,12 +195,10 @@ export default class PowerManager {
 					this.squads.push({
 						roles: [
 							{
-								"governor": "PowerHarvesterGovernor",
 								"role": "PowerHarvester",
 								"maxCreeps": 1,
 							},
 							{
-								"governor": "PowerHealerGovernor",
 								"role": "PowerHealer",
 								"maxCreeps": 1,
 							},

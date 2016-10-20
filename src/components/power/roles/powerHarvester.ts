@@ -1,6 +1,31 @@
 import WarfareCreepAction from "../../../packages/warfare/warfareCreepAction";
 
 export default class PowerHarvester extends WarfareCreepAction {
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "PowerHarvester";
+
+	public static maxParts: number = 16;
+	public static maxTough: number = 0;
+	public static maxCreeps: number = 1;
+	public static bodyPart: string[] = [ATTACK, ATTACK, MOVE];
+	public static basePart: string[] = [ATTACK, MOVE];
+	public static toughPart: string[] = [];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+	public static getBody(room: Room): string[] {
+		return super.getToughBody(room);
+	}
+
 	public boosts: string[] = [
 		RESOURCE_ZYNTHIUM_OXIDE, // +100% fatigue decrease speed
 	];

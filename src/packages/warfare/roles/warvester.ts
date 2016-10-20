@@ -2,6 +2,35 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export default class Warvester extends WarfareCreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "Warvester";
+
+	public static maxParts = 25;
+	public static maxCreeps = 3;
+	public static bodyPart = [CARRY, MOVE];
+	public static toughPart = [TOUGH, TOUGH, MOVE];
+	public static basePart = [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getBody(room: Room) {
+		return super.getToughBody(room);
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
 	public sourcePosition: number = 5;
 
 	public warvest(): boolean {

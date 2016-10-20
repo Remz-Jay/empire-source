@@ -1,23 +1,14 @@
 import WarfareCreepAction from "../../warfareCreepAction";
-import FasterminatorGovernor from "../../governors/fasterminator";
 import Terminator from "../../roles/terminator";
-
-import WarvesterGovernor from "../../governors/warvester";
 import Warvester from "../../roles/warvester";
 
-/*import HealerGovernor from "../../governors/healer";
+/*
 import Healer from "../../roles/healer";
-import DismantlerGovernor from "../../governors/dismantler";
 import Dismantler from "../../roles/dismantler";
-import WarArcherGovernor from "../../governors/wararcher";
 import WarArcher from "../../roles/wararcher";
-import WarriorGovernor from "../../governors/warrior";
 import Warrior from "../../roles/warrior";
-import WarMuleGovernor from "../../governors/warmule";
 import WarMule from "../../roles/warmule";
-import WarUpgraderGovernor from "../../governors/warupgrader";
 import WarUpgrader from "../../roles/warupgrader";*/
-// import WarBuilderGovernor from "../../governors/warbuilder";
 // import WarBuilder from "../../roles/warbuilder";
 
 function initMemory(): void {
@@ -36,7 +27,6 @@ let targetRoom: Room;
 /*const claimSquad = {
 	roles: [
 		{
-			"governor": WarUpgraderGovernor,
 			"role": WarUpgrader,
 			"maxCreeps": 0,
 		},
@@ -47,7 +37,6 @@ let targetRoom: Room;
 const defenderConfig = {
 	roles: [
 		{
-			"governor": FasterminatorGovernor,
 			"role": Terminator,
 			"maxCreeps": 3,
 		},
@@ -57,7 +46,6 @@ const defenderConfig = {
 /*const warArcherConfig = {
 	roles: [
 		{
-			"governor": WarArcherGovernor,
 			"role": WarArcher,
 			"maxCreeps": 0,
 		},
@@ -67,17 +55,14 @@ const defenderConfig = {
 const healTestConfig = {
 	roles: [
 		{
-			"governor": WarArcherGovernor,
 			"role": WarArcher,
 			"maxCreeps": 0,
 		},
 		{
-			"governor": HealerGovernor,
 			"role": Healer,
 			"maxCreeps": 1,
 		},
 		{
-			"governor": DismantlerGovernor,
 			"role": Dismantler,
 			"maxCreeps": 1,
 		},
@@ -87,7 +72,6 @@ const healTestConfig = {
 const warvestConfig = {
 	roles: [
 		{
-			"governor": WarvesterGovernor,
 			"role": Warvester,
 			"maxCreeps": 2,
 		},
@@ -97,7 +81,6 @@ const warvestConfig = {
 const squadConfig = {
 	roles: [
 		{
-			"governor": FasterminatorGovernor,
 			"role": Terminator,
 			"maxCreeps": 1,
 		},
@@ -235,7 +218,7 @@ function createCreep(creepConfig: CreepConfiguration): string|number {
 function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	let creeps: Creep[] = [];
 	_.each(sq.roles, function(role) {
-		creeps = creeps.concat(_.filter(_.get(global.tickCache.rolesByRoom, `${role.governor.ROLE}.${homeRoom.name}`, []),
+		creeps = creeps.concat(_.filter(_.get(global.tickCache.rolesByRoom, `${role.ROLE}.${homeRoom.name}`, []),
 			(c: Creep) => c.memory.config.targetRoom === targetRoomName
 		));
 	}, this);
@@ -245,8 +228,10 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 	const resetIterator = false;
 	const creeps = _.groupBy(loadCreeps(targetRoomName, sq), "memory.role");
 	_.each(sq.roles, function(squadRole) {
+		const ctor = squadRole.role as WarfareCreepAction;
+		ctor.setConfig(config);
 		const governor = new squadRole.governor(homeRoom, config);
-		const creepsInRole = _.get(creeps, `${squadRole.governor.ROLE}`, []);
+		const creepsInRole = _.get(creeps, `${ctor.ROLE}`, []);
 		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
 		const role: WarfareCreepAction = new squadRole.role();
 		_.each(creepsInRole, function(c: Creep){
@@ -255,7 +240,6 @@ function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosit
 				if (resetIterator) {
 					c.memory.positionIterator = 0;
 				}
-				role.setGovernor(governor);
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.

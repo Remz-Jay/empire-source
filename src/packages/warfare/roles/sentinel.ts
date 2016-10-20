@@ -1,17 +1,17 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
-export default class Terminator extends WarfareCreepAction {
+export default class Sentinel extends WarfareCreepAction {
 
 	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
 	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
-	public static ROLE: string = "Terminator";
+	public static ROLE: string = "Sentinel";
 
-	public static maxParts = 15;
+	public static maxParts = 6;
 	public static maxTough = 3;
 	public static maxCreeps = 5;
 	public static bodyPart = [RANGED_ATTACK, MOVE];
 	public static toughPart = [TOUGH, MOVE];
-	public static basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+	public static basePart = [HEAL, HEAL, HEAL, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		const bodyParts: string[] = this.getBody(room);

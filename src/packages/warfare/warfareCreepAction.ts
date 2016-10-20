@@ -10,6 +10,39 @@ export interface IWFCreepAction {
 }
 
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
+	public static config: RemoteRoomConfig;
+	public static maxParts: number = 25;
+	public static maxTough: number = 25;
+	public static maxCreeps: number = 0;
+	public static bodyPart: string[] = [];
+	public static toughPart: string[] = [];
+	public static basePart: string[] = [];
+
+	public static setConfig(config: RemoteRoomConfig) {
+		this.config = config;
+	}
+
+	public static getToughBody(room: Room): string[] {
+		const numParts = global.clamp(_.floor(
+			(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+			global.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		const remainingEnergy = room.energyCapacityAvailable - global.calculateRequiredEnergy(body);
+		const numTough = global.clamp(_.floor(remainingEnergy / global.calculateRequiredEnergy(this.toughPart)), 0, this.maxTough);
+		for (let i = 0; i < numTough; i++) {
+			if (body.length + this.toughPart.length <= 50) {
+				body = body.concat(this.toughPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
 	public wait: boolean = false;
 	public ignoreStructures: string[] = [
 		STRUCTURE_STORAGE,

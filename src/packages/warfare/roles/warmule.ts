@@ -1,6 +1,30 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export default class WarMule extends WarfareCreepAction {
+
+	public static PRIORITY: number = global.PRIORITY_WF_HEALER;
+	public static MINRCL: number = global.MINRCL_WF_HEALER;
+	public static ROLE: string = "WarMule";
+
+	public static maxParts = 12;
+	public static maxCreeps = 3;
+	public static bodyPart = [CARRY, CARRY, CARRY, MOVE]; // 1850 carry total
+	public static basePart = [CARRY, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+	public static getBody(room: Room): string[] {
+		return super.getToughBody(room);
+	}
+
 	public powerBankDuty: boolean = true;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed

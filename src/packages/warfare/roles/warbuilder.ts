@@ -1,6 +1,30 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export default class WarBuilder extends WarfareCreepAction {
+
+	public static PRIORITY: number = global.PRIORITY_WF_HEALER;
+	public static MINRCL: number = global.MINRCL_WF_HEALER;
+	public static ROLE: string = "WarBuilder";
+
+	public static maxParts = 12;
+	public static maxCreeps = 1;
+	public static bodyPart = [WORK, WORK, CARRY, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
 	public storage: StructureStorage;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed

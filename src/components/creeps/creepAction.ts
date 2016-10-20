@@ -1,15 +1,11 @@
-import List = _.List;
-import CreepGovernor from "./creepGovernor";
 export interface ICreepAction {
 	creep: Creep;
-	governor: CreepGovernor;
 	renewStation: Spawn;
 	fleeRange: number;
 	boosts: string[];
 	hasBoosts: string[];
 
 	setCreep(creep: Creep): void;
-	setGovernor(governor: CreepGovernor): void;
 	/**
 	 * Wrapper for Creep.moveTo() method.
 	 */
@@ -18,7 +14,7 @@ export interface ICreepAction {
 
 	action(): boolean;
 
-	createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number): PathFinderGoal;
+	createPathFinderMap(goals: RoomPosition[]|RoomPosition, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 	moveToTargetRoom(): void;
@@ -27,9 +23,43 @@ export interface ICreepAction {
 let allowedRooms: string[] = undefined;
 
 export default class CreepAction implements ICreepAction {
+	public static MINRCL: number = global.MINRCL_CREEP;
+	public static PRIORITY: number = global.PRIORITY_CREEP;
+	public static ROLE: string = "Creep";
+	public static maxCreeps: number = 0;
+	public static bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
+	public static maxParts: number = -1;
+	public static emergency: boolean = false;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		return {body: [], name: "", properties: {role: null, homeRoom: null}};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
+	public static getNumberOfCreepsInRole(room: Room): number {
+		return this.getCreepsInRole(room).length;
+	}
+
+	public static getCreepsInRole(room: Room): Creep[] {
+		return _.get(global.tickCache.rolesByRoom, `${this.ROLE}.${room.name}`, []);
+	}
+
+	public static getBody(room: Room) {
+		const numParts = global.clamp(_.floor(room.energyCapacityAvailable / global.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
 	public creep: Creep;
 	public renewStation: Spawn;
-	public governor: CreepGovernor;
 	public readonly fleeRange: number = 5;
 	public boosts: string[] = [];
 	public hasBoosts: string[] = [];
@@ -42,9 +72,6 @@ export default class CreepAction implements ICreepAction {
 		this.hasBoosts = this.creep.memory.hasBoosts;
 	}
 
-	public setGovernor(governor: CreepGovernor): void {
-		this.governor = governor;
-	}
 	public roomCallback = function (roomName: string): CostMatrix | boolean {
 		try {
 			if (_.includes(global.ROOM_BLACKLIST, roomName)) {
@@ -370,12 +397,12 @@ export default class CreepAction implements ICreepAction {
 		return resource;
 	}
 
-	public createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number = 1): PathFinderGoal {
-		let goalsList: List<RoomPosition>;
+	public createPathFinderMap(goals: RoomPosition[]|RoomPosition, range: number = 1): PathFinderGoal {
+		let goalsList: RoomPosition[];
 		if (!_.isArray(goals)) {
 			goalsList = [<RoomPosition> goals];
 		} else {
-			goalsList = goals as List<RoomPosition>;
+			goalsList = goals as RoomPosition[];
 		}
 		return _.map(goalsList, function (source: RoomPosition) {
 			// We can"t actually walk on sources-- set `range` to 1 so we path
@@ -463,13 +490,12 @@ export default class CreepAction implements ICreepAction {
 		// see if an upgrade for this creep is available
 		if (!!this.creep.memory.homeRoom) {
 			try {
-				const x: number = this.governor.getNumberOfCreepsInRole();
-				if (x > this.governor.getCreepLimit()) {
+				const x: number = CreepAction.getNumberOfCreepsInRole(this.creep.room);
+				if (x > CreepAction.getCreepLimit(this.creep.room)) {
 					return true;
 				}
-				const body = this.governor.getBody();
-				if (CreepGovernor.calculateRequiredEnergy(body)
-					> CreepGovernor.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
+				const body = CreepAction.getBody(this.creep.room);
+				if (global.calculateRequiredEnergy(body) > global.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
 					return true;
 				}
 			} catch (e) {

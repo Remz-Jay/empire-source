@@ -1,21 +1,87 @@
 import ASMCreepAction from "../assimilationCreepAction";
-import ASMHarvesterGovernor from "../governors/harvester";
 
 export default class ASMHarvester extends ASMCreepAction {
+
+	public static PRIORITY: number = global.PRIORITY_ASM_HARVESTER;
+	public static MINRCL: number = global.MINRCL_ASM_HARVESTER;
+	public static ROLE: string = "ASMHarvester";
+
+	public static basePart: string[] = [CARRY, CARRY, MOVE];
+	public static bodyPart: string[] = [WORK, WORK, MOVE];
+	public static maxParts: number = 3;
+	public static maxCreeps: number = 1;
+	public static containers: StructureContainer[] = [];
+
+	public static setConfig(config: RemoteRoomConfig, containers: StructureContainer[] = []) {
+		super.setConfig(config);
+		this.containers = containers;
+	}
+
+	public static getBody(room: Room) {
+		const hasController = _.get(this.config, "hasController", true);
+		const hasClaim = _.get(this.config, "claim", false);
+		if (!hasController || hasClaim) {
+			this.bodyPart = [WORK, WORK, MOVE, MOVE];
+			let body: string[] = [CARRY, MOVE];
+			for (let i = 0; i < 4; i++) {
+				body = body.concat(this.bodyPart);
+			}
+			return global.sortBodyParts(body);
+		}
+		const numParts: number = global.clamp(_.floor(
+			(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+			global.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+			container: this.checkContainerAssignment(),
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+	public static checkContainerAssignment(): string {
+		let freeContainer: string = undefined;
+		_.each(this.containers, function(c: StructureContainer) {
+			const h = this.checkAssignedHarvester(c);
+			if (!h) {
+				freeContainer = c.id;
+			}
+		}, this);
+		return freeContainer;
+	}
+
+	public static checkAssignedHarvester(c: StructureContainer): Creep {
+		const harvesters = global.tickCache.roles[this.ROLE];
+		return harvesters.find((h: Creep) => (!!h.memory.container) && c.id === h.memory.container);
+	}
+
+	public static getCreepLimit(room: Room): number {
+		if (this.config.targetRoom === "W6N49") {
+			return 0;
+		}
+		return this.containers.length;
+	}
 
 	public container: StructureContainer;
 	public source: Source;
 	public keeperLair: StructureKeeperLair;
-	public governor: ASMHarvesterGovernor;
-
-	public setGovernor(governor: ASMHarvesterGovernor): void {
-		this.governor = governor;
-	}
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 		if (!this.creep.memory.container && !this.creep.memory.source) {
-			this.creep.memory.container = this.governor.checkContainerAssignment();
+			this.creep.memory.container = ASMHarvester.checkContainerAssignment();
 		}
 		this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
 		if (!this.creep.memory.source && !!this.container) {

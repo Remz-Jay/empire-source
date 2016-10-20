@@ -1,12 +1,40 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 import * as WallManager from "../../walls/wallManager";
 import * as RampartManager from "../../ramparts/rampartManager";
 
-export interface IRepair {
-	action(): boolean;
-}
+export default class Repair extends CreepAction {
 
-export default class Repair extends CreepAction implements IRepair, ICreepAction {
+	public static PRIORITY: number = global.PRIORITY_REPAIR;
+	public static MINRCL: number = global.MINRCL_REPAIR;
+	public static ROLE: string = "Repair";
+
+	public static bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
+	public static maxParts = 6;
+	public static maxCreeps = 1;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const spawn = room.getFreeSpawn();
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			target_controller_id: room.controller.id,
+			target_energy_source_id: spawn.id,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		let repairRoomList = ["W6N49"];
+		if (_.includes(repairRoomList, room.name)) {
+			return 1;
+		}
+		if (room.controller.level === 8 && room.myConstructionSites.length === 0) {
+			return 0;
+		}
+		return (room.controller.level < 5) ? 0 : _.floor(room.energyInContainers / 200000);
+	};
 
 	public myStructureMultiplier = 0.9;
 	public publicStructureMultiplier = 0.81;

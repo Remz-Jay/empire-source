@@ -1,6 +1,37 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export default class WarArcher extends WarfareCreepAction {
+
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "WarArcher";
+
+	public static maxParts = 15;
+	public static maxTough = 2;
+	public static maxCreeps = 5;
+	public static bodyPart = [RANGED_ATTACK, RANGED_ATTACK, MOVE];
+	public static toughPart = [TOUGH, TOUGH, MOVE];
+	public static basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getBody(room: Room) {
+		return super.getToughBody(room);
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
 	public hasHealer: boolean = true;
 	public hardPath: boolean = true;
 	public noTarget: boolean = true;

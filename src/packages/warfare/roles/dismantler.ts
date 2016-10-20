@@ -1,14 +1,32 @@
 import * as WallManager from "../../../components/walls/wallManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
-export interface IDismantler {
-	action(): boolean;
-	dismantleTarget(target: Structure): void;
-	dismantle(): boolean;
-	move(): boolean;
-}
+export default class Dismantler extends WarfareCreepAction {
 
-export default class Dismantler extends WarfareCreepAction implements IDismantler {
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "Dismantler";
+
+	public static maxParts = 20;
+	public static maxCreeps = 2;
+	public static bodyPart = [WORK, WORK, WORK, MOVE];
+	public static toughPart = [TOUGH, MOVE];
+	public static basePart = [TOUGH, TOUGH, TOUGH, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+	public static getBody(room: Room): string[] {
+		return super.getToughBody(room);
+	}
+
 	public noTarget: boolean = false;
 	public hasHealer: boolean = true;
 	public hardPath: boolean = true;

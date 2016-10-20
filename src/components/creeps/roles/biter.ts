@@ -1,14 +1,33 @@
 import WarfareCreepAction from "../../../packages/warfare/warfareCreepAction";
 
-export interface IBiter {
-	action(): boolean;
-}
+export default class Biter extends WarfareCreepAction {
 
-export default class Biter extends WarfareCreepAction implements IBiter {
+	public static PRIORITY: number = global.PRIORITY_BITER;
+	public static MINRCL: number = global.MINRCL_BITER;
+	public static ROLE: string = "Biter";
+
+	public static bodyPart = [ATTACK, ATTACK, MOVE];
+	public static maxCreeps = 1;
+	public static maxParts = 9;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return (room.hostileCreeps.length > 2) ? 1 : 0;
+	}
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 	}
+
 	public move(): boolean {
 		if (this.creep.room.hostileCreeps.length > 0) {
 			const hostile = this.creep.pos.findClosestByRange(this.creep.room.hostileCreeps);

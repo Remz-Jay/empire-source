@@ -1,23 +1,31 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 
-export interface IMiner {
+export default class Miner extends CreepAction {
 
-	targetMineralSource: Mineral;
-	targetMineralDropOff: Spawn | Structure;
-	targetExtractor: StructureExtractor;
-	mineralType: string;
+	public static PRIORITY: number = global.PRIORITY_MINER;
+	public static MINRCL: number = global.MINRCL_MINER;
+	public static ROLE: string = "Miner";
 
-	tryMining(): number;
-	moveToMine(): void;
-	tryMineralDropOff(): number;
-	moveToDropMinerals(): void;
-	assignNewDropOff(): boolean;
-	assignNewSource(): boolean;
+	public static bodyPart: string[] = [WORK, WORK, CARRY, MOVE];
+	public static maxParts: number = 12;
+	public static maxCreeps: number = 1;
 
-	action(): boolean;
-}
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
 
-export default class Miner extends CreepAction implements IMiner, ICreepAction {
+	public static getCreepLimit(room: Room): number {
+		// Look for Mineral sources that have minerals left and have an extractor.
+		return (room.minerals.filter((m: Mineral) => m.mineralAmount > 0
+		&& m.pos.lookFor(LOOK_STRUCTURES).length > 0).length > 0) ? this.maxCreeps : 0;
+	}
+
 	public targetMineralSource: Mineral;
 	public targetMineralDropOff: Structure;
 	public targetExtractor: StructureExtractor;

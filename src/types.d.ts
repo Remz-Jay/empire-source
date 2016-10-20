@@ -92,22 +92,7 @@ declare interface OffenseObject {
 		[roomName: string]: RemoteRoomConfig
 	};
 }
-declare interface ICreepGovernor {
-	bodyPart: string[];
-	maxParts: number;
-	maxCreeps: number;
-	emergency: boolean;
-	getCreepConfig(): CreepConfiguration;
-	getCreepLimit(): number;
-	getBody(): string[];
-	getNumberOfCreepsInRole(): number;
-	getCreepsInRole(): Creep[];
-	getBlackList(): string[];
-	addToBlackList(targetId: string): void;
-	checkContainerAssignment(): string;
-}
 declare interface SquadRole {
-	governor: Object;
 	role: Object;
 	maxCreeps: number;
 }
@@ -295,5 +280,7 @@ declare namespace NodeJS {
 		transactionStatus(): void;
 		setTarget(resourceName: string, target: number): void;
 		gclCalc(): void;
+		calculateRequiredEnergy(body: string[]): number;
+		sortBodyParts(bodyParts: string[]): string[];
 	}
 }

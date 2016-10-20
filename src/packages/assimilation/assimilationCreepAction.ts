@@ -4,6 +4,16 @@ export interface IASMCreepAction {
 }
 
 export default class ASMCreepAction extends CreepAction implements IASMCreepAction {
+	public static config: RemoteRoomConfig;
+
+	public static setConfig(config: RemoteRoomConfig) {
+		this.config = config;
+	}
+
+	public static getCreepsInRole(room: Room): Creep[] {
+		return _.filter(global.tickCache.roles[this.ROLE],
+			(creep: Creep) => creep.memory.config.homeRoom === room.name && creep.memory.config.targetRoom === this.config.targetRoom);
+	}
 
 	public goHome: boolean;
 

@@ -2,6 +2,65 @@ import ASMCreepAction from "../assimilationCreepAction";
 
 export default class ASMMule extends ASMCreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_ASM_MULE;
+	public static MINRCL: number = global.MINRCL_ASM_MULE;
+	public static ROLE: string = "ASMMule";
+
+	public static bodyPart: string[] = [CARRY, MOVE];
+	public static basePart: string[] = [WORK, WORK, MOVE, MOVE];
+	public static maxParts: number = 23;
+	public static maxCreeps: number = 1;
+	public static multiplier: number = 1;
+	public static containers: StructureContainer[] = [];
+
+	public static setConfig(config: RemoteRoomConfig, containers: StructureContainer[] = []) {
+		super.setConfig(config);
+		this.multiplier = (config.hasController) ? 1 : 2; // SK Rooms get 2 mules / source.
+		this.containers = containers;
+	}
+
+	public static getBody(room: Room) {
+		const numParts = global.clamp(_.floor(
+			(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+			global.calculateRequiredEnergy(this.bodyPart)), 0, this.maxParts);
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+			container: this.checkContainerAssignment(),
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+	public static checkContainerAssignment(): string {
+		let freeContainer: string = undefined;
+		_.each(this.containers, function(c: StructureContainer) {
+			const mules = this.checkAssignedMules(c);
+			if (!mules || mules.length < this.multiplier) {
+				freeContainer = c.id;
+			}
+		}, this);
+		return freeContainer;
+	}
+
+	public static checkAssignedMules(c: StructureContainer): Creep[] {
+		return _.filter(global.tickCache.roles[this.ROLE], (creep: Creep) => !!creep.memory.container && c.id === creep.memory.container);
+	}
+	public static getCreepLimit(room: Room): number {
+		return this.containers.length * this.multiplier;
+	}
+
 	public container: StructureContainer;
 	public keeperLair: StructureKeeperLair;
 	public storage: StructureStorage;
@@ -16,7 +75,7 @@ export default class ASMMule extends ASMCreepAction {
 			this.storage = Game.getObjectById<StructureStorage>(this.creep.memory.storage);
 		}
 		if (!this.container) {
-			const containerId = this.governor.checkContainerAssignment();
+			const containerId = ASMMule.checkContainerAssignment();
 			if (!!containerId) {
 				this.creep.memory.container = containerId;
 				this.setCreep(creep);

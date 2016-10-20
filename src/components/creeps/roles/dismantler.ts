@@ -10,6 +10,31 @@ enum State {
 
 export default class Dismantler extends CreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_DISMANTLER;
+	public static MINRCL: number = global.MINRCL_DISMANTLER;
+	public static ROLE: string = "Dismantler";
+
+	public static bodyPart = [CARRY, CARRY, WORK, MOVE];
+	public static maxParts = 12;
+	public static maxCreeps = 1;
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const spawn = room.getFreeSpawn();
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			target_controller_id: room.controller.id,
+			target_energy_source_id: spawn.id,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		const dismantleFlags = room.flags.filter((f: Flag) => f.color === COLOR_YELLOW && f.secondaryColor === COLOR_ORANGE);
+		return (dismantleFlags.length > 0) ? 1 : 0;
+	};
+
 	private state: State;
 	private target: Structure;
 

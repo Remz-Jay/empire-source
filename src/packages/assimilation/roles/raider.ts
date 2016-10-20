@@ -2,6 +2,29 @@ import ASMCreepAction from "../assimilationCreepAction";
 
 export default class ASMRaider extends ASMCreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_ASM_MULE;
+	public static MINRCL: number = global.MINRCL_ASM_MULE;
+	public static ROLE: string = "ASMRaider";
+
+	public static bodyPart: string[] = [CARRY, MOVE];
+	public static maxParts: number = 25;
+	public static maxCreeps: number = 6;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
 	public storage: StructureStorage;
 
 	public setCreep(creep: Creep) {

@@ -1,20 +1,32 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 
-export interface IBuilder {
+export default class Builder extends CreepAction {
 
-	targetConstructionSite: ConstructionSite;
-	targetEnergySource: Spawn | Structure;
+	public static PRIORITY: number = global.PRIORITY_BUILDER;
+	public static ROLE: string = "Builder";
+	public static MINRCL: number = global.MINRCL_BUILDER;
 
-	tryBuilding(): number;
-	tryCollectEnergy(): number;
-	moveToCollectEnergy(): void;
-	moveToConstructionSite(): void;
-	assignNewTarget(): boolean;
+	public static bodyPart: string[] = [WORK, CARRY, MOVE];
+	public static maxParts: number = 5;
+	public static maxCreeps: number = 1;
 
-	action(): boolean;
-}
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const spawn = room.getFreeSpawn();
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			target_construction_site_id: room.myConstructionSites[0].id,
+			target_energy_source_id: spawn.id,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
 
-export default class Builder extends CreepAction implements IBuilder, ICreepAction {
+	public static getCreepLimit(room: Room): number {
+		const sites = room.myConstructionSites;
+		return (sites.length > 0) ? 1 : 0;
+	}
 
 	public targetConstructionSite: ConstructionSite;
 	public targetEnergySource: Spawn | Structure;

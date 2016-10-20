@@ -1,21 +1,56 @@
 import CreepAction, {ICreepAction} from "../creepAction";
 import * as SourceManager from "../../sources/sourceManager";
 
-export interface IHarvester {
+export default class Harvester extends CreepAction {
 
-	targetSource: Source;
-	targetEnergyDropOff: Spawn | Structure;
+	public static PRIORITY: number = global.PRIORITY_HARVESTER;
+	public static MINRCL: number = global.MINRCL_HARVESTER;
+	public static ROLE: string = "Harvester";
 
-	tryHarvest(): number;
-	tryEnergyDropOff(): number;
-	moveToDropEnergy(): void;
-	assignNewDropOff(): boolean;
-	assignNewSource(): boolean;
+	public static basePart: string[] = [CARRY, CARRY, MOVE];
+	public static bodyPart: string[] = [WORK, WORK, MOVE];
+	public static maxParts: number = 3;
 
-	action(): boolean;
-}
+	public static getBody(room: Room) {
+		const emergency: boolean = SourceManager.isEmergency() || (this.getNumberOfCreepsInRole(room) < (this.getCreepLimit(room) / 2));
+		if (room.energyCapacityAvailable < 400) {
+			return global.sortBodyParts([WORK, WORK, CARRY, MOVE]);
+		}
+		let numParts: number;
+		if (this.getNumberOfCreepsInRole(room) > 0 && !emergency) {
+			numParts = _.floor(
+				(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+				global.calculateRequiredEnergy(this.bodyPart));
+		} else {
+			this.bodyPart = [WORK, CARRY, MOVE];
+			numParts = _.floor((room.energyAvailable) / global.calculateRequiredEnergy(this.bodyPart));
+		}
+		numParts = global.clamp(numParts, 1, this.maxParts);
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const spawn = room.getFreeSpawn();
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			target_energy_dropoff_id: spawn.id,
+			target_source_id: SourceManager.getFirstSource().id,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
 
-export default class Harvester extends CreepAction implements IHarvester, ICreepAction {
+	public static getCreepLimit(room: Room): number {
+		return SourceManager.getNumberOfRequiredHarvesters();
+	}
+
 	public targetSource: Source;
 	public targetEnergyDropOff: Spawn | Structure;
 
