@@ -10,7 +10,7 @@ import PowerMule from "./roles/powerMule";
  * RESOURCE_ZYNTHIUM_OXIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_YELLOW }, // +100% fatigue decrease speed
  */
 export default class PowerManager {
-	public static readonly ticksToPreSpawn = 300;
+	public static readonly ticksToPreSpawn = 310;
 	public static readonly damagePerTick = 990;
 	public static readonly muleCapacity = 1250;
 	private rooms: Room[] = [];
@@ -90,7 +90,7 @@ export default class PowerManager {
 			if (!!bank) {
 				console.log(`PowerBank ID: ${bank.id}. Ticks to go: ${_.round(bank.hits / PowerManager.damagePerTick)}/${bank.ticksToDecay}.`);
 				const numMulesRequired = _.ceil(bank.power / PowerManager.muleCapacity);
-				const timer = _.floor(numMulesRequired / 2) * PowerManager.ticksToPreSpawn;
+				const timer = _.floor(numMulesRequired / 3) * PowerManager.ticksToPreSpawn;
 				if (bank.hits <= PowerManager.damagePerTick * timer) {
 					squad.roles = [
 						{

@@ -417,7 +417,12 @@ export function govern(): void {
 				if (!!targetRoom && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
 						goHome = true;
-						Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
+						if (!targetRoom.memory.hostileAlarm || targetRoom.memory.hostileAlarm !== targetRoom.hostileCreeps.length) {
+							Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
+							targetRoom.memory.hostileAlarm = targetRoom.hostileCreeps.length;
+						}
+					} else {
+						delete targetRoom.memory.hostileAlarm;
 					}
 					// We have vision of the room, that's good.
 					if (!!targetRoom.controller && !! targetRoom.controller.reservation && !!targetRoom.controller.reservation.ticksToEnd) {
