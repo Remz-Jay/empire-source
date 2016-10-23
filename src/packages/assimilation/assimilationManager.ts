@@ -131,7 +131,7 @@ function manageClaim(roomName: string, claim: boolean = false, reserveOnly = fal
 					role.action();
 				}
 			} catch (e) {
-				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 			}
 		}, this);
 	} else {
@@ -194,7 +194,7 @@ function manageConstructions(maxBuilders: number = 1) {
 					role.action();
 				}
 			} catch (e) {
-				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 			}
 		}, this);
 	}
@@ -237,7 +237,7 @@ function manageHarvest(containers: StructureContainer[]) {
 						}
 					}
 				} catch (e) {
-					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+					console.log("ERROR :: ", creep.room.name, creep.name, e.stack);
 				}
 			}, this);
 		}
@@ -272,7 +272,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 						}
 					}
 				} catch (e) {
-					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 				}
 			}
 		}, this);
@@ -311,7 +311,7 @@ function manageBullies(roomName: string, limit: number = 0) {
 					}
 				}
 			} catch (e) {
-				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 			}
 		}, this);
 	}
@@ -353,7 +353,7 @@ function manageSourceKeepers(roomName: string, limit: number = 0) {
 						}
 					}
 				} catch (e) {
-					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 				}
 			}, this);
 		}
@@ -381,7 +381,7 @@ function manageMules(containers: StructureContainer[]) {
 						role.action();
 					}
 				} catch (e) {
-					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.message);
+					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 				}
 			}, this);
 		}
@@ -411,7 +411,7 @@ export function govern(): void {
 					try {
 						manageClaim(roomName, config.claim, config.reserveOnly);
 					} catch (e) {
-						console.log(`ERROR :: ASM in room ${roomName}: [CLAIM] ${e.message}`);
+						console.log(`ERROR :: ASM in room ${roomName}: [CLAIM] ${e.stack}`);
 					}
 				}
 				if (!!targetRoom && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
@@ -435,7 +435,7 @@ export function govern(): void {
 							try {
 								containers = manageContainers();
 							} catch (e) {
-								console.log(`ERROR :: ASM in room ${roomName}: [CONTAINERS] ${e.message}`);
+								console.log(`ERROR :: ASM in room ${roomName}: [CONTAINERS] ${e.stack}`);
 								containers = [];
 							}
 							if (containers.length > 0) {
@@ -447,23 +447,23 @@ export function govern(): void {
 									try {
 										manageMules(containers);
 									} catch (e) {
-										console.log(`ERROR :: ASM in room ${roomName}: [MULES] ${e.message}`);
+										console.log(`ERROR :: ASM in room ${roomName}: [MULES] ${e.stack}`);
 									}
 								}
 							}
 						} catch (e) {
-							console.log(`ERROR :: ASM in room ${roomName}: [HARVEST] ${e.message}`);
+							console.log(`ERROR :: ASM in room ${roomName}: [HARVEST] ${e.stack}`);
 						}
 						try {
 							if (config.claim) {
 								manageConstructions(2);
 							} else if (!config.hasController) {
-								// manageConstructions(3);
+								manageConstructions(3);
 							} else {
 								manageConstructions(1);
 							}
 						} catch (e) {
-							console.log(`ERROR :: ASM in room ${roomName}: [CONSTRUCTION] ${e.message}`);
+							console.log(`ERROR :: ASM in room ${roomName}: [CONSTRUCTION] ${e.stack}`);
 						}
 					}
 				} else {
@@ -491,12 +491,12 @@ export function govern(): void {
 							}
 						}
 					} catch (e) {
-						console.log(`ERROR :: ASM in room ${roomName}: [DEFENDERS] ${e.message}`);
+						console.log(`ERROR :: ASM in room ${roomName}: [DEFENDERS] ${e.stack}`);
 					}
 				}
 			}
 		} catch (e) {
-			console.log(`ERROR :: ASM in room ${roomName}: [WRAPPER] ${e.message}`);
+			console.log(`ERROR :: ASM in room ${roomName}: [WRAPPER] ${e.stack}`);
 		}
 	}, this);
 }

@@ -83,7 +83,7 @@ export function governCreeps(room: Room) {
 							role.setCreep(<Creep> creep);
 							role.action();
 						} catch (e) {
-							console.log(`ERROR :: ${creepRole}: ${creep.name} ${creep.room.name} ${e.message}`);
+							console.log(`ERROR ::`, creep.name, creep.room.name, e.stack);
 						}
 					}
 				}, this);

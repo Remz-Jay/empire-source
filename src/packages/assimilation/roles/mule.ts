@@ -6,8 +6,8 @@ export default class ASMMule extends ASMCreepAction {
 	public static MINRCL: number = global.MINRCL_ASM_MULE;
 	public static ROLE: string = "ASMMule";
 
-	public static bodyPart: string[] = [CARRY, MOVE];
-	public static basePart: string[] = [WORK, WORK, MOVE, MOVE];
+	public static bodyPart: string[] = [CARRY, CARRY, MOVE];
+	public static basePart: string[] = [WORK, WORK, MOVE];
 	public static maxParts: number = 23;
 	public static maxCreeps: number = 1;
 	public static multiplier: number = 1;
@@ -44,18 +44,15 @@ export default class ASMMule extends ASMCreepAction {
 		return {body: bodyParts, name: name, properties: properties};
 	}
 	public static checkContainerAssignment(): string {
-		let freeContainer: string = undefined;
-		_.each(this.containers, function(c: StructureContainer) {
+		let container = _(this.containers).find((c: StructureContainer) => {
 			const mules = this.checkAssignedMules(c);
-			if (!mules || mules.length < this.multiplier) {
-				freeContainer = c.id;
-			}
-		}, this);
-		return freeContainer;
+			return (!mules || mules.length < this.multiplier) ? true : false;
+		});
+		return (!!container) ? container.id : undefined;
 	}
 
 	public static checkAssignedMules(c: StructureContainer): Creep[] {
-		return _.filter(global.tickCache.roles[this.ROLE], (creep: Creep) => !!creep.memory.container && c.id === creep.memory.container);
+		return _(_.get(global, `tickCache.roles.${this.ROLE}`, [])).filter((creep: Creep) => !!creep.memory.container && c.id === creep.memory.container).value();
 	}
 	public static getCreepLimit(room: Room): number {
 		return this.containers.length * this.multiplier;
@@ -106,123 +103,69 @@ export default class ASMMule extends ASMCreepAction {
 	}
 
 	public dumpAtStorageOrLink() {
-		if (!this.creep.memory.target) {
-			// find a link that's closer than storage
-			if (!!this.storage && this.creep.carry.energy > 0) {
-				const storageRange = this.creep.pos.getRangeTo(this.storage.pos);
-				const links = this.creep.room.myGroupedStructures[STRUCTURE_LINK].filter(
-					(s: StructureLink) => s.energy <= (s.energyCapacity / 2)
-					&& s.pos.getRangeTo(this.creep.pos) < storageRange
-				);
-				const target: OwnedStructure = this.creep.pos.findClosestByPath<OwnedStructure>(links, {
-					algorithm: "astar",
-					costCallback: this.roomCallback,
-					maxOps: 500,
-				});
-				if (!!target) {
-					this.creep.memory.target = target.id;
-				} else {
-					this.creep.memory.target = this.storage.id;
-				}
+		if (this.creep.pos.getRangeTo(this.storage.pos) > 6) {
+			let link = _(this.creep.room.myGroupedStructures[STRUCTURE_LINK])
+				.filter((l: StructureLink) => l.energy < l.energyCapacity && l.pos.inRangeTo(this.creep.pos, 5))
+				.first();
+			if (!!link && !this.creep.pos.isNearTo(link)) {
+				this.moveTo(link.pos);
+			} else if (!link) {
+				this.moveTo(this.storage.pos);
 			}
-		}
-		const target: Structure = Game.getObjectById(this.creep.memory.target) as Structure;
-		if (!target) {
-			delete this.creep.memory.target;
 		} else {
-			this.dumpRoutine(target);
+			this.moveTo(this.storage.pos);
 		}
 	}
-
-	public dumpRoutine(target: Structure): void {
-		let status: number;
-		if (!this.creep.pos.isNearTo(target)) {
-			this.creep.memory.target = target.id;
-			this.moveTo(target.pos);
-		} else {
-			switch (target.structureType) {
-				case STRUCTURE_LINK:
-					const link = <StructureLink> target;
-					if (link.energy < link.energyCapacity) {
-						status = this.creep.logTransfer(link, RESOURCE_ENERGY);
-					} else {
-						return;
-					}
-					break;
-				case STRUCTURE_STORAGE:
-					if (this.creep.carry.energy > 0) {
-						status = this.creep.logTransfer(target, RESOURCE_ENERGY);
-					} else {
-						this.creep.memory.mineralType = this.getMineralTypeFromStore(this.creep);
-						status = this.creep.logTransfer(target, this.creep.memory.mineralType);
-					}
-					break;
-				default:
-					console.log(`Unhandled Structure in RoleMule.dumpRoutine: ${target.structureType} on target ${target}`);
-			}
-			switch (status) {
-				case ERR_FULL:
-					break;
-				case ERR_NOT_ENOUGH_RESOURCES:
-					if (!(target instanceof StructureStorage) || this.creep.bagEmpty) {
-						delete this.creep.memory.target;
-						// We're empty, drop from idle to pick up new stuff to haul.
-						delete this.creep.memory.idle;
-						// this.muleLogic();
-					}
-					break;
-				case OK:
-					break;
-				default:
-					console.log(`Status ${status} not defined for RoleMule.dump`);
-			}
-		}
-	};
-
 	public collectFromDrops(): boolean {
+		let drop: Resource;
 		if (this.container.store.energy > (this.creep.carryCapacity - this.creep.carry.energy)) {
 			return true;
 		}
 		if (!this.creep.memory.dropTarget) {
-			const drops = this.creep.room.find(FIND_DROPPED_RESOURCES,
-				{filter: (r: Resource) => r.amount >= (this.creep.carryCapacity / 2)}
-			) as Resource[];
-			if (drops.length > 0) {
-				const drop = this.creep.pos.findClosestByPath(drops, {
-					maxRooms: 1,
-					costCallback: this.roomCallback,
-				});
+			drop = _(this.container.safeLook(LOOK_RESOURCES, 4)).map("resource").sortBy("amount").last() as Resource;
+			if (!!drop) {
 				this.creep.memory.dropTarget = drop.id;
 			}
+		} else {
+			drop = Game.getObjectById(this.creep.memory.dropTarget) as Resource;
 		}
-		if (!!this.creep.memory.dropTarget) {
-			const drop = Game.getObjectById(this.creep.memory.dropTarget) as Resource;
-			if (!!drop && drop.amount > 100) {
-				if (!this.creep.pos.isNearTo(drop.pos)) {
-					this.moveTo(drop.pos);
-				} else {
-					this.creep.pickup(drop);
-					delete this.creep.memory.dropTarget;
-				}
-				return false;
+		if (!!drop) {
+			if (!this.creep.pos.isNearTo(drop.pos)) {
+				this.moveTo(drop.pos);
 			} else {
+				this.creep.pickup(drop);
 				delete this.creep.memory.dropTarget;
-				return true;
 			}
+			return false;
+		} else {
+			delete this.creep.memory.dropTarget;
+			return true;
 		}
-		return true;
 	}
 
 	public collectFromContainer() {
+		if (!this.creep.memory.config.hasController) {
+			if (!!this.creep.memory.keeperLair) {
+				this.keeperLair = Game.getObjectById<StructureKeeperLair>(this.creep.memory.keeperLair);
+			} else {
+				let lair = _(this.creep.room.groupedStructures[STRUCTURE_KEEPER_LAIR]).find(
+					(s: StructureKeeperLair) => s.pos.inRangeTo(this.container.pos, 5)) as StructureKeeperLair;
+				if (!!lair) {
+					this.keeperLair = lair;
+					this.creep.memory.keeperLair = this.keeperLair.id;
+				}
+			}
+			if (!this.fleeFromKeeperLair()) {
+				return;
+			}
+		}
 		if (this.collectFromDrops()) {
 			if (!this.creep.pos.isNearTo(this.container.pos)) {
 				this.moveTo(this.container.pos);
 			} else {
-				const drops = this.container.pos.lookFor(LOOK_RESOURCES);
-				if (drops.length > 0) {
-					_.forEach(drops, (drop: Resource) => {
-						this.creep.pickup(drop);
-					});
+				const drop = _(this.container.pos.lookFor(LOOK_RESOURCES)).first();
+				if (!!drop) {
+					this.creep.pickup(drop as Resource);
 				} else {
 					this.creep.withdraw(this.container, this.getMineralTypeFromStore(this.container));
 				}
@@ -231,6 +174,28 @@ export default class ASMMule extends ASMCreepAction {
 				}
 			}
 		}
+	}
+	public fleeFromKeeperLair(): boolean {
+		if (!!this.keeperLair) {
+			if (this.keeperLair.ticksToSpawn <= 10) {
+				const fleeRange = 6;
+				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
+					const goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
+					const path = PathFinder.search(this.creep.pos, goals, {
+						flee: true,
+						maxRooms: 1,
+						plainCost: 1,
+						swampCost: 10,
+						maxOps: 500,
+						roomCallback: this.roomCallback,
+					});
+					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
+				}
+				return false;
+			}
+			return true;
+		}
+		return true;
 	}
 
 	public action(): boolean {
@@ -243,7 +208,6 @@ export default class ASMMule extends ASMCreepAction {
 					this.moveTo(this.container.pos);
 				} else {
 					this.passingRepair();
-					// this.dumpToCloseTarget([STRUCTURE_LINK, STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
 					if (!!this.creep.memory.resetTarget) {
 						delete this.creep.memory.resetTarget;
 						delete this.creep.memory.target;
@@ -252,6 +216,8 @@ export default class ASMMule extends ASMCreepAction {
 						if (this.creep.ticksToLive < 350) {
 							this.creep.memory.hasRenewed = false;
 						}
+						// this.dumpAtStorageOrLink();
+						this.dumpToCloseTarget([STRUCTURE_LINK, STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
 						this.dumpAtStorageOrLink();
 					} else {
 						this.creep.memory.resetTarget = true;

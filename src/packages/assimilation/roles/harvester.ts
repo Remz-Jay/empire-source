@@ -52,25 +52,15 @@ export default class ASMHarvester extends ASMCreepAction {
 		return {body: bodyParts, name: name, properties: properties};
 	}
 	public static checkContainerAssignment(): string {
-		let freeContainer: string = undefined;
-		_.each(this.containers, function(c: StructureContainer) {
-			const h = this.checkAssignedHarvester(c);
-			if (!h) {
-				freeContainer = c.id;
-			}
-		}, this);
-		return freeContainer;
+		let container = _(this.containers).find((c: StructureContainer) => !this.checkAssignedHarvester(c));
+		return (!!container) ? container.id : undefined;
 	}
 
 	public static checkAssignedHarvester(c: StructureContainer): Creep {
-		const harvesters = global.tickCache.roles[this.ROLE];
-		return harvesters.find((h: Creep) => (!!h.memory.container) && c.id === h.memory.container);
+		return _(_.get(global, `tickCache.roles.${this.ROLE}`, [])).find((h: Creep) => !!h.memory.container && c.id === h.memory.container);
 	}
 
 	public static getCreepLimit(room: Room): number {
-		if (this.config.targetRoom === "W6N49") {
-			return 0;
-		}
 		return this.containers.length;
 	}
 
@@ -84,6 +74,17 @@ export default class ASMHarvester extends ASMCreepAction {
 			this.creep.memory.container = ASMHarvester.checkContainerAssignment();
 		}
 		this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
+		if (!!this.container) {
+			let other = _(_.get(global, `tickCache.rolesByRoom.${ASMHarvester.ROLE}.${this.creep.memory.homeRoom}`, [])).find(
+				(h: Creep) => h.id !== this.creep.id && !!h.memory.container && this.container.id === h.memory.container);
+			if (!!other) {
+				delete this.creep.memory.container;
+				delete this.creep.memory.source;
+				delete this.creep.memory.keeperLair;
+				this.creep.memory.container = ASMHarvester.checkContainerAssignment();
+				this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
+			}
+		}
 		if (!this.creep.memory.source && !!this.container) {
 			const source = this.findSourceNearContainer(this.container);
 			this.source = source;
@@ -113,13 +114,7 @@ export default class ASMHarvester extends ASMCreepAction {
 		if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && this.container.hits < this.container.hitsMax) {
 			return this.creep.repair(this.container);
 		} else if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
-			if (this.creep.pos.isNearTo(this.container.pos)) {
-				if (_.sum(this.container.store) < this.container.storeCapacity) {
-					this.creep.logTransfer(this.container, RESOURCE_ENERGY);
-				} else {
-					this.creep.drop(RESOURCE_ENERGY);
-				}
-			}
+			this.creep.drop(RESOURCE_ENERGY);
 		}
 		if (this.source.energy > 0) {
 			return this.creep.harvest(this.source);

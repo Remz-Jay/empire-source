@@ -104,7 +104,7 @@ global.planRoute = function(from: RoomPosition, to: RoomPosition): void {
 				}
 				return room.getCostMatrix(false); // The cached one without per-tick creeps.
 			} catch (e) {
-				console.log(e.message, "creepAction.roomCallback", roomName);
+				console.log(e.stack, "creepAction.roomCallback", roomName);
 				return new PathFinder.CostMatrix();
 			}
 		},

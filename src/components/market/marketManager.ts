@@ -107,7 +107,7 @@ function runTransactions() {
 		try {
 			r.terminal.processTransactions();
 		} catch (e) {
-			console.log(`MarketManager.processTransactions, terminal in room ${r.name} reports: ${e.message}`);
+			console.log(`MarketManager.processTransactions, terminal in room ${r.name} reports: ${e.stack}`);
 		}
 	});
 	console.log(`MarketManager.processTransactions took ${_.round(Game.cpu.getUsed() - before, 2)}`);
@@ -119,7 +119,7 @@ function autoSell() {
 		try {
 			r.terminal.autoSell();
 		} catch (e) {
-			console.log(`MarketManager.autoSell, terminal in room ${r.name} reports: ${e.message}`);
+			console.log(`MarketManager.autoSell, terminal in room ${r.name} reports: ${e.stack}`);
 		}
 	});
 	console.log(`MarketManager.autoSell took ${_.round(Game.cpu.getUsed() - before, 2)}`);

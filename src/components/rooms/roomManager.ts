@@ -1,7 +1,5 @@
 import * as CreepManager from "./../creeps/creepManager";
 import * as SourceManager from "./../sources/sourceManager";
-import * as WallManager from "../walls/wallManager";
-import * as RampartManager from "../ramparts/rampartManager";
 
 export let rooms: { [roomName: string]: Room };
 export function loadRooms() {
@@ -45,19 +43,16 @@ export function governRooms(): void {
 		const room = getRoomByName(roomName);
 		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
 			try {
-				WallManager.load(room);
-				WallManager.adjustStrength();
-				RampartManager.load(room);
-				RampartManager.adjustStrength();
 				if (room.alliedCreeps.length > 0 && room.hostileCreeps.length === 0) {
-					RampartManager.openRamparts();
+					room.openRamparts();
 				} else {
-					RampartManager.closeRamparts();
+					room.closeRamparts();
 				}
 				if (room.mySpawns.length > 0) {
 					room.mySpawns.forEach(function (s: StructureSpawn) {
 						if (!!s.spawning) {
 							s.isBusy = true;
+							s.relocateCreeps();
 						} else {
 							s.renewCreeps();
 						}
@@ -67,7 +62,7 @@ export function governRooms(): void {
 					SourceManager.updateHarvesterPreference();
 				}
 			} catch (e) {
-				console.log("RoomManager.init", e.message);
+				console.log("RoomManager.init", e.stack);
 			}
 
 			if (room.controller.level > 3 && room.myCreeps.length < 4) {
@@ -92,7 +87,7 @@ export function governRooms(): void {
 					t.run();
 				});
 			} catch (e) {
-				console.log("RoomManager.Towers", room.name, e.message);
+				console.log("RoomManager.Towers", room.name, e.stack);
 			}
 
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
@@ -104,7 +99,7 @@ export function governRooms(): void {
 						});
 					}
 				} catch (e) {
-					console.log("RoomManager.Links", room.name, e.message);
+					console.log("RoomManager.Links", room.name, e.stack);
 				}
 			}
 			if (global.time % 5 === 0 && Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
@@ -113,7 +108,7 @@ export function governRooms(): void {
 						room.terminal.run();
 					}
 				} catch (e) {
-					console.log("RoomManager.Terminal", room.name, e.message);
+					console.log("RoomManager.Terminal", room.name, e.stack);
 				}
 			}
 
@@ -129,7 +124,7 @@ export function governRooms(): void {
 							}
 						}
 					} catch (e) {
-						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.message);
+						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.stack);
 					}
 				}
 				try {
@@ -137,7 +132,10 @@ export function governRooms(): void {
 						room.observer.run();
 					}
 				} catch (e) {
-					console.log("RoomManager.Observer", room.name, e.message, e.stack);
+					console.log("RoomManager.Observer", room.name, e.stack, e.stack);
+				}
+				if (!!room.powerSpawn && room.powerSpawn.power > 0 && room.powerSpawn.energy >= POWER_SPAWN_ENERGY_RATIO) {
+					room.powerSpawn.processPower();
 				}
 			}
 
@@ -146,14 +144,7 @@ export function governRooms(): void {
 				try {
 					CreepManager.governCreeps(room);
 				} catch (e) {
-					console.log (`ERROR :: Running Creeps for room ${room.name} : ${e.message}`);
-				}
-				try {
-					if (!!room.powerSpawn && room.powerSpawn.power >= 0 && room.powerSpawn.energy >= 50) {
-						room.powerSpawn.processPower();
-					}
-				} catch (e) {
-					console.log(`ERROR :: RoomManager.runPowerSpawn:`, room.name, e.message);
+					console.log (`ERROR :: Running Creeps for room ${room.name} : ${e.stack}`);
 				}
 			}
 		}

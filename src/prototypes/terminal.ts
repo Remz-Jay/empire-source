@@ -80,7 +80,7 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 				}
 			}
 		} catch (e) {
-			console.log("Terminal.prototype.marketTrade ERROR ::" + e.message);
+			console.log("Terminal.prototype.marketTrade ERROR ::" + e.stack);
 		}
 	}
 	return false;
@@ -143,10 +143,9 @@ StructureTerminal.prototype.run = function (): boolean {
 		if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
 			if (!this.sending
 				&& br.room.name !== this.room.name
-				&& this.room.boostLabs.length === 0
 				&& !_.includes(global.sendRegistry, br.reagent)
-				&& this.store[br.reagent] >= TERMINAL_MIN_SEND
-				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < global.TERMINAL_MAX)
+				&& this.store[br.reagent] >= batchSize * 2
+				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < batchSize)
 				&& !br.room.storage.store[br.reagent]
 			) {
 				let transferAmount: number = global.clamp(batchSize, TERMINAL_MIN_SEND, this.store[br.reagent]);

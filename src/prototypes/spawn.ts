@@ -3,6 +3,7 @@ interface StructureSpawn {
 	createCreepWhenIdle(body: string[], name?: string, memory?: any): number | string;
 	getPriorityCreep(creeps: Creep[], reverse: boolean): Creep;
 	renewCreeps(): void;
+	relocateCreeps(): void;
 }
 
 StructureSpawn.prototype.isBusy = false;
@@ -34,7 +35,20 @@ StructureSpawn.prototype.getPriorityCreep = function(creeps: Creep[], reverse = 
 	}, Infinity);
 	return target;
 };
-
+StructureSpawn.prototype.relocateCreeps = function(): void {
+	const creeps = this.room.myCreeps.filter((c: Creep) =>
+		!!c.memory.renewStation
+		&& c.memory.renewStation === this.id
+	);
+	if (creeps.length > 0) {
+		let s = this.room.mySpawns.find((s: StructureSpawn) => !s.isBusy);
+		if (!!s) {
+			creeps.forEach((c: Creep) => {
+				c.memory.renewStation = s.id;
+			});
+		}
+	}
+};
 StructureSpawn.prototype.renewCreeps = function(): void {
 	const creeps = this.room.myCreeps.filter((c: Creep) => c.ticksToLive < 1400
 		&& c.getActiveBodyparts(CLAIM) === 0
@@ -61,9 +75,12 @@ StructureSpawn.prototype.renewCreeps = function(): void {
 	}
 	if (!!prio) {
 		this.renewCreep(prio);
-		if (targets.length > 2 && prio.ticksToLive > 400) {
+		if (targets.length > 1 && prio.ticksToLive > 200) {
 			// Send away the creep with the highest TTL if we're crowded to keep things moving.
-			prio.memory.renewStation = this.room.getFreeSpawn().id;
+			let s = this.room.mySpawns.find((s: StructureSpawn) => !s.isBusy);
+			if (!!s) {
+				prio.memory.renewStation = s.id;
+			}
 		}
 	} else if (this.room.alliedCreeps.length > 0) {
 		targets = this.room.alliedCreeps.filter((c: Creep) => c.ticksToLive < 1400

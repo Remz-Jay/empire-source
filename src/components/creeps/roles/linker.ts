@@ -1,4 +1,4 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 
 export default class Linker extends CreepAction {
 
@@ -198,7 +198,6 @@ export default class Linker extends CreepAction {
 			return false;
 		}
 	}
-
 	public balanceTerminal(): boolean {
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) { // busy with fillNuker
 			return false;

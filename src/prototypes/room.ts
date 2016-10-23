@@ -29,6 +29,8 @@ interface Room {
 	labReaction: string;
 	labReagents: string[];
 	flags: Flag[];
+	weakestWall: StructureWall;
+	weakestRampart: StructureRampart;
 	// spawnQueue: CreepSpawnDefinition[];
 	// addToSpawnQueue(body: string[], name?: string, memory?: any, priority?: boolean): boolean;
 	// getCreepToSpawn(): CreepSpawnDefinition;
@@ -70,6 +72,8 @@ interface Room {
 	getLabReagents(): string[];
 	addProperties(): void;
 	observe(): void;
+	openRamparts(): void;
+	closeRamparts(): void;
 }
 
 Room.prototype.setCostMatrix = function (costMatrix: CostMatrix, nopass: string, pass: string) {
@@ -112,7 +116,7 @@ Room.prototype.getCreepMatrix = function () {
 		this.setCreepMatrix(creepMatrix);
 		return creepMatrix;
 	} catch (e) {
-		console.log(e.message, "Room.Prototype.getCreepMatrix", this.name);
+		console.log(e.stack, "Room.Prototype.getCreepMatrix", this.name);
 		return new PathFinder.CostMatrix();
 	}
 
@@ -256,7 +260,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refr
 			return costs;
 		}
 	} catch (e) {
-		console.log("Room.prototype.getCostMatrix", this.name, e.message);
+		console.log("Room.prototype.getCostMatrix", this.name, e.stack);
 		return new PathFinder.CostMatrix();
 	}
 };
@@ -499,6 +503,40 @@ Object.defineProperty(Room.prototype, "flags", {
 	get: function flags() {
 		delete this.flags;
 		return this.flags = this.find(FIND_FLAGS);
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "weakestWall", {
+	get: function weakestWall() {
+		delete this.weakestWall;
+		return this.weakestWall = _.min(this.groupedStructures[STRUCTURE_WALL], (w: StructureWall) => w.hits);
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "weakestRampart", {
+	get: function weakestRampart() {
+		delete this.weakestRampart;
+		return this.weakestRampart = _.min(this.groupedStructures[STRUCTURE_RAMPART], (w: StructureRampart) => w.hits);
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "openRamparts", {
+	value: function() {
+		_(this.groupedStructures[STRUCTURE_RAMPART]).filter((r: StructureRampart) => !!r.my && !r.isPublic).forEach((r: Rampart) => {
+			r.setPublic(true);
+		});
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "closeRamparts", {
+	value: function() {
+		_(this.groupedStructures[STRUCTURE_RAMPART]).filter((r: StructureRampart) => !!r.my && !!r.isPublic).forEach((r: Rampart) => {
+			r.setPublic(false);
+		});
 	},
 	configurable: true,
 	enumerable: false,

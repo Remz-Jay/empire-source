@@ -1,4 +1,4 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 import * as SourceManager from "../../sources/sourceManager";
 
 export default class Harvester extends CreepAction {

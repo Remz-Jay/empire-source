@@ -1,4 +1,3 @@
-import * as WallManager from "../../../components/walls/wallManager";
 import WarfareCreepAction from "../warfareCreepAction";
 
 export default class Dismantler extends WarfareCreepAction {
@@ -64,8 +63,7 @@ export default class Dismantler extends WarfareCreepAction {
 				this.dismantleTarget(target);
 				return false;
 			} else if (!!this.creep.room.controller && !this.creep.room.controller.my) {
-				WallManager.load(this.creep.room);
-				target =  WallManager.getWeakestWall();
+				target =  this.creep.room.weakestWall;
 				this.dismantleTarget(target);
 			}
 		}

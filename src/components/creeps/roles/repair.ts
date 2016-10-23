@@ -1,6 +1,4 @@
 import CreepAction from "../creepAction";
-import * as WallManager from "../../walls/wallManager";
-import * as RampartManager from "../../ramparts/rampartManager";
 
 export default class Repair extends CreepAction {
 
@@ -88,21 +86,12 @@ export default class Repair extends CreepAction {
 		}
 		// Still nothing? Fortify Ramparts and Walls if we have spare energy.
 		if (!target && this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
-			const avgRampart = RampartManager.getAverageStrength();
-			const avgWall = WallManager.getAverageStrength();
-			if (avgWall < avgRampart) {
-				target = WallManager.getWeakestWall();
-			} else {
-				const rampart = RampartManager.getWeakestRampart();
-				if (
-					!_.includes(blackList, rampart.id)
-					&& (rampart.hits < RampartManager.getAverageStrength() && rampart.hits < WallManager.getAverageStrength())
-					|| rampart.hits < (rampart.hitsMax * 0.1)
-				) {
-					target = rampart;
-				} else {
-					target = WallManager.getWeakestWall();
-				}
+			const minRampart = this.creep.room.weakestRampart;
+			const minWall = this.creep.room.weakestWall;
+			if (!!minRampart && (!minWall || minRampart.hits < minWall.hits)) {
+				target = minRampart;
+			} else if (!!minWall) {
+				target = minWall;
 			}
 		}
 		return target;

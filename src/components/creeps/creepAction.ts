@@ -97,7 +97,7 @@ export default class CreepAction implements ICreepAction {
 				return new PathFinder.CostMatrix();
 			}
 		} catch (e) {
-			console.log(e.message, "creepAction.roomCallback", roomName);
+			console.log("creepAction.roomCallback", roomName, e.stack);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -127,7 +127,7 @@ export default class CreepAction implements ICreepAction {
 				return new PathFinder.CostMatrix();
 			}
 		} catch (e) {
-			console.log(e.message, "creepAction.creepCallback", roomName);
+			console.log("creepAction.creepCallback", roomName, e.stack);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -157,7 +157,7 @@ export default class CreepAction implements ICreepAction {
 				return new PathFinder.CostMatrix();
 			}
 		} catch (e) {
-			console.log(e.message, "creepAction.ignoreCallback", roomName);
+			console.log("creepAction.ignoreCallback", roomName, e.stack);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -374,7 +374,7 @@ export default class CreepAction implements ICreepAction {
 				}
 			}
 		} catch (e) {
-			console.log(e.message, target, "creepAction.moveTo");
+			console.log("creepAction.moveTo", target, e.stack);
 			// fall back to regular move.
 			if (!(target instanceof RoomPosition)) {
 				target = new RoomPosition(target[0].pos.x, target[0].pos.y, target[0].pos.roomName);
@@ -498,7 +498,7 @@ export default class CreepAction implements ICreepAction {
 					return true;
 				}
 			} catch (e) {
-				console.log(`creepAction.ExpireCreep: ${e.message}`);
+				console.log(`creepAction.ExpireCreep`, e.stack);
 				return false;
 			}
 		}
@@ -681,7 +681,7 @@ export default class CreepAction implements ICreepAction {
 						this.creep.say(status.toString());
 					}
 				} catch (e) {
-					console.log(e.message);
+					console.log("getBoosted", e.stack);
 				}
 			}
 			return false;
@@ -737,14 +737,31 @@ export default class CreepAction implements ICreepAction {
 			const targets = _.map(lookTargets, "structure") as EnergyStructure[];
 			const needyStructure = _.find(targets, (s: EnergyStructure) =>
 				needyTypes.indexOf(s.structureType) > -1
-				&& ((!!s.energy && !!s.energyCapacity && s.energy < s.energyCapacity) || (
+				&& ((!!s.energyCapacity && s.energy < s.energyCapacity) || (
 						(s instanceof StructureStorage || s instanceof StructureTerminal || s instanceof StructureContainer)
 						&& (_.sum(s.store) + this.creep.carry.energy) <= s.storeCapacity
 					)
 				)
 			);
 			if (needyStructure) {
-				this.creep.logTransfer(needyStructure, RESOURCE_ENERGY);
+				if (needyStructure.structureType === STRUCTURE_STORAGE || needyStructure.structureType === STRUCTURE_TERMINAL) {
+					this.creep.logTransfer(needyStructure, this.getMineralTypeFromStore(this.creep));
+				} else {
+					this.creep.logTransfer(needyStructure, RESOURCE_ENERGY);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	public withdrawFromCloseTarget(additionalStructures: string[] = []): boolean {
+		if (this.creep.carrySum < this.creep.carryCapacity) {
+			let providerTypes: string[] = [STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_CONTAINER];
+			providerTypes = _.union(providerTypes, additionalStructures);
+			const target = _(this.creep.safeLook(LOOK_STRUCTURES, 1)).map("structure").find((s: StorageStructure) =>
+				providerTypes.indexOf(s.structureType) > -1 && _.sum(s.store) > 0) as StorageStructure;
+			if (!!target) {
+				this.creep.withdraw(target, this.getMineralTypeFromStore(target));
 				return true;
 			}
 		}
