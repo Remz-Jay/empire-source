@@ -10,7 +10,6 @@ import "./prototypes/terminal";
 import "./prototypes/tower";
 import "./prototypes/spawn";
 import "./prototypes/observer";
-
 import * as MemoryManager from "./shared/memoryManager";
 import * as RoomManager from "./components/rooms/roomManager";
 import * as AssimilationManager from "./packages/assimilation/assimilationManager";

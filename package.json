@@ -19,6 +19,7 @@
     "gulp-util": "^3.0.7",
     "jshint": "^2.9.2",
     "lodash": "^3.10.1",
+    "msgpack-lite": "^0.1.26",
     "node-file-parser": "^2.2.2",
     "prepend-loader": "0.0.2",
     "q": "^1.4.1",

@@ -176,6 +176,11 @@ declare interface Game {
 	assman: any;
 	offense: any;
 }
+declare class RawMemory {
+	public static get(): Buffer;
+	public static set(m: Memory): void;
+}
+
 declare namespace NodeJS {
 	export interface Global {
 		VERBOSE: boolean;

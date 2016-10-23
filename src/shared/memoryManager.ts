@@ -1,6 +1,8 @@
+import * as msgpack from "msgpack-lite";
 export let memory: Memory;
 
 export function loadMemory(): void {
+	Memory = msgpack.decode(RawMemory.get());
 	this.memory = Memory;
 	if (!this.memory.config) {
 		this.memory.config = {
@@ -28,6 +30,9 @@ export function loadMemory(): void {
 	if (!Memory.stats) {
 		Memory.stats = {};
 	}
+}
+export function saveMemory(): void {
+	RawMemory.set(msgpack.encode(this.memory));
 }
 
 export function cleanMemory(): void {
