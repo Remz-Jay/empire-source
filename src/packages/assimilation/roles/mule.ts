@@ -59,7 +59,6 @@ export default class ASMMule extends ASMCreepAction {
 	}
 
 	public container: StructureContainer;
-	public keeperLair: StructureKeeperLair;
 	public storage: StructureStorage;
 
 	public setCreep(creep: Creep) {
@@ -155,7 +154,7 @@ export default class ASMMule extends ASMCreepAction {
 					this.creep.memory.keeperLair = this.keeperLair.id;
 				}
 			}
-			if (!this.fleeFromKeeperLair()) {
+			if (!this.fleeFromKeeperLair(6)) {
 				return;
 			}
 		}
@@ -175,30 +174,8 @@ export default class ASMMule extends ASMCreepAction {
 			}
 		}
 	}
-	public fleeFromKeeperLair(): boolean {
-		if (!!this.keeperLair) {
-			if (this.keeperLair.ticksToSpawn <= 10) {
-				const fleeRange = 6;
-				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
-					const goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
-					const path = PathFinder.search(this.creep.pos, goals, {
-						flee: true,
-						maxRooms: 1,
-						plainCost: 1,
-						swampCost: 10,
-						maxOps: 500,
-						roomCallback: this.roomCallback,
-					});
-					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
-				}
-				return false;
-			}
-			return true;
-		}
-		return true;
-	}
-
 	public action(): boolean {
+		this.creep.pickupResourcesInRange(true);
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
 			if (this.creep.carry.energy === 0 && !this.creep.bagEmpty) {
 				this.creep.drop(this.getMineralTypeFromStore(this.creep));
@@ -225,7 +202,6 @@ export default class ASMMule extends ASMCreepAction {
 					}
 				}
 			} else {
-				this.creep.pickupResourcesInRange(true);
 				if (this.isBagFull()) {
 					this.passingRepair();
 					this.creep.memory.resetTarget = true;

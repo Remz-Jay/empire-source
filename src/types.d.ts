@@ -114,6 +114,26 @@ declare interface PowerBankMemory {
 	indexed: number;
 	taken: boolean;
 }
+declare interface CreepStatsObject {
+	fullHealth: {
+		attack: number;
+		dismantle: number;
+		heal: number;
+		rangedAttack: number;
+		toughParts: number;
+		toughReduction: number;
+		hits: number;
+	};
+	current: {
+		attack: number;
+		dismantle: number;
+		heal: number;
+		rangedAttack: number;
+		toughParts: number;
+		toughReduction: number;
+		hits: number;
+	};
+}
 
 declare interface Memory {
 	assimilation?: AssimilationObject;

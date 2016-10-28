@@ -25,7 +25,7 @@ export default class PowerManager {
 	};
 	constructor() {
 		this.loadFromMemory();
-		// this.rooms = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level === 8);
+		// this.rooms = _.filter(Game.rooms, (r: Room) => !!r.my && r.controller.level === 8);
 		let roomNames = ["W6N42", "W6N49", "W8N47", "W2N46"];
 		roomNames.forEach((n: string) => this.rooms.push(Game.rooms[n]));
 		this.powerBanks = Memory.powerBanks || {};
@@ -68,9 +68,8 @@ export default class PowerManager {
 		let status: number | string = spawn.canCreateCreep(creepConfig.body, creepConfig.name);
 		if (status === OK) {
 			status = spawn.createCreepWhenIdle(creepConfig.body, creepConfig.name, creepConfig.properties);
-
 			if (global.VERBOSE) {
-				if (_.isNumber(status)) {
+				if (_.isNumber(status) && status !== ERR_BUSY) {
 					console.log(`[PowerManager] Unable to create ${creepConfig.properties.role} Creep (${global.translateErrorCode(status)})`);
 				} else {
 					console.log(`[PowerManager] Started creating new ${creepConfig.properties.role} Creep ${status}`);
@@ -162,7 +161,7 @@ export default class PowerManager {
 			if (creepsInRole.length < squadRole.maxCreeps) {
 				let creepConfig = roleCtor.getCreepConfig(homeRoom);
 				const status = this.createCreep(homeRoom, creepConfig);
-				if (_.isNumber(status)) {
+				if (_.isNumber(status) && status !== ERR_BUSY) {
 					console.log("[PowerManager] managePowerSquad.spawn", global.translateErrorCode(status), squadRole.role, JSON.stringify(creepConfig));
 				} else {
 					console.log("[PowerManager] managePowerSquad.spawn", status, squadRole.role);

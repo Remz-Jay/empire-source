@@ -2,7 +2,7 @@ interface RoomPosition {
 	findClosestByPathFinder(goals: PathFinderGoal, itr: Function): PathFinderItem;
 }
 // TODO: Under construction
-RoomPosition.prototype.findClosestByPathFinder = function(goals: PathFinderGoal, itr: Function=_.identity): PathFinderItem {
+RoomPosition.prototype.findClosestByPathFinder = function(goals: PathFinderGoal, itr: Function = _.identity): PathFinderItem {
 	if (_.isObject(goals)) {
 		goals = _.map(goals) as PathFinderItem[];
 	}

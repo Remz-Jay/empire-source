@@ -31,6 +31,7 @@ interface Room {
 	flags: Flag[];
 	weakestWall: StructureWall;
 	weakestRampart: StructureRampart;
+	my: boolean;
 	// spawnQueue: CreepSpawnDefinition[];
 	// addToSpawnQueue(body: string[], name?: string, memory?: any, priority?: boolean): boolean;
 	// getCreepToSpawn(): CreepSpawnDefinition;
@@ -362,28 +363,13 @@ Room.prototype.getSources = function(): Source[] {
 	return this.find(FIND_SOURCES);
 };
 Room.prototype.getNuker = function(): StructureNuker {
-	const sn = this.myGroupedStructures[STRUCTURE_NUKER];
-	if (sn.length > 0) {
-		return _.first(sn) as StructureNuker;
-	} else {
-		return undefined;
-	}
+	return _(this.groupedStructures[STRUCTURE_NUKER]).first() as StructureNuker;
 };
 Room.prototype.getPowerSpawn = function(): StructurePowerSpawn {
-	const sn = this.myGroupedStructures[STRUCTURE_POWER_SPAWN];
-	if (sn.length > 0) {
-		return _.first(sn) as StructurePowerSpawn;
-	} else {
-		return undefined;
-	}
+	return _(this.groupedStructures[STRUCTURE_POWER_SPAWN]).first() as StructurePowerSpawn;
 };
 Room.prototype.getObserver = function(): StructureObserver {
-	const sn = this.myGroupedStructures[STRUCTURE_OBSERVER];
-	if (sn.length > 0) {
-		return _.first(sn) as StructureObserver;
-	} else {
-		return undefined;
-	}
+	return _(this.groupedStructures[STRUCTURE_OBSERVER]).first() as StructureObserver;
 };
 Room.prototype.getLabReaction = function(): string {
 	if (!!Game.flags[this.name + "_LR"]) {
@@ -462,67 +448,270 @@ Room.prototype.observe = function(): void {
 	}
 };
 Room.prototype.addProperties = function () {
-	this.towerTargets = [];
-
-	this.allStructures =        this.getAllStructures();
-	this.groupedStructures =    this.groupAllStructures();
-	this.allCreeps =            this.getAllCreeps();
-	this.allConstructionSites = this.getAllConstructionSites();
-	this.minerals =             this.getMinerals();
-	this.sources =              this.getSources();
-
-	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
-	this.myGroupedStructures  = (!!this.controller && !!this.controller.my && this.myStructures.length > 0) ? this.groupMyStructures() : undefined;
-	this.nuker =                (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getNuker() : undefined;
-	this.powerSpawn =           (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getPowerSpawn() : undefined;
-	this.observer =             (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getObserver() : undefined;
-	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
-	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
-	this.myLabs =               (!!this.controller && !!this.controller.my && this.controller.level >= 6 && this.allStructures.length > 0) ? this.getMyLabs() : [];
-	this.boostLabs =            (this.myLabs.length > 0) ? this.getBoostLabs() : [];
-	this.labReaction =          (this.myLabs.length > 0) ? this.getLabReaction() : undefined;
-	this.labReagents =          (!!this.labReaction) ? this.getLabReagents() : [];
-
-	this.myCreeps =             (this.allCreeps.length > 0) ? this.getMyCreeps() : [];
-	this.hostileCreeps =        (this.allCreeps.length > 0) ? this.getHostileCreeps() : [];
-	this.alliedCreeps =         (this.hostileCreeps.length > 0) ? this.getAlliedCreeps() : [];
-
-	this.myConstructionSites =  (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
-
-	this.containers =           (this.allStructures.length > 0) ? this.getContainers() : [];
-	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
-	this.energyInContainers =   (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
-	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
-
 	// Cache a costMatrix in case we scanned this room using an observer last tick.
 	this.getCostMatrix(false, true);
 	this.observe();
 };
-
+Object.defineProperty(Room.prototype, "myStructures", {
+	get: function() {
+		if (!this.my || !this.allStructures.length) {
+			return [];
+		}
+		return (!!this.__myStructures) ? this.__myStructures : this.__myStructures = this.getMyStructures();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "myGroupedStructures", {
+	get: function() {
+		if (!this.my || !this.myStructures.length) {
+			return undefined;
+		}
+		return (!!this.__myGroupedStructures) ? this.__myGroupedStructures : this.__myGroupedStructures = this.groupMyStructures();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "mySpawns", {
+	get: function() {
+		if (!this.my || !this.myStructures.length) {
+			return [];
+		}
+		return (!!this.__mySpawns) ? this.__mySpawns : this.__mySpawns = this.getMySpawns();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "myLabs", {
+	get: function() {
+		if (!this.my || this.controller.level < 6 || !this.myStructures.length) {
+			return [];
+		}
+		return (!!this.__myLabs) ? this.__myLabs : this.__myLabs = this.getMyLabs();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "nuker", {
+	get: function() {
+		if (!this.controller || this.controller.level < 8 || !this.allStructures.length) {
+			return undefined;
+		}
+		return (!!this.__nuker) ? this.__nuker : this.__nuker = this.getNuker();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "powerSpawn", {
+	get: function() {
+		if (!this.controller || this.controller.level < 8 || !this.allStructures.length) {
+			return undefined;
+		}
+		return (!!this.__powerSpawn) ? this.__powerSpawn : this.__powerSpawn = this.getPowerSpawn();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "observer", {
+	get: function() {
+		if (!this.controller || this.controller.level < 8 || !this.allStructures.length) {
+			return undefined;
+		}
+		return (!!this.__observer) ? this.__observer : this.__observer = this.getObserver();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "hostileStructures", {
+	get: function() {
+		if (!this.controller || !this.allStructures.length) {
+			return [];
+		}
+		return (!!this.__hostileStructures) ? this.__hostileStructures : this.__hostileStructures = this.getHostileStructures();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "boostLabs", {
+	get: function() {
+		if (!this.myLabs.length) {
+			return [];
+		}
+		return (!!this.__boostLabs) ? this.__boostLabs : this.__boostLabs = this.getBoostLabs();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "labReaction", {
+	get: function() {
+		if (!this.myLabs.length) {
+			return undefined;
+		}
+		return (!!this.__labReaction) ? this.__labReaction : this.__labReaction = this.getLabReaction();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "labReagents", {
+	get: function() {
+		if (!this.labReaction) {
+			return [];
+		}
+		return (!!this.__labReagents) ? this.__labReagents : this.__labReagents = this.getLabReagents();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "myCreeps", {
+	get: function() {
+		if (!this.allCreeps.length) {
+			return [];
+		}
+		return (!!this.__myCreeps) ? this.__myCreeps : this.__myCreeps = this.getMyCreeps();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "hostileCreeps", {
+	get: function() {
+		if (!this.allCreeps.length) {
+			return [];
+		}
+		return (!!this.__hostileCreeps) ? this.__hostileCreeps : this.__hostileCreeps = this.getHostileCreeps();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "alliedCreeps", {
+	get: function() {
+		if (!this.hostileCreeps.length) {
+			return [];
+		}
+		return (!!this.__alliedCreeps) ? this.__alliedCreeps : this.__alliedCreeps = this.getAlliedCreeps();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "myConstructionSites", {
+	get: function() {
+		if (!this.allConstructionSites.length) {
+			return [];
+		}
+		return (!!this.__myConstructionSites) ? this.__myConstructionSites : this.__myConstructionSites = this.getMyConstructionSites();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "towerTargets", {
+	value: [],
+	writable: true,
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "allStructures", {
+	get: function() {
+		return (!!this.__allStructures) ? this.__allStructures : this.__allStructures = this.getAllStructures();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "groupedStructures", {
+	get: function() {
+		return (!!this.__groupedStructures) ? this.__groupedStructures : this.__groupedStructures = this.groupAllStructures();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "allCreeps", {
+	get: function() {
+		return (!!this.__allCreeps) ? this.__allCreeps : this.__allCreeps = this.getAllCreeps();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "allConstructionSites", {
+	get: function() {
+		return (!!this.__allConstructionSites) ? this.__allConstructionSites : this.__allConstructionSites = this.getAllConstructionSites();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "minerals", {
+	get: function() {
+		return (!!this.__minerals) ? this.__minerals : this.__minerals = this.getMinerals();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "sources", {
+	get: function() {
+		return (!!this.__sources) ? this.__sources : this.__sources = this.getSources();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "containers", {
+	get: function() {
+		if (!this.allStructures.length) {
+			return [];
+		}
+		return (!!this.__containers) ? this.__containers : this.__containers = this.getContainers();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "containerCapacityAvailable", {
+	get: function() {
+		if (!this.containers.length) {
+			return 0;
+		}
+		return (!!this.__containerCapacityAvailable) ? this.__containerCapacityAvailable : this.__containerCapacityAvailable = this.getContainerCapacityAvailable();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "energyInContainers", {
+	get: function() {
+		if (!this.containers.length) {
+			return 0;
+		}
+		return (!!this.__energyInContainers) ? this.__energyInContainers : this.__energyInContainers = this.getEnergyInContainers();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "energyPercentage", {
+	get: function() {
+		if (!this.containers.length) {
+			return 0;
+		}
+		return (!!this.__energyPercentage) ? this.__energyPercentage : this.__energyPercentage = this.getEnergyPercentage();
+	},
+	configurable: true,
+	enumerable: false,
+});
 Object.defineProperty(Room.prototype, "flags", {
-	get: function flags() {
-		delete this.flags;
-		return this.flags = this.find(FIND_FLAGS);
+	get: function() {
+		return (!!this.__flags) ? this.__flags : this.__flags = this.find(FIND_FLAGS);
 	},
 	configurable: true,
 	enumerable: false,
 });
 Object.defineProperty(Room.prototype, "weakestWall", {
-	get: function weakestWall() {
-		delete this.weakestWall;
-		return this.weakestWall = _.min(this.groupedStructures[STRUCTURE_WALL], (w: StructureWall) => w.hits);
+	get: function() {
+		return (!!this.__weakestWall) ? this.__weakestWall : this.__weakestWall = _.min(this.groupedStructures[STRUCTURE_WALL], (w: StructureWall) => w.hits);
 	},
 	configurable: true,
 	enumerable: false,
 });
 Object.defineProperty(Room.prototype, "weakestRampart", {
-	get: function weakestRampart() {
-		delete this.weakestRampart;
-		return this.weakestRampart = _.min(this.groupedStructures[STRUCTURE_RAMPART], (w: StructureRampart) => w.hits);
+	get: function() {
+		return (!!this.__wRampart) ? this.__wRampart : this.__wRampart = _.min(this.groupedStructures[STRUCTURE_RAMPART], (w: StructureRampart) => w.hits);
 	},
 	configurable: true,
 	enumerable: false,
 });
+// TODO: fix this
 Object.defineProperty(Room.prototype, "openRamparts", {
 	value: function() {
 		_(this.groupedStructures[STRUCTURE_RAMPART]).filter((r: StructureRampart) => !!r.my && !r.isPublic).forEach((r: Rampart) => {
@@ -532,6 +721,7 @@ Object.defineProperty(Room.prototype, "openRamparts", {
 	configurable: true,
 	enumerable: false,
 });
+// TODO: fix this
 Object.defineProperty(Room.prototype, "closeRamparts", {
 	value: function() {
 		_(this.groupedStructures[STRUCTURE_RAMPART]).filter((r: StructureRampart) => !!r.my && !!r.isPublic).forEach((r: Rampart) => {
@@ -540,4 +730,11 @@ Object.defineProperty(Room.prototype, "closeRamparts", {
 	},
 	configurable: true,
 	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "my", {
+	get: function() {
+		return (!!this.__my) ? this.__my : this.__my = _.get(this, "controller.my", false);
+	},
+	enumerable: false,
+	configurable: true,
 });

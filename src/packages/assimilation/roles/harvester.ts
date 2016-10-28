@@ -66,7 +66,6 @@ export default class ASMHarvester extends ASMCreepAction {
 
 	public container: StructureContainer;
 	public source: Source;
-	public keeperLair: StructureKeeperLair;
 
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
@@ -111,10 +110,14 @@ export default class ASMHarvester extends ASMCreepAction {
 	}
 
 	public tryHarvest(): number {
-		if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && this.container.hits < this.container.hitsMax) {
-			return this.creep.repair(this.container);
-		} else if (!!this.container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
-			this.creep.drop(RESOURCE_ENERGY);
+		if (!!this.container) {
+			if (this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && this.container.hits < this.container.hitsMax) {
+				return this.creep.repair(this.container);
+			} else if (_.sum(this.container.store) === this.container.storeCapacity) {
+				return ERR_FULL;
+			} else if (this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
+				this.creep.transfer(this.container, RESOURCE_ENERGY);
+			}
 		}
 		if (this.source.energy > 0) {
 			return this.creep.harvest(this.source);
@@ -164,31 +167,8 @@ export default class ASMHarvester extends ASMCreepAction {
 		}
 	}
 
-	public fleeFromKeeperLair(): boolean {
-		if (!!this.keeperLair) {
-			if (this.keeperLair.ticksToSpawn <= 10) {
-				const fleeRange = 6;
-				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
-					const goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
-					const path = PathFinder.search(this.creep.pos, goals, {
-						flee: true,
-						maxRooms: 1,
-						plainCost: 1,
-						swampCost: 10,
-						maxOps: 500,
-						roomCallback: this.roomCallback,
-					});
-					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
-				}
-				return false;
-			}
-			return true;
-		}
-		return true;
-	}
-
 	public action(): boolean {
-		if (this.flee() && this.fleeFromKeeperLair() && !this.shouldIGoHome()) {
+		if (this.flee() && this.fleeFromKeeperLair(5) && !this.shouldIGoHome()) {
 			if (!this.source && !!Game.flags[this.creep.memory.config.targetRoom]) {
 				this.moveTo(Game.flags[this.creep.memory.config.targetRoom].pos);
 				return false;

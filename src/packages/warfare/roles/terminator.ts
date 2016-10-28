@@ -7,11 +7,11 @@ export default class Terminator extends WarfareCreepAction {
 	public static ROLE: string = "Terminator";
 
 	public static maxParts = 15;
-	public static maxTough = 3;
+	public static maxTough = 1;
 	public static maxCreeps = 5;
-	public static bodyPart = [RANGED_ATTACK, MOVE];
-	public static toughPart = [TOUGH, MOVE];
-	public static basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+	public static bodyPart = [RANGED_ATTACK, RANGED_ATTACK, MOVE];
+	public static toughPart = [RANGED_ATTACK, MOVE];
+	public static basePart = [HEAL, HEAL, MOVE];
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		const bodyParts: string[] = this.getBody(room);
@@ -43,7 +43,7 @@ export default class Terminator extends WarfareCreepAction {
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure;
 			if (!this.noTarget && !this.creep.memory.target) {
-				target = this.findTarget() || this.findHealTarget() || this.findTargetStructure() || undefined;
+				target = this.findRangedTarget(this.sourceKeeperDuty) || this.findHealTarget() || this.findTargetStructure() || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
@@ -52,7 +52,7 @@ export default class Terminator extends WarfareCreepAction {
 			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
-					target = this.findTarget();
+					target = this.findRangedTarget(this.sourceKeeperDuty);
 					if (!!target) {
 						this.creep.memory.target = target.id;
 					} else {
@@ -60,7 +60,7 @@ export default class Terminator extends WarfareCreepAction {
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
-					const t2 = this.findTarget();
+					const t2 = this.findRangedTarget(this.sourceKeeperDuty);
 					if (!!t2) {
 						target = t2;
 						this.creep.memory.target = target.id;
@@ -75,7 +75,8 @@ export default class Terminator extends WarfareCreepAction {
 
 			// Otherwise, use a pathFinder path to get there.
 			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				const range = (target instanceof Creep && target.my) ? 1 : 3;
+				// const range = (target instanceof Creep && target.my) ? 1 : 3;
+				const range = 1;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					this.moveTo(target.pos);
 				}
@@ -107,13 +108,13 @@ export default class Terminator extends WarfareCreepAction {
 		// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 		if (this.heal()) {
 			delete this.creep.memory.waitForHealth;
-			if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+			if (!this.rangedAttack(true) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 				this.creep.memory.inCombat = true;
 			} else {
 				delete this.creep.memory.inCombat;
 			}
 		} else {
-			if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
+			if (!this.rangedAttack(true) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
 				this.creep.memory.inCombat = true;
 			} else {
 				delete this.creep.memory.inCombat;

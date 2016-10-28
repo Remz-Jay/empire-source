@@ -149,9 +149,7 @@ function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
 				_.find(Game.structures, (s) => true), "owner.username",
 				_.get(_.find(Game.creeps, (s) => true), "owner.username")
 			) as string;
-			const isMyRoom = Game.rooms[roomName] &&
-				Game.rooms[roomName].controller &&
-				Game.rooms[roomName].controller.my;
+			const isMyRoom = Game.rooms[roomName] && Game.rooms[roomName].my;
 			const isMyReservedRoom = Game.rooms[roomName] &&
 				Game.rooms[roomName].controller &&
 				Game.rooms[roomName].controller.reservation &&

@@ -144,7 +144,6 @@ global.BLACKLIST_SOURCES = [
 ];
 global.ROOM_BLACKLIST = [
 	"W9N49",
-	"W4N43",
 ];
 /**
  * The maximum distance a PowerBank should be from a dispatching room.
@@ -244,15 +243,17 @@ global.tradeTreshold = function(resourceType: string): number {
 		case RESOURCE_ENERGY:
 			return 0.6;
 		case RESOURCE_ZYNTHIUM:
-			return 1.5;
+			return 1.1;
 		case RESOURCE_OXYGEN:
 			return 1.2;
 		case RESOURCE_HYDROGEN:
-			return 1.2;
+			return 1.3;
 		case RESOURCE_LEMERGIUM:
-			return 1.5;
+			return 1.1;
 		case RESOURCE_UTRIUM:
-			return 1.5;
+			return 1.1;
+		case RESOURCE_KEANIUM:
+			return 1.1;
 		default:
 			return undefined;
 	}

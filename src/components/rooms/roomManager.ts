@@ -2,22 +2,30 @@ import * as CreepManager from "./../creeps/creepManager";
 import * as SourceManager from "./../sources/sourceManager";
 
 export let rooms: { [roomName: string]: Room };
+export let myRooms: { [roomName: string]: Room };
 export function loadRooms() {
 	rooms = {};
+	myRooms = {};
 	global.labReactions = [];
 	global.boostReagents = [];
 	global.sendRegistry = [];
 	global.targetBlackList = {};
 	global.linkBlackList = [];
 	_.each(Game.rooms, function(r: Room) {
-		r.addProperties();
 		rooms[r.name] = r;
-		if (!!r.labReaction) {
-			global.labReactions.push({
-				room: r,
-				reaction: r.labReaction,
-				reagents: r.labReagents,
-			});
+		if (!!r.my) {
+			myRooms[r.name] = r;
+			if (!!r.labReaction) {
+				global.labReactions.push({
+					room: r,
+					reaction: r.labReaction,
+					reagents: r.labReagents,
+				});
+			}
+		} else {
+			// Cache a costMatrix in case we scanned this room using an observer last tick.
+			r.getCostMatrix(false, true);
+			r.observe();
 		}
 	});
 }
@@ -27,7 +35,6 @@ export function getRoomByName(roomName: string): Room {
 		return rooms[roomName];
 	} else if (!!Game.rooms[roomName]) {
 		const r = Game.rooms[roomName];
-		r.addProperties();
 		rooms[r.name] = r;
 		return r;
 	}  else {
@@ -36,18 +43,19 @@ export function getRoomByName(roomName: string): Room {
 }
 
 export function governRooms(): void {
-	for (const roomName in Game.rooms) {
+	for (const roomName in myRooms) {
 		if (roomName === "sim") {
 			Game.cpu.bucket = 10000;
 		}
 		const room = getRoomByName(roomName);
-		if (!!room && !!room.controller && room.controller.level > 0 && room.controller.my) {
+		if (!!room && !!room.my) {
 			try {
-				if (room.alliedCreeps.length > 0 && room.hostileCreeps.length === 0) {
+				// TODO: fix this
+/*				if (room.alliedCreeps.length > 0 && room.hostileCreeps.length === 0) {
 					room.openRamparts();
 				} else {
 					room.closeRamparts();
-				}
+				}*/
 				if (room.mySpawns.length > 0) {
 					room.mySpawns.forEach(function (s: StructureSpawn) {
 						if (!!s.spawning) {
@@ -56,7 +64,9 @@ export function governRooms(): void {
 						} else {
 							s.renewCreeps();
 						}
-						s.checkSafeMode();
+						if (room.hostileCreeps.length > 0) {
+							s.checkSafeMode();
+						}
 					});
 					SourceManager.load(room);
 					SourceManager.updateHarvesterPreference();
@@ -73,31 +83,15 @@ export function governRooms(): void {
 			} else {
 				delete room.memory.creepAlarm;
 			}
-			if (global.ROOMSTATS) {
-				// this is one of our controlled rooms
-				console.log(`Room ${room.name} has ${room.energyAvailable}/${room.energyCapacityAvailable} energy and ` +
-					`${room.energyInContainers}/${room.containerCapacityAvailable} (${room.energyPercentage}%) in storage.` +
-					` (RCL=${room.controller.level} @ ${_.floor(room.controller.progress / (room.controller.progressTotal / 100))}%)`
-				);
-			}
-
 			try {
-				const towers = room.myGroupedStructures[STRUCTURE_TOWER];
-				_.each(towers, (t: StructureTower) => {
-					t.run();
-				});
+				_.invoke(room.myGroupedStructures[STRUCTURE_TOWER], "run");
 			} catch (e) {
 				console.log("RoomManager.Towers", room.name, e.stack);
 			}
 
 			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
 				try {
-					if (!!room.storage) {
-						const links = room.myGroupedStructures[STRUCTURE_LINK];
-						_.each(links, (l: StructureLink) => {
-							l.run();
-						});
-					}
+					_.invoke(room.myGroupedStructures[STRUCTURE_LINK], "run");
 				} catch (e) {
 					console.log("RoomManager.Links", room.name, e.stack);
 				}

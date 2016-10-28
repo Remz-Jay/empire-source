@@ -43,7 +43,7 @@ export default class Sentinel extends WarfareCreepAction {
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure;
 			if (!this.noTarget && !this.creep.memory.target) {
-				target = this.findTarget() || this.findHealTarget() || this.findTargetStructure() || undefined;
+				target = this.findRangedTarget(this.sourceKeeperDuty) || this.findHealTarget() || this.findTargetStructure() || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
@@ -52,7 +52,7 @@ export default class Sentinel extends WarfareCreepAction {
 			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
-					target = this.findTarget();
+					target = this.findRangedTarget(this.sourceKeeperDuty);
 					if (!!target) {
 						this.creep.memory.target = target.id;
 					} else {
@@ -60,7 +60,7 @@ export default class Sentinel extends WarfareCreepAction {
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
-					const t2 = this.findTarget();
+					const t2 = this.findRangedTarget(this.sourceKeeperDuty);
 					if (!!t2) {
 						target = t2;
 						this.creep.memory.target = target.id;

@@ -24,9 +24,6 @@ export default class Upgrader extends CreepAction {
 	}
 
 	public static getCreepLimit(room: Room): number {
-		if (room.name === "W6N48") {
-			return 2;
-		}
 		switch (room.controller.level) {
 			case 1:
 			case 2:
@@ -39,6 +36,9 @@ export default class Upgrader extends CreepAction {
 			case 6:
 				return 1;
 			case 7:
+				if (room.name === "W6N48") {
+					return 2;
+				}
 				return 1;
 			case 8:
 				return 1;

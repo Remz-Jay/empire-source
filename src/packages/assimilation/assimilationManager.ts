@@ -4,8 +4,8 @@ import Claim from "./roles/claim";
 import ASMBuilder from "./roles/builder";
 import ASMHarvester from "./roles/harvester";
 import ASMMule from "./roles/mule";
-import Terminator from "../warfare/roles/terminator";
-import Bully from "../warfare/roles/bully";
+import SKHunter from "../warfare/roles/skhunter";
+// import Bully from "../warfare/roles/bully";
 import Sentinel from "../warfare/roles/sentinel";
 /* import ASMRaider from "./roles/raider"; */
 
@@ -23,6 +23,7 @@ let homeRoom: Room;
 let targetRoom: Room;
 let isSpawning: boolean;
 let goHome: boolean;
+let getDefenders: boolean;
 
 export function setup() {
 	initMemory();
@@ -48,9 +49,7 @@ function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
 		routeCallback(roomName) {
 			const parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
 			const isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-			const isMyRoom = Game.rooms[roomName] &&
-				Game.rooms[roomName].controller &&
-				Game.rooms[roomName].controller.my;
+			const isMyRoom = Game.rooms[roomName] && Game.rooms[roomName].my;
 			if (isHighway || isMyRoom) {
 				return 1;
 			} else {
@@ -200,7 +199,7 @@ function manageConstructions(maxBuilders: number = 1) {
 	}
 	if (sites.length > 0) {
 		// we need a builder
-		if (creepsInRole.length < maxBuilders && !isSpawning && !goHome) {
+		if (creepsInRole.length < maxBuilders && !isSpawning && !goHome && !getDefenders) {
 			isSpawning = true;
 			createCreep(ctor.getCreepConfig(homeRoom));
 		}
@@ -225,7 +224,7 @@ function manageHarvest(containers: StructureContainer[]) {
 						role.setGoHome(goHome);
 						role.setCreep(<Creep> creep);
 						role.action();
-						if (creep.ticksToLive < 100 && (creepsInRole.length === ctor.getCreepLimit(homeRoom)) && !isSpawning && !goHome) {
+						if (creep.ticksToLive < 100 && (creepsInRole.length === ctor.getCreepLimit(homeRoom)) && !isSpawning && !goHome && !getDefenders) {
 							// Do a preemptive spawn if this creep is about to expire.
 							isSpawning = true;
 							const status = createCreep(ctor.getCreepConfig(homeRoom));
@@ -241,7 +240,7 @@ function manageHarvest(containers: StructureContainer[]) {
 				}
 			}, this);
 		}
-		if (creepsInRole.length < ctor.getCreepLimit(homeRoom) && !isSpawning && !goHome) {
+		if (creepsInRole.length < ctor.getCreepLimit(homeRoom) && !isSpawning && !goHome && !getDefenders) {
 			isSpawning = true;
 			createCreep(ctor.getCreepConfig(homeRoom));
 		}
@@ -254,7 +253,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 	const creepsInRole: Creep[] = _.filter(global.tickCache.roles[ctor.ROLE],
 		(creep: Creep) => creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
 	if (creepsInRole.length > 0) {
-		const role: Terminator = new ctor();
+		const role: Sentinel = new ctor();
 		_.each(creepsInRole, function (creep: Creep) {
 			if (!creep.spawning) {
 				try {
@@ -283,7 +282,7 @@ function manageDefenders(roomName: string, limit: number = 0) {
 	}
 }
 
-function manageBullies(roomName: string, limit: number = 0) {
+/*function manageBullies(roomName: string, limit: number = 0) {
 	const ctor = Bully;
 	ctor.setConfig(config);
 	const creepsInRole: Creep[] = _.filter(global.tickCache.roles[ctor.ROLE],
@@ -319,48 +318,41 @@ function manageBullies(roomName: string, limit: number = 0) {
 		isSpawning = true;
 		createCreep(ctor.getCreepConfig(homeRoom), true);
 	}
-}
+}*/
 
-function manageSourceKeepers(roomName: string, limit: number = 0) {
-	if (!config.hasController) {
-		manageBullies(roomName, limit);
-		return;
-	} else {
-		const ctor = Terminator;
-		ctor.setConfig(config);
-		const creepsInRole: Creep[] = _.filter(global.tickCache.roles[ctor.ROLE],
-			(creep: Creep) => creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
-		if (creepsInRole.length > 0) {
-			const role: Terminator = new Terminator();
-			_.each(creepsInRole, function (creep: Creep) {
-				try {
-					if (!creep.spawning) {
-						role.setCreep(<Creep> creep);
-						if (!config.hasController) {
-							role.sourceKeeperDuty = true;
-						}
-						role.action();
-						if (creep.ticksToLive < 200 && (creepsInRole.length === limit) && !isSpawning) {
-							// Do a preemptive spawn if this creep is about to expire.
-							isSpawning = true;
-							// TODO: might wanna remove the true here later
-							const status = createCreep(ctor.getCreepConfig(homeRoom), true);
-							if (_.isNumber(status)) {
-								console.log("manageSourceKeepers.preempt-spawn", global.translateErrorCode(status));
-							} else {
-								console.log("manageSourceKeepers.preempt-spawn", status);
-							}
+function manageSourceKeeperKillers(roomName: string, limit: number = 0) {
+	const ctor = SKHunter;
+	ctor.setConfig(config);
+	const creepsInRole: Creep[] = _.filter(global.tickCache.roles[ctor.ROLE],
+		(creep: Creep) => creep.memory.config.homeRoom === homeRoom.name && creep.memory.config.targetRoom === roomName);
+	const preSpawnTime = (config.homeDistance * 50) + CREEP_SPAWN_TIME * 50;
+	if (creepsInRole.length > 0) {
+		const role: SKHunter = new SKHunter();
+		_.each(creepsInRole, function (creep: Creep) {
+			try {
+				if (!creep.spawning) {
+					role.setCreep(<Creep> creep);
+					role.action();
+					if (creep.ticksToLive < preSpawnTime && (creepsInRole.length === limit) && !isSpawning) {
+						// Do a preemptive spawn if this creep is about to expire.
+						isSpawning = true;
+						// TODO: might wanna remove the true here later
+						const status = createCreep(ctor.getCreepConfig(homeRoom), true);
+						if (_.isNumber(status)) {
+							console.log("manageSourceKeepers.preempt-spawn", global.translateErrorCode(status));
+						} else {
+							console.log("manageSourceKeepers.preempt-spawn", status);
 						}
 					}
-				} catch (e) {
-					console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
 				}
-			}, this);
-		}
-		if (creepsInRole.length < limit && !isSpawning) {
-			isSpawning = true;
-			createCreep(ctor.getCreepConfig(homeRoom), true);
-		}
+			} catch (e) {
+				console.log("ERROR :: ", ctor.ROLE, creep.name, creep.room.name, e.stack);
+			}
+		}, this);
+	}
+	if (creepsInRole.length < limit && !isSpawning) {
+		isSpawning = true;
+		createCreep(ctor.getCreepConfig(homeRoom), true);
 	}
 }
 
@@ -385,7 +377,7 @@ function manageMules(containers: StructureContainer[]) {
 				}
 			}, this);
 		}
-		if (creepsInRole.length < ctor.getCreepLimit(homeRoom) && !isSpawning && !goHome) {
+		if (creepsInRole.length < ctor.getCreepLimit(homeRoom) && !isSpawning && !goHome && !getDefenders) {
 			isSpawning = true;
 			createCreep(ctor.getCreepConfig(homeRoom));
 		}
@@ -402,6 +394,7 @@ export function govern(): void {
 				targetRoom = Game.rooms[roomName];
 				isSpawning = false;
 				goHome = false;
+				getDefenders = false;
 				if (config.hasController) {
 					config.controllerTTL = _.get(config, "controllerTTL", 0);
 				}
@@ -420,6 +413,16 @@ export function govern(): void {
 						if (!targetRoom.memory.hostileAlarm || targetRoom.memory.hostileAlarm !== targetRoom.hostileCreeps.length) {
 							Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
 							targetRoom.memory.hostileAlarm = targetRoom.hostileCreeps.length;
+						}
+					} else if (!config.hasController && targetRoom.hostileCreeps.length > 3) {
+						const groupedHostiles = _.groupBy(targetRoom.hostileCreeps, "owner.username");
+						const numInvaders = _.get(groupedHostiles, "Invader", []).length;
+						if (numInvaders > 2) {
+							getDefenders = true;
+							if (!targetRoom.memory.hostileAlarm || targetRoom.memory.hostileAlarm !== numInvaders) {
+								Game.notify(`Warning: Invader Raid. ${numInvaders} invaders in ${targetRoom.name}.`);
+								targetRoom.memory.hostileAlarm = numInvaders;
+							}
 						}
 					} else {
 						delete targetRoom.memory.hostileAlarm;
@@ -474,20 +477,20 @@ export function govern(): void {
 				}
 				if (!config.reserveOnly) {
 					try {
-						if (goHome) {
-							manageSourceKeepers(roomName, 2);
+						if (goHome && config.hasController) {
+							manageSourceKeeperKillers(roomName, 1);
 							manageDefenders(roomName, 0);
 						} else {
 							if (config.claim) {
-								// manageDefenders(roomName, 1);
+								manageDefenders(roomName, 1);
 								// manageSourceKeepers(roomName, 0);
-							} else if (!config.hasController) {
-								manageSourceKeepers(roomName, 1);
 							} else if (roomName === "W4N42" || roomName === "W2N45") { // surrounded by owned rooms, no invaders.
-								manageDefenders(roomName, 0);
+								// manageDefenders(roomName, 0);
+							} else if (!config.hasController) {
+								manageSourceKeeperKillers(roomName, 2);
 							} else {
 								manageDefenders(roomName, 1);
-								manageSourceKeepers(roomName, 0);
+								manageSourceKeeperKillers(roomName, 0);
 							}
 						}
 					} catch (e) {

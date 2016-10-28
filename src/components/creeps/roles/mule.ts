@@ -436,7 +436,7 @@ export default class Mule extends CreepAction {
 	public action(): boolean {
 		this.pickupResourcesInRange();
 		this.muleLogic();
-		// this.dumpToCloseTarget();
+		this.dumpToCloseTarget();
 		return true;
 	}
 }

@@ -44,7 +44,7 @@ export default class Bully extends WarfareCreepAction {
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure;
 			if (!this.creep.memory.target) {
-				target = this.findTarget() || undefined;
+				target = this.findMeleeTarget(this.sourceKeeperDuty) || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.targetPath;
@@ -55,7 +55,7 @@ export default class Bully extends WarfareCreepAction {
 			} else {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target) { // target died
-					target = this.findTarget();
+					target = this.findMeleeTarget(this.sourceKeeperDuty);
 					if (!!target) {
 						this.creep.memory.target = target.id;
 						delete this.creep.memory.targetPath;

@@ -63,6 +63,9 @@ export default class Scientist extends CreepAction {
 		} else {
 			this.reaction = undefined;
 			this.clean = true;
+			if (this.mode === MODE.PROFITIZE) {
+				this.mode = this.creep.memory.mode = MODE.IDLE;
+			}
 		}
 		if (!this.creep.memory.inLab1) {
 			if (!!Game.flags[this.creep.room.name + "_L1"]) {

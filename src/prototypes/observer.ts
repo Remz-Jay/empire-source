@@ -7,14 +7,14 @@ interface StructureObserver {
 
 Object.defineProperty(StructureObserver.prototype, "roomIndex", {
 	get: function () {
-		if (!this._roomIndex) {
+		if (!this.__roomIndex) {
 			let indexGroups = this.room.name.match(/([EW])(\d+)([SN])(\d+)/);
-			this._roomIndex = {
+			this.__roomIndex = {
 				x: indexGroups[1] === "E" ? Number(indexGroups[2]) : -(Number(indexGroups[2]) + 1),
 				y: indexGroups[3] === "S" ? Number(indexGroups[4]) : -(Number(indexGroups[4]) + 1),
 			};
 		}
-		return this._roomIndex;
+		return this.__roomIndex;
 	},
 	enumerable: true,
 	configurable: true,

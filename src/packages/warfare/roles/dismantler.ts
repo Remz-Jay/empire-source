@@ -62,7 +62,7 @@ export default class Dismantler extends WarfareCreepAction {
 			if (!!target) {
 				this.dismantleTarget(target);
 				return false;
-			} else if (!!this.creep.room.controller && !this.creep.room.controller.my) {
+			} else if (!!this.creep.room.my) {
 				target =  this.creep.room.weakestWall;
 				this.dismantleTarget(target);
 			}
@@ -73,7 +73,7 @@ export default class Dismantler extends WarfareCreepAction {
 	public move(): boolean {
 		if (!this.hasHealer && (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth)) {
 			return;
-		} else if (this.hasHealer && !this.checkTough()) {
+		} else if (this.hasHealer && (!!this.creep.stats.fullHealth.toughParts && !this.creep.stats.current.toughParts)) {
 			const closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
 				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) > 5,
 			});
