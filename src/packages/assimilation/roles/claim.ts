@@ -1,11 +1,47 @@
 import ASMCreepAction from "../assimilationCreepAction";
 
-export interface IClaim {
-	doClaim: boolean;
-	action(startCpu: number): boolean;
-}
+export default class Claim extends ASMCreepAction {
+	public static PRIORITY: number = global.PRIORITY_ASM_CLAIM;
+	public static MINRCL: number = global.MINRCL_ASM_CLAIM;
+	public static ROLE: string = "Claim";
 
-export default class Claim extends ASMCreepAction implements IClaim {
+	public static claim: boolean = false;
+	public static reserveOnly: boolean = false;
+	public static maxParts = 5;
+	public static maxCreeps = 1;
+	public static bodyPart = [CLAIM, MOVE];
+
+	public static setConfig(config: RemoteRoomConfig, claim: boolean = false, reserveOnly = false) {
+		super.setConfig(config);
+		this.claim = claim;
+		this.reserveOnly = reserveOnly;
+	}
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getBody(room: Room) {
+		if (this.claim) {
+			return global.sortBodyParts([TOUGH, TOUGH,
+				MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+				MOVE, MOVE, CLAIM,
+			]);
+		} else {
+			if (this.reserveOnly) {
+				this.maxParts = 2;
+			}
+			return super.getBody(room);
+		}
+	}
+
 	public doClaim: boolean;
 	public targetController: StructureController;
 

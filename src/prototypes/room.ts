@@ -29,6 +29,9 @@ interface Room {
 	labReaction: string;
 	labReagents: string[];
 	flags: Flag[];
+	weakestWall: StructureWall;
+	weakestRampart: StructureRampart;
+	my: boolean;
 	// spawnQueue: CreepSpawnDefinition[];
 	// addToSpawnQueue(body: string[], name?: string, memory?: any, priority?: boolean): boolean;
 	// getCreepToSpawn(): CreepSpawnDefinition;
@@ -70,6 +73,8 @@ interface Room {
 	getLabReagents(): string[];
 	addProperties(): void;
 	observe(): void;
+	openRamparts(): void;
+	closeRamparts(): void;
 }
 
 Room.prototype.setCostMatrix = function (costMatrix: CostMatrix, nopass: string, pass: string) {
@@ -112,7 +117,7 @@ Room.prototype.getCreepMatrix = function () {
 		this.setCreepMatrix(creepMatrix);
 		return creepMatrix;
 	} catch (e) {
-		console.log(e.message, "Room.Prototype.getCreepMatrix", this.name);
+		console.log(e.stack, "Room.Prototype.getCreepMatrix", this.name);
 		return new PathFinder.CostMatrix();
 	}
 
@@ -256,7 +261,7 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refr
 			return costs;
 		}
 	} catch (e) {
-		console.log("Room.prototype.getCostMatrix", this.name, e.message);
+		console.log("Room.prototype.getCostMatrix", this.name, e.stack);
 		return new PathFinder.CostMatrix();
 	}
 };
@@ -467,14 +472,16 @@ Room.prototype.addProperties = function () {
 	this.minerals =             this.getMinerals();
 	this.sources =              this.getSources();
 
-	this.myStructures =         (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
-	this.myGroupedStructures  = (!!this.controller && !!this.controller.my && this.myStructures.length > 0) ? this.groupMyStructures() : undefined;
+	this.myStructures =         (!!this.my && this.allStructures.length > 0) ? this.getMyStructures() : [];
+	this.myGroupedStructures  = (!!this.my && this.myStructures.length > 0) ? this.groupMyStructures() : undefined;
+	this.mySpawns =             (!!this.my && this.myStructures.length > 0) ? this.getMySpawns() : [];
+	this.myLabs =               (!!this.my && this.controller.level >= 6 && this.allStructures.length > 0) ? this.getMyLabs() : [];
+
 	this.nuker =                (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getNuker() : undefined;
 	this.powerSpawn =           (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getPowerSpawn() : undefined;
 	this.observer =             (!!this.controller && this.controller.level === 8 && this.myStructures.length > 0) ? this.getObserver() : undefined;
 	this.hostileStructures =    (!!this.controller && this.allStructures.length > 0) ? this.getHostileStructures() : [];
-	this.mySpawns =             (!!this.controller && !!this.controller.my && this.allStructures.length > 0) ? this.getMySpawns() : [];
-	this.myLabs =               (!!this.controller && !!this.controller.my && this.controller.level >= 6 && this.allStructures.length > 0) ? this.getMyLabs() : [];
+
 	this.boostLabs =            (this.myLabs.length > 0) ? this.getBoostLabs() : [];
 	this.labReaction =          (this.myLabs.length > 0) ? this.getLabReaction() : undefined;
 	this.labReagents =          (!!this.labReaction) ? this.getLabReagents() : [];
@@ -496,10 +503,50 @@ Room.prototype.addProperties = function () {
 };
 
 Object.defineProperty(Room.prototype, "flags", {
-	get: function flags() {
-		delete this.flags;
-		return this.flags = this.find(FIND_FLAGS);
+	get: function() {
+		return (!!this.__flags) ? this.__flags : this.__flags = this.find(FIND_FLAGS);
 	},
 	configurable: true,
 	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "weakestWall", {
+	get: function() {
+		return (!!this.__weakestWall) ? this.__weakestWall : this.__weakestWall =
+			_.min(_.filter(this.groupedStructures[STRUCTURE_WALL], (w: StructureWall) => !w.pos.lookFor(LOOK_FLAGS).length), (w: StructureWall) => w.hits);
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "weakestRampart", {
+	get: function() {
+		return (!!this.__wRampart) ? this.__wRampart : this.__wRampart =
+			_.min(_.filter(this.groupedStructures[STRUCTURE_RAMPART], (w: StructureRampart) => !w.pos.lookFor(LOOK_FLAGS).length), (w: StructureRampart) => w.hits);
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "openRamparts", {
+	value: function() {
+		_(this.groupedStructures[STRUCTURE_RAMPART]).filter((r: StructureRampart) => !!r.my && !r.isPublic).forEach((r: Rampart) => {
+			r.setPublic(true);
+		});
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "closeRamparts", {
+	value: function() {
+		_(this.groupedStructures[STRUCTURE_RAMPART]).filter((r: StructureRampart) => !!r.my && !!r.isPublic).forEach((r: Rampart) => {
+			r.setPublic(false);
+		});
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Room.prototype, "my", {
+	get: function() {
+		return _.get(this, "controller.my", false);
+	},
+	enumerable: false,
+	configurable: true,
 });

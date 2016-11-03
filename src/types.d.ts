@@ -92,23 +92,8 @@ declare interface OffenseObject {
 		[roomName: string]: RemoteRoomConfig
 	};
 }
-declare interface ICreepGovernor {
-	bodyPart: string[];
-	maxParts: number;
-	maxCreeps: number;
-	emergency: boolean;
-	getCreepConfig(): CreepConfiguration;
-	getCreepLimit(): number;
-	getBody(): string[];
-	getNumberOfCreepsInRole(): number;
-	getCreepsInRole(): Creep[];
-	getBlackList(): string[];
-	addToBlackList(targetId: string): void;
-	checkContainerAssignment(): string;
-}
 declare interface SquadRole {
-	governor: Object;
-	role: Object;
+	role: string;
 	maxCreeps: number;
 }
 declare interface SquadConfig {
@@ -128,6 +113,26 @@ declare interface PowerBankMemory {
 	pos: RoomPosition;
 	indexed: number;
 	taken: boolean;
+}
+declare interface CreepStatsObject {
+	fullHealth: {
+		attack: number;
+		dismantle: number;
+		heal: number;
+		rangedAttack: number;
+		toughParts: number;
+		toughReduction: number;
+		hits: number;
+	};
+	current: {
+		attack: number;
+		dismantle: number;
+		heal: number;
+		rangedAttack: number;
+		toughParts: number;
+		toughReduction: number;
+		hits: number;
+	};
 }
 
 declare interface Memory {
@@ -184,6 +189,9 @@ declare interface Memory {
 	powerManager: {
 		squads: SquadConfig[];
 	};
+	assaultManager: {
+		squads: SquadConfig[];
+	};
 }
 
 declare interface Game {
@@ -194,7 +202,6 @@ declare interface Game {
 declare namespace NodeJS {
 	export interface Global {
 		VERBOSE: boolean;
-		CREEPSTATS: boolean;
 		ROOMSTATS: boolean;
 		DEBUG: boolean;
 		MAX_HARVESTERS_PER_SOURCE: number;
@@ -265,6 +272,9 @@ declare namespace NodeJS {
 			storageLink: any;
 			storageTower: any;
 		};
+		roleInstanceCache: {
+			[role: string]: Object;
+		};
 		targetBlackList: {
 			[role: string]: string[];
 		};
@@ -295,5 +305,8 @@ declare namespace NodeJS {
 		transactionStatus(): void;
 		setTarget(resourceName: string, target: number): void;
 		gclCalc(): void;
+		calculateRequiredEnergy(body: string[]): number;
+		sortBodyParts(bodyParts: string[]): string[];
+		findPath(pos: RoomPosition, goal: RoomPosition, plainCost: number, swampCost: number): any;
 	}
 }

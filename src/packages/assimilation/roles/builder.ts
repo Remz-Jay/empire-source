@@ -2,6 +2,42 @@ import ASMCreepAction from "../assimilationCreepAction";
 
 export default class ASMBuilder extends ASMCreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_ASM_BUILDER;
+	public static MINRCL: number = global.MINRCL_ASM_BUILDER;
+	public static ROLE: string = "ASMBuilder";
+
+	public static maxParts = 8;
+	public static maxCreeps = 4;
+	public static bodyPart = [WORK, MOVE, CARRY, MOVE, CARRY, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(): number {
+		return 1;
+		/*		const targetRoom = RoomManager.getRoomByName(this.config.targetRoom);
+		 const num: number;
+		 if (targetRoom.controller.level > 4) {
+		 num = _.floor(targetRoom.energyInContainers / 10000);
+		 } else if (targetRoom.controller.level < 3) {
+		 num = this.maxCreeps;
+		 } else {
+		 num = this.maxCreeps;
+		 }
+		 if (num > this.maxCreeps) {
+		 num = this.maxCreeps;
+		 }
+		 return (num > 0) ? num : 1;*/
+	}
+
 	public setCreep(creep: Creep) {
 		super.setCreep(creep);
 	}
@@ -160,7 +196,7 @@ export default class ASMBuilder extends ASMCreepAction {
 
 	public action(): boolean {
 		if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
-			if (!this.creep.bagFull) {
+			if (this.creep.bagEmpty) {
 				this.harvestFromContainersAndSources();
 			} else {
 				this.moveToTargetRoom();

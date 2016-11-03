@@ -1,3 +1,30 @@
+global.calculateRequiredEnergy = function(body: string[]): number {
+	return _.sum(body, (b: string) => BODYPART_COST[b]);
+};
+
+global.sortBodyParts = function(bodyParts: string[]): string[] {
+	return _.sortBy(bodyParts, function (part) {
+		switch (part) {
+			case TOUGH:
+				return 1;
+			case CARRY:
+				return 2;
+			case MOVE:
+				return 105;
+			case CLAIM:
+				return 106;
+			case HEAL:
+				return 110;
+			case ATTACK:
+				return 109;
+			case RANGED_ATTACK:
+				return 100;
+			default:
+				return 10;
+		}
+	});
+};
+
 global.colorWrap = function(text: string, color: string): string {
 	return `<font color="${color}">${text}</font>`;
 };
@@ -77,7 +104,7 @@ global.planRoute = function(from: RoomPosition, to: RoomPosition): void {
 				}
 				return room.getCostMatrix(false); // The cached one without per-tick creeps.
 			} catch (e) {
-				console.log(e.message, "creepAction.roomCallback", roomName);
+				console.log(e.stack, "creepAction.roomCallback", roomName);
 				return new PathFinder.CostMatrix();
 			}
 		},

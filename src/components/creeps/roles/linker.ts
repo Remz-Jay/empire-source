@@ -1,10 +1,61 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 
-export interface ILinker {
-	action(): boolean;
-}
+export default class Linker extends CreepAction {
 
-export default class Linker extends CreepAction implements ILinker, ICreepAction {
+	public static PRIORITY: number = global.PRIORITY_LINKER;
+	public static MINRCL: number = global.MINRCL_LINKER;
+	public static ROLE: string = "Linker";
+
+	public static bodyPart = [CARRY];
+	public static basePart = [MOVE];
+	public static maxCreeps = 1;
+	public static maxParts = 10;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			target_link_id: this.getStorageLink(room).id,
+			target_storage_id: room.storage.id,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getBody(room: Room) {
+		let numParts: number = _.floor(
+			(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+			global.calculateRequiredEnergy(this.bodyPart)
+		);
+		numParts = global.clamp(numParts, 1, this.maxParts);
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
+	public static getCreepLimit(room: Room): number {
+		if (!!Game.flags[room.name + "_LS"]) {
+			return this.maxCreeps;
+		}
+		return (!!this.getStorageLink(room)) ? this.maxCreeps : 0;
+	}
+
+	public static getStorageLink(room: Room): StructureLink {
+		if (!!room.storage) {
+			const link: StructureLink[] = _(room.myGroupedStructures[STRUCTURE_LINK])
+				.filter((s: OwnedStructure) => s.pos.inRangeTo(room.storage.pos, 2)).value() as StructureLink[];
+			if (link.length > 0) {
+				return link[0];
+			} else {
+				return undefined;
+			}
+		}
+	}
 
 	public terminal: StructureTerminal;
 	public storage: StructureStorage;
@@ -147,7 +198,6 @@ export default class Linker extends CreepAction implements ILinker, ICreepAction
 			return false;
 		}
 	}
-
 	public balanceTerminal(): boolean {
 		if (!!this.creep.memory.direction && this.creep.memory.direction > 2) { // busy with fillNuker
 			return false;

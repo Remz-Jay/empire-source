@@ -2,6 +2,30 @@ import WarfareCreepAction from "../warfareCreepAction";
 
 export default class Bully extends WarfareCreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "Bully";
+
+	public static maxParts = 20;
+	public static maxCreeps = 2;
+	public static bodyPart = [ATTACK, MOVE];
+	public static basePart = [HEAL, HEAL, HEAL, HEAL, HEAL, MOVE, MOVE, MOVE, MOVE, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getBody(room: Room): string[] {
+		return super.getToughBody(room);
+	}
+
 	public sourceKeeperDuty: boolean = true;
 
 	public setCreep(creep: Creep, positions?: RoomPosition[]) {
@@ -20,7 +44,7 @@ export default class Bully extends WarfareCreepAction {
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure;
 			if (!this.creep.memory.target) {
-				target = this.findTarget() || undefined;
+				target = this.findMeleeTarget(this.sourceKeeperDuty) || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 					delete this.creep.memory.targetPath;
@@ -31,7 +55,7 @@ export default class Bully extends WarfareCreepAction {
 			} else {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target) { // target died
-					target = this.findTarget();
+					target = this.findMeleeTarget(this.sourceKeeperDuty);
 					if (!!target) {
 						this.creep.memory.target = target.id;
 						delete this.creep.memory.targetPath;

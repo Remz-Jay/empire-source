@@ -1,8 +1,4 @@
-import CreepAction, {ICreepAction} from "../creepAction";
-
-export interface IScientist {
-	action(): boolean;
-}
+import CreepAction from "../creepAction";
 
 const MODE = {
 	IDLE: 0,
@@ -14,7 +10,35 @@ const MODE = {
 	FILLBOOST: 6,
 };
 
-export default class Scientist extends CreepAction implements IScientist, ICreepAction {
+export default class Scientist extends CreepAction {
+
+	public static PRIORITY: number = global.PRIORITY_SCIENTIST;
+	public static MINRCL: number = global.MINRCL_SCIENTIST;
+	public static ROLE: string = "Scientist";
+
+	public static bodyPart = [CARRY, CARRY, MOVE];
+	public static maxCreeps = 1;
+	public static maxParts = 2;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return (_.union(room.myLabs, room.boostLabs).length < 3) ? 0 : this.maxCreeps;
+	}
+	public static getBody(room: Room): string[] {
+		if (room.controller.level === 8) {
+			this.maxParts = 4;
+		}
+		return super.getBody(room);
+	}
 
 	public terminal: StructureTerminal;
 	public storage: StructureStorage;
@@ -25,6 +49,13 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 	public reaction: string;
 
 	public setCreep(creep: Creep) {
+		this.terminal = undefined;
+		this.storage = undefined;
+		this.inLab1 = undefined;
+		this.inLab2 = undefined;
+		this.mode = 0;
+		this.clean = false;
+		this.reaction = undefined;
 		super.setCreep(creep);
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;
@@ -39,6 +70,9 @@ export default class Scientist extends CreepAction implements IScientist, ICreep
 		} else {
 			this.reaction = undefined;
 			this.clean = true;
+			if (this.mode === MODE.PROFITIZE) {
+				this.mode = this.creep.memory.mode = MODE.IDLE;
+			}
 		}
 		if (!this.creep.memory.inLab1) {
 			if (!!Game.flags[this.creep.room.name + "_L1"]) {

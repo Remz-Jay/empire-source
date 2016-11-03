@@ -2,6 +2,29 @@ import WarfareCreepAction from "../../../packages/warfare/warfareCreepAction";
 
 export default class PowerMule extends WarfareCreepAction {
 
+	public static PRIORITY: number = global.PRIORITY_WF_HEALER;
+	public static MINRCL: number = global.MINRCL_WF_HEALER;
+	public static ROLE: string = "PowerMule";
+
+	public static maxParts = 24;
+	public static maxCreeps = 3;
+	public static bodyPart = [CARRY, MOVE]; // 1250 carry total
+	public static basePart = [CARRY, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+	public static getBody(room: Room): string[] {
+		return super.getBody(room);
+	}
+
 	public setCreep(creep: Creep, positions: RoomPosition[]) {
 		super.setCreep(creep, positions);
 	}

@@ -1,4 +1,4 @@
-let reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+let reportRoomList: Room[] = _.filter(Game.rooms, (r: Room) => !!r.my && r.controller.level > 3);
 let roomList = _.filter(reportRoomList, (r: Room) => r.controller.level > 5 && !!r.storage && !!r.terminal);
 const baseMinerals = [
 	RESOURCE_ENERGY,
@@ -12,7 +12,7 @@ const baseMinerals = [
 	RESOURCE_CATALYST,
 ];
 export function governMarket(): void {
-	reportRoomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 3);
+	reportRoomList = _.filter(Game.rooms, (r: Room) => !!r.my && r.controller.level > 3);
 	roomList = _.filter(reportRoomList, (r: Room) => r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (!!Memory.transactions && Memory.transactions.length > 0) {
 		processTransactionLogs();
@@ -29,7 +29,7 @@ export function governMarket(): void {
 			// dumpResource("H");
 			// dumpResource("Z");
 			autoSell();
-			findDeals();
+			// findDeals();
 		}
 	}
 }
@@ -107,7 +107,7 @@ function runTransactions() {
 		try {
 			r.terminal.processTransactions();
 		} catch (e) {
-			console.log(`MarketManager.processTransactions, terminal in room ${r.name} reports: ${e.message}`);
+			console.log(`MarketManager.processTransactions, terminal in room ${r.name} reports: ${e.stack}`);
 		}
 	});
 	console.log(`MarketManager.processTransactions took ${_.round(Game.cpu.getUsed() - before, 2)}`);
@@ -119,7 +119,7 @@ function autoSell() {
 		try {
 			r.terminal.autoSell();
 		} catch (e) {
-			console.log(`MarketManager.autoSell, terminal in room ${r.name} reports: ${e.message}`);
+			console.log(`MarketManager.autoSell, terminal in room ${r.name} reports: ${e.stack}`);
 		}
 	});
 	console.log(`MarketManager.autoSell took ${_.round(Game.cpu.getUsed() - before, 2)}`);
@@ -153,7 +153,7 @@ function findDeals(): void {
 		const orders = Game.market.getAllOrders({resourceType: resource, type: ORDER_SELL}).filter((order: Order) =>
 			order.price < price
 			&& !_.has(Game.rooms, order.roomName)
-			&& Game.map.getRoomLinearDistance("W6N42", order.roomName) < 71
+			&& Game.map.getRoomLinearDistance("W6N42", order.roomName, true) < 71
 			&& Game.market.calcTransactionCost(order.remainingAmount, "W6N42", order.roomName) <= global.TERMINAL_MAX
 		) as Order[];
 		if (!!orders && orders.length > 0) {
@@ -163,7 +163,7 @@ function findDeals(): void {
 				const sellsFor = order.remainingAmount * price;
 				const profit = sellsFor - cost;
 				console.log(global.colorWrap(`[MARKET] found an interesting deal on ${resource}: ${order.remainingAmount.toLocaleString()} at ${order.price}. `
-					+ `Range: ${Game.map.getRoomLinearDistance("W6N42", order.roomName)} (${order.roomName}). `
+					+ `Range: ${Game.map.getRoomLinearDistance("W6N42", order.roomName, true)} (${order.roomName}). `
 					+ `Cost: ${cost.toLocaleString()}, Profit: ${profit.toLocaleString()}, Transfer: ${transferCost.toLocaleString()} energy. ID: ${order.id}`, "cyan"));
 			});
 		}
@@ -250,7 +250,7 @@ function resourceReport(): void {
 	let terminals = 0;
 	let terminalTotal = 0;
 	_.forEach(reportRoomList, (r: Room) => {
-		if (!!r.controller && r.controller.my) {
+		if (!!r.my) {
 			if (!!r.storage) {
 				const storagePercentage = _.round(_.sum(r.storage.store) / (r.storage.storeCapacity / 100));
 				storageLine = storageLine.concat(" "
@@ -301,14 +301,16 @@ function resourceReport(): void {
 global.resourceReport = resourceReport;
 
 function formatAmount(value: number, cellWidth: number = 0, valueMax: number = global.STORAGE_MIN, overrideColor?: string): string {
-	let strVal: string = global.formatNumber(value);
+	let strVal: string = (value === 0) ? "---" : global.formatNumber(value);
 	strVal = _.padRight(strVal, cellWidth);
 	let color: string = "White";
 	const percentage = value / (valueMax / 100);
 	if (_.isString(overrideColor)) {
 		color = overrideColor;
+	} else if (value === 0) {
+		color = "White";
 	} else if (percentage > 100) {
-		color = "#ff0066";
+		color = "#6BFFD7";
 	} else {
 		color = global.getColorBasedOnPercentage(100 - percentage);
 	}
@@ -330,14 +332,14 @@ function dumpResource(resource: string): void {
 				order.price >= price
 				&& order.remainingAmount >= canSell
 				&& !_.has(Game.rooms, order.roomName)
-				&& Game.map.getRoomLinearDistance(r.name, order.roomName) < 20
+				&& Game.map.getRoomLinearDistance(r.name, order.roomName, true) < 20
 			) as Order[];
 			if (!!orders && orders.length > 0) {
 				let bestPrice = 0;
 				let bestDistance = Infinity;
 				let bestOrder: Order;
 				orders.forEach((order: Order) => {
-					const orderDistance = Game.map.getRoomLinearDistance(r.name, order.roomName);
+					const orderDistance = Game.map.getRoomLinearDistance(r.name, order.roomName, true);
 					console.log(global.colorWrap(`[MARKET] found candidate: ${order.remainingAmount.toLocaleString()} at ${order.price}. `
 						+ `Range: ${orderDistance} (${order.roomName}). `
 						+ `ID: ${order.id}`, "cyan"));

@@ -1,19 +1,61 @@
-import CreepAction, {ICreepAction} from "../creepAction";
+import CreepAction from "../creepAction";
 
-export interface IUpgrader {
+export default class Upgrader extends CreepAction {
 
-	targetController: Controller;
-	targetEnergySource: Spawn | Structure;
+	public static PRIORITY: number = global.PRIORITY_UPGRADER;
+	public static MINRCL: number = global.MINRCL_UPGRADER;
+	public static ROLE: string = "Upgrader";
 
-	tryUpgrading(): number;
-	tryCollectEnergy(): number;
-	moveToCollectEnergy(): void;
-	moveToController(): void;
+	public static maxParts = 8;
+	public static maxCreeps = 2;
+	public static bodyPart = [CARRY, MOVE, WORK, WORK, WORK, MOVE];
 
-	action(): boolean;
-}
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const spawn = room.getFreeSpawn();
+		const properties: CreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			target_controller_id: room.controller.id,
+			target_energy_source_id: spawn.id,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
 
-export default class Upgrader extends CreepAction implements IUpgrader, ICreepAction {
+	public static getCreepLimit(room: Room): number {
+		switch (room.controller.level) {
+			case 1:
+			case 2:
+			case 3:
+				return 2;
+			case 4:
+				return 3;
+			case 5:
+				return 2;
+			case 6:
+				return 1;
+			case 7:
+				if (room.name === "W6N48") {
+					return 2;
+				}
+				return 1;
+			case 8:
+				return 1;
+			default:
+				return global.clamp(_.floor(room.energyInContainers / 200000), 1, this.maxCreeps);
+		}
+	}
+
+	public static getBody(room: Room) {
+		if (room.controller.level === 8) {
+			this.maxParts = 5;
+		}
+		if (room.controller.level < 5) { // Carry more stuff when links aren't available yet.
+			this.bodyPart = [CARRY, WORK, MOVE];
+		}
+		return super.getBody(room);
+	}
 
 	public targetController: Controller;
 	public targetEnergySource: Spawn | Structure;
@@ -84,6 +126,14 @@ export default class Upgrader extends CreepAction implements IUpgrader, ICreepAc
 	};
 
 	public action(): boolean {
+		if (this.creep.carrySum > this.creep.carry.energy) {
+			if (this.creep.pos.isNearTo(this.creep.room.storage.pos)) {
+				this.creep.transfer(this.creep.room.storage, this.getMineralTypeFromStore(this.creep));
+			} else {
+				this.moveTo(this.creep.room.storage.pos);
+			}
+			return false;
+		}
 		if (this.getBoosted() && super.action()) {
 			this.upgraderLogic();
 		}

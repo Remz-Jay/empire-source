@@ -1,15 +1,11 @@
-import List = _.List;
-import CreepGovernor from "./creepGovernor";
 export interface ICreepAction {
 	creep: Creep;
-	governor: CreepGovernor;
 	renewStation: Spawn;
 	fleeRange: number;
 	boosts: string[];
 	hasBoosts: string[];
 
 	setCreep(creep: Creep): void;
-	setGovernor(governor: CreepGovernor): void;
 	/**
 	 * Wrapper for Creep.moveTo() method.
 	 */
@@ -18,21 +14,57 @@ export interface ICreepAction {
 
 	action(): boolean;
 
-	createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number): PathFinderGoal;
+	createPathFinderMap(goals: RoomPosition[]|RoomPosition, range: number): PathFinderGoal;
 	deserializePathFinderPath(pathFinderArray: Array<any>): RoomPosition[];
 	findPathFinderPath(goal: PathFinderGoal): RoomPosition[] | boolean;
 	moveToTargetRoom(): void;
 	dumpToCloseTarget(): boolean;
+	fleeFromKeeperLair(fleeRange: number): boolean;
 }
 let allowedRooms: string[] = undefined;
 
 export default class CreepAction implements ICreepAction {
+	public static MINRCL: number = global.MINRCL_CREEP;
+	public static PRIORITY: number = global.PRIORITY_CREEP;
+	public static ROLE: string = "Creep";
+	public static maxCreeps: number = 0;
+	public static bodyPart: string[] = [WORK, MOVE, CARRY, MOVE];
+	public static maxParts: number = -1;
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		return {body: [], name: "", properties: {role: null, homeRoom: null}};
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
+	public static getNumberOfCreepsInRole(room: Room): number {
+		return this.getCreepsInRole(room).length;
+	}
+
+	public static getCreepsInRole(room: Room): Creep[] {
+		return _.get(global.tickCache.rolesByRoom, `${this.ROLE}.${room.name}`, []);
+	}
+
+	public static getBody(room: Room) {
+		const numParts = global.clamp(_.floor(room.energyCapacityAvailable / global.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+		let body: string[] = [];
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
 	public creep: Creep;
 	public renewStation: Spawn;
-	public governor: CreepGovernor;
 	public readonly fleeRange: number = 5;
 	public boosts: string[] = [];
 	public hasBoosts: string[] = [];
+
+	protected keeperLair: StructureKeeperLair = undefined;
 
 	public setCreep(creep: Creep): void {
 		this.creep = creep;
@@ -42,9 +74,6 @@ export default class CreepAction implements ICreepAction {
 		this.hasBoosts = this.creep.memory.hasBoosts;
 	}
 
-	public setGovernor(governor: CreepGovernor): void {
-		this.governor = governor;
-	}
 	public roomCallback = function (roomName: string): CostMatrix | boolean {
 		try {
 			if (_.includes(global.ROOM_BLACKLIST, roomName)) {
@@ -71,7 +100,7 @@ export default class CreepAction implements ICreepAction {
 				return new PathFinder.CostMatrix();
 			}
 		} catch (e) {
-			console.log(e.message, "creepAction.roomCallback", roomName);
+			console.log("creepAction.roomCallback", roomName, e.stack);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -101,7 +130,7 @@ export default class CreepAction implements ICreepAction {
 				return new PathFinder.CostMatrix();
 			}
 		} catch (e) {
-			console.log(e.message, "creepAction.creepCallback", roomName);
+			console.log("creepAction.creepCallback", roomName, e.stack);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -131,7 +160,7 @@ export default class CreepAction implements ICreepAction {
 				return new PathFinder.CostMatrix();
 			}
 		} catch (e) {
-			console.log(e.message, "creepAction.ignoreCallback", roomName);
+			console.log("creepAction.ignoreCallback", roomName, e.stack);
 			return new PathFinder.CostMatrix();
 		}
 	};
@@ -154,13 +183,15 @@ export default class CreepAction implements ICreepAction {
 				this.creep.say(minRange.toString());
 				if (minRange < fleeRange) {
 					const goals = _.map(targets, function(t: Creep) { return {pos: t.pos, range: fleeRange}; });
+					const nearby: boolean = this.creep.safeLook(LOOK_CREEPS, 1).length > 1;
+					const callback = (nearby) ? this.creepCallback : this.roomCallback;
 					const path = PathFinder.search(this.creep.pos, goals, {
 						flee: true,
 						maxRooms: 2,
 						plainCost: 2,
 						swampCost: 10,
 						maxOps: 500,
-						roomCallback: this.roomCallback,
+						roomCallback: callback,
 					});
 					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
 					const phrases: string[] = [
@@ -195,8 +226,7 @@ export default class CreepAction implements ICreepAction {
 	}
 	public roomPositionFromString(s: string): RoomPosition {
 		let p = global.decodeCoordinate(s, 0);
-		let rp = new RoomPosition(p.x, p.y, this.creep.room.name);
-		return rp;
+		return new RoomPosition(p.x, p.y, this.creep.room.name);
 	}
 
 	public comparePfg(l: PathFinderGoal, r: PathFinderGoal): boolean {
@@ -327,6 +357,11 @@ export default class CreepAction implements ICreepAction {
 				}
 			}
 			if (this.creep.pos.isNearTo(pos)) {
+				if (this.creep.room.alliedCreeps.length > 0) {
+					if (!!_(pos.lookFor(LOOK_CREEPS)).filter((c: Creep) => !c.my).first()) {
+						return this.moveTo(pfg, true);
+					}
+				}
 				this.creep.memory.lp = global.coordinateToCharacter(this.creep.pos);
 				this.creep.memory.ps = pathString;
 				this.creep.memory.ma = global.coordinateToCharacter(pos);
@@ -348,7 +383,7 @@ export default class CreepAction implements ICreepAction {
 				}
 			}
 		} catch (e) {
-			console.log(e.message, target, "creepAction.moveTo");
+			console.log("creepAction.moveTo", target, e.stack);
 			// fall back to regular move.
 			if (!(target instanceof RoomPosition)) {
 				target = new RoomPosition(target[0].pos.x, target[0].pos.y, target[0].pos.roomName);
@@ -370,12 +405,12 @@ export default class CreepAction implements ICreepAction {
 		return resource;
 	}
 
-	public createPathFinderMap(goals: List<RoomPosition>|RoomPosition, range: number = 1): PathFinderGoal {
-		let goalsList: List<RoomPosition>;
+	public createPathFinderMap(goals: RoomPosition[]|RoomPosition, range: number = 1): PathFinderGoal {
+		let goalsList: RoomPosition[];
 		if (!_.isArray(goals)) {
 			goalsList = [<RoomPosition> goals];
 		} else {
-			goalsList = goals as List<RoomPosition>;
+			goalsList = goals as RoomPosition[];
 		}
 		return _.map(goalsList, function (source: RoomPosition) {
 			// We can"t actually walk on sources-- set `range` to 1 so we path
@@ -409,9 +444,7 @@ export default class CreepAction implements ICreepAction {
 				routeCallback(roomName) {
 					const parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
 					const isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-					const isMyRoom = Game.rooms[roomName] &&
-						Game.rooms[roomName].controller &&
-						Game.rooms[roomName].controller.my;
+					const isMyRoom = Game.rooms[roomName] && Game.rooms[roomName].my;
 					const isAlliedRoom = !!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].a;
 					const isHostileRoom = !!Memory.matrixCache[roomName] && !!Memory.matrixCache[roomName].h;
 					if (isHighway || isMyRoom) {
@@ -463,17 +496,16 @@ export default class CreepAction implements ICreepAction {
 		// see if an upgrade for this creep is available
 		if (!!this.creep.memory.homeRoom) {
 			try {
-				const x: number = this.governor.getNumberOfCreepsInRole();
-				if (x > this.governor.getCreepLimit()) {
+				const x: number = CreepAction.getNumberOfCreepsInRole(this.creep.room);
+				if (x > CreepAction.getCreepLimit(this.creep.room)) {
 					return true;
 				}
-				const body = this.governor.getBody();
-				if (CreepGovernor.calculateRequiredEnergy(body)
-					> CreepGovernor.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
+				const body = CreepAction.getBody(this.creep.room);
+				if (global.calculateRequiredEnergy(body) > global.calculateRequiredEnergy(_.pluck(this.creep.body, "type"))) {
 					return true;
 				}
 			} catch (e) {
-				console.log(`creepAction.ExpireCreep: ${e.message}`);
+				console.log(`creepAction.ExpireCreep`, e.stack);
 				return false;
 			}
 		}
@@ -656,7 +688,7 @@ export default class CreepAction implements ICreepAction {
 						this.creep.say(status.toString());
 					}
 				} catch (e) {
-					console.log(e.message);
+					console.log("getBoosted", e.stack);
 				}
 			}
 			return false;
@@ -712,17 +744,76 @@ export default class CreepAction implements ICreepAction {
 			const targets = _.map(lookTargets, "structure") as EnergyStructure[];
 			const needyStructure = _.find(targets, (s: EnergyStructure) =>
 				needyTypes.indexOf(s.structureType) > -1
-				&& ((!!s.energy && !!s.energyCapacity && s.energy < s.energyCapacity) || (
+				&& ((!!s.energyCapacity && s.energy < s.energyCapacity) || (
 						(s instanceof StructureStorage || s instanceof StructureTerminal || s instanceof StructureContainer)
 						&& (_.sum(s.store) + this.creep.carry.energy) <= s.storeCapacity
 					)
 				)
 			);
 			if (needyStructure) {
-				this.creep.logTransfer(needyStructure, RESOURCE_ENERGY);
+				if (needyStructure.structureType === STRUCTURE_STORAGE || needyStructure.structureType === STRUCTURE_TERMINAL) {
+					this.creep.logTransfer(needyStructure, this.getMineralTypeFromStore(this.creep));
+				} else {
+					this.creep.logTransfer(needyStructure, RESOURCE_ENERGY);
+				}
 				return true;
 			}
 		}
 		return false;
+	}
+	public withdrawFromCloseTarget(additionalStructures: string[] = [], resourceType?: string): boolean {
+		if (this.creep.carrySum < this.creep.carryCapacity) {
+			let providerTypes: string[] = [STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_CONTAINER];
+			providerTypes = _.union(providerTypes, additionalStructures);
+			const target = _(this.creep.safeLook(LOOK_STRUCTURES, 1)).map("structure").find((s: StorageStructure) =>
+				providerTypes.indexOf(s.structureType) > -1 && _.sum(s.store) > 0) as StorageStructure;
+			if (!!target) {
+				if (!!resourceType) {
+					this.creep.withdraw(target, resourceType);
+				} else {
+					this.creep.withdraw(target, this.getMineralTypeFromStore(target));
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public fleeFromKeeperLair(fleeRange: number = 6): boolean {
+		if (!!this.keeperLair) {
+			if (this.keeperLair.ticksToSpawn <= 10) {
+				if (this.creep.pos.getRangeTo(this.keeperLair) < fleeRange) {
+					const goals = _.map([this.keeperLair], function(t: StructureKeeperLair) { return {pos: t.pos, range: fleeRange}; });
+					const nearby: boolean = this.creep.safeLook(LOOK_CREEPS, 1).length > 1;
+					const callback = (nearby) ? this.creepCallback : this.roomCallback;
+					const path = PathFinder.search(this.creep.pos, goals, {
+						flee: true,
+						maxRooms: 1,
+						plainCost: 1,
+						swampCost: 10,
+						maxOps: 500,
+						roomCallback: callback,
+					});
+					this.creep.move(this.creep.pos.getDirectionTo(path.path[0]));
+				}
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}
+
+	public passingRepair(): void {
+		if (this.creep.carry.energy > 0) {
+			const repairTarget = _(this.creep.pos.lookFor(LOOK_STRUCTURES)).filter((s: Structure) => s.hits < s.hitsMax).first() as Structure;
+			if (!!repairTarget) {
+				this.creep.repair(repairTarget);
+			} else {
+				const buildTarget = _(this.creep.pos.lookFor(LOOK_CONSTRUCTION_SITES)).first() as ConstructionSite;
+				if (!!buildTarget) {
+					this.creep.build(buildTarget);
+				}
+			}
+		}
 	}
 }

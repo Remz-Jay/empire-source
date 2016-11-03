@@ -1,6 +1,37 @@
 import WarfareCreepAction from "../warfareCreepAction";
 
 export default class WarArcher extends WarfareCreepAction {
+
+	public static PRIORITY: number = global.PRIORITY_WF_WARRIOR;
+	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
+	public static ROLE: string = "WarArcher";
+
+	public static maxParts = 15;
+	public static maxTough = 2;
+	public static maxCreeps = 5;
+	public static bodyPart = [RANGED_ATTACK, RANGED_ATTACK, MOVE];
+	public static toughPart = [TOUGH, TOUGH, MOVE];
+	public static basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE];
+
+	public static getCreepConfig(room: Room): CreepConfiguration {
+		const bodyParts: string[] = this.getBody(room);
+		const name: string = `${room.name}-${this.ROLE}-${global.time}`;
+		const properties: RemoteCreepProperties = {
+			homeRoom: room.name,
+			role: this.ROLE,
+			config: this.config,
+		};
+		return {body: bodyParts, name: name, properties: properties};
+	}
+
+	public static getBody(room: Room) {
+		return super.getToughBody(room);
+	}
+
+	public static getCreepLimit(room: Room): number {
+		return this.maxCreeps;
+	}
+
 	public hasHealer: boolean = true;
 	public hardPath: boolean = true;
 	public noTarget: boolean = true;
@@ -14,7 +45,7 @@ export default class WarArcher extends WarfareCreepAction {
 	public move(): void {
 		if (!this.hasHealer && !this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
 			return;
-		} else if (this.hasHealer && !this.checkTough()) {
+		} else if (this.hasHealer && (!!this.creep.stats.fullHealth.toughParts && !this.creep.stats.current.toughParts)) {
 			const closest = this.creep.pos.findClosestByRange(this.creep.room.myCreeps, {
 				filter: (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) > 5,
 			});
@@ -31,7 +62,7 @@ export default class WarArcher extends WarfareCreepAction {
 		if (!this.moveUsingPositions()) {
 			let target: Creep | Structure;
 			if (!this.noTarget && !this.creep.memory.target) {
-				target = this.findTarget() || this.findHealTarget() || this.findTargetStructure() || undefined;
+				target = this.findRangedTarget(this.sourceKeeperDuty) || this.findHealTarget() || this.findTargetStructure() || undefined;
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
@@ -40,7 +71,7 @@ export default class WarArcher extends WarfareCreepAction {
 			} else if (!this.noTarget) {
 				target = Game.getObjectById<Creep>(this.creep.memory.target);
 				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
-					target = this.findTarget();
+					target = this.findRangedTarget(this.sourceKeeperDuty);
 					if (!!target) {
 						this.creep.memory.target = target.id;
 					} else {
@@ -48,7 +79,7 @@ export default class WarArcher extends WarfareCreepAction {
 					}
 				} else if (target instanceof Structure) {
 					// check if we have better things to do
-					const t2 = this.findTarget();
+					const t2 = this.findRangedTarget(this.sourceKeeperDuty);
 					if (!!t2) {
 						target = t2;
 						this.creep.memory.target = target.id;

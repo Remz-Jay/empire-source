@@ -4,6 +4,16 @@ export interface IASMCreepAction {
 }
 
 export default class ASMCreepAction extends CreepAction implements IASMCreepAction {
+	public static config: RemoteRoomConfig;
+
+	public static setConfig(config: RemoteRoomConfig) {
+		this.config = config;
+	}
+
+	public static getCreepsInRole(room: Room): Creep[] {
+		return _.filter(global.tickCache.roles[this.ROLE],
+			(creep: Creep) => creep.memory.config.homeRoom === room.name && creep.memory.config.targetRoom === this.config.targetRoom);
+	}
 
 	public goHome: boolean;
 
@@ -17,19 +27,6 @@ export default class ASMCreepAction extends CreepAction implements IASMCreepActi
 			return true;
 		} else {
 			return false;
-		}
-	}
-	public passingRepair(): void {
-		if (this.creep.carry.energy > 0) {
-			const repairTarget = _(this.creep.pos.lookFor(LOOK_STRUCTURES)).filter((s: Structure) => s.hits < s.hitsMax).first() as Structure;
-			if (!!repairTarget) {
-				this.creep.repair(repairTarget);
-			} else {
-				const buildTarget = _(this.creep.pos.lookFor(LOOK_CONSTRUCTION_SITES)).first() as ConstructionSite;
-				if (!!buildTarget) {
-					this.creep.build(buildTarget);
-				}
-			}
 		}
 	}
 

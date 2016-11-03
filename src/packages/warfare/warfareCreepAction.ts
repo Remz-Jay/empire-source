@@ -2,7 +2,6 @@ import CreepAction from "../../components/creeps/creepAction";
 
 export interface IWFCreepAction {
 	wait: boolean;
-	checkTough(): boolean;
 	moveToHeal(): boolean;
 	moveToSafeRange(): boolean;
 	moveToTargetRoom(): void;
@@ -10,6 +9,39 @@ export interface IWFCreepAction {
 }
 
 export default class WFCreepAction extends CreepAction implements IWFCreepAction {
+	public static config: RemoteRoomConfig;
+	public static maxParts: number = 25;
+	public static maxTough: number = 25;
+	public static maxCreeps: number = 0;
+	public static bodyPart: string[] = [];
+	public static toughPart: string[] = [];
+	public static basePart: string[] = [];
+
+	public static setConfig(config: RemoteRoomConfig) {
+		this.config = config;
+	}
+
+	public static getToughBody(room: Room): string[] {
+		const numParts = global.clamp(_.floor(
+			(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+			global.calculateRequiredEnergy(this.bodyPart)), 1, this.maxParts);
+
+		let body: string[] = this.basePart;
+		for (let i = 0; i < numParts; i++) {
+			if (body.length + this.bodyPart.length <= 50) {
+				body = body.concat(this.bodyPart);
+			}
+		}
+		const remainingEnergy = room.energyCapacityAvailable - global.calculateRequiredEnergy(body);
+		const numTough = global.clamp(_.floor(remainingEnergy / global.calculateRequiredEnergy(this.toughPart)), 0, this.maxTough);
+		for (let i = 0; i < numTough; i++) {
+			if (body.length + this.toughPart.length <= 50) {
+				body = body.concat(this.toughPart);
+			}
+		}
+		return global.sortBodyParts(body);
+	}
+
 	public wait: boolean = false;
 	public ignoreStructures: string[] = [
 		STRUCTURE_STORAGE,
@@ -30,18 +62,23 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		this.positionIterator = this.creep.memory.positionIterator;
 	}
 
-	public checkTough(): boolean {
-		return (this.creep.getActiveBodyparts(TOUGH) > 0);
-	}
-
 	public moveToHeal(): boolean {
-		if (!this.checkTough() || this.creep.memory.waitForHealth) {
+		if ((!!this.creep.stats.fullHealth.toughParts && !this.creep.stats.current.toughParts) || this.creep.memory.waitForHealth) {
 			this.creep.memory.waitForHealth = true;
-			this.creep.memory.positionIterator = this.positionIterator = 0;
-			if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
-				this.moveTo(this.positions[this.positionIterator]);
+			if (this.creep.room.hostileCreeps.length > 0 && this.creep.room.hostileCreeps.filter((c: Creep) =>
+					(c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0)
+					&& c.pos.inRangeTo(this.creep.pos, 3)
+				).length > 0) {
+				if (this.positions) {
+					this.creep.memory.positionIterator = this.positionIterator = 0;
+					if (!this.creep.pos.isNearTo(this.positions[this.positionIterator])) {
+						this.moveTo(this.positions[this.positionIterator]);
+					}
+				} else {
+					this.moveTo(Game.flags[this.creep.memory.homeRoom].pos);
+				}
+				return false;
 			}
-			return false;
 		}
 		return true;
 	}
@@ -52,9 +89,16 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			|| c.getActiveBodyparts(RANGED_ATTACK) > 0);
 			if (!!capableTargets && capableTargets.length > 0) {
 				const targets = this.creep.pos.findInRange(capableTargets, 2);
-				if (targets.length > 0) {
+				const totalDamage = _.sum(targets, (c: Creep) => c.stats.current.rangedAttack + c.stats.current.attack);
+				const totalHeal = this.creep.stats.current.heal;
+				if (totalDamage > totalHeal) {
+					let range = 3;
+					if (!!this.creep.stats.fullHealth.toughParts) {
+						// if this creep was built with TOUGH, change the stance
+						range = (!!this.creep.stats.current.toughParts) ? 3 : 4;
+					}
 					const goals = _.map(targets, function (t: Creep) {
-						return {pos: t.pos, range: 3};
+						return {pos: t.pos, range: range};
 					});
 					const path = PathFinder.search(this.creep.pos, goals, {
 						flee: true,
@@ -78,9 +122,7 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			_.find(Game.structures, (s) => true), "owner.username",
 			_.get(_.find(Game.creeps, (s) => true), "owner.username")
 		) as string;
-		const isMyRoom = Game.rooms[roomName] &&
-			Game.rooms[roomName].controller &&
-			Game.rooms[roomName].controller.my;
+		const isMyRoom = Game.rooms[roomName] && Game.rooms[roomName].my;
 		const isMyReservedRoom = Game.rooms[roomName] &&
 			Game.rooms[roomName].controller &&
 			Game.rooms[roomName].controller.reservation &&
@@ -214,14 +256,35 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		if (this.creep.room.hostileCreeps.length > 0) {
 			const targets: Creep[] = this.creep.room.hostileCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3));
 			if (targets.length > 0) {
-				if (doMass && targets.length > 1) {
+				if (doMass
+					&& this.creep.room.alliedCreeps.length > 0
+					&& this.creep.room.alliedCreeps.filter((c: Creep) => c.pos.inRangeTo(this.creep.pos, 3)).length > 0) {
+					doMass = false;
+				}
+				if (doMass) {
+					const massDamage = _.reduce(targets, (total: number, c: Creep) => {
+						switch (c.pos.getRangeTo(this.creep.pos)) {
+							case 1:
+								return total + 10;
+							case 2:
+								return total + 4;
+							case 3:
+								return total + 1;
+							default:
+								return total;
+						}
+					}, 0);
+					if (massDamage < RANGED_ATTACK_POWER) {
+						doMass = false;
+					}
+				}
+				if (doMass) {
 					this.creep.rangedMassAttack();
-					return false;
 				} else {
 					const target = this.getPriorityCreep(targets);
 					this.creep.rangedAttack(target);
-					return false;
 				}
+				return false;
 			}
 		}
 		return true;
@@ -280,9 +343,10 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		return true;
 	}
 
-	public findHealTarget(): Creep {
+	public findHealTarget(excludeMe: boolean = false): Creep {
 		if (this.creep.room.myCreeps.length > 1) {
-			const wounded = this.creep.pos.findClosestByRange<Creep>(this.creep.room.myCreeps, {
+			const targets = (excludeMe) ? _.difference(this.creep.room.myCreeps, [this.creep]) : this.creep.room.myCreeps;
+			const wounded = this.creep.pos.findClosestByRange<Creep>(targets, {
 				filter: (c: Creep) => c.hits < c.hitsMax,
 			});
 			if (!!wounded) {
@@ -291,28 +355,42 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 		}
 		return undefined;
 	}
-	public findTarget(): Creep {
+	public findMeleeTarget(includeSourceKeepers: boolean = false): Creep {
 		if (this.creep.room.hostileCreeps.length > 0) {
 			// Prioritize Hostiles with offensive capabilities.
-			const hostiles = this.creep.room.hostileCreeps.filter((c: Creep) =>
-				c.getActiveBodyparts(ATTACK) > 0
-				|| c.getActiveBodyparts(RANGED_ATTACK) > 0
-				|| c.getActiveBodyparts(HEAL) > 0
-			);
-			let hostile = this.creep.pos.findClosestByRange<Creep>(hostiles);
-			if (!!hostile) {
-				if (hostile.owner.username === "Source Keeper" && hostile.pos.findInRange(this.creep.room.sources, 5).length === 0) {
-					return undefined;
-				} else {
-					return hostile;
-				}
-			} else {
-				// Return worker creeps instead.
-				hostile = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps);
-				if (!!hostile) {
-					return hostile;
-				}
+			let excludeUsernames: string[] = [];
+			if (!includeSourceKeepers) {
+				excludeUsernames.push("Source Keeper");
 			}
+			const hostiles = this.creep.room.hostileCreeps.filter((c: Creep) =>
+				!_.includes(excludeUsernames, c.owner.username)
+				&& (
+					c.getActiveBodyparts(ATTACK) > 0
+					|| c.getActiveBodyparts(HEAL) > 0
+				)
+				&& this.validateSourceKeeper(c)
+			);
+			return this.findTarget(hostiles);
+		}
+		return undefined;
+	}
+	public findRangedTarget(includeSourceKeepers: boolean = false): Creep {
+		if (this.creep.room.hostileCreeps.length > 0) {
+			// Prioritize Hostiles with offensive capabilities.
+			let excludeUsernames: string[] = [];
+			if (!includeSourceKeepers) {
+				excludeUsernames.push("Source Keeper");
+			}
+			const hostiles = this.creep.room.hostileCreeps.filter((c: Creep) =>
+				!_.includes(excludeUsernames, c.owner.username)
+				&& (
+					c.getActiveBodyparts(ATTACK) > 0
+					|| c.getActiveBodyparts(RANGED_ATTACK) > 0
+					|| c.getActiveBodyparts(HEAL) > 0
+				)
+				&& this.validateSourceKeeper(c)
+			);
+			return this.findTarget(hostiles);
 		}
 		return undefined;
 	}
@@ -401,5 +479,26 @@ export default class WFCreepAction extends CreepAction implements IWFCreepAction
 			// yeah.
 		}
 		return true;
+	}
+	private validateSourceKeeper(creep: Creep): boolean {
+		if (creep.owner.username !== "Source Keeper") {
+			return true;
+		} else {
+			return (creep.pos.findInRange(this.creep.room.sources, 5).length === 0) ? false : true;
+		}
+	}
+
+	private findTarget(hostiles: Creep[]): Creep {
+		let hostile = this.creep.pos.findClosestByRange<Creep>(hostiles);
+		if (!!hostile) {
+			return (this.validateSourceKeeper(hostile)) ? hostile : undefined;
+		} else {
+			// Return worker creeps instead.
+			hostile = this.creep.pos.findClosestByRange<Creep>(this.creep.room.hostileCreeps);
+			if (!!hostile) {
+				return (this.validateSourceKeeper(hostile)) ? hostile : undefined;
+			}
+		}
+		return undefined;
 	}
 }

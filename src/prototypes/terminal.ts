@@ -8,8 +8,7 @@ interface StructureTerminal {
 
 Object.defineProperty(StructureTerminal.prototype, "storage", {
 	get: function storage() {
-		delete this.storage;
-		return this.storage = this.room.storage;
+		return (!!this.__storage) ? this.__storage : this.__storage = this.room.storage;
 	},
 	configurable: true,
 	enumerable: false,
@@ -65,7 +64,7 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 			if (_.isNumber(threshold)) {
 				const offers = Game.market.getAllOrders({resourceType: minType, type: ORDER_BUY}).filter((order: Order) =>
 					order.price >= threshold
-					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName) < 50 // At 70 the energy costs equal the amount to transfer.
+					&& Game.map.getRoomLinearDistance(this.room.name, order.roomName, true) < 50 // At 70 the energy costs equal the amount to transfer.
 				) as Order[];
 				if (offers.length > 0) {
 					const offer = _.sortBy(offers, "price").shift();
@@ -80,7 +79,7 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 				}
 			}
 		} catch (e) {
-			console.log("Terminal.prototype.marketTrade ERROR ::" + e.message);
+			console.log("Terminal.prototype.marketTrade ERROR ::" + e.stack);
 		}
 	}
 	return false;
@@ -89,7 +88,7 @@ StructureTerminal.prototype.autoSell = function(): boolean {
 StructureTerminal.prototype.run = function (): boolean {
 	// TODO: x = total_amount/(1+(Math.log(0.1*linearDistanceBetweenRooms + 0.9) + 0.1))
 	const batchSize: number = 1000;
-	const roomList = _.filter(Game.rooms, (r: Room) => !!r.controller && !!r.controller.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
+	const roomList = _.filter(Game.rooms, (r: Room) => !!r.my && r.controller.level > 5 && !!r.storage && !!r.terminal);
 	if (this.store.energy >= global.TERMINAL_ENERGY_MAX
 		&& this.storage.store.energy >= (global.STORAGE_MIN + global.TERMINAL_ENERGY_MAX)
 	) {
@@ -98,6 +97,7 @@ StructureTerminal.prototype.run = function (): boolean {
 			if (!this.sending
 				&& room.name !== this.room.name
 				&& !_.includes(global.sendRegistry, RESOURCE_ENERGY)
+				&& Game.map.getRoomLinearDistance(this.room.name, room.name, true) < 10
 				&& room.storage.store.energy < (global.STORAGE_MIN - global.TERMINAL_ENERGY_MAX)
 			) {
 				const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, room.name);
@@ -117,6 +117,7 @@ StructureTerminal.prototype.run = function (): boolean {
 		});
 		const powerRoom: Room = roomList.find((r: Room) => !!r.powerSpawn && r.storage.store.energy <= (2 * global.STORAGE_MIN));
 		if (!this.sending && !!powerRoom && this.room.name !== powerRoom.name
+			&& Game.map.getRoomLinearDistance(this.room.name, powerRoom.name, true) < 10
 			&& this.storage.store.energy > (2 * global.STORAGE_MIN)
 		) {
 			const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, powerRoom.name);
@@ -143,10 +144,9 @@ StructureTerminal.prototype.run = function (): boolean {
 		if (!this.sending && Game.cpu.bucket > global.BUCKET_MIN) {
 			if (!this.sending
 				&& br.room.name !== this.room.name
-				&& this.room.boostLabs.length === 0
 				&& !_.includes(global.sendRegistry, br.reagent)
-				&& this.store[br.reagent] >= TERMINAL_MIN_SEND
-				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < global.TERMINAL_MAX)
+				&& this.store[br.reagent] >= batchSize * 2
+				&& (!br.room.terminal.store[br.reagent] || br.room.terminal.store[br.reagent] < batchSize)
 				&& !br.room.storage.store[br.reagent]
 			) {
 				let transferAmount: number = global.clamp(batchSize, TERMINAL_MIN_SEND, this.store[br.reagent]);

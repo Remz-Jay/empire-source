@@ -1,24 +1,20 @@
 import WarfareCreepAction from "../../warfareCreepAction";
-import FasterminatorGovernor from "../../governors/fasterminator";
 import Terminator from "../../roles/terminator";
-
-import WarvesterGovernor from "../../governors/warvester";
 import Warvester from "../../roles/warvester";
 
-/*import HealerGovernor from "../../governors/healer";
+/*
 import Healer from "../../roles/healer";
-import DismantlerGovernor from "../../governors/dismantler";
 import Dismantler from "../../roles/dismantler";
-import WarArcherGovernor from "../../governors/wararcher";
 import WarArcher from "../../roles/wararcher";
-import WarriorGovernor from "../../governors/warrior";
 import Warrior from "../../roles/warrior";
-import WarMuleGovernor from "../../governors/warmule";
 import WarMule from "../../roles/warmule";
-import WarUpgraderGovernor from "../../governors/warupgrader";
 import WarUpgrader from "../../roles/warupgrader";*/
-// import WarBuilderGovernor from "../../governors/warbuilder";
 // import WarBuilder from "../../roles/warbuilder";
+
+const roles: {[id: string]: any } = {
+	Terminator: Terminator,
+	Warvester: Warvester,
+};
 
 function initMemory(): void {
 	if (!Memory.offense) {
@@ -36,7 +32,6 @@ let targetRoom: Room;
 /*const claimSquad = {
 	roles: [
 		{
-			"governor": WarUpgraderGovernor,
 			"role": WarUpgrader,
 			"maxCreeps": 0,
 		},
@@ -44,11 +39,10 @@ let targetRoom: Room;
 	wait: false,
 };*/
 
-const defenderConfig = {
+const defenderConfig: SquadConfig = {
 	roles: [
 		{
-			"governor": FasterminatorGovernor,
-			"role": Terminator,
+			"role": "Terminator",
 			"maxCreeps": 3,
 		},
 	],
@@ -57,7 +51,6 @@ const defenderConfig = {
 /*const warArcherConfig = {
 	roles: [
 		{
-			"governor": WarArcherGovernor,
 			"role": WarArcher,
 			"maxCreeps": 0,
 		},
@@ -67,38 +60,33 @@ const defenderConfig = {
 const healTestConfig = {
 	roles: [
 		{
-			"governor": WarArcherGovernor,
 			"role": WarArcher,
 			"maxCreeps": 0,
 		},
 		{
-			"governor": HealerGovernor,
 			"role": Healer,
 			"maxCreeps": 1,
 		},
 		{
-			"governor": DismantlerGovernor,
 			"role": Dismantler,
 			"maxCreeps": 1,
 		},
 	],
 	wait: false,
 };*/
-const warvestConfig = {
+const warvestConfig: SquadConfig = {
 	roles: [
 		{
-			"governor": WarvesterGovernor,
-			"role": Warvester,
+			"role": "Warvester",
 			"maxCreeps": 2,
 		},
 	],
 	wait: false,
 };
-const squadConfig = {
+const squadConfig: SquadConfig = {
 	roles: [
 		{
-			"governor": FasterminatorGovernor,
-			"role": Terminator,
+			"role": "Terminator",
 			"maxCreeps": 1,
 		},
 	],
@@ -161,9 +149,7 @@ function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
 				_.find(Game.structures, (s) => true), "owner.username",
 				_.get(_.find(Game.creeps, (s) => true), "owner.username")
 			) as string;
-			const isMyRoom = Game.rooms[roomName] &&
-				Game.rooms[roomName].controller &&
-				Game.rooms[roomName].controller.my;
+			const isMyRoom = Game.rooms[roomName] && Game.rooms[roomName].my;
 			const isMyReservedRoom = Game.rooms[roomName] &&
 				Game.rooms[roomName].controller &&
 				Game.rooms[roomName].controller.reservation &&
@@ -235,45 +221,45 @@ function createCreep(creepConfig: CreepConfiguration): string|number {
 function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	let creeps: Creep[] = [];
 	_.each(sq.roles, function(role) {
-		creeps = creeps.concat(_.filter(_.get(global.tickCache.rolesByRoom, `${role.governor.ROLE}.${homeRoom.name}`, []),
+		creeps = creeps.concat(_.filter(_.get(global.tickCache.rolesByRoom, `${role.ROLE}.${homeRoom.name}`, []),
 			(c: Creep) => c.memory.config.targetRoom === targetRoomName
 		));
 	}, this);
 	return creeps;
 }
-function manageSquad(targetRoomName: string, sq: any, targetPositions: RoomPosition[]) {
+function manageSquad(targetRoomName: string, sq: SquadConfig, targetPositions: RoomPosition[]) {
 	const resetIterator = false;
 	const creeps = _.groupBy(loadCreeps(targetRoomName, sq), "memory.role");
 	_.each(sq.roles, function(squadRole) {
-		const governor = new squadRole.governor(homeRoom, config);
-		const creepsInRole = _.get(creeps, `${squadRole.governor.ROLE}`, []);
-		console.log(squadRole.governor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
-		const role: WarfareCreepAction = new squadRole.role();
+		const ctor: any = roles[squadRole.role];
+		ctor.setConfig(config);
+		const creepsInRole = _.get(creeps, `${ctor.ROLE}`, []);
+		console.log(ctor.ROLE, squadRole.maxCreeps, targetRoomName, homeRoom.name, creepsInRole.length);
+		const role: WarfareCreepAction = new ctor();
 		_.each(creepsInRole, function(c: Creep){
 			if (!c.spawning) {
 				role.setCreep(<Creep> c, targetPositions);
 				if (resetIterator) {
 					c.memory.positionIterator = 0;
 				}
-				role.setGovernor(governor);
 				role.action();
 				if (c.ticksToLive < 200 && (creepsInRole.length === squadRole.maxCreeps)) {
 					// Do a preemptive spawn if this creep is about to expire.
-					const status = createCreep(governor.getCreepConfig());
+					const status = createCreep(ctor.getCreepConfig(homeRoom));
 					if (_.isNumber(status)) {
-						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
+						console.log("manageSquad.preempt-spawn", global.translateErrorCode(status), ctor.ROLE);
 					} else {
-						console.log("manageSquad.preempt-spawn", status, squadRole.governor.ROLE);
+						console.log("manageSquad.preempt-spawn", status, ctor.ROLE);
 					}
 				}
 			}
 		}, this);
 		if (creepsInRole.length < squadRole.maxCreeps) {
-			const status = createCreep(governor.getCreepConfig());
+			const status = createCreep(ctor.getCreepConfig(homeRoom));
 			if (_.isNumber(status)) {
-				console.log("manageSquad.spawn", global.translateErrorCode(status), squadRole.governor.ROLE);
+				console.log("manageSquad.spawn", global.translateErrorCode(status), ctor.ROLE);
 			} else {
-				console.log("manageSquad.spawn", status, squadRole.governor.ROLE);
+				console.log("manageSquad.spawn", status, ctor.ROLE);
 			}
 		}
 	}, this);
