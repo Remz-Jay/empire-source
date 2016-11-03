@@ -32,92 +32,53 @@ export default class Sentinel extends WarfareCreepAction {
 		return this.maxCreeps;
 	}
 
-	public hardPath: boolean = true;
-	public noTarget: boolean = false;
-	public sourceKeeperDuty: boolean = false;
-
 	public move(): void {
 		if (!this.moveToHeal() || !this.moveToSafeRange() || !!this.creep.memory.waitForHealth) {
 			return;
 		}
-		if (!this.moveUsingPositions()) {
-			let target: Creep | Structure;
-			if (!this.noTarget && !this.creep.memory.target) {
-				target = this.findRangedTarget(this.sourceKeeperDuty) || this.findHealTarget() || this.findTargetStructure() || undefined;
+		let target: Creep;
+		if (!this.creep.memory.target) {
+			target = this.findRangedTarget() || this.findHealTarget() || undefined;
+			if (!!target) {
+				this.creep.memory.target = target.id;
+			} else {
+				delete this.creep.memory.target;
+			}
+		} else {
+			target = Game.getObjectById<Creep>(this.creep.memory.target);
+			if (!target || (!!target.my && target.hits === target.hitsMax) || target.room.name !== this.creep.room.name) { // target died or full health?
+				target = this.findRangedTarget();
 				if (!!target) {
 					this.creep.memory.target = target.id;
 				} else {
 					delete this.creep.memory.target;
 				}
-			} else if (!this.noTarget) {
-				target = Game.getObjectById<Creep>(this.creep.memory.target);
-				if (!target || (!!target.my && target.hits === target.hitsMax)) { // target died or full health?
-					target = this.findRangedTarget(this.sourceKeeperDuty);
-					if (!!target) {
-						this.creep.memory.target = target.id;
-					} else {
-						delete this.creep.memory.target;
-					}
-				} else if (target instanceof Structure) {
-					// check if we have better things to do
-					const t2 = this.findRangedTarget(this.sourceKeeperDuty);
-					if (!!t2) {
-						target = t2;
-						this.creep.memory.target = target.id;
-					}
-				}
 			}
-			// Just moveTo when we're safely behind walls
-			if (!!target && !this.hardPath) {
-				this.creep.move(this.creep.pos.getDirectionTo(target));
-				return;
-			}
+		}
 
-			// Otherwise, use a pathFinder path to get there.
-			if (!!target && !!this.creep.memory.target && target.id === this.creep.memory.target) {
-				const range = (target instanceof Creep && target.my) ? 1 : 3;
+		// Otherwise, use a pathFinder path to get there.
+		if (!!target) {
+			if (!!target.my) {
+				this.moveTo(target.pos); // stay in heal range
+			} else {
+				const range = (target instanceof Creep && target.getActiveBodyparts(ATTACK) > 1) ? 3 : 1;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					this.moveTo(target.pos);
 				}
-			} else {
-				if (this.sourceKeeperDuty) {
-					const lairs = this.creep.room.groupedStructures[STRUCTURE_KEEPER_LAIR].filter(
-						(s: StructureKeeperLair) => s.ticksToSpawn < 50
-						&& (s.pos.findInRange(this.creep.room.sources, 5).length > 0)
-					);
-					if (lairs.length > 0) {
-						if (!this.creep.pos.inRangeTo(lairs[0].pos, 4)) {
-							this.moveTo([{pos: lairs[0].pos, range: 4}]);
-						} else {
-							// this.creep.cancelOrder("move");
-							if (_.random(0, 10) === 1) {
-								this.creep.say("Come out!", true);
-							}
-						}
-					} else {
-						this.waitAtFlag(this.creep.memory.config.targetRoom);
-					}
-				} else {
-					this.waitAtFlag(this.creep.memory.config.targetRoom);
-				}
 			}
+		} else {
+			this.waitAtFlag(this.creep.memory.config.targetRoom);
 		}
 	}
 	public rotation(): void {
 		// See: http://support.screeps.com/hc/en-us/articles/203137792-Simultaneous-execution-of-creep-actions
 		if (this.heal()) {
 			delete this.creep.memory.waitForHealth;
-			if (!this.rangedAttack(false) || !this.rangedHeal() || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
-				this.creep.memory.inCombat = true;
-			} else {
-				delete this.creep.memory.inCombat;
+			if (this.rangedAttack(true)) {
+				this.rangedHeal();
 			}
 		} else {
-			if (!this.rangedAttack(false) || !this.rangedStructureAttack() || !this.rangedPublicStructureAttack()) {
-				this.creep.memory.inCombat = true;
-			} else {
-				delete this.creep.memory.inCombat;
-			}
+			this.rangedAttack(true);
 		}
 	}
 	public action(): boolean {

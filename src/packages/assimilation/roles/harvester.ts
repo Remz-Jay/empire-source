@@ -83,6 +83,9 @@ export default class ASMHarvester extends ASMCreepAction {
 				this.creep.memory.container = ASMHarvester.checkContainerAssignment();
 				this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
 			}
+		} else {
+			this.creep.memory.container = ASMHarvester.checkContainerAssignment();
+			this.container = Game.getObjectById<StructureContainer>(this.creep.memory.container);
 		}
 		if (!this.creep.memory.source && !!this.container) {
 			const source = this.findSourceNearContainer(this.container);
@@ -147,22 +150,29 @@ export default class ASMHarvester extends ASMCreepAction {
 	}
 
 	public moveToDropEnergy(): void {
-		if (!this.creep.pos.isNearTo(this.container.pos)) {
-			this.moveTo(this.container.pos);
-		} else if (this.creep.carry.energy > 0) {
-			const status = this.tryEnergyDropOff();
-			switch (status) {
-				case OK:
-					break;
-				case ERR_FULL:
-					this.creep.drop(RESOURCE_ENERGY);
-					break;
-				case ERR_INVALID_TARGET:
-					delete this.creep.memory.container;
-					delete this.creep.memory.source;
-					break;
-				default:
-					console.log(`harvester energyDropOff error ${status}`);
+		if (!!this.container) {
+			if (!this.creep.pos.isNearTo(this.container.pos)) {
+				this.moveTo(this.container.pos);
+			} else if (this.creep.carry.energy > 0) {
+				const status = this.tryEnergyDropOff();
+				switch (status) {
+					case OK:
+						break;
+					case ERR_FULL:
+						this.creep.drop(RESOURCE_ENERGY);
+						break;
+					case ERR_INVALID_TARGET:
+						delete this.creep.memory.container;
+						delete this.creep.memory.source;
+						break;
+					default:
+						console.log(`harvester energyDropOff error ${status}`);
+				}
+			}
+		} else {
+			const cs = _(this.creep.safeLook(LOOK_CONSTRUCTION_SITES, 3)).map("constructionSite").first() as ConstructionSite;
+			if (!!cs) {
+				this.creep.build(cs);
 			}
 		}
 	}

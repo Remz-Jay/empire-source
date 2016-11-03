@@ -32,7 +32,7 @@ export default class Upgrader extends CreepAction {
 			case 4:
 				return 3;
 			case 5:
-				return 1;
+				return 2;
 			case 6:
 				return 1;
 			case 7:
@@ -126,6 +126,14 @@ export default class Upgrader extends CreepAction {
 	};
 
 	public action(): boolean {
+		if (this.creep.carrySum > this.creep.carry.energy) {
+			if (this.creep.pos.isNearTo(this.creep.room.storage.pos)) {
+				this.creep.transfer(this.creep.room.storage, this.getMineralTypeFromStore(this.creep));
+			} else {
+				this.moveTo(this.creep.room.storage.pos);
+			}
+			return false;
+		}
 		if (this.getBoosted() && super.action()) {
 			this.upgraderLogic();
 		}

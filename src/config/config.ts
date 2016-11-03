@@ -3,7 +3,6 @@
  * @type {boolean}
  */
 global.VERBOSE = false;
-global.CREEPSTATS = false;
 global.ROOMSTATS = false;
 /**
  * For extra chatty output.
@@ -82,12 +81,13 @@ global.PRIORITY_CREEP           = -1;
 global.PRIORITY_HARVESTER       = 10;
 global.PRIORITY_MULE            = 20;
 global.PRIORITY_UPGRADER        = 30;
-global.PRIORITY_LINKER          = 40;
+global.PRIORITY_LINKER          = 39;
 global.PRIORITY_MINER           = 50;
-global.PRIORITY_REPAIR          = 60;
-global.PRIORITY_BUILDER         = 70;
-global.PRIORITY_SCIENTIST       = 80;
+global.PRIORITY_REPAIR          = 40;
+global.PRIORITY_BUILDER         = 40;
+global.PRIORITY_SCIENTIST       = 40;
 global.PRIORITY_BITER           = 30;
+global.PRIORITY_DISMANTLER      = 40;
 
 /**
  * Priorities for Assimilation Package Creeps
@@ -111,8 +111,8 @@ global.PRIORITY_WF_HEALER       = 30;
  * @type {number}
  */
 global.MINRCL_CREEP             = 0;
-global.MINRCL_BUILDER           = 4;
-global.MINRCL_HARVESTER         = 4;
+global.MINRCL_BUILDER           = 5;
+global.MINRCL_HARVESTER         = 5;
 global.MINRCL_MULE              = 1;
 global.MINRCL_UPGRADER          = 1;
 global.MINRCL_LINKER            = 5;
@@ -120,6 +120,7 @@ global.MINRCL_REPAIR            = 8;
 global.MINRCL_MINER             = 6;
 global.MINRCL_SCIENTIST         = 6;
 global.MINRCL_BITER             = 5;
+global.MINRCL_DISMANTLER        = 8;
 
 /**
  * Minimum homeRoom RCL values for Assimilation Package Creeps
@@ -333,10 +334,10 @@ global.labColors = {
 	RESOURCE_CATALYZED_UTRIUM_ALKALIDE : { color : COLOR_BLUE , secondaryColor : COLOR_BLUE },
 	RESOURCE_CATALYZED_KEANIUM_ACID : { color : COLOR_PURPLE , secondaryColor : COLOR_RED },
 	RESOURCE_CATALYZED_KEANIUM_ALKALIDE : { color :  COLOR_PURPLE, secondaryColor : COLOR_BLUE },
-	RESOURCE_CATALYZED_LEMERGIUM_ACID : { color : COLOR_GREEN , secondaryColor : COLOR_RED },
-	RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE : { color : COLOR_GREEN , secondaryColor : COLOR_BLUE },
-	RESOURCE_CATALYZED_ZYNTHIUM_ACID : { color : COLOR_ORANGE , secondaryColor : COLOR_RED },
-	RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_BLUE },
+	RESOURCE_CATALYZED_LEMERGIUM_ACID : { color : COLOR_GREEN , secondaryColor : COLOR_RED }, // +100% repair and build without increasing the energy cost
+	RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE : { color : COLOR_GREEN , secondaryColor : COLOR_BLUE }, // +300% heal and rangedHeal effectiveness
+	RESOURCE_CATALYZED_ZYNTHIUM_ACID : { color : COLOR_ORANGE , secondaryColor : COLOR_RED }, // +300% dismantle effectiveness
+	RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_BLUE }, // +300% fatigue decrease speed
 	RESOURCE_CATALYZED_GHODIUM_ACID : { color : COLOR_BROWN , secondaryColor : COLOR_RED },
 	RESOURCE_CATALYZED_GHODIUM_ALKALIDE : { color : COLOR_BROWN , secondaryColor :  COLOR_BLUE },
 

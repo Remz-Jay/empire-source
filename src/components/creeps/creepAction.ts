@@ -226,8 +226,7 @@ export default class CreepAction implements ICreepAction {
 	}
 	public roomPositionFromString(s: string): RoomPosition {
 		let p = global.decodeCoordinate(s, 0);
-		let rp = new RoomPosition(p.x, p.y, this.creep.room.name);
-		return rp;
+		return new RoomPosition(p.x, p.y, this.creep.room.name);
 	}
 
 	public comparePfg(l: PathFinderGoal, r: PathFinderGoal): boolean {
@@ -762,14 +761,18 @@ export default class CreepAction implements ICreepAction {
 		}
 		return false;
 	}
-	public withdrawFromCloseTarget(additionalStructures: string[] = []): boolean {
+	public withdrawFromCloseTarget(additionalStructures: string[] = [], resourceType?: string): boolean {
 		if (this.creep.carrySum < this.creep.carryCapacity) {
 			let providerTypes: string[] = [STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_CONTAINER];
 			providerTypes = _.union(providerTypes, additionalStructures);
 			const target = _(this.creep.safeLook(LOOK_STRUCTURES, 1)).map("structure").find((s: StorageStructure) =>
 				providerTypes.indexOf(s.structureType) > -1 && _.sum(s.store) > 0) as StorageStructure;
 			if (!!target) {
-				this.creep.withdraw(target, this.getMineralTypeFromStore(target));
+				if (!!resourceType) {
+					this.creep.withdraw(target, resourceType);
+				} else {
+					this.creep.withdraw(target, this.getMineralTypeFromStore(target));
+				}
 				return true;
 			}
 		}
@@ -798,5 +801,19 @@ export default class CreepAction implements ICreepAction {
 			return true;
 		}
 		return true;
+	}
+
+	public passingRepair(): void {
+		if (this.creep.carry.energy > 0) {
+			const repairTarget = _(this.creep.pos.lookFor(LOOK_STRUCTURES)).filter((s: Structure) => s.hits < s.hitsMax).first() as Structure;
+			if (!!repairTarget) {
+				this.creep.repair(repairTarget);
+			} else {
+				const buildTarget = _(this.creep.pos.lookFor(LOOK_CONSTRUCTION_SITES)).first() as ConstructionSite;
+				if (!!buildTarget) {
+					this.creep.build(buildTarget);
+				}
+			}
+		}
 	}
 }

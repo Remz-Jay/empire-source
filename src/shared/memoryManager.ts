@@ -31,18 +31,16 @@ export function loadMemory(): void {
 }
 
 export function cleanMemory(): void {
-	for (let name in this.memory.creeps) {
-		if (!Game.creeps[name]) {
-			delete this.memory.creeps[name];
-			console.log(`Clearing non-existing creep memory: ${name}`);
+	Object.keys(Memory.creeps).forEach(creepName => {
+		if (!Game.creeps[creepName]) {
+			Memory.creeps[creepName] = undefined;
 		}
-	}
-	for (let id in this.memory.structures ) {
-		if (!Game.structures[id]) {
-			console.log("Garbage collecting structure " + id);
-			delete Memory.structures[id];
+	});
+	Object.keys(Memory.structures).forEach(structureId => {
+		if (!Game.structures[structureId]) {
+			Memory.structures[structureId] = undefined;
 		}
-	}
+	});
 	for (let id in this.memory.powerBanks) {
 		if (this.memory.powerBanks[id].indexed + this.memory.powerBanks[id].decay <= Game.time) {
 			// powerBank expired

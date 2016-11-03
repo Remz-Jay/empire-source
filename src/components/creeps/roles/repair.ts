@@ -7,7 +7,7 @@ export default class Repair extends CreepAction {
 	public static ROLE: string = "Repair";
 
 	public static bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
-	public static maxParts = 6;
+	public static maxParts = 4;
 	public static maxCreeps = 1;
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
@@ -24,14 +24,10 @@ export default class Repair extends CreepAction {
 	}
 
 	public static getCreepLimit(room: Room): number {
-		let repairRoomList = ["W6N49"];
-		if (_.includes(repairRoomList, room.name)) {
+		if (room.controller.level === 8) {
 			return 1;
 		}
-		if (room.controller.level === 8 && room.myConstructionSites.length === 0) {
-			return 0;
-		}
-		return (room.controller.level < 5) ? 0 : _.floor(room.energyInContainers / 200000);
+		return 0;
 	};
 
 	public myStructureMultiplier = 0.9;
@@ -41,60 +37,51 @@ export default class Repair extends CreepAction {
 		super.setCreep(creep);
 	}
 
-	public isTaken(target: Structure) {
-		const taken = this.creep.room.myCreeps.filter((c: Creep) => c.name !== this.creep.name
-		&& c.memory.role.toUpperCase() === this.creep.memory.role.toUpperCase()
-		&& (!!c.memory.target && c.memory.target === target.id));
-		return (!!taken && taken.length > 0) ? true : false;
+	public isTaken(target: Structure): boolean {
+		return (!!_.get(global.tickCache.rolesByRoom, `${Repair.ROLE}.${this.creep.room.name}`, [])
+			.filter((c: Creep) => c.name !== this.creep.name && (!!c.memory.target && c.memory.target === target.id))
+			.length);
 	}
 
-	public findNewTarget(blackList: string[] = []): Structure {
+	public findNewTarget(): Structure {
 		let target: Structure = undefined;
 		// See if any owned buildings are damaged.
 		if (this.creep.room.myStructures.length > 0) {
-			const targets = this.creep.room.myStructures.filter((s: OwnedStructure) =>
-				!_.includes(blackList, s.id)
-				&& s.hits < (s.hitsMax * this.myStructureMultiplier)
-				&& s.structureType !== STRUCTURE_RAMPART
-			);
-			if (targets.length > 0) {
-				target = _.sortBy(targets, "hits").shift();
-				if (this.isTaken(target)) {
-					blackList.push(target.id);
-					return this.findNewTarget(blackList);
-				}
-			}
+			target = _(this.creep.room.myStructures).filter((s: OwnedStructure) =>
+			s.hits < (s.hitsMax * this.myStructureMultiplier)
+			&& s.structureType !== STRUCTURE_RAMPART
+			&& !this.isTaken(s))
+				.sortBy("hits")
+				.first();
 		}
-		// No? Try to repair a neutral structure instead.
-		if (!target) {
+		if (!!target) {
+			return target;
+		} else {
 			const repairStructures = _.union(
 				this.creep.room.groupedStructures[STRUCTURE_ROAD],
 				this.creep.room.groupedStructures[STRUCTURE_CONTAINER],
 				this.creep.room.groupedStructures[STRUCTURE_STORAGE],
 			);
-			const targets = repairStructures.filter((s: Structure) =>
-				!_.includes(blackList, s.id)
-				&& s.hits < (s.hitsMax * this.publicStructureMultiplier)
-			);
-			if (targets.length > 0) {
-				target = _.sortBy(targets, "hits").shift();
-				if (this.isTaken(target)) {
-					blackList.push(target.id);
-					return this.findNewTarget(blackList);
+			target = _(repairStructures).filter((s: Structure) =>
+				s.hits < (s.hitsMax * this.publicStructureMultiplier)
+				&& !this.isTaken(s))
+				.sortBy("hits")
+				.first();
+			if (!!target) {
+				return target;
+			} else if (this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
+				// No? Try to repair a neutral structure instead.
+				// Still nothing? Fortify Ramparts and Walls if we have spare energy.
+				const minRampart = this.creep.room.weakestRampart;
+				const minWall = this.creep.room.weakestWall;
+				if (!!minRampart && (!minWall || minRampart.hits < minWall.hits)) {
+					target = minRampart;
+				} else if (!!minWall) {
+					target = minWall;
 				}
+				return target;
 			}
 		}
-		// Still nothing? Fortify Ramparts and Walls if we have spare energy.
-		if (!target && this.creep.room.energyAvailable > (this.creep.room.energyCapacityAvailable * 0.8)) {
-			const minRampart = this.creep.room.weakestRampart;
-			const minWall = this.creep.room.weakestWall;
-			if (!!minRampart && (!minWall || minRampart.hits < minWall.hits)) {
-				target = minRampart;
-			} else if (!!minWall) {
-				target = minWall;
-			}
-		}
-		return target;
 	}
 
 	public repairLogic() {

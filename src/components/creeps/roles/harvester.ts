@@ -12,7 +12,13 @@ export default class Harvester extends CreepAction {
 	public static maxParts: number = 3;
 
 	public static getBody(room: Room) {
-		const emergency: boolean = SourceManager.isEmergency() || (this.getNumberOfCreepsInRole(room) < (this.getCreepLimit(room) / 2));
+		const emergency: boolean = (
+			room.controller.level < 6 &&
+			(
+				SourceManager.isEmergency()
+				|| (this.getNumberOfCreepsInRole(room) < (this.getCreepLimit(room) / 2))
+			)
+		);
 		if (room.energyCapacityAvailable < 400) {
 			return global.sortBodyParts([WORK, WORK, CARRY, MOVE]);
 		}

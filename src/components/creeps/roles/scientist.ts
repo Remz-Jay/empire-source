@@ -49,6 +49,13 @@ export default class Scientist extends CreepAction {
 	public reaction: string;
 
 	public setCreep(creep: Creep) {
+		this.terminal = undefined;
+		this.storage = undefined;
+		this.inLab1 = undefined;
+		this.inLab2 = undefined;
+		this.mode = 0;
+		this.clean = false;
+		this.reaction = undefined;
 		super.setCreep(creep);
 		this.terminal = this.creep.room.terminal;
 		this.storage = this.creep.room.storage;

@@ -1,3 +1,4 @@
+import "./prototypes/array";
 import "./shared/utils";
 import "./config/config";
 import "./prototypes/roomobject";

@@ -177,8 +177,12 @@ export default class ASMMule extends ASMCreepAction {
 	public action(): boolean {
 		this.creep.pickupResourcesInRange(true);
 		if (this.renewCreep() && this.flee() && !this.shouldIGoHome()) {
-			if (this.creep.carry.energy === 0 && !this.creep.bagEmpty) {
-				this.creep.drop(this.getMineralTypeFromStore(this.creep));
+			if (this.creep.carrySum > this.creep.carry.energy) {
+				if (this.creep.pos.isNearTo(this.storage.pos)) {
+					this.creep.transfer(this.storage, this.getMineralTypeFromStore(this.creep));
+				} else {
+					this.moveTo(this.storage.pos);
+				}
 			}
 			if (this.creep.room.name !== this.creep.memory.config.targetRoom) {
 				if (this.isBagEmpty()) {

@@ -189,6 +189,9 @@ declare interface Memory {
 	powerManager: {
 		squads: SquadConfig[];
 	};
+	assaultManager: {
+		squads: SquadConfig[];
+	};
 }
 
 declare interface Game {
@@ -199,7 +202,6 @@ declare interface Game {
 declare namespace NodeJS {
 	export interface Global {
 		VERBOSE: boolean;
-		CREEPSTATS: boolean;
 		ROOMSTATS: boolean;
 		DEBUG: boolean;
 		MAX_HARVESTERS_PER_SOURCE: number;
@@ -270,6 +272,9 @@ declare namespace NodeJS {
 			storageLink: any;
 			storageTower: any;
 		};
+		roleInstanceCache: {
+			[role: string]: Object;
+		};
 		targetBlackList: {
 			[role: string]: string[];
 		};
@@ -302,5 +307,6 @@ declare namespace NodeJS {
 		gclCalc(): void;
 		calculateRequiredEnergy(body: string[]): number;
 		sortBodyParts(bodyParts: string[]): string[];
+		findPath(pos: RoomPosition, goal: RoomPosition, plainCost: number, swampCost: number): any;
 	}
 }

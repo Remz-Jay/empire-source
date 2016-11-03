@@ -33,7 +33,7 @@ export default class PowerManager {
 	public govern() {
 		if (_.keys(this.powerBanks).length > 0) {
 			if (this.squads.length < this.maxActiveSquads) {
-				this.dispatchPowerSquad();
+				// this.dispatchPowerSquad();
 			}
 			if (this.squads.length > 0) {
 				this.squads.forEach((squad: SquadConfig) => {
@@ -89,7 +89,7 @@ export default class PowerManager {
 			if (!!bank) {
 				console.log(`PowerBank ID: ${bank.id}. Ticks to go: ${_.round(bank.hits / PowerManager.damagePerTick)}/${bank.ticksToDecay}.`);
 				const numMulesRequired = _.ceil(bank.power / PowerManager.muleCapacity);
-				const timer = _.floor(numMulesRequired / 3) * PowerManager.ticksToPreSpawn;
+				const timer = global.clamp(_.floor(numMulesRequired / 3), 1, 10) * PowerManager.ticksToPreSpawn;
 				if (bank.hits <= PowerManager.damagePerTick * timer) {
 					squad.roles = [
 						{
