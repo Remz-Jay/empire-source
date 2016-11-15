@@ -1,19 +1,26 @@
 import WarfareCreepAction from "../../warfareCreepAction";
 import Terminator from "../../roles/terminator";
 import Warvester from "../../roles/warvester";
-
-/*
 import Healer from "../../roles/healer";
 import Dismantler from "../../roles/dismantler";
 import WarArcher from "../../roles/wararcher";
-import Warrior from "../../roles/warrior";
 import WarMule from "../../roles/warmule";
-import WarUpgrader from "../../roles/warupgrader";*/
-// import WarBuilder from "../../roles/warbuilder";
+import WarClaimer from "../../roles/warclaimer";
+import WarBuilder from "../../roles/warbuilder";
+import WarUpgrader from "../../roles/warupgrader";
+import Sentinel from "../../roles/sentinel";
 
 const roles: {[id: string]: any } = {
 	Terminator: Terminator,
 	Warvester: Warvester,
+	Healer: Healer,
+	Dismantler: Dismantler,
+	WarArcher: WarArcher,
+	WarMule: WarMule,
+	WarClaimer: WarClaimer,
+	WarBuilder: WarBuilder,
+	WarUpgrader: WarUpgrader,
+	Sentinel: Sentinel,
 };
 
 function initMemory(): void {
@@ -57,23 +64,7 @@ const defenderConfig: SquadConfig = {
 	],
 	wait: false,
 };
-const healTestConfig = {
-	roles: [
-		{
-			"role": WarArcher,
-			"maxCreeps": 0,
-		},
-		{
-			"role": Healer,
-			"maxCreeps": 1,
-		},
-		{
-			"role": Dismantler,
-			"maxCreeps": 1,
-		},
-	],
-	wait: false,
-};*/
+*/
 const warvestConfig: SquadConfig = {
 	roles: [
 		{
@@ -168,34 +159,13 @@ function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string)
 	if (!!Memory.offense.config[remoteRoomName]) {
 		return Memory.offense.config[remoteRoomName];
 	} else {
-		// Find the nearest owned room.
-		let distance: number = Infinity;
-		let target: string = undefined;
-		let optimalRoute: findRouteArray = undefined;
-		if (!!homeRoomName && !_.isNaN(Game.map.getRoomLinearDistance("W1N1", homeRoomName))) {
-			const route = findRoute(homeRoomName, remoteRoomName);
-			if (!_.isNumber(route) && route.length < distance) {
-				distance = route.length;
-				optimalRoute = route;
-				target = homeRoomName;
-			}
-		} else {
-			for (const room in Game.rooms) {
-				if (room !== remoteRoomName) {
-					const route = findRoute(room, remoteRoomName);
-					if (!_.isNumber(route) && route.length < distance) {
-						distance = route.length;
-						optimalRoute = route;
-						target = room;
-					}
-				}
-			}
+		if (!_.isString(homeRoomName)) {
+			homeRoomName = "W6N42";
 		}
 		const roomConfig: RemoteRoomConfig = {
-			homeRoom: target,
+			homeRoom: homeRoomName,
 			targetRoom: remoteRoomName,
-			homeDistance: distance,
-			route: optimalRoute,
+			homeDistance: 1,
 		};
 		Memory.offense.config[remoteRoomName] = roomConfig;
 		return roomConfig;
@@ -220,17 +190,19 @@ function createCreep(creepConfig: CreepConfiguration): string|number {
 }
 function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	let creeps: Creep[] = [];
-	_.each(sq.roles, function(role) {
-		creeps = creeps.concat(_.filter(_.get(global.tickCache.rolesByRoom, `${role.ROLE}.${homeRoom.name}`, []),
+	_.forEach(sq.roles, function(role: SquadRole) {
+		creeps = creeps.concat(_.filter(_.get(global.tickCache.rolesByRoom, `${role.role}.${homeRoom.name}`, []),
 			(c: Creep) => c.memory.config.targetRoom === targetRoomName
 		));
-	}, this);
+	});
 	return creeps;
 }
 function manageSquad(targetRoomName: string, sq: SquadConfig, targetPositions: RoomPosition[]) {
+	console.log(`Squad with target room ${targetRoomName} has the following positions:`);
+	targetPositions.forEach((p: RoomPosition) => console.log(p));
 	const resetIterator = false;
 	const creeps = _.groupBy(loadCreeps(targetRoomName, sq), "memory.role");
-	_.each(sq.roles, function(squadRole) {
+	_.each(sq.roles, function(squadRole: SquadRole) {
 		const ctor: any = roles[squadRole.role];
 		ctor.setConfig(config);
 		const creepsInRole = _.get(creeps, `${ctor.ROLE}`, []);
@@ -265,13 +237,71 @@ function manageSquad(targetRoomName: string, sq: SquadConfig, targetPositions: R
 	}, this);
 }
 
+const healTestConfig = {
+	roles: [
+		{
+			"role": "WarArcher",
+			"maxCreeps": 0,
+		},
+		{
+			"role": "Healer",
+			"maxCreeps": 0,
+		},
+		{
+			"role": "Dismantler",
+			"maxCreeps": 0,
+		},
+	],
+	wait: false,
+};
+const claimConf = {
+	roles: [
+		{
+			"role": "WarUpgrader",
+			"maxCreeps": 1,
+		},
+		{
+			"role": "WarBuilder",
+			"maxCreeps": 0,
+		},
+		{
+			"role": "Sentinel",
+			"maxCreeps": 1,
+		},
+	],
+	wait: false,
+}
 export function govern(): void {
-	_.each(Memory.offense.targets, function(roomName) {
+	Memory.offense.targets.forEach((roomName: string) => {
 		if (!_.isNaN(Game.map.getRoomLinearDistance("W1N1", roomName))) {
 			config = getConfigForRemoteTarget(roomName);
 			homeRoom = Game.rooms[config.homeRoom];
 			targetRoom = Game.rooms[roomName];
 			switch (roomName) {
+				case "E5S45":
+					let SQPositions: RoomPosition[] = [];
+					let SquadFlags: Flag[] = [];
+					let f = _(Game.flags).filter((f: Flag) => f.name.startsWith("SA_")).sortBy("name").value();
+					console.log(f.length);
+					f.forEach((f: Flag) => {
+						console.log(f.name, f.pos);
+						SQPositions.push(f.pos);
+						SquadFlags.push(f);
+					});
+					manageSquad(roomName, healTestConfig, SQPositions);
+					break;
+				case "E7S46":
+					let SQPositions2: RoomPosition[] = [];
+					let SquadFlags2: Flag[] = [];
+					let f2 = _(Game.flags).filter((f: Flag) => f.name.startsWith("SQ_")).sortBy("name").value();
+					console.log(f2.length);
+					f2.forEach((f: Flag) => {
+						console.log(f.name, f.pos);
+						SQPositions2.push(f.pos);
+						SquadFlags2.push(f);
+					});
+					manageSquad(roomName, claimConf, SQPositions2);
+					break;
 				case "W5N45":
 					manageSquad(roomName, warvestConfig, warvestPositions);
 					break;
@@ -284,20 +314,6 @@ export function govern(): void {
 				default:
 					manageSquad(roomName, squadConfig, positions);
 			}
-			if (!!targetRoom) {
-				// We have vision of the room, that's good.
-				const hostiles = targetRoom.hostileCreeps;
-				const towers = targetRoom.hostileStructures.filter((s: Structure) => s.structureType === STRUCTURE_TOWER);
-				let energyInTowers: number = 0;
-				if (towers.length > 0) {
-					energyInTowers = towers.reduce<number>(function(result: number, n: StructureTower): number {
-						result = result + n.energy;
-						return result;
-					}, energyInTowers);
-				}
-				console.log(`AssaultRoom ${roomName} has ${targetRoom.energyInContainers} energy in containers, `
-					+ `${hostiles.length} hostiles and ${towers.length} towers with ${energyInTowers} energy.`);
-			}
 		}
-	}, this);
+	});
 }

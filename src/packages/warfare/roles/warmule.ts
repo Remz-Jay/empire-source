@@ -6,9 +6,9 @@ export default class WarMule extends WarfareCreepAction {
 	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "WarMule";
 
-	public static maxParts = 12;
+	public static maxParts = 25;
 	public static maxCreeps = 3;
-	public static bodyPart = [CARRY, CARRY, CARRY, MOVE]; // 1850 carry total
+	public static bodyPart = [CARRY, MOVE]; // 1850 carry total
 	public static basePart = [CARRY, MOVE];
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
@@ -28,47 +28,26 @@ export default class WarMule extends WarfareCreepAction {
 	public powerBankDuty: boolean = true;
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
+		RESOURCE_CATALYZED_KEANIUM_ACID, // +150 capacity
 	];
 	public setCreep(creep: Creep, positions: RoomPosition[]) {
 		super.setCreep(creep, positions);
 	}
 
 	public move() {
-		if (!!this.creep.memory.full || this.creep.bagFull) {
-			const storage = Game.rooms[this.creep.memory.homeRoom].storage;
-			if (!!storage && !this.creep.pos.isNearTo(storage.pos)) {
-				// get in range
-				this.moveTo(storage.pos);
-				this.creep.say("Storage");
+		if (!this.moveUsingPositions()) {
+			if (!this.creep.bagEmpty) {
+				const storage = Game.rooms[this.creep.memory.homeRoom].storage;
+				if (!!storage && !this.creep.pos.isNearTo(storage.pos)) {
+					// get in range
+					this.moveTo(storage.pos);
+					this.creep.say("Storage");
+				} else {
+					this.creep.logTransfer(storage, this.getMineralTypeFromStore(this.creep));
+				}
 			} else {
-				if (this.creep.bagEmpty) {
-					delete this.creep.memory.full;
-				} else {
-					const status = this.creep.logTransfer(storage, this.getMineralTypeFromStore(this.creep));
-					if (status === OK) {
-						this.positionIterator = this.creep.memory.positionIterator = 0;
-					}
-				}
-			}
-		} else if (!this.moveUsingPositions()) {
-			if (this.powerBankDuty) {
-				this.creep.say("Collect");
-				const powerBanks = this.creep.room.groupedStructures[STRUCTURE_POWER_BANK];
-				if (!!powerBanks && powerBanks.length > 0) {
-					if (!this.creep.pos.isNearTo(powerBanks[0])) {
-						this.moveTo(powerBanks[0].pos);
-					}
-				} else {
-					const target = this.creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES) as Resource;
-					if (!!target && !this.creep.pos.isNearTo(target)) {
-						// get in range
-						this.moveTo(target.pos);
-					} else if (!!target && this.creep.hits > (this.creep.hitsMax / 2)) {
-						this.creep.pickup(target);
-					} else {
-						this.creep.memory.full = true;
-					}
-				}
+				delete this.creep.memory.full;
+				this.positionIterator = this.creep.memory.positionIterator = 0;
 			}
 		} else {
 			this.creep.say("Mup");
@@ -78,6 +57,10 @@ export default class WarMule extends WarfareCreepAction {
 	public action(): boolean {
 		if (this.getBoosted()) {
 			this.move();
+			if (!this.creep.bagFull && this.creep.room.name !== this.creep.memory.homeRoom) {
+				this.withdrawFromCloseTarget([STRUCTURE_EXTENSION], true);
+				this.creep.pickupResourcesInRange();
+			}
 		}
 		return true;
 	}

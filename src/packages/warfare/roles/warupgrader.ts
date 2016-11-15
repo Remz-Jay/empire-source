@@ -6,9 +6,9 @@ export default class WarUpgrader extends WarfareCreepAction {
 	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "WarUpgrader";
 
-	public static maxParts = 12;
+	public static maxParts = 10;
 	public static maxCreeps = 1;
-	public static bodyPart = [WORK, WORK, CARRY, MOVE];
+	public static bodyPart = [CARRY, WORK, WORK, WORK, MOVE];
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		const bodyParts: string[] = this.getBody(room);
@@ -30,6 +30,7 @@ export default class WarUpgrader extends WarfareCreepAction {
 	public boosts: string[] = [
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
 		RESOURCE_CATALYZED_GHODIUM_ACID, // +100% upgradeController effectiveness without increasing the energy cost
+		RESOURCE_CATALYZED_KEANIUM_ACID, // +150 carry
 	];
 	public setCreep(creep: Creep, positions: RoomPosition[]) {
 		super.setCreep(creep, positions);
@@ -40,7 +41,11 @@ export default class WarUpgrader extends WarfareCreepAction {
 	public action(): boolean {
 		if (this.getBoosted()) {
 			if (!this.moveUsingPositions()) {
-				if (this.creep.carry.energy === 0) {
+				if (this.creep.bagFull) {
+					this.creep.memory.upgrading = true;
+				}
+				if (this.creep.bagEmpty || !this.creep.memory.upgrading) {
+					this.creep.memory.upgrading = false;
 					if (!!this.storage && this.storage.store.energy > 0) {
 						if (!this.creep.pos.isNearTo(this.storage.pos)) {
 							this.moveTo(this.storage.pos);

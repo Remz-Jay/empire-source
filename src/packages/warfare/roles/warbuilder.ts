@@ -38,7 +38,11 @@ export default class WarBuilder extends WarfareCreepAction {
 	public action(): boolean {
 		if (this.getBoosted()) {
 			if (!this.moveUsingPositions()) {
-				if (this.creep.carry.energy === 0) {
+				if (this.creep.bagFull) {
+					this.creep.memory.building = true;
+				}
+				if (this.creep.bagEmpty || !this.creep.memory.building) {
+					this.creep.memory.building = false;
 					if (!!this.storage && this.storage.store.energy > 0) {
 						if (!this.creep.pos.isNearTo(this.storage.pos)) {
 							this.moveTo(this.storage.pos);

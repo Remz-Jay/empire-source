@@ -80,7 +80,9 @@ export default class Dismantler extends CreepAction {
 	}
 
 	private findTarget(): Structure {
-		let flag = _(this.creep.room.flags).filter((f: Flag) => f.color === COLOR_YELLOW && f.secondaryColor === COLOR_ORANGE).first();
+		let flag = _(global.filterWithCache(`dismantleflags-${this.creep.room.name}`, this.creep.room.flags,
+			(f: Flag) => f.color === COLOR_YELLOW && f.secondaryColor === COLOR_ORANGE)
+		).first() as Flag;
 		if (!!flag) {
 			let structure =  _(flag.pos.lookFor<Structure>(LOOK_STRUCTURES)).first();
 			if (!!structure) {

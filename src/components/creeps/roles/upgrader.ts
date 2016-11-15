@@ -28,17 +28,14 @@ export default class Upgrader extends CreepAction {
 			case 1:
 			case 2:
 			case 3:
-				return 2;
-			case 4:
 				return 3;
+			case 4:
+				return 1;
 			case 5:
 				return 2;
 			case 6:
-				return 1;
+				return 2;
 			case 7:
-				if (room.name === "W6N48") {
-					return 2;
-				}
 				return 1;
 			case 8:
 				return 1;

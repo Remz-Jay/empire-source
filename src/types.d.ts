@@ -271,6 +271,7 @@ declare namespace NodeJS {
 			rolesByRoom: any;
 			storageLink: any;
 			storageTower: any;
+			filters: Map<string, Object[]>;
 		};
 		roleInstanceCache: {
 			[role: string]: Object;
@@ -308,5 +309,6 @@ declare namespace NodeJS {
 		calculateRequiredEnergy(body: string[]): number;
 		sortBodyParts(bodyParts: string[]): string[];
 		findPath(pos: RoomPosition, goal: RoomPosition, plainCost: number, swampCost: number): any;
+		filterWithCache(cacheId: string, collection: any, filter: Function | Object): Object[];
 	}
 }

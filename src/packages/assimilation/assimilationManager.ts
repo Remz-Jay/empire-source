@@ -414,7 +414,7 @@ export function govern(): void {
 							Game.notify(`Warning: ${targetRoom.hostileCreeps.length} hostiles in ${targetRoom.name} from ${targetRoom.hostileCreeps[0].owner.username}`);
 							targetRoom.memory.hostileAlarm = targetRoom.hostileCreeps.length;
 						}
-					} else if (!config.hasController && targetRoom.hostileCreeps.length > 3) {
+					/*} else if (!config.hasController && targetRoom.hostileCreeps.length > 3) {
 						const groupedHostiles = _.groupBy(targetRoom.hostileCreeps, "owner.username");
 						const numInvaders = _.get(groupedHostiles, "Invader", []).length;
 						if (numInvaders > 2) {
@@ -423,7 +423,7 @@ export function govern(): void {
 								Game.notify(`Warning: Invader Raid. ${numInvaders} invaders in ${targetRoom.name}.`);
 								targetRoom.memory.hostileAlarm = numInvaders;
 							}
-						}
+						}*/
 					} else {
 						delete targetRoom.memory.hostileAlarm;
 					}
@@ -459,7 +459,7 @@ export function govern(): void {
 						}
 						try {
 							if (config.claim) {
-								manageConstructions(1);
+								manageConstructions(2);
 							} else if (!config.hasController) {
 								manageConstructions(3);
 							} else {
@@ -484,7 +484,7 @@ export function govern(): void {
 							if (config.claim) {
 								// manageDefenders(roomName, 1);
 								// manageSourceKeepers(roomName, 0);
-							} else if (roomName === "W4N42" || roomName === "W2N45") { // surrounded by owned rooms, no invaders.
+							} else if (roomName === "W4N42" || roomName === "W2N45" || roomName === "E8S46") { // surrounded by owned rooms, no invaders.
 								// manageDefenders(roomName, 0);
 							} else if (!config.hasController) {
 								manageSourceKeeperKillers(roomName, 2);

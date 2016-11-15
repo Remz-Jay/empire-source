@@ -23,10 +23,19 @@ export default class Healer extends WarfareCreepAction {
 	}
 
 	public static getBody(room: Room): string[] {
-		return super.getToughBody(room);
+		// return super.getToughBody(room);
+		// return [TOUGH, HEAL, MOVE]; // test dummy config
+		return [
+			TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE,
+			HEAL, HEAL, HEAL, HEAL, MOVE, HEAL, HEAL, HEAL, HEAL, MOVE,
+			HEAL, HEAL, HEAL, HEAL, MOVE, HEAL, HEAL, HEAL, HEAL, MOVE,
+			HEAL, HEAL, HEAL, HEAL, MOVE, HEAL, HEAL, HEAL, HEAL, MOVE,
+			HEAL, HEAL, HEAL, HEAL, MOVE, HEAL, HEAL, HEAL, HEAL, MOVE,
+		];
 	}
 	public hardPath: boolean = true;
 	public boosts: string[] = [
+		RESOURCE_CATALYZED_GHODIUM_ALKALIDE, // -70% damage taken
 		RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, // +300% heal and rangedHeal effectiveness
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed
 	];

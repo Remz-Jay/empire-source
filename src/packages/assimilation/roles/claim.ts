@@ -36,7 +36,7 @@ export default class Claim extends ASMCreepAction {
 			]);
 		} else {
 			if (this.reserveOnly) {
-				this.maxParts = 2;
+				this.maxParts = 5;
 			}
 			return super.getBody(room);
 		}

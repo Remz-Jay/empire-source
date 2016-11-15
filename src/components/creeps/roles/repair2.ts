@@ -7,7 +7,7 @@ export default class Repair extends CreepAction {
 	public static ROLE: string = "Repair";
 
 	public static bodyPart = [CARRY, CARRY, WORK, WORK, MOVE, MOVE];
-	public static maxParts = 5;
+	public static maxParts = 4;
 	public static maxCreeps = 1;
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
@@ -22,7 +22,7 @@ export default class Repair extends CreepAction {
 
 	public static getCreepLimit(room: Room): number {
 		if (room.controller.level === 8) {
-			return 0;
+			return 1;
 		}
 		return 0;
 	};
@@ -66,7 +66,7 @@ export default class Repair extends CreepAction {
 			return false;
 		}
 		if (!this.creep.bagFull) {
-			this.withdrawFromCloseTarget([], RESOURCE_ENERGY);
+			this.withdrawFromCloseTarget([], false, RESOURCE_ENERGY);
 		}
 		if (!this.creep.bagEmpty) {
 			this.repair();

@@ -1,3 +1,6 @@
+// Game.rooms.W6N48.groupedStructures[STRUCTURE_ROAD].forEach(s => { let st = s.pos.lookFor(LOOK_STRUCTURES);
+// if (st.length > 1 && st.filter(x => x.structureType !== STRUCTURE_ROAD && x.structureType !== STRUCTURE_RAMPART).length > 0) {console.log(s.pos);}});
+
 global.calculateRequiredEnergy = function(body: string[]): number {
 	return _.sum(body, (b: string) => BODYPART_COST[b]);
 };
@@ -23,6 +26,15 @@ global.sortBodyParts = function(bodyParts: string[]): string[] {
 				return 10;
 		}
 	});
+};
+
+global.filterWithCache = function(cacheId: string, collection: any, filter: Function | Object): Object[] {
+	let result = global.tickCache.filters.get(cacheId);
+	if (result === undefined || result == null) {
+		result = _.filter(collection, filter);
+		global.tickCache.filters.set(cacheId, result);
+	}
+	return result;
 };
 
 global.colorWrap = function(text: string, color: string): string {

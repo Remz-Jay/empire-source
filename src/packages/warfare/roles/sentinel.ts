@@ -61,7 +61,7 @@ export default class Sentinel extends WarfareCreepAction {
 			if (!!target.my) {
 				this.moveTo(target.pos); // stay in heal range
 			} else {
-				const range = (target instanceof Creep && target.getActiveBodyparts(ATTACK) > 1) ? 3 : 1;
+				const range = (target instanceof Creep && target.stats.current.attack > this.creep.stats.current.heal) ? 3 : 1;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					this.moveTo(target.pos);
 				}
@@ -87,7 +87,9 @@ export default class Sentinel extends WarfareCreepAction {
 			this.moveToTargetRoom();
 		} else {
 			this.rotation();
-			this.move();
+			if (!this.moveUsingPositions()) {
+				this.move();
+			}
 		}
 		return true;
 	}

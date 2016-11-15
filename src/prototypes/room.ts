@@ -426,6 +426,15 @@ Room.prototype.observe = function(): void {
 	/**
 	 * Register if this room is in hostile or allied hands so we can plan routes accordingly.
 	 */
+	if (!Memory.matrixCache[this.name]) {
+		Memory.matrixCache[this.name] = {
+			t: 0,
+			s: Game.time,
+			m: [],
+			cs: 0,
+			st: 0,
+		};
+	}
 	if (!!this.controller && !!this.controller.owner && !this.controller.my) {
 		if (_.includes(global.alliedPlayers, this.controller.owner.username)) {
 			Memory.matrixCache[this.name].a = true;

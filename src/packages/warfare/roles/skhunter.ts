@@ -61,14 +61,15 @@ export default class SKHunter extends WarfareCreepAction {
 			if (!!target.my) {
 				this.moveTo(target.pos); // stay in heal range
 			} else {
-				const range = (target instanceof Creep && target.getActiveBodyparts(ATTACK) > 1) ? 3 : 1;
+				const range = (target instanceof Creep && target.stats.current.attack > this.creep.stats.current.heal) ? 3 : 1;
 				if (!this.creep.pos.inRangeTo(target.pos, range)) { // move closer if we're out of RANGED_ATTACK range.
 					this.moveTo(target.pos);
 				}
 			}
 		} else {
-			const lair = _(this.creep.room.groupedStructures[STRUCTURE_KEEPER_LAIR])
-				.filter((s: StructureKeeperLair) => !!s.pos.findInRange(this.creep.room.sources, 5))
+			const lair = _(global.filterWithCache(`valid-lairs-${this.creep.room.name}`, this.creep.room.groupedStructures[STRUCTURE_KEEPER_LAIR],
+				(s: StructureKeeperLair) => !!s.pos.findInRange(this.creep.room.sources, 5)
+			) as StructureKeeperLair[])
 				.sortBy("ticksToSpawn")
 				.first();
 			if (!!lair) {

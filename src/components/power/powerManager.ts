@@ -32,9 +32,9 @@ export default class PowerManager {
 	}
 	public govern() {
 		if (_.keys(this.powerBanks).length > 0) {
-			if (this.squads.length < this.maxActiveSquads) {
-				// this.dispatchPowerSquad();
-			}
+/*			if (this.squads.length < this.maxActiveSquads) {
+				this.dispatchPowerSquad();
+			}*/
 			if (this.squads.length > 0) {
 				this.squads.forEach((squad: SquadConfig) => {
 					this.manageSquad(squad);
@@ -171,45 +171,45 @@ export default class PowerManager {
 		return false;
 	}
 	private dispatchPowerSquad(): boolean {
-		this.rooms.forEach((r: Room) => {
-			if (!_.find(this.squads, "source", r.name) && _.every(r.mySpawns, {"isBusy": false})) {
-				console.log(`[PowerManager] Room ${r.name} is capable of dispatching a PowerSquad`);
-				let closest: PowerBankMemory;
-				let distance: number = global.MAX_POWER_DISTANCE + 1;
-				for (let id in this.powerBanks) {
-					let pb = this.powerBanks[id];
-					if (!pb.taken && (pb.indexed + pb.decay) - Game.time > this.dispatchThreshold) {
-						let d = Game.map.getRoomLinearDistance(r.name, pb.pos.roomName);
-						if (d < distance || (!!closest && d === distance && pb.power > closest.power)) {
-							distance = d;
-							closest = pb;
-						}
+		this.rooms.filter((r: Room) => !!r.storage && r.storage.store.energy > 50000
+		&& !_.find(this.squads, "source", r.name) && _.every(r.mySpawns, {"isBusy": false}))
+		.forEach((r: Room) => {
+			console.log(`[PowerManager] Room ${r.name} is capable of dispatching a PowerSquad`);
+			let closest: PowerBankMemory;
+			let distance: number = global.MAX_POWER_DISTANCE + 1;
+			for (let id in this.powerBanks) {
+				let pb = this.powerBanks[id];
+				if (!pb.taken && (pb.indexed + pb.decay) - Game.time > this.dispatchThreshold) {
+					let d = Game.map.getRoomLinearDistance(r.name, pb.pos.roomName);
+					if (d < distance || (!!closest && d === distance && pb.power > closest.power)) {
+						distance = d;
+						closest = pb;
 					}
 				}
-				if (!!closest) {
-					let decay = closest.decay - (Game.time - closest.indexed);
-					console.log(`[PowerManager] The closest powerBank is in ${closest.pos.roomName} at range ${distance}.`
-						+ ` It has ${closest.power} power and decays in ${decay}.`);
-					closest.taken = true;
-					this.squads.push({
-						roles: [
-							{
-								"role": "PowerHarvester",
-								"maxCreeps": 1,
-							},
-							{
-								"role": "PowerHealer",
-								"maxCreeps": 1,
-							},
-						],
-						target: closest,
-						source: r.name,
-					});
-					Game.notify(`${Game.time} - Dispatching a powerSquad from ${r.name}. Target: ${closest.pos.roomName} at range ${distance}.`
-						+ ` It has ${closest.power} power and decays in ${decay}.`);
-				} else {
-					console.log(`[PowerManager] Unfortunately, no powerBanks with decent TTL's were found in range.`);
-				}
+			}
+			if (!!closest) {
+				let decay = closest.decay - (Game.time - closest.indexed);
+				console.log(`[PowerManager] The closest powerBank is in ${closest.pos.roomName} at range ${distance}.`
+					+ ` It has ${closest.power} power and decays in ${decay}.`);
+				closest.taken = true;
+				this.squads.push({
+					roles: [
+						{
+							"role": "PowerHarvester",
+							"maxCreeps": 1,
+						},
+						{
+							"role": "PowerHealer",
+							"maxCreeps": 1,
+						},
+					],
+					target: closest,
+					source: r.name,
+				});
+				Game.notify(`${Game.time} - Dispatching a powerSquad from ${r.name}. Target: ${closest.pos.roomName} at range ${distance}.`
+					+ ` It has ${closest.power} power and decays in ${decay}.`);
+			} else {
+				console.log(`[PowerManager] Unfortunately, no powerBanks with decent TTL's were found in range.`);
 			}
 		});
 		return false;

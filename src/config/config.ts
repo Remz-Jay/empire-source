@@ -46,7 +46,7 @@ global.BUCKET_MIN = 8000;
  * The PathFinder cost for a tile where one of our creeps is (or we assume there is).
  * @type {number}
  */
-global.PF_CREEP = 20;
+global.PF_CREEP = 50;
 /**
  * Default amount of minimal ticksToLive Screep can have, before it goes to renew.
  * This is only default value, that don't have to be used.
@@ -65,6 +65,8 @@ global.alliedPlayers = [
 	"TranceCake",
 	"Azfaloth",
 	"Garland",
+	"Nisou",
+	"Revrick",
 ];
 
 /**
@@ -81,13 +83,13 @@ global.PRIORITY_CREEP           = -1;
 global.PRIORITY_HARVESTER       = 10;
 global.PRIORITY_MULE            = 20;
 global.PRIORITY_UPGRADER        = 30;
+global.PRIORITY_BITER           = 30;
 global.PRIORITY_LINKER          = 39;
-global.PRIORITY_MINER           = 50;
 global.PRIORITY_REPAIR          = 40;
 global.PRIORITY_BUILDER         = 40;
 global.PRIORITY_SCIENTIST       = 40;
-global.PRIORITY_BITER           = 30;
 global.PRIORITY_DISMANTLER      = 40;
+global.PRIORITY_MINER           = 50;
 
 /**
  * Priorities for Assimilation Package Creeps
@@ -111,10 +113,10 @@ global.PRIORITY_WF_HEALER       = 30;
  * @type {number}
  */
 global.MINRCL_CREEP             = 0;
-global.MINRCL_BUILDER           = 5;
-global.MINRCL_HARVESTER         = 5;
+global.MINRCL_BUILDER           = 1;
+global.MINRCL_HARVESTER         = 1;
 global.MINRCL_MULE              = 1;
-global.MINRCL_UPGRADER          = 1;
+global.MINRCL_UPGRADER          = 4;
 global.MINRCL_LINKER            = 5;
 global.MINRCL_REPAIR            = 8;
 global.MINRCL_MINER             = 6;
@@ -145,6 +147,7 @@ global.BLACKLIST_SOURCES = [
 ];
 global.ROOM_BLACKLIST = [
 	"W9N49",
+	"W4N36",
 ];
 /**
  * The maximum distance a PowerBank should be from a dispatching room.
@@ -332,14 +335,14 @@ global.labColors = {
 
 	RESOURCE_CATALYZED_UTRIUM_ACID : { color : COLOR_BLUE , secondaryColor : COLOR_RED },
 	RESOURCE_CATALYZED_UTRIUM_ALKALIDE : { color : COLOR_BLUE , secondaryColor : COLOR_BLUE },
-	RESOURCE_CATALYZED_KEANIUM_ACID : { color : COLOR_PURPLE , secondaryColor : COLOR_RED },
+	RESOURCE_CATALYZED_KEANIUM_ACID : { color : COLOR_PURPLE , secondaryColor : COLOR_RED }, // + 150 carry
 	RESOURCE_CATALYZED_KEANIUM_ALKALIDE : { color :  COLOR_PURPLE, secondaryColor : COLOR_BLUE },
 	RESOURCE_CATALYZED_LEMERGIUM_ACID : { color : COLOR_GREEN , secondaryColor : COLOR_RED }, // +100% repair and build without increasing the energy cost
 	RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE : { color : COLOR_GREEN , secondaryColor : COLOR_BLUE }, // +300% heal and rangedHeal effectiveness
 	RESOURCE_CATALYZED_ZYNTHIUM_ACID : { color : COLOR_ORANGE , secondaryColor : COLOR_RED }, // +300% dismantle effectiveness
 	RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE : { color : COLOR_ORANGE , secondaryColor : COLOR_BLUE }, // +300% fatigue decrease speed
 	RESOURCE_CATALYZED_GHODIUM_ACID : { color : COLOR_BROWN , secondaryColor : COLOR_RED },
-	RESOURCE_CATALYZED_GHODIUM_ALKALIDE : { color : COLOR_BROWN , secondaryColor :  COLOR_BLUE },
+	RESOURCE_CATALYZED_GHODIUM_ALKALIDE : { color : COLOR_BROWN , secondaryColor :  COLOR_BLUE }, // -70% damage taken
 
 	resource(color: number, secondaryColor: number) {
 		return eval(_.findKey(this, { color : color, secondaryColor })); // tslint:disable-line

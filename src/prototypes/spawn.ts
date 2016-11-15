@@ -50,11 +50,12 @@ StructureSpawn.prototype.relocateCreeps = function(): void {
 	}
 };
 StructureSpawn.prototype.renewCreeps = function(): void {
-	const creeps = this.room.myCreeps.filter((c: Creep) => c.ticksToLive < 1400
-		&& c.getActiveBodyparts(CLAIM) === 0
+	const validCreeps = global.filterWithCache(`renew-targets-${this.room.name}`, this.room.myCreeps,
+		(c: Creep) => c.ticksToLive < 1400
+		&& !c.hasActiveBodyPart(CLAIM)
 		&& !c.memory.isBoosted
-		&& c.pos.isNearTo(this)
 	);
+	const creeps = this.pos.findInRange(validCreeps, 1);
 	let targets = creeps.filter((c: Creep) => c.ticksToLive < 100);
 	if (targets.length > 0) {
 		const prio = this.getPriorityCreep(targets);
@@ -83,11 +84,12 @@ StructureSpawn.prototype.renewCreeps = function(): void {
 			}
 		}
 	} else if (this.room.alliedCreeps.length > 0) {
-		targets = this.room.alliedCreeps.filter((c: Creep) => c.ticksToLive < 1400
-			&& c.getActiveBodyparts(CLAIM) === 0
+		const alliedCreeps = global.filterWithCache(`allied-renew-targets-${this.room.name}`, this.room.alliedCreeps,
+			(c: Creep) => c.ticksToLive < 1400
+			&& !c.hasActiveBodyPart(CLAIM)
 			&& _.filter(c.body, (bp: BodyPartDefinition) => !!bp.boost).length === 0
-			&& c.pos.isNearTo(this)
 		);
+		targets = this.pos.findInRange(alliedCreeps, 1);
 		if (targets.length > 0) {
 			prio = this.getPriorityCreep(targets, true);
 			this.isBusy = true;

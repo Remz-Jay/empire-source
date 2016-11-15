@@ -38,9 +38,9 @@ export default class PowerHealer extends WarfareCreepAction  {
 
 	public move(): void {
 		if (!this.moveUsingPositions(2)) {
-			const closest = this.creep.pos.findClosestByRange(_.filter(this.creep.room.myCreeps,
-				(c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(ATTACK) > 1))
-				|| this.creep.pos.findClosestByRange(_.filter(this.creep.room.myCreeps, (c: Creep) => c.id !== this.creep.id && c.getActiveBodyparts(HEAL) < 6)
+			const closest = this.creep.pos.findClosestByRange(
+				global.filterWithCache(`ph-${this.creep.room.name}-attack`, this.creep.room.myCreeps, (c: Creep) => c.hasActiveBodyPart(ATTACK)) as Creep[])
+				|| this.creep.pos.findClosestByRange(_.filter(this.creep.room.myCreeps, (c: Creep) => c.id !== this.creep.id && c.stats.current.heal < 6 * HEAL_POWER)
 			);
 			if (!!closest && !this.creep.pos.isNearTo(closest)) {
 				// get in range

@@ -7,32 +7,15 @@ export default class Harvester extends CreepAction {
 	public static MINRCL: number = global.MINRCL_HARVESTER;
 	public static ROLE: string = "Harvester";
 
-	public static basePart: string[] = [CARRY, CARRY, MOVE];
-	public static bodyPart: string[] = [WORK, WORK, MOVE];
-	public static maxParts: number = 3;
+	public static basePart: string[] = [CARRY, MOVE];
+	public static bodyPart: string[] = [WORK];
+	public static maxParts: number = 5;
 
 	public static getBody(room: Room) {
-		const emergency: boolean = (
-			room.controller.level < 6 &&
-			(
-				SourceManager.isEmergency()
-				|| (this.getNumberOfCreepsInRole(room) < (this.getCreepLimit(room) / 2))
-			)
-		);
-		if (room.energyCapacityAvailable < 400) {
-			return global.sortBodyParts([WORK, WORK, CARRY, MOVE]);
-		}
-		let numParts: number;
-		if (this.getNumberOfCreepsInRole(room) > 0 && !emergency) {
-			numParts = _.floor(
-				(room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
-				global.calculateRequiredEnergy(this.bodyPart));
-		} else {
-			this.bodyPart = [WORK, CARRY, MOVE];
-			numParts = _.floor((room.energyAvailable) / global.calculateRequiredEnergy(this.bodyPart));
-		}
+		let numParts = _.floor((room.energyCapacityAvailable - global.calculateRequiredEnergy(this.basePart)) /
+			global.calculateRequiredEnergy(this.bodyPart));
 		numParts = global.clamp(numParts, 1, this.maxParts);
-		let body: string[] = this.basePart;
+		let body = this.basePart;
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
 				body = body.concat(this.bodyPart);
@@ -54,7 +37,8 @@ export default class Harvester extends CreepAction {
 	}
 
 	public static getCreepLimit(room: Room): number {
-		return SourceManager.getNumberOfRequiredHarvesters();
+		// return SourceManager.getNumberOfRequiredHarvesters();
+		return room.sources.length;
 	}
 
 	public targetSource: Source;
@@ -253,7 +237,7 @@ export default class Harvester extends CreepAction {
 				} else {
 					if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.2) && container.hits < container.hitsMax) {
 						return this.creep.repair(container);
-					} else if (!!container && this.creep.carry.energy > (this.creep.carryCapacity * 0.8)) {
+					} else if (!!container && this.creep.carry.energy >= (this.creep.carryCapacity * 0.8)) {
 						if (!!link && link.energy < link.energyCapacity && this.creep.pos.isNearTo(link.pos)) {
 							this.creep.logTransfer(link, RESOURCE_ENERGY);
 						} else if (this.creep.pos.isNearTo(container.pos)) {

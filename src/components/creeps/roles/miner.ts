@@ -83,11 +83,14 @@ export default class Miner extends CreepAction {
 	public tryMining(): number {
 		if (this.targetMineralSource.mineralAmount > 0 && this.targetExtractor.cooldown === 0) {
 			if (this.creep.carrySum > (this.creep.carryCapacity * 0.9)) {
-				const targets: Structure[] = this.creep.room.containers.filter(
+				const container: StructureContainer = _(this.creep.room.containers).filter(
 					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
-				);
-				if (targets.length > 0) {
-					this.creep.logTransfer(targets[0], this.getMineralTypeFromStore(this.creep));
+				).first() as StructureContainer;
+				if (!!container) {
+					this.creep.logTransfer(container, this.getMineralTypeFromStore(this.creep));
+					if (!this.creep.pos.isEqualTo(container.pos)) {
+						this.moveTo(container.pos);
+					}
 				}
 			}
 			return this.creep.harvest(this.targetMineralSource);

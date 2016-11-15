@@ -6,12 +6,12 @@ export default class WarArcher extends WarfareCreepAction {
 	public static MINRCL: number = global.MINRCL_WF_WARRIOR;
 	public static ROLE: string = "WarArcher";
 
-	public static maxParts = 15;
+	public static maxParts = 8;
 	public static maxTough = 2;
 	public static maxCreeps = 5;
-	public static bodyPart = [RANGED_ATTACK, RANGED_ATTACK, MOVE];
+	public static bodyPart = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE];
 	public static toughPart = [TOUGH, TOUGH, MOVE];
-	public static basePart = [HEAL, HEAL, HEAL, HEAL, TOUGH, TOUGH, MOVE, MOVE, MOVE];
+	public static basePart = [HEAL, HEAL, HEAL, HEAL, MOVE, TOUGH, TOUGH, TOUGH, TOUGH, MOVE];
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		const bodyParts: string[] = this.getBody(room);
@@ -26,6 +26,7 @@ export default class WarArcher extends WarfareCreepAction {
 
 	public static getBody(room: Room) {
 		return super.getToughBody(room);
+		// return [TOUGH, RANGED_ATTACK, HEAL, MOVE]; // test dummy config
 	}
 
 	public static getCreepLimit(room: Room): number {
@@ -37,6 +38,7 @@ export default class WarArcher extends WarfareCreepAction {
 	public noTarget: boolean = true;
 	public sourceKeeperDuty: boolean = false;
 	public boosts: string[] = [
+		RESOURCE_CATALYZED_GHODIUM_ALKALIDE, // -70% damage taken
 		RESOURCE_CATALYZED_KEANIUM_ALKALIDE, // +300% rangedAttack and rangedMassAttack effectiveness
 		RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, // +300% heal and rangedHeal effectiveness
 		RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, // +300% fatigue decrease speed

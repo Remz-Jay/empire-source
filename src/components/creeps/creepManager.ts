@@ -8,7 +8,7 @@ import Repair from "./roles/repair2";
 import Miner from "./roles/miner";
 import Scientist from "./roles/scientist";
 import Biter from "./roles/biter";
-import Dismantler from "./roles/dismantler";
+// import Dismantler from "./roles/dismantler";
 
 export default class CreepManager {
 	private roles: typeof CreepAction[] = [
@@ -21,7 +21,7 @@ export default class CreepManager {
 		Miner,
 		Scientist,
 		Biter,
-		Dismantler,
+		// Dismantler,
 	];
 	public constructor() {
 		this.roles = _.sortBy(this.roles, "PRIORITY");
@@ -42,12 +42,13 @@ export default class CreepManager {
 				const creepRole: string = this.roles[index].ROLE;
 				const creepsInRole: Creep[] = _.get(global.tickCache.rolesByRoom, `${creepRole}.${room.name}`, []);
 				const numCreeps: number = creepsInRole.length;
-				const creepLimit: number = this.roles[index].getCreepLimit(room);
-
-				if (numCreeps < creepLimit && !isSpawning && room.mySpawns.length > 0) {
-					const config: CreepConfiguration = this.roles[index].getCreepConfig(room);
-					if (!_.isNumber(this.createCreep(room, config))) {
-						isSpawning = true;
+				if (Game.time % 5 === 0) {
+					const creepLimit: number = this.roles[index].getCreepLimit(room);
+					if (numCreeps < creepLimit && !isSpawning && room.mySpawns.length > 0) {
+						const config: CreepConfiguration = this.roles[index].getCreepConfig(room);
+						if (!_.isNumber(this.createCreep(room, config))) {
+							isSpawning = true;
+						}
 					}
 				}
 				if (numCreeps > 0) {

@@ -60,7 +60,7 @@ export default class Warrior extends WarfareCreepAction {
 		if (!this.moveUsingPositions()) {
 			if (this.powerBankDuty) {
 				const target = this.creep.pos.findClosestByRange(this.creep.room.groupedStructures[STRUCTURE_POWER_BANK]);
-				const healer = _(this.creep.safeLook(LOOK_CREEPS, 1)).map("creep").filter((c: Creep) => c.getActiveBodyparts(HEAL) > 0).first();
+				const healer = _(this.creep.safeLook(LOOK_CREEPS, 1)).map("creep").filter((c: Creep) => c.hasActiveBodyPart(HEAL)).first();
 				if (!!target && !this.creep.pos.isNearTo(target)) {
 					// get in range
 					this.moveTo(target.pos);

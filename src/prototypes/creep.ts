@@ -6,6 +6,8 @@ interface Creep {
 	getStats(): CreepStatsObject;
 	logTransfer(target: Creep | Spawn | Structure, resourceType: string, amount?: number): number;
 	pickupResourcesInRange(skipContainers?: boolean): void;
+	getReverseActiveBodyparts(type: string): number;
+	hasActiveBodyPart(type: string | string[]): boolean;
 }
 
 Object.defineProperty(Creep.prototype, "carrySum", {
@@ -140,6 +142,32 @@ Object.defineProperty(Creep.prototype, "getStats", {
 Object.defineProperty(Creep.prototype, "stats", {
 	get: function() {
 		return (!!this.__stats) ? this.__stats : this.__stats = this.getStats();
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Creep.prototype, "getReverseActiveBodyparts", {
+	value: function (type: string) {
+		let count = 0;
+		for (let i = this.body.length - 1; i >= 0; i = i - 1) {
+			if (this.body[i].hits <= 0) {
+				break;
+			}
+			if (this.body[i].type === type) {
+				count = count + 1;
+			}
+		}
+		return count;
+	},
+	configurable: true,
+	enumerable: false,
+});
+Object.defineProperty(Creep.prototype, "hasActiveBodyPart", {
+	value: function (type: string | string[]) {
+		if (_.isString(type)) {
+			type = [type];
+		}
+		return (!!_.findLast(this.body, (b: BodyPartDefinition) => _.includes(type, b.type) && !!b.hits));
 	},
 	configurable: true,
 	enumerable: false,

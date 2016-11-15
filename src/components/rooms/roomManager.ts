@@ -118,12 +118,14 @@ export function governRooms(): void {
 						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.stack);
 					}
 				}
-				try {
-					if (!!room.observer) {
-						room.observer.run();
+				if (Game.cpu.bucket > global.BUCKET_MIN + 1000 && Game.cpu.getUsed() < Game.cpu.limit) {
+					try {
+						if (!!room.observer) {
+							room.observer.run();
+						}
+					} catch (e) {
+						console.log("RoomManager.Observer", room.name, e.stack, e.stack);
 					}
-				} catch (e) {
-					console.log("RoomManager.Observer", room.name, e.stack, e.stack);
 				}
 			}
 

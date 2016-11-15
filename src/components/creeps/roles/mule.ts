@@ -80,16 +80,16 @@ export default class Mule extends CreepAction {
 	}
 
 	public getTargetList(blackList: string[] = []): Structure[] {
-		const energyStructures = _.union(
-			this.creep.room.myGroupedStructures[STRUCTURE_EXTENSION],
-			this.creep.room.myGroupedStructures[STRUCTURE_TOWER],
-			this.creep.room.myGroupedStructures[STRUCTURE_SPAWN],
-		);
-		return energyStructures.filter((structure: EnergyStructure) =>
-		!_.includes(blackList, structure.id)
-			&& ((structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
-				|| structure.energy < (structure.energyCapacity * 0.8))
-		);
+		const energyStructures = global.filterWithCache(`energyStructures-${this.creep.room.name}`,
+			_.union(
+				this.creep.room.myGroupedStructures[STRUCTURE_EXTENSION],
+				this.creep.room.myGroupedStructures[STRUCTURE_TOWER],
+				this.creep.room.myGroupedStructures[STRUCTURE_SPAWN],
+			),
+			(structure: EnergyStructure) => (structure.structureType === STRUCTURE_EXTENSION && structure.energy < structure.energyCapacity)
+			|| structure.energy < (structure.energyCapacity * 0.8)
+		) as Structure[];
+		return energyStructures.filter((structure: EnergyStructure) => !_.includes(blackList, structure.id));
 	}
 	public scanForTargets(): Structure {
 		const blackList = Mule.getBlackList();
@@ -185,8 +185,8 @@ export default class Mule extends CreepAction {
 	public setSource(idle: boolean = false): void {
 		const blackList = Mule.getBlackList();
 		// Get energy from containers
-		let structs = this.creep.room.containers.filter((structure: StructureContainer) =>
-		!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
+		let structs = this.creep.room.groupedStructures[STRUCTURE_CONTAINER].filter((structure: StructureContainer) =>
+		!_.includes(blackList, structure.id)
 		&& structure.store[RESOURCE_ENERGY] >= (this.creep.carryCapacity - this.creep.carrySum));
 		let source: StructureContainer = this.creep.pos.findClosestByPath(structs, {
 			algorithm: "astar",
@@ -196,8 +196,8 @@ export default class Mule extends CreepAction {
 		}) as StructureContainer;
 		if (!source && idle && this.creep.room.controller.level > 5) {
 			// No energy in containers found. Get some minerals instead
-			structs = this.creep.room.containers.filter((structure: StructureContainer) =>
-			!_.includes(blackList, structure.id) && structure.structureType === STRUCTURE_CONTAINER
+			structs = this.creep.room.groupedStructures[STRUCTURE_CONTAINER].filter((structure: StructureContainer) =>
+			!_.includes(blackList, structure.id)
 			&& _.sum(structure.store) >= (this.creep.carryCapacity - this.creep.carrySum) / 2);
 			source = this.creep.pos.findClosestByPath(structs, {
 				algorithm: "astar",
@@ -415,8 +415,8 @@ export default class Mule extends CreepAction {
 				}, this);
 			} else {
 				if (!this.creep.bagFull) {
-					const containers = this.creep.room.containers.filter((s: StructureContainer) => s.structureType === STRUCTURE_CONTAINER
-						&& _.sum(s.store) > 50
+					const containers = this.creep.room.groupedStructures[STRUCTURE_CONTAINER].filter(
+						(s: StructureContainer) =>_.sum(s.store) > 50
 						&& s.pos.isNearTo(this.creep.pos)
 					) as StructureContainer[];
 					if (containers.length > 0) {
