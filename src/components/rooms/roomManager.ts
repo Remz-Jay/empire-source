@@ -83,15 +83,15 @@ export function governRooms(): void {
 				console.log("RoomManager.Towers", room.name, e.stack);
 			}
 
-			if (Game.cpu.bucket > (global.BUCKET_MIN / 2)) {
+			if (Game.cpu.bucket > (global.BUCKET_MIN / 2) && Game.cpu.getUsed() < Game.cpu.limit) {
 				try {
 					_.invoke(room.myGroupedStructures[STRUCTURE_LINK], "run");
 				} catch (e) {
 					console.log("RoomManager.Links", room.name, e.stack);
 				}
-/*				if (!!room.powerSpawn && room.powerSpawn.power > 0 && room.powerSpawn.energy >= POWER_SPAWN_ENERGY_RATIO) {
+				if (!!room.powerSpawn && room.powerSpawn.power > 0 && room.powerSpawn.energy >= POWER_SPAWN_ENERGY_RATIO) {
 					room.powerSpawn.processPower();
-				}*/
+				}
 				if (global.time % 5 === 0) {
 					try {
 						if (!!room.terminal) {
@@ -101,9 +101,6 @@ export function governRooms(): void {
 						console.log("RoomManager.Terminal", room.name, e.stack);
 					}
 				}
-			}
-
-			if (Game.cpu.bucket > global.BUCKET_MIN) {
 				if (room.myLabs.length > 2) {
 					try {
 						if (!!room.labReaction) {
@@ -118,19 +115,20 @@ export function governRooms(): void {
 						console.log(`ERROR :: RoomManager.runLabs:`, room.name, e.stack);
 					}
 				}
-				if (Game.cpu.bucket > global.BUCKET_MIN + 1000 && Game.cpu.getUsed() < Game.cpu.limit) {
-					try {
-						if (!!room.observer) {
-							room.observer.run();
-						}
-					} catch (e) {
-						console.log("RoomManager.Observer", room.name, e.stack, e.stack);
+			}
+
+			if (Game.cpu.bucket > global.BUCKET_MIN + 1000 && Game.cpu.getUsed() < Game.cpu.limit) {
+				try {
+					if (!!room.observer) {
+						room.observer.run();
 					}
+				} catch (e) {
+					console.log("RoomManager.Observer", room.name, e.stack, e.stack);
 				}
 			}
 
 			// run the creeps in this room
-			if (Game.cpu.bucket > (global.BUCKET_MIN / 4)) {
+			if (Game.cpu.bucket > (global.BUCKET_MIN / 4) && (room.hostileCreeps.length > 0 || Game.cpu.getUsed() < Game.cpu.limit)) {
 				try {
 					cm.governCreeps(room);
 				} catch (e) {

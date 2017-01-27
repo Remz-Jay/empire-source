@@ -83,7 +83,7 @@ export default class Miner extends CreepAction {
 	public tryMining(): number {
 		if (this.targetMineralSource.mineralAmount > 0 && this.targetExtractor.cooldown === 0) {
 			if (this.creep.carrySum > (this.creep.carryCapacity * 0.9)) {
-				const container: StructureContainer = _(this.creep.room.containers).filter(
+				const container: StructureContainer = _(this.creep.room.groupedStructures[STRUCTURE_CONTAINER]).filter(
 					(c: Container) => _.sum(c.store) < c.storeCapacity && c.pos.isNearTo(this.creep.pos)
 				).first() as StructureContainer;
 				if (!!container) {
@@ -100,10 +100,16 @@ export default class Miner extends CreepAction {
 	}
 
 	public moveToMine(): void {
-		if (!this.creep.pos.isNearTo(this.targetMineralSource.pos)) {
-			this.moveTo(this.targetMineralSource.pos);
+		if (this.targetMineralSource.mineralAmount === 0 && !this.creep.bagEmpty) {
+			this.moveToDropMinerals();
+		} else if (this.targetMineralSource.mineralAmount === 0) {
+			this.creep.suicide();
 		} else {
-			this.tryMining();
+			if (!this.creep.pos.isNearTo(this.targetMineralSource.pos)) {
+				this.moveTo(this.targetMineralSource.pos);
+			} else {
+				this.tryMining();
+			}
 		}
 	}
 
@@ -134,7 +140,7 @@ export default class Miner extends CreepAction {
 
 	public action(): boolean {
 		// Don't do super.action here, we don't want to pick up resources.
-		if (!this.renewCreep() || !this.flee()) {
+		if (!this.renewCreep()) {
 			return false;
 		}
 		if (this.creep.bagFull) {

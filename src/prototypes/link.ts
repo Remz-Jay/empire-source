@@ -30,7 +30,7 @@ StructureLink.prototype.send = function(): boolean {
 		}
 		if (r.energy < transferValue) {
 			transferValue = global.clamp(this.calcTotal(transferValue - r.energy), 0, this.energy);
-			if (transferValue > 0) {
+			if (transferValue > 50) {
 				const status = this.transferEnergy(r, transferValue);
 				if (status !== OK) {
 					this.transferEnergy(r);

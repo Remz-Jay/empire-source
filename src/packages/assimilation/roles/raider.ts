@@ -74,7 +74,7 @@ export default class ASMRaider extends ASMCreepAction {
 				this.creep.memory.target = this.storage.id;
 			} else {
 				// last resort; just return energy to the nearest container.
-				const target: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.containers, {
+				const target: StructureContainer = this.creep.pos.findClosestByPath(this.creep.room.groupedStructures[STRUCTURE_CONTAINER], {
 					filter: (structure: StructureContainer) => _.sum(structure.store) < structure.storeCapacity,
 					costCallback: this.roomCallback,
 				}) as StructureContainer;
@@ -121,7 +121,7 @@ export default class ASMRaider extends ASMCreepAction {
 			}
 			switch (status) {
 				case ERR_FULL:
-					const containers = this.creep.room.containers.filter((c: StorageStructure) => c.pos.isNearTo(this.creep.pos));
+					const containers = this.creep.room.groupedStructures[STRUCTURE_CONTAINER].filter((c: StorageStructure) => c.pos.isNearTo(this.creep.pos));
 					if (containers.length > 0) {
 						this.creep.logTransfer(containers[0], RESOURCE_ENERGY);
 					}

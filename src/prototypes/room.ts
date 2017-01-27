@@ -1,10 +1,6 @@
 interface Room {
 	costMatrix: CostMatrix;
 	creepMatrix: CostMatrix;
-	containers: Structure[];
-	containerCapacityAvailable: number;
-	energyInContainers: number;
-	energyPercentage: number;
 	allCreeps: Creep[];
 	myCreeps: Creep[];
 	hostileCreeps: Creep[];
@@ -43,10 +39,6 @@ interface Room {
 	expireMatrices(): void;
 	getCreepMatrix(): CostMatrix;
 	getCostMatrix(ignoreRoomConfig?: boolean, refreshOnly?: boolean): CostMatrix;
-	getContainers(): Structure[];
-	getContainerCapacityAvailable(): number;
-	getEnergyInContainers(): number;
-	getEnergyPercentage(): number;
 	getAllCreeps(): Creep[];
 	getMyCreeps(): Creep[];
 	getHostileCreeps(): Creep[];
@@ -264,19 +256,6 @@ Room.prototype.getCostMatrix = function (ignoreRoomConfig: boolean = false, refr
 		console.log("Room.prototype.getCostMatrix", this.name, e.stack);
 		return new PathFinder.CostMatrix();
 	}
-};
-
-Room.prototype.getContainers = function (): Structure[] {
-	return _.union(this.groupedStructures[STRUCTURE_CONTAINER], this.groupedStructures[STRUCTURE_STORAGE]) as Structure[];
-};
-Room.prototype.getContainerCapacityAvailable = function () {
-	return _.sum(this.containers, "storeCapacity");
-};
-Room.prototype.getEnergyInContainers = function () {
-	return _.sum(this.containers, (c: StorageStructure) => c.store[RESOURCE_ENERGY]);
-};
-Room.prototype.getEnergyPercentage = function () {
-	return _.floor(this.energyInContainers / (this.containerCapacityAvailable / 100));
 };
 Room.prototype.getAllCreeps = function(): Creep[] {
 	return this.find(FIND_CREEPS);
@@ -500,11 +479,6 @@ Room.prototype.addProperties = function () {
 	this.alliedCreeps =         (this.hostileCreeps.length > 0) ? this.getAlliedCreeps() : [];
 
 	this.myConstructionSites =  (this.allConstructionSites.length > 0) ? this.getMyConstructionSites() : [];
-
-	this.containers =           (this.allStructures.length > 0) ? this.getContainers() : [];
-	this.containerCapacityAvailable = (this.containers.length > 0) ? this.getContainerCapacityAvailable() : 0;
-	this.energyInContainers =   (this.containers.length > 0) ? this.getEnergyInContainers() : 0;
-	this.energyPercentage =     (this.containers.length > 0) ? this.getEnergyPercentage() : 0;
 
 	// Cache a costMatrix in case we scanned this room using an observer last tick.
 	this.getCostMatrix(false, true);

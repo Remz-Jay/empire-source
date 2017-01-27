@@ -23,19 +23,6 @@ export default class ASMBuilder extends ASMCreepAction {
 
 	public static getCreepLimit(): number {
 		return 1;
-		/*		const targetRoom = RoomManager.getRoomByName(this.config.targetRoom);
-		 const num: number;
-		 if (targetRoom.controller.level > 4) {
-		 num = _.floor(targetRoom.energyInContainers / 10000);
-		 } else if (targetRoom.controller.level < 3) {
-		 num = this.maxCreeps;
-		 } else {
-		 num = this.maxCreeps;
-		 }
-		 if (num > this.maxCreeps) {
-		 num = this.maxCreeps;
-		 }
-		 return (num > 0) ? num : 1;*/
 	}
 
 	public setCreep(creep: Creep) {
@@ -131,8 +118,9 @@ export default class ASMBuilder extends ASMCreepAction {
 		} else {
 			if (!this.creep.memory.source) {
 				// Prefer energy from containers
+				const containers = _.union(this.creep.room.groupedStructures[STRUCTURE_CONTAINER], this.creep.room.groupedStructures[STRUCTURE_STORAGE]);
 				const source: Source | StorageStructure =
-					this.creep.pos.findClosestByPath(_.filter(this.creep.room.containers, (structure: StorageStructure) => structure.store[RESOURCE_ENERGY] > 100), {
+					this.creep.pos.findClosestByPath(_.filter(containers, (structure: StorageStructure) => structure.store[RESOURCE_ENERGY] > 100), {
 						costCallback: this.roomCallback,
 				}) as StorageStructure
 				|| this.creep.pos.findClosestByPath(_.filter(this.creep.room.sources, (source: Source) => (source.energy > 100) || source.ticksToRegeneration < 30), {

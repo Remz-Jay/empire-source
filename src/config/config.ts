@@ -67,6 +67,10 @@ global.alliedPlayers = [
 	"Garland",
 	"Nisou",
 	"Revrick",
+	"Tanjera",
+	"Maxion",
+	"Trepidimous",
+	"Atlan",
 ];
 
 /**
@@ -74,7 +78,7 @@ global.alliedPlayers = [
  * Anything below the treshold will be executed, everything above is conditional.
  * @type {number}
  */
-global.PRIORITY_TRESHOLD = 41;
+global.PRIORITY_TRESHOLD = 51;
 /**
  * Priorities for Regular Room Creeps
  * @type {number}
@@ -88,7 +92,7 @@ global.PRIORITY_LINKER          = 39;
 global.PRIORITY_REPAIR          = 40;
 global.PRIORITY_BUILDER         = 40;
 global.PRIORITY_SCIENTIST       = 40;
-global.PRIORITY_DISMANTLER      = 40;
+global.PRIORITY_DISMANTLER      = 50;
 global.PRIORITY_MINER           = 50;
 
 /**

@@ -115,9 +115,9 @@ StructureTerminal.prototype.run = function (): boolean {
 				return true;
 			}
 		});
-		const powerRoom: Room = roomList.find((r: Room) => !!r.powerSpawn && r.storage.store.energy <= (2 * global.STORAGE_MIN));
+		const powerRoom: Room = roomList.find((r: Room) => !!r.powerSpawn && r.storage.store.energy <= (1.1 * global.STORAGE_MIN));
 		if (!this.sending && !!powerRoom && this.room.name !== powerRoom.name
-			&& Game.map.getRoomLinearDistance(this.room.name, powerRoom.name, true) < 10
+			&& Game.map.getRoomLinearDistance(this.room.name, powerRoom.name, true) < 8
 			&& this.storage.store.energy > (2 * global.STORAGE_MIN)
 		) {
 			const transferCosts: number = Game.market.calcTransactionCost(global.TERMINAL_ENERGY_MAX, this.room.name, powerRoom.name);
@@ -235,6 +235,7 @@ StructureTerminal.prototype.run = function (): boolean {
 					if (!this.sending
 						&& !room.storage.store[resource]
 						&& (!room.terminal.store[resource] || room.terminal.store[resource] < global.TERMINAL_MAX)
+						&& Game.map.getRoomLinearDistance(this.room.name, room.name, true) < 20
 					) {
 						const transferCosts: number = Game.market.calcTransactionCost(batchSize, this.room.name, room.name);
 						if (this.store.energy >= transferCosts) {

@@ -6,9 +6,9 @@ export default class Upgrader extends CreepAction {
 	public static MINRCL: number = global.MINRCL_UPGRADER;
 	public static ROLE: string = "Upgrader";
 
-	public static maxParts = 8;
+	public static maxParts = 10;
 	public static maxCreeps = 2;
-	public static bodyPart = [CARRY, MOVE, WORK, WORK, WORK, MOVE];
+	public static bodyPart = [CARRY, WORK, WORK, WORK, MOVE];
 
 	public static getCreepConfig(room: Room): CreepConfiguration {
 		const bodyParts: string[] = this.getBody(room);
@@ -32,15 +32,15 @@ export default class Upgrader extends CreepAction {
 			case 4:
 				return 1;
 			case 5:
-				return 2;
+				return 0;
 			case 6:
-				return 2;
+				return 1;
 			case 7:
 				return 1;
 			case 8:
 				return 1;
 			default:
-				return global.clamp(_.floor(room.energyInContainers / 200000), 1, this.maxCreeps);
+				return 1;
 		}
 	}
 

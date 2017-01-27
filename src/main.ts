@@ -80,13 +80,16 @@ export function loop() {
 	} catch (e) {
 		console.log("AssimilationManager Exception", (<Error> e).message);
 	}
-	try {
-		used = Game.cpu.getUsed();
-		MarketManager.governMarket();
-		console.log(`Market: ${_.round(Game.cpu.getUsed() - used, 2)}`);
-	} catch (e) {
-		console.log("MarketManager Exception", (<Error> e).message);
+	if (Game.cpu.getUsed() < Game.cpu.limit) {
+		try {
+			used = Game.cpu.getUsed();
+			MarketManager.governMarket();
+			console.log(`Market: ${_.round(Game.cpu.getUsed() - used, 2)}`);
+		} catch (e) {
+			console.log("MarketManager Exception", (<Error> e).message);
+		}
 	}
+
 	try {
 		used = Game.cpu.getUsed();
 		let pm = new PowerManager();

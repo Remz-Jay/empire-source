@@ -6,7 +6,7 @@ export default class WarUpgrader extends WarfareCreepAction {
 	public static MINRCL: number = global.MINRCL_WF_HEALER;
 	public static ROLE: string = "WarUpgrader";
 
-	public static maxParts = 10;
+	public static maxParts = 5;
 	public static maxCreeps = 1;
 	public static bodyPart = [CARRY, WORK, WORK, WORK, MOVE];
 
@@ -44,6 +44,7 @@ export default class WarUpgrader extends WarfareCreepAction {
 				if (this.creep.bagFull) {
 					this.creep.memory.upgrading = true;
 				}
+				this.creep.pickupResourcesInRange();
 				if (this.creep.bagEmpty || !this.creep.memory.upgrading) {
 					this.creep.memory.upgrading = false;
 					if (!!this.storage && this.storage.store.energy > 0) {
@@ -60,6 +61,12 @@ export default class WarUpgrader extends WarfareCreepAction {
 						this.moveTo(this.targetController.pos);
 					} else {
 						// once we're at the controller, claim it.
+						const target = this.creep.room.myGroupedStructures[STRUCTURE_LINK].filter((l: StructureLink) => l.energy > 0
+							&& l.pos.isNearTo(this.creep.pos)
+						);
+						if (!!target) {
+							this.creep.withdraw(target.shift(), RESOURCE_ENERGY);
+						}
 						this.creep.upgradeController(this.targetController);
 					}
 				}

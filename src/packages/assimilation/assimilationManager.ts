@@ -407,7 +407,13 @@ export function govern(): void {
 						console.log(`ERROR :: ASM in room ${roomName}: [CLAIM] ${e.stack}`);
 					}
 				}
-				if (!!targetRoom && (!config.hasController || targetRoom.hostileCreeps.length > 0 || Game.cpu.bucket > (global.BUCKET_MIN / 2))) {
+				if (!!targetRoom
+					&& (
+						!config.hasController
+						|| targetRoom.hostileCreeps.length > 0
+						|| (Game.cpu.bucket > (global.BUCKET_MIN / 2) && Game.cpu.getUsed() < Game.cpu.limit)
+					)
+				) {
 					if (config.hasController && targetRoom.hostileCreeps.length > 1) { // It makes no sense to check for hostiles in SK rooms.
 						goHome = true;
 						if (!targetRoom.memory.hostileAlarm || targetRoom.memory.hostileAlarm !== targetRoom.hostileCreeps.length) {

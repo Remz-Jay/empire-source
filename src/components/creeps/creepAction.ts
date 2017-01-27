@@ -539,11 +539,9 @@ export default class CreepAction implements ICreepAction {
 		if (!homeRoom) {
 			return true;
 		}
-		if (this.creep.memory.hasRenewed === false && this.creep.ticksToLive > 350
-			&& (
-				homeRoom.energyAvailable < 300
-				|| ((homeRoom.energyInContainers + homeRoom.energyAvailable) < homeRoom.energyCapacityAvailable)
-			)
+		if (this.creep.memory.hasRenewed === false
+			&& this.creep.ticksToLive > 350
+			&& homeRoom.energyAvailable < 300
 		) {
 			this.creep.memory.hasRenewed = true;
 			delete this.creep.memory.renewStation;

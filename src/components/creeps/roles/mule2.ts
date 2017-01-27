@@ -20,14 +20,13 @@ export default class Mule extends CreepAction {
 	}
 
 	public static getBody(room: Room): string[] {
-		const emergency = this.getCreepsInRole(room).length < 1 || (room.energyInContainers + room.energyAvailable)  < (room.energyCapacityAvailable * 0.8);
 		let numParts: number;
-		if (this.getNumberOfCreepsInRole(room) > 0 && !emergency) {
+		if (this.getNumberOfCreepsInRole(room) > 0) {
 			numParts = _.floor((room.energyCapacityAvailable) / global.calculateRequiredEnergy(this.bodyPart));
 		} else {
 			numParts = _.floor((room.energyAvailable) / global.calculateRequiredEnergy(this.bodyPart));
 		}
-		numParts = global.clamp(numParts, 3, this.maxParts);
+		numParts = global.clamp(numParts, 1, this.maxParts);
 		let body: string[] = [];
 		for (let i = 0; i < numParts; i++) {
 			if (body.length + this.bodyPart.length <= 50) {
@@ -41,7 +40,7 @@ export default class Mule extends CreepAction {
 		if (room.name === "W6N42") {
 			return 3;
 		}
-		return (room.containers.length > 0) ? this.maxCreeps : 0;
+		return (room.groupedStructures[STRUCTURE_CONTAINER].length > 0) ? this.maxCreeps : 0;
 	};
 
 	public static getBlackList(): string[] {

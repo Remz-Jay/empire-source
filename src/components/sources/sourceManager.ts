@@ -89,15 +89,6 @@ export function getMiningSlots(source: Source): LookAtResultWithPos[] {
 
 export function getMaxHarvestersPerSource(): number {
 	return 1;
-/*	const capacity: number = sourceRoom.energyCapacityAvailable;
-	const max: number = 1;
-	if (capacity < 1200) {
-		max = 2;
-	}
-	if (capacity < 600 || isEmergency()) {
-		max = global.MAX_HARVESTERS_PER_SOURCE;
-	}
-	return max;*/
 }
 
 export function getNumberOfRequiredHarvesters(): number {
@@ -112,8 +103,4 @@ export function getNumberOfRequiredHarvesters(): number {
 		}
 	}, this);
 	return num;
-}
-
-export function isEmergency(): boolean {
-	return ((sourceRoom.energyInContainers + sourceRoom.energyAvailable) < (sourceRoom.energyCapacityAvailable * 0.8));
 }

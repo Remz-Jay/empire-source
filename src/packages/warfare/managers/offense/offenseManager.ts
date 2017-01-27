@@ -131,29 +131,6 @@ export function setup() {
 	};
 }
 
-function findRoute(fromRoom: string, toRoom: string): findRouteArray | number {
-	return Game.map.findRoute(fromRoom, toRoom, {
-		routeCallback(roomName) {
-			const parsed: any = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-			const isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-			const username = _.get(
-				_.find(Game.structures, (s) => true), "owner.username",
-				_.get(_.find(Game.creeps, (s) => true), "owner.username")
-			) as string;
-			const isMyRoom = Game.rooms[roomName] && Game.rooms[roomName].my;
-			const isMyReservedRoom = Game.rooms[roomName] &&
-				Game.rooms[roomName].controller &&
-				Game.rooms[roomName].controller.reservation &&
-				Game.rooms[roomName].controller.reservation.username === username;
-			if (isHighway || isMyRoom || isMyReservedRoom) {
-				return 1;
-			} else {
-				return 2.5;
-			}
-		},
-	});
-}
-
 function getConfigForRemoteTarget(remoteRoomName: string, homeRoomName?: string): RemoteRoomConfig {
 	initMemory();
 	if (!!Memory.offense.config[remoteRoomName]) {
@@ -198,8 +175,6 @@ function loadCreeps(targetRoomName: string, sq: any): Creep[] {
 	return creeps;
 }
 function manageSquad(targetRoomName: string, sq: SquadConfig, targetPositions: RoomPosition[]) {
-	console.log(`Squad with target room ${targetRoomName} has the following positions:`);
-	targetPositions.forEach((p: RoomPosition) => console.log(p));
 	const resetIterator = false;
 	const creeps = _.groupBy(loadCreeps(targetRoomName, sq), "memory.role");
 	_.each(sq.roles, function(squadRole: SquadRole) {
@@ -266,7 +241,7 @@ const claimConf = {
 		},
 		{
 			"role": "Sentinel",
-			"maxCreeps": 1,
+			"maxCreeps": 0,
 		},
 	],
 	wait: false,
@@ -284,7 +259,6 @@ export function govern(): void {
 					let f = _(Game.flags).filter((f: Flag) => f.name.startsWith("SA_")).sortBy("name").value();
 					console.log(f.length);
 					f.forEach((f: Flag) => {
-						console.log(f.name, f.pos);
 						SQPositions.push(f.pos);
 						SquadFlags.push(f);
 					});
@@ -294,9 +268,7 @@ export function govern(): void {
 					let SQPositions2: RoomPosition[] = [];
 					let SquadFlags2: Flag[] = [];
 					let f2 = _(Game.flags).filter((f: Flag) => f.name.startsWith("SQ_")).sortBy("name").value();
-					console.log(f2.length);
 					f2.forEach((f: Flag) => {
-						console.log(f.name, f.pos);
 						SQPositions2.push(f.pos);
 						SquadFlags2.push(f);
 					});

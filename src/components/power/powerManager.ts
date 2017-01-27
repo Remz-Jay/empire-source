@@ -26,15 +26,15 @@ export default class PowerManager {
 	constructor() {
 		this.loadFromMemory();
 		// this.rooms = _.filter(Game.rooms, (r: Room) => !!r.my && r.controller.level === 8);
-		let roomNames = ["W6N42", "W6N49", "W8N47", "W2N46"];
+		let roomNames = ["W6N42", "W6N49", "W9N44", "W2N46"];
 		roomNames.forEach((n: string) => this.rooms.push(Game.rooms[n]));
 		this.powerBanks = Memory.powerBanks || {};
 	}
 	public govern() {
 		if (_.keys(this.powerBanks).length > 0) {
-/*			if (this.squads.length < this.maxActiveSquads) {
+			if (this.squads.length < this.maxActiveSquads) {
 				this.dispatchPowerSquad();
-			}*/
+			}
 			if (this.squads.length > 0) {
 				this.squads.forEach((squad: SquadConfig) => {
 					this.manageSquad(squad);
